@@ -4,5 +4,5 @@ python-multipart==0.0.9
 python-dotenv==1.0.1
 pydantic-settings==2.2.1
 google-generativeai
-litellm[proxy]'==1.44.9 
+litellm[proxy]==1.44.9 
 openai==1.42.0
