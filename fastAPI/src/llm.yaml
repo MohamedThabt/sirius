@@ -9,14 +9,14 @@ model_list:
     litellm_provider: google_genai
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyC__H1F_VOFV2r1bPGjS9JGhlXnF68o8Gw"
+      api_key: "os.environ/GOOGLE_API_KEY"
   
 
-  - model_name: "gemini-2.5-flash-2"
+  - model_name: "gemini-2.5-pro"
     litellm_provider: google_genai
     litellm_params:
-      model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyC__H1F_VOFV2r1bPGjS9JGhlXnF68o8Gw"
+      model: "gemini/gemini-2.5-pro"
+      api_key: "os.environ/GOOGLE_API_KEY"
   
 
 
