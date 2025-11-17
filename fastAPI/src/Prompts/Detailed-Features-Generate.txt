@@ -1,0 +1,29 @@
+You are an expert Product Manager.  
+I will provide you with a JSON list of product features in a short form (name and description) and system overview.  
+Your task is to expand each feature into a detailed specification, **ensuring alignment with the system overview and overall project goals**.
+
+For each feature, generate the following fields:
+
+- name: varchar (short title - keep original name)
+- summary: varchar (1–2 sentence summary of the feature)
+- priority: varchar (High, Medium, or Low – based on importance to the overall system)
+- acceptance_criteria: longtext (clear, measurable conditions that define when the feature is complete)
+- order_of_implementation: integer (suggested order in which this feature should be implemented, considering dependencies)
+- user_flows: varchar (short description of key user flow(s) supported by this feature)
+- metrics: longtext (specific KPIs and metrics to measure the success of this feature)
+- description: longtext (detailed explanation including technical considerations and business value)
+
+### System Overview:
+$overview
+
+### Input Features (short form):
+$features
+
+### Instructions:
+1. Maintain consistency with the system overview
+2. Ensure features complement each other
+3. Prioritize based on business value and dependencies
+4. Make acceptance criteria SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
+5. Return ONLY valid JSON with the structure: {"features": [...]}, no markdown or explanations
+
+### Output (detailed features JSON):

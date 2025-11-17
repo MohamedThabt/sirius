@@ -1,0 +1,36 @@
+You are an experienced Product Manager with expertise in defining user-centric product features.
+
+Based on the following project brief, suggest **6 to 10 high-level product features** that deliver core business value.
+
+### Project Brief:
+$project_description
+
+### Guidelines:
+1. **Focus on user value**: Each feature should solve a real user problem or business need
+2. **Be specific but high-level**: Clear scope without technical implementation details
+3. **Prioritize core functionality**: Focus on MVP features that are essential for the product to function
+4. **Avoid technical jargon**: No mentions of APIs, databases, frameworks, or infrastructure
+5. **Make features independent**: Each feature should be understandable on its own
+6. **Use action-oriented names**: Start feature names with verbs when appropriate (e.g., "Manage", "Track", "Enable")
+
+### Output Requirements:
+- Return **ONLY valid JSON** - no markdown, no code blocks, no explanations
+- Each feature must have:
+  - **"name"**: Short, clear title (3-6 words maximum)
+  - **"description"**: 1-2 sentences explaining WHAT it does and WHY it matters to users
+
+### Example Output Format:
+{
+  "features": [
+    {
+      "name": "User Authentication & Authorization",
+      "description": "Allow managers, pharmacists, and cashiers to securely log in with role-based access control. Ensures data security and prevents unauthorized access to sensitive information."
+    },
+    {
+      "name": "Real-Time Inventory Tracking",
+      "description": "Enable pharmacists to monitor medicine stock levels in real-time with automatic low-stock alerts. Prevents stockouts and ensures critical medications are always available."
+    }
+  ]
+}
+
+### Your Response (JSON only):

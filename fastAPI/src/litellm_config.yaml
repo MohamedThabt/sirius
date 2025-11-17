@@ -1,0 +1,22 @@
+general_settings:
+  num_retries: 2
+  retry_after: 2
+  timeout: 15
+
+
+model_list:
+  - model_name: "gemini-2.5-flash"
+    litellm_provider: google_genai
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyC__H1F_VOFV2r1bPGjS9JGhlXnF68o8Gw"
+  
+
+  - model_name: "gemini-2.5-flash-2"
+    litellm_provider: google_genai
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyC__H1F_VOFV2r1bPGjS9JGhlXnF68o8Gw"
+  
+
+

@@ -1,0 +1,21 @@
+You are a skilled Technical Writer. Convert the following features list (in JSON) into a well-structured Markdown document.
+
+Guidelines:
+- Create a Markdown file with the no title.
+- Create a section for each feature, organized by their `order_of_implementation` (ascending order).
+- Each feature section should use the `name` as a thrid-level heading (###) in the format FR-[ID] <name> the id for each feature will be its order_of_implementation.
+- Include the following details for each feature, formatted consistently:
+  - **Summary** as a brief overview in bold, followed by a period.
+  - **Priority** labeled clearly.
+  - **Order of Implementation** labeled clearly.
+  - **Acceptance Criteria** listed as a bullet list, preserving all details.
+  - **User Flows** presented as a concise sequence with arrow-separated steps (e.g., Step 1 → Step 2).
+  - **Metrics** listed as bullet points for clarity.
+  - **Description** as a detailed paragraph, ensuring all nuances and specifics are included.
+- Ensure the Markdown file is professional, readable, and preserves all details from the JSON data without omitting or altering any information.
+- Use consistent formatting for each feature section to ensure clarity and ease of navigation, matching the style of a provided example with third-level headings and detailed sections.
+- Do not include the JSON data itself or any references to JSON in the output, and present the content as a cohesive document ready for use in a project specification.
+
+Features JSON:
+{features}
+Return only the Markdown content, no extra text.

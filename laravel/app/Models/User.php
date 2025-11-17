@@ -1,0 +1,138 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'provider',
+        'provider_id',
+        'avatar',
+        'email_verified_at',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    /**
+     * Get the projects for the user.
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    /**
+     * Get all projects where the user is a team member.
+     */
+    public function teamProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_user')
+            ->withPivot('role', 'joined_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get pending project invitations for the user.
+     */
+    public function pendingProjectInvitations(): HasMany
+    {
+        return $this->hasMany(ProjectInvitation::class, 'user_id')
+            ->where('status', ProjectInvitation::STATUS_PENDING)
+            ->with(['project', 'inviter']);
+    }
+
+    /**
+     * Get all project invitations for the user.
+     */
+    public function projectInvitations(): HasMany
+    {
+        return $this->hasMany(ProjectInvitation::class, 'user_id');
+    }
+
+    /**
+     * Get all project_user pivot records.
+     */
+    public function projectUsers(): HasMany
+    {
+        return $this->hasMany(ProjectUser::class);
+    }
+
+    /**
+     * Get projects owned by the user (where role is owner in project_user table).
+     */
+    public function ownedProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_user')
+            ->wherePivot('role', ProjectUser::ROLE_OWNER)
+            ->withPivot('role', 'joined_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get projects where the user is collaborating (not owner).
+     */
+    public function collaboratingProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_user')
+            ->wherePivotIn('role', [ProjectUser::ROLE_ADMIN, ProjectUser::ROLE_DEVELOPER, ProjectUser::ROLE_VIEWER])
+            ->withPivot('role', 'joined_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the role of the user in a specific project.
+     */
+    public function getProjectRole(int $projectId): ?string
+    {
+        $project = $this->teamProjects()->where('projects.id', $projectId)->first();
+        return $project?->pivot->role;
+    }
+
+    /**
+     * Get the GitHub token for the user.
+     */
+    public function githubToken(): HasOne
+    {
+        return $this->hasOne(GithubToken::class);
+    }
+}

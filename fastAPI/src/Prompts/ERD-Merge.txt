@@ -1,0 +1,43 @@
+You are a database design assistant.
+I will provide you with multiple feature-level ERDs in JSON format.
+Your task is to merge them into one consistent project-level ERD.
+- Resolve conflicts between tables (e.g., same entities across features).
+- Ensure relationships are preserved and normalized.
+- Output only a clean Mermaid ER diagram.
+
+# OUTPUT FORMAT:
+* The entire output must be a single, valid Mermaid erDiagram code block.
+* Do not provide any explanations, introductory text, or concluding remarks. The Mermaid code should be the only thing you generate.
+* Follow the exact syntax from the example below meticulously.
+
+### EXAMPLE SYNTAX:
+```mermaid
+erDiagram
+    users {
+        integer id "PK"
+        varchar username "UK, NOT NULL"
+        varchar email "UK, NOT NULL"
+        timestamp created_at "NOT NULL"
+    }
+    products {
+        integer id "PK"
+        varchar name "NOT NULL"
+        decimal price "NOT NULL"
+    }
+    reviews {
+        integer id "PK"
+        integer user_id "FK, NOT NULL"
+        integer product_id "FK, NOT NULL"
+        integer rating "NOT NULL"
+        text comment
+    }
+
+    reviews --o{ users : "user_id to id"
+    reviews --o{ products : "product_id to id"
+```
+
+
+Feature ERDs (JSON):
+$features_erds
+
+
