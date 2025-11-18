@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from routes.api_routes import router
 from utils.logger import setup_logger
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 setup_logger()
 

@@ -3,20 +3,16 @@ general_settings:
   retry_after: 2
   timeout: 15
 
-
 model_list:
-  - model_name: "gemini-2.5-flash"
-    litellm_provider: google_genai
+  - model_name: "gemini"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
       api_key: "os.environ/GOOGLE_API_KEY"
   
-
   - model_name: "gemini-2.5-pro"
-    litellm_provider: google_genai
     litellm_params:
-      model: "gemini/gemini-2.5-pro"
+      model: "gemini/gemini-2.5-flash-thinking-exp-01-21"
       api_key: "os.environ/GOOGLE_API_KEY"
-  
+
 
 

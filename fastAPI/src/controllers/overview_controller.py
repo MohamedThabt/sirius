@@ -1,5 +1,6 @@
 """Overview Controller - Business logic for system overview generation and editing"""
 from fastapi import HTTPException
+from controllers.proxy import proxy
 from controllers.gemini import ask_gemini
 from models.overview import RequirementsRequest, SystemOverview, EditOverviewRequest
 from models.usage import UsageMetrics
@@ -21,7 +22,7 @@ async def generate_system_overview(request: RequirementsRequest) -> tuple[str, U
 
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
     except HTTPException as e:
         logger.error(f"HTTP error during overview generation: {e.status_code} - {e.detail}")
         raise e
