@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Mail, Zap } from "lucide-react";
 import { Head, useForm } from "@inertiajs/react";
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { Toaster } from '@/components/ui/toaster';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Navbar from '@/components/landing/Navbar';
+import Footer from '@/components/landing/Footer';
+import './landing.css';
 
 interface BetaSignupProps {
   message?: string;
 }
+
+const queryClient = new QueryClient();
 
 const BetaSignup = ({ message }: BetaSignupProps) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -34,9 +43,15 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
   };
 
   return (
-    <>
-      <Head title="Join Sirius Beta" />
-      <section className="sirius-hero relative overflow-hidden min-h-screen">
+    <div className="linear-landing dark min-h-screen bg-background text-foreground">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Head title="Join Sirius Beta" />
+          <Navbar />
+          <main>
+            <section className="sirius-hero relative overflow-hidden min-h-screen">
         <div className="hero-gradient" aria-hidden="true" />
         <div className="hero-stars hero-stars--one" aria-hidden="true" />
         <div className="hero-stars hero-stars--two" aria-hidden="true" />
@@ -223,8 +238,12 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
             </div>
           </div>
         </div>
-      </section>
-    </>
+            </section>
+          </main>
+          <Footer />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </div>
   );
 };
 
