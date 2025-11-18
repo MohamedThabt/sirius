@@ -1,6 +1,5 @@
 {
   "name": "devmind-monorepo",
-  "version": "1.0.0",
   "description": "DevMind Development Environment - Full Stack Application",
   "private": true,
   "scripts": {
