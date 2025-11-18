@@ -21,7 +21,7 @@ export function ProjectNav({ project }: ProjectNavProps) {
             icon: item.icon,
             badge: item.badge,
             status: item.status,
-            StatusIcon: getStatusIcon(item.status),
+            StatusIcon: item.status ? getStatusIcon(item.status) : undefined,
         })),
     }));
 

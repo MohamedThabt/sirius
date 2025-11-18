@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\FeatureController;
 use App\Http\Controllers\Dashboard\ProjectController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Hash;
@@ -39,6 +40,15 @@ Route::middleware('auth:admin')->group(function () {
     // Project Management
     Route::get('projects', [ProjectController::class, 'index'])->name('admin.projects.index');
     Route::get('projects/{project}', [ProjectController::class, 'show'])->name('admin.projects.show');
+    Route::get('projects/{project}/overview', [ProjectController::class, 'overview'])->name('admin.projects.overview');
+    Route::get('projects/{project}/prd', [ProjectController::class, 'prd'])->name('admin.projects.prd');
+    Route::post('projects/{project}/prd/preview', [ProjectController::class, 'prdPreview'])->name('admin.projects.prd.preview');
+    Route::get('projects/{project}/erd', [ProjectController::class, 'erd'])->name('admin.projects.erd');
+    Route::get('projects/{project}/c4', [ProjectController::class, 'c4'])->name('admin.projects.c4');
+    Route::get('projects/{project}/technical-details', [ProjectController::class, 'technicalDetails'])->name('admin.projects.technical-details');
+    
+    // Feature Management
+    Route::get('features/{feature}', [FeatureController::class, 'show'])->name('admin.features.show');
     
     // Admin Profile (Password Change Only)
     Route::get('profile', function () {

@@ -171,7 +171,11 @@ export default function UserShow({ user }: Props) {
                                     </TableHeader>
                                     <TableBody>
                                         {user.projects.map((project) => (
-                                            <TableRow key={project.id}>
+                                            <TableRow 
+                                                key={project.id}
+                                                className="cursor-pointer transition-colors hover:bg-muted/50"
+                                                onClick={() => window.location.href = `/admin/projects/${project.id}`}
+                                            >
                                                 <TableCell className="font-medium">{project.name}</TableCell>
                                                 <TableCell className="max-w-md truncate">{project.brief}</TableCell>
                                                 <TableCell>

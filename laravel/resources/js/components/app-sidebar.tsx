@@ -3,6 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { ProjectNav } from '@/components/project-nav';
 import { Separator } from '@/components/ui/separator';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
@@ -49,25 +50,12 @@ export function AppSidebar({ project }: AppSidebarProps = {}) {
     const { props } = usePage<SharedData>();
     const isAdmin = props.auth?.admin; // Check if user is logged in as admin
 
-    const getProjectStatusColor = (status?: string) => {
-        switch (status) {
-            case 'completed':
-                return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
-            case 'in_progress':
-                return 'bg-blue-500/10 text-blue-600 dark:text-blue-400';
-            case 'draft':
-                return 'bg-orange-500/10 text-orange-600 dark:text-orange-400';
-            default:
-                return 'bg-muted text-muted-foreground';
-        }
-    };
-
     return (
-        <Sidebar collapsible="none" variant="inset">
-            <SidebarHeader>
+        <Sidebar collapsible="icon" variant="inset" className="border-r border-sidebar-border/50">
+            <SidebarHeader className="border-b border-sidebar-border/50">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton size="lg" asChild className="group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10">
                             <Link href="/projects" prefetch>
                                 <AppLogo />
                             </Link>
@@ -76,7 +64,10 @@ export function AppSidebar({ project }: AppSidebarProps = {}) {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent>
+            <SidebarContent className={cn(
+                'flex flex-col gap-0',
+                '[&>div]:px-0 [&>div]:py-2'
+            )}>
                 {/* Global Navigation */}
                 <NavMain items={mainNavItems} />
 
@@ -97,7 +88,7 @@ export function AppSidebar({ project }: AppSidebarProps = {}) {
                 )}
             </SidebarContent>
 
-            <SidebarFooter className="mt-auto">
+            <SidebarFooter className="border-t border-sidebar-border/50">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <AppearanceToggleDropdown />
