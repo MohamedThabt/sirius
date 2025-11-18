@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Dashboard\AdminController;
+use App\Http\Controllers\Dashboard\BetaController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\FeatureController;
 use App\Http\Controllers\Dashboard\ProjectController;
@@ -36,6 +37,11 @@ Route::middleware('auth:admin')->group(function () {
     // User Management
     Route::get('users', [UserController::class, 'index'])->name('admin.users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->name('admin.users.show');
+    
+    // Beta Invitations Management
+    Route::get('beta', [BetaController::class, 'index'])->name('admin.beta.index');
+    Route::post('beta/{betaInvitation}/approve', [BetaController::class, 'approve'])->name('admin.beta.approve');
+    Route::post('beta/{betaInvitation}/deny', [BetaController::class, 'deny'])->name('admin.beta.deny');
     
     // Project Management
     Route::get('projects', [ProjectController::class, 'index'])->name('admin.projects.index');

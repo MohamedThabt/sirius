@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dashboard\BetaController;
 use App\Http\Controllers\Project\BrainstormingController;
 use App\Http\Controllers\Project\PRDController;
 use App\Http\Controllers\Feature\ERDController;
@@ -41,6 +42,14 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 })->name('landing');
+
+// Public Beta Signup Routes
+Route::get('/beta', function () {
+    return Inertia::render('beta-signup', [
+        'message' => session('success'),
+    ]);
+})->name('beta.page');
+Route::post('/beta/signup', [BetaController::class, 'store'])->name('beta.store');
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('user/dashboard');

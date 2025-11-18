@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
-import { Briefcase, FolderOpen, Shield, Users } from 'lucide-react';
+import { Briefcase, FolderOpen, Shield, Users, Zap } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppearanceToggleDropdown from './appearance-dropdown';
 
@@ -34,6 +34,11 @@ const adminNavItems: NavItem[] = [
         title: 'User Management',
         href: '/admin/users',
         icon: Users,
+    },
+    {
+        title: 'Beta Invitations',
+        href: '/admin/beta',
+        icon: Zap,
     },
     {
         title: 'Project Management',

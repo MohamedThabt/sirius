@@ -130,7 +130,7 @@ const Hero = () => {
 
           {/* CTA Buttons */}
           <div
-            className="hero-cta mb-6"
+            className="hero-cta mb-6 flex flex-col sm:flex-row gap-4 justify-center"
             style={{
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? "translateY(0)" : "translateY(12px)",
@@ -140,6 +140,11 @@ const Hero = () => {
             <Button size="lg" className="hero-cta-primary group h-12 px-8 text-base font-semibold" asChild>
               <a href="/projects">
                 Generate Your First Spec
+              </a>
+            </Button>
+            <Button size="lg" variant="outline" className="hero-cta-secondary h-12 px-8 text-base border-indigo-400/50 text-indigo-300 hover:bg-indigo-500/10" asChild>
+              <a href="/beta" className="flex items-center gap-2">
+                🚀 Join Closed Beta
               </a>
             </Button>
             <Button size="lg" variant="ghost" className="hero-cta-secondary h-12 px-6 text-base" asChild>
