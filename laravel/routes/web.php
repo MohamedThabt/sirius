@@ -1,7 +1,7 @@
 <?php
 
-use App\Controllers\Documentation\BrainstormingController;
-use App\Http\Controllers\Documentation\PRDController;
+use App\Http\Controllers\Project\BrainstormingController;
+use App\Http\Controllers\Project\PRDController;
 use App\Http\Controllers\Feature\ERDController;
 use App\Http\Controllers\Feature\FeaturesController;
 use App\Http\Controllers\Feature\SequenceDiagramController;
@@ -133,7 +133,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/projects/{project}/system-overview/{overviewVersion:id}/mark-as-base', [SystemOverviewController::class, 'markAsBase'])->name('system-overview.mark-as-base');
     Route::post('/projects/{project}/system-overview/preview-mermaid', [SystemOverviewController::class, 'previewMermaid'])->name('system-overview.preview-mermaid');
 
-    // PRD routes (Documentation)
+    // PRD routes
     Route::post('/projects/{project}/prd/generate', [PRDController::class, 'generate'])->name('prd.generate');
     Route::post('/projects/{project}/prd/generate-async', [PRDController::class, 'generateAsync'])->name('prd.generate-async');
     Route::get('/projects/{project}/prd', [PRDController::class, 'show'])->name('projects.prd');

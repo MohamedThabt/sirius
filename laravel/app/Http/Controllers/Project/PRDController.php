@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Documentation;
+namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
@@ -262,3 +262,4 @@ class PRDController extends Controller
         ]);
     }
 }
+

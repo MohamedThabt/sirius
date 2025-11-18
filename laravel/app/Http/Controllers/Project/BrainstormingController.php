@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Documentation;
+namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
@@ -37,5 +37,4 @@ class BrainstormingController extends Controller
         return redirect()->route('projects.brainstorming', $project)->with('success', 'Brainstorming saved');
     }
 }
-
 
