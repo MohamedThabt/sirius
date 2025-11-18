@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Head, router } from "@inertiajs/react";
-import { Check, X, AlertCircle } from "lucide-react";
+import { Head, router, useForm } from "@inertiajs/react";
+import { Check, X, AlertCircle, UserPlus } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -79,8 +80,24 @@ const BetaIndex = ({ invitations, filters, statuses }: IndexProps) => {
   const [approveLoading, setApproveLoading] = useState<number | null>(null);
   const [denyLoading, setDenyLoading] = useState<number | null>(null);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedInvitation, setSelectedInvitation] = useState<number | null>(null);
   const [denyNote, setDenyNote] = useState("");
+
+  const { data, setData, post, processing, errors, reset } = useForm({
+    name: "",
+    email: "",
+  });
+
+  const handleCreateInvitation = (e: React.FormEvent) => {
+    e.preventDefault();
+    post("/admin/beta/create", {
+      onSuccess: () => {
+        setCreateModalOpen(false);
+        reset();
+      },
+    });
+  };
 
   const handleApprove = (invitationId: number) => {
     setApproveLoading(invitationId);
@@ -160,6 +177,10 @@ const BetaIndex = ({ invitations, filters, statuses }: IndexProps) => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Beta Invitations</h1>
           <div className="flex gap-2">
+            <Button onClick={() => setCreateModalOpen(true)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Create Invitation
+            </Button>
             <Badge variant="outline">{invitations.total} Total</Badge>
             <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
               {totalPending} Pending
@@ -309,6 +330,64 @@ const BetaIndex = ({ invitations, filters, statuses }: IndexProps) => {
           </p>
         </div>
       </div>
+
+      {/* Create Invitation Modal */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create Beta Invitation</DialogTitle>
+            <DialogDescription>
+              Manually create a new beta invitation request. The user will be added to the pending list.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateInvitation}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  placeholder="John Doe"
+                  value={data.name}
+                  onChange={(e) => setData("name", e.target.value)}
+                  className={errors.name ? "border-red-500" : ""}
+                />
+                {errors.name && (
+                  <p className="text-xs text-red-500">{errors.name}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  value={data.email}
+                  onChange={(e) => setData("email", e.target.value)}
+                  className={errors.email ? "border-red-500" : ""}
+                />
+                {errors.email && (
+                  <p className="text-xs text-red-500">{errors.email}</p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setCreateModalOpen(false);
+                  reset();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={processing}>
+                {processing ? "Creating..." : "Create Invitation"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Deny Modal */}
       <Dialog open={denyModalOpen} onOpenChange={setDenyModalOpen}>

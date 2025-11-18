@@ -72,6 +72,26 @@ class BetaController extends Controller
     }
 
     /**
+     * Create a new beta invitation manually (admin only).
+     */
+    public function create(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:beta_invitations',
+        ]);
+
+        BetaInvitation::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'status' => BetaInvitation::STATUS_PENDING,
+            'invited_by' => auth('admin')->id(),
+        ]);
+
+        return back()->with('success', 'Beta invitation created successfully.');
+    }
+
+    /**
      * Approve a beta invitation and create user account.
      */
     public function approve(Request $request, BetaInvitation $betaInvitation): RedirectResponse

@@ -40,6 +40,7 @@ Route::middleware('auth:admin')->group(function () {
     
     // Beta Invitations Management
     Route::get('beta', [BetaController::class, 'index'])->name('admin.beta.index');
+    Route::post('beta/create', [BetaController::class, 'create'])->name('admin.beta.create');
     Route::post('beta/{betaInvitation}/approve', [BetaController::class, 'approve'])->name('admin.beta.approve');
     Route::post('beta/{betaInvitation}/deny', [BetaController::class, 'deny'])->name('admin.beta.deny');
     
