@@ -1,6 +1,7 @@
 """ERD Controller - Business logic for Entity Relationship Diagram generation"""
 from fastapi import HTTPException
 from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.ERD import ERDrequest, FeatureERD, EditERDRequest, MergeERDRequest, ProjectERD
 from models.usage import UsageMetrics
 from utils.mermaid_utils import extract_mermaid_from_response
@@ -23,7 +24,7 @@ async def generate_feature_erd(request: ERDrequest) -> tuple[str, UsageMetrics]:
 
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         clean_mermaid = extract_mermaid_from_response(raw_response)
         if not clean_mermaid:
             raise HTTPException(status_code=500, detail="Invalid Mermaid response from AI")
@@ -64,7 +65,7 @@ async def edit_feature_erd(request: EditERDRequest) -> tuple[str, UsageMetrics]:
     # Call Gemini API
     try:
         logger.info("Calling Gemini API for edit...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         clean_mermaid = extract_mermaid_from_response(raw_response)
         if not clean_mermaid:
             raise HTTPException(status_code=500, detail="Invalid Mermaid response from AI")

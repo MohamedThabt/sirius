@@ -1,6 +1,7 @@
 """Sequence Controller - Business logic for sequence diagram generation"""
 from fastapi import HTTPException
 from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.Sequence import SequenceRequest, EditSequenceRequest
 from models.usage import UsageMetrics
 from utils.mermaid_utils import extract_mermaid_from_response
@@ -22,7 +23,7 @@ async def generate_feature_sequence(request: SequenceRequest) -> tuple[str, Usag
     
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         clean_mermaid = extract_mermaid_from_response(raw_response)
         if not clean_mermaid:
             raise HTTPException(status_code=500, detail=f"Invalid Mermaid response from AI: {raw_response}")
@@ -57,7 +58,7 @@ async def edit_feature_sequence(request: EditSequenceRequest) -> tuple[str, Usag
     
     try:
         logger.info("Calling Gemini API for edit...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         clean_mermaid = extract_mermaid_from_response(raw_response)
         if not clean_mermaid:
             raise HTTPException(status_code=500, detail="Invalid Mermaid response from AI")

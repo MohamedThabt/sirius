@@ -1,6 +1,7 @@
 """PRD Controller - Business logic for Product Requirements Document generation"""
 from fastapi import HTTPException
 from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.prd import SystemPRD, EditPRDRequest, PRDWithFlowRequest, PRDWithFlowResponse
 from models.usage import UsageMetrics
 from utils.prompt_loader import load_prompt
@@ -63,7 +64,7 @@ async def build_prd(overview: str, project_name: str, author: str, date: str, ve
     )
     try:
         logger.info("Calling Gemini API for PRD build...")
-        response, usage = await ask_gemini(prompt)
+        response, usage = await proxy(prompt)
     except HTTPException as e:
         logger.error(f"HTTP error during PRD build: {e.status_code} - {e.detail}")
         raise e
@@ -86,7 +87,7 @@ async def build_flow(features: str) -> tuple[str, UsageMetrics]:
 
     try:
         logger.info("Calling Gemini API for flow diagram build...")
-        response, usage = await ask_gemini(prompt)
+        response, usage = await proxy(prompt)
     except HTTPException as e:
         logger.error(f"HTTP error during flow diagram build: {e.status_code} - {e.detail}")
         raise e
@@ -120,7 +121,7 @@ async def edit_prd(request: EditPRDRequest) -> tuple[str, UsageMetrics]:
 
     try:
         logger.info("Calling Gemini API for edit...")
-        revised_response, usage = await ask_gemini(prompt)
+        revised_response, usage = await proxy(prompt)
     except HTTPException as e:
         logger.error(f"HTTP error during PRD edit: {e.status_code} - {e.detail}")
         raise e

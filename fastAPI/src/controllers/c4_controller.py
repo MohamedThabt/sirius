@@ -1,6 +1,7 @@
 """C4 Controller - Business logic for C4 model generation"""
 from fastapi import HTTPException
 from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.C4 import C4Request, EditC4Request
 from models.usage import UsageMetrics
 from utils.json_utils import extract_json_from_response
@@ -24,7 +25,7 @@ async def generate_c4(request: C4Request) -> tuple[str, UsageMetrics]:
 
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
 
     except HTTPException as e:
         logger.error(f"HTTP error during C4 generation: {e.status_code} - {e.detail}")
@@ -56,7 +57,7 @@ async def edit_c4(request: EditC4Request) -> tuple[str, UsageMetrics]:
 
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
 
     except HTTPException as e:
         logger.error(f"HTTP error during C4 edit: {e.status_code} - {e.detail}")

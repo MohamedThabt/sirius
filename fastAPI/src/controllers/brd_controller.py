@@ -1,6 +1,7 @@
 """BRD Controller - Business logic for Business Requirements Document generation"""
 from fastapi import HTTPException
 from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.BRD import BRDRequest, SystemBRD, EditBRDRequest
 from models.usage import UsageMetrics
 from utils.prompt_loader import load_prompt
@@ -18,7 +19,7 @@ async def generate_brd(request: BRDRequest) -> tuple[str, UsageMetrics]:
 
     try:
         logger.info("Calling Gemini API...")
-        raw, usage = await ask_gemini(prompt)
+        raw, usage = await proxy(prompt)
     except HTTPException as e:
         logger.error(f"HTTP error during BRD generation: {e.status_code} - {e.detail}")
         raise e
@@ -51,7 +52,7 @@ async def edit_brd(request: EditBRDRequest) -> tuple[str, UsageMetrics]:
 
     # Call Gemini (or your LLM client)
     try:
-        revised_brd, usage = await ask_gemini(prompt)
+        revised_brd, usage = await proxy(prompt)
     except HTTPException as e:
         logger.error(f"HTTP error during BRD edit: {e.status_code} - {e.detail}")
         raise e

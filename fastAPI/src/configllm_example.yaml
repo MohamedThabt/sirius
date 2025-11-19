@@ -1,0 +1,35 @@
+general_settings:
+  num_retries: 2
+  retry_after: 2
+
+model_list:
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: ""
+
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: ""
+
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: ""
+  
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: ""
+
+  
+  - model_name: "gem2.5pro"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash-thinking-exp-01-21"
+      api_key: ""
+
+routing_strategy: least-busy # Literal["simple-shuffle", "least-busy",]
+
+
+

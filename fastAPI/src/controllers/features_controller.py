@@ -1,6 +1,7 @@
 """Features Controller - Business logic for feature generation and management"""
 from fastapi import HTTPException
 from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.overview import RequirementsRequest
 from models.features import Feature, FeatureList, DetailedFeature, DetailedFeatureList, DetailedFeatureRequest,SingleDetailedFeatureRequest,DetailedSingleFeature
 from models.prd import SystemPRD
@@ -67,7 +68,7 @@ async def generate_detailed_features(request: DetailedFeatureRequest) -> tuple[D
 
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
 
         logger.info("Extracting JSON from response...")
         json_str = extract_json_from_response(raw_response)
@@ -105,7 +106,7 @@ async def generate_single_feature_details(request:SingleDetailedFeatureRequest) 
     )
 
     try:
-        raw_response ,usage= await ask_gemini(prompt)
+        raw_response ,usage= await proxy(prompt)
         json_str = extract_json_from_response(raw_response)
         logger.info(f"Raw AI response: {raw_response}")
 

@@ -1,6 +1,7 @@
 """Wireframe Controller - Business logic for wireframe generation"""
 from fastapi import HTTPException
 from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.wireframe import WireframeRequest, EditWireframeRequest
 from models.usage import UsageMetrics
 from utils.json_utils import extract_json_from_response
@@ -22,7 +23,7 @@ async def generate_feature_wireframe(request: WireframeRequest) -> tuple[str, Us
     
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         clean_json = extract_json_from_response(raw_response)
         if not clean_json:
             raise HTTPException(status_code=500, detail=f"Invalid JSON response from AI: {raw_response}")
@@ -59,7 +60,7 @@ async def edit_feature_wireframe(request: EditWireframeRequest) -> tuple[str, Us
     
     try:
         logger.info("Calling Gemini API for edit...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         clean_json = extract_json_from_response(raw_response)
         if not clean_json:
             raise HTTPException(status_code=500, detail="Invalid JSON response from AI")
