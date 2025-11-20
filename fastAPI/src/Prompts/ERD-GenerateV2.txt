@@ -20,28 +20,34 @@ Design a comprehensive database schema based on the provided application require
 ### EXAMPLE SYNTAX:
 ```mermaid
 erDiagram
-    users {
+    messages {
         integer id "PK"
-        varchar username "UK, NOT NULL"
-        varchar email "UK, NOT NULL"
-        timestamp created_at "NOT NULL"
-    }
-    products {
-        integer id "PK"
-        varchar name "NOT NULL"
-        decimal price "NOT NULL"
-    }
-    reviews {
-        integer id "PK"
-        integer user_id "FK, NOT NULL"
-        integer product_id "FK, NOT NULL"
-        integer rating "NOT NULL"
-        text comment
+        integer sender_id "FK" "ref:users.id"
+        integer receiver_id "FK" "ref:users.id"
+        integer group_chat_id "FK" "ref:group_chats.id"
+        text message_text "NOT NULL"
+        timestamp sent_at "NOT NULL"
+        boolean is_read "NOT NULL"
     }
 
-    reviews --o{ users : "user_id to id"
-    reviews --o{ products : "product_id to id"
+    users {
+        integer id "PK"
+        varchar username "NOT NULL"
+    }
+
+    group_chats {
+        integer id "PK"
+        varchar name
+    }
+
+
+ messages }o--|| users : "sender_id to id"
+ messages }o--|| users : "receiver_id to id"
+ messages }o--|| group_chats : "group_chat_id to id"
+
+
 ```
+
 
 # CONTEXT & REQUIREMENTS:
 
