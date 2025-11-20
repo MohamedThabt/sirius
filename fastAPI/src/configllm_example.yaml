@@ -18,9 +18,9 @@ model_list:
       api_key: ""
       rpm: 5
 
-  - model_name: "gem2.5pro"
+  - model_name: "cerebras"
     litellm_params:
-      model: "gemini/gemini-2.5-flash-thinking-exp-01-21"
+      model: "cerebras/llama3.1-8b"
       api_key: ""
       rpm: 5
 

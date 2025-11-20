@@ -11,7 +11,7 @@ client = AsyncOpenAI(
 
 logger = logging.getLogger(__name__)
 
-async def proxy(prompt: str) -> tuple[str, UsageMetrics]:
+async def proxy(prompt: str , model: str) -> tuple[str, UsageMetrics]:
     """
     Call Gemini API via LiteLLM proxy and track token usage.
     
@@ -31,7 +31,7 @@ async def proxy(prompt: str) -> tuple[str, UsageMetrics]:
 
     try:
         response = await client.chat.completions.create(
-            model="gem2.5f",
+            model="cerebras",
             messages=messages,
             temperature=0.7,
             top_p=0.8
