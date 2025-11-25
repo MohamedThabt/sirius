@@ -1,36 +1,19 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { TextShimmer } from '@/components/ui/text-shimmer';
-import { UserMenuContent } from '@/components/user-menu-content';
-import { useInitials } from '@/hooks/use-initials';
-import { type User } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
-import {
-    AlertCircleIcon,
-    CheckCircleIcon,
-    ChevronDownIcon,
-    CodeIcon,
-    DatabaseIcon,
-    FileIcon,
-    HomeIcon,
-    Layers as LayersIcon,
-    LightbulbIcon,
-    Maximize,
-    PanelLeftClose,
-    PanelLeftOpen,
-    Sparkles,
-    TrendingUpIcon,
-    ZapIcon,
-} from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
-
 import JsonEditor from '@/components/c4-diagram/JsonEditor';
 import ReactFlowDiagram from '@/components/c4-diagram/ReactFlowDiagram';
+import ProjectSidebar from '@/components/Projects/ProjectSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { TextShimmer } from '@/components/ui/text-shimmer';
+import { useInitials } from '@/hooks/use-initials';
 import { useC4Parser } from '@/hooks/useC4Parser';
+import { type User } from '@/types';
+import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
+import { Head, router, usePage } from '@inertiajs/react';
+import { CodeIcon, DatabaseIcon, FileIcon, HomeIcon, Layers as LayersIcon, LightbulbIcon, Maximize, Sparkles, ZapIcon } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Project {
     id: number;
@@ -94,78 +77,20 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     const breadcrumbs = [
+        { title: 'Projects', href: '/projects' },
         { title: project.name, href: `/projects/${project.id}` },
         { title: 'System Architecture', href: `/projects/${project.id}/c4` },
     ];
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30';
-        }
-    };
-
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return <CircleIcon className="h-3 w-3" />;
-            case 'in_progress':
-                return <ClockIcon className="h-3 w-3" />;
-            case 'completed':
-                return <CheckCircleIcon className="h-3 w-3" />;
-            default:
-                return <AlertCircleIcon className="h-3 w-3" />;
-        }
-    };
-
-    interface NavItem {
-        key: string;
-        icon: React.ComponentType<{ className?: string }>;
-        label: string;
-        muted?: boolean;
-        emphasize?: boolean;
-        active?: boolean;
-        disabled?: boolean;
-        onClick: () => void;
-    }
-
-    interface NavGroup {
-        label: string;
-        items: NavItem[];
-    }
-
     const completionPercentage = useMemo(() => {
-        const total = 5;
-        let done = 0;
-        if (sections?.overview) done++;
-        if (sections?.prd) done++;
-        if (sections?.data_modeling) done++;
-        if (project.c4) done++;
-        if (sections?.non_functional_requirements) done++;
-        return Math.round((done / total) * 100);
-    }, [sections, project.c4]);
+        return getCompletionPercentage(sections, [], project);
+    }, [sections, project]);
 
-    const getHealthIcon = () => {
-        if (completionPercentage >= 80) return <CheckCircleIcon className="h-3 w-3 text-emerald-600 dark:text-emerald-300" />;
-        if (completionPercentage >= 60) return <TrendingUpIcon className="h-3 w-3 text-blue-600 dark:text-blue-300" />;
-        if (completionPercentage >= 40) return <AlertCircleIcon className="h-3 w-3 text-orange-600 dark:text-orange-300" />;
-        return <AlertCircleIcon className="h-3 w-3 text-red-600 dark:text-red-300" />;
-    };
+    const health = useMemo(() => {
+        return getHealthStatus(completionPercentage);
+    }, [completionPercentage]);
 
-    const getHealthStatus = () => {
-        if (completionPercentage >= 80) return 'excellent';
-        if (completionPercentage >= 60) return 'good';
-        if (completionPercentage >= 40) return 'fair';
-        return 'needs attention';
-    };
-
-    const navGroups: NavGroup[] = [
+    const navGroups = [
         {
             label: 'Plan',
             items: [
@@ -431,109 +356,20 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
             <div className="min-h-screen bg-background">
                 {!isFullScreen && (
                     <div className="flex">
-                        <aside className={`${isSidebarCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}>
-                            <div
-                                className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-                            >
-                                <div className="overflow-y-auto scrollbar-hide">
-                                    {/* Logo/Brand */}
-                                    <div className="mb-6 border-b pb-4">
-                                        <a href="/" className="flex items-center gap-2 text-lg font-bold text-foreground hover:opacity-80 transition-opacity">
-                                            Sirius
-                                        </a>
-                                    </div>                                    <div className="mb-6">
-                                        <div className="mb-3">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h1 className="text-sm font-semibold truncate">{project.name}</h1>
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <div className="flex items-center justify-between text-[10px]">
-                                                    <span className="text-muted-foreground">Progress</span>
-                                                    <span className="font-medium">{completionPercentage}%</span>
-                                                </div>
-                                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                                                    <div className="h-full bg-primary transition-all" style={{ width: `${completionPercentage}%` }} />
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-[10px]">
-                                                    {getHealthIcon()}
-                                                    <span className="text-muted-foreground">{getHealthStatus()}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <nav className="space-y-6">
-                                        {navGroups.map((group) => (
-                                            <div key={group.label} className="space-y-2">
-                                                <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                                    {group.label}
-                                                </div>
-                                                <ul className="space-y-1">
-                                                    {group.items.map((item) => (
-                                                        <li key={item.key}>
-                                                            <button
-                                                                onClick={item.disabled ? undefined : item.onClick}
-                                                                disabled={item.disabled}
-                                                                className={[
-                                                                    'flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
-                                                                    item.disabled
-                                                                        ? 'cursor-not-allowed opacity-50'
-                                                                        : item.active
-                                                                            ? 'bg-muted font-medium text-foreground'
-                                                                            : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
-                                                                    item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
-                                                                ].join(' ')}
-                                                                title={item.disabled ? 'Not available yet' : item.label}
-                                                            >
-                                                                <item.icon className="h-4 w-4 shrink-0" />
-                                                                <span className={item.muted ? 'opacity-70' : ''}>{item.label}</span>
-                                                            </button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        ))}
-                                    </nav>
-                                </div>
-
-                                <div className="shrink-0 border-t pt-3">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
-                                                <Avatar className="h-5 w-5 shrink-0">
-                                                    <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                                    <AvatarFallback className="text-[10px] bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                        {getInitials(auth.user.name)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="truncate text-xs font-medium text-foreground">{auth.user.name}</div>
-                                                    <div className="truncate text-[10px] text-muted-foreground">{auth.user.email}</div>
-                                                </div>
-                                                <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                            </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-56">
-                                            <UserMenuContent user={auth.user} />
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </div>
-                        </aside>
+                        <ProjectSidebar
+                            project={project}
+                            navGroups={navGroups}
+                            completionPercentage={completionPercentage}
+                            health={health}
+                            isCollapsed={isSidebarCollapsed}
+                            user={auth.user}
+                        />
 
                         <main className="min-w-0 flex-1">
                             <div className="flex h-screen flex-col">
                                 <div className="border-b px-4 py-3 sm:pl-6 lg:pl-6">
                                     <div className="mb-4 flex items-center gap-3">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                            className="hidden h-8 w-8 p-0 lg:flex"
-                                            title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                        >
-                                            {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                        </Button>
+                                        <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                                     </div>
                                 </div>

@@ -1,22 +1,18 @@
-
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import ProjectSidebar from '@/components/Projects/ProjectSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
-import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
+import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { type User } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
-    AlertCircleIcon,
-    CheckCircleIcon,
     CheckIcon,
-    ChevronDownIcon,
     CodeIcon,
     CopyIcon,
     DatabaseIcon,
@@ -28,12 +24,9 @@ import {
     LightbulbIcon,
     Maximize2,
     Minimize2,
-    PanelLeftClose,
-    PanelLeftOpen,
     PencilIcon,
     SaveIcon,
     SendIcon,
-    TrendingUpIcon,
     ZapIcon,
 } from 'lucide-react';
 import mermaid from 'mermaid';
@@ -126,14 +119,10 @@ const ChatInput = ({ onSubmit, isGenerating }: ChatInputProps) => {
                     <Button
                         type="submit"
                         size="sm"
-                        className="absolute right-2 bottom-2 h-8 w-8 rounded-full bg-blue-500 p-0 hover:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-600"
+                        className="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-blue-500 p-0 hover:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-600"
                         disabled={!promptInput.trim() || isGenerating}
                     >
-                        {isGenerating ? (
-                            <TextShimmer className="text-xs text-white">Sending</TextShimmer>
-                        ) : (
-                            <SendIcon className="h-4 w-4 text-white" />
-                        )}
+                        {isGenerating ? <TextShimmer className="text-xs text-white">Sending</TextShimmer> : <SendIcon className="h-4 w-4 text-white" />}
                     </Button>
                 </div>
             </form>
@@ -180,7 +169,7 @@ const convertEscapedMermaid = (escapedString: string): string => {
     // Handle node labels in round brackets
     cleaned = cleaned.replace(/\((\s*[^()]+?\s*)\)/g, (match, content) => {
         const fixedContent = content
-            .replace(/[[\]{}"';]/g, '')
+            .replace(/[()[\]{}"';]/g, '')
             .replace(/\s+/g, ' ')
             .trim();
         return `(${fixedContent || 'Unnamed'})`;
@@ -248,139 +237,7 @@ const convertEscapedMermaid = (escapedString: string): string => {
 
     return cleaned;
 };
-// Utility function to validate Mermaid syntax
-// const validateMermaidSyntax = (code: string): { isValid: boolean; error?: string } => {
-//     try {
-//         if (!code.trim()) {
-//             return { isValid: false, error: 'Empty diagram code' };
-//         }
 
-//         const diagramTypes = [
-//             'graph',
-//             'flowchart',
-//             'sequenceDiagram',
-//             'classDiagram',
-//             'stateDiagram',
-//             'erDiagram',
-//             'journey',
-//             'gantt',
-//             'pie',
-//             'gitgraph',
-//         ];
-//         const hasValidType = diagramTypes.some((type) => code.toLowerCase().startsWith(type.toLowerCase()));
-//         if (!hasValidType) {
-//             return {
-//                 isValid: false,
-//                 error: `No valid Mermaid diagram type found. Supported types: ${diagramTypes.join(', ')}`,
-//             };
-//         }
-
-//         const lines = code
-//             .split('\n')
-//             .map((line) => line.trim())
-//             .filter((line) => line.length > 0);
-//         const nodeIds = new Set<string>();
-//         const referencedNodes = new Set<string>();
-//         const subgraphs = new Set<string>();
-//         let hasSubgraph = false;
-//         let openSubgraphs = 0;
-
-//         for (const line of lines) {
-//             // Check for double square brackets
-//             if (line.match(/\[\[.*?\]\]/)) {
-//                 return {
-//                     isValid: false,
-//                     error: 'Invalid syntax: Double square brackets detected (e.g., [[Label]]). Use single square brackets [Label].',
-//                 };
-//             }
-
-//             // Check node definitions (e.g., A[Label])
-//             const nodeMatch = line.match(/^(\w+)\[.*?\]/);
-//             if (nodeMatch) {
-//                 const nodeId = nodeMatch[1];
-//                 if (nodeIds.has(nodeId)) {
-//                     return { isValid: false, error: `Duplicate node ID: ${nodeId}` };
-//                 }
-//                 nodeIds.add(nodeId);
-//             }
-
-//             // Check subgraph definitions
-//             const subgraphMatch = line.match(/^subgraph\s+("[^"]+"|[^\s[{]+)/);
-//             if (subgraphMatch) {
-//                 const subgraphName = subgraphMatch[1].replace(/"/g, '').trim();
-//                 subgraphs.add(subgraphName);
-//                 hasSubgraph = true;
-//                 openSubgraphs++;
-//             } else if (line === 'end') {
-//                 openSubgraphs--;
-//             }
-
-//             // Check relationships with quoted node references (e.g., A -- "Label" --> "Node")
-//             const quotedNodeMatch = line.match(/(\w+)\s*--\s*("[^"]+")\s*-->\s*("[^"]+")/);
-//             if (quotedNodeMatch) {
-//                 const [, source, , targetLabel] = quotedNodeMatch;
-//                 const target = targetLabel.replace(/"/g, '');
-//                 if (subgraphs.has(target)) {
-//                     return {
-//                         isValid: false,
-//                         error: `Invalid reference to subgraph '${target}' as a node in a relationship. Subgraphs cannot be used as nodes.`,
-//                     };
-//                 }
-//                 referencedNodes.add(source);
-//                 referencedNodes.add(target);
-//             }
-
-//             // Check valid relationships (e.g., A --> B)
-//             const simpleRelationMatch = line.match(/(\w+)\s*-->\s*(\w+)/);
-//             if (simpleRelationMatch) {
-//                 const [, source, target] = simpleRelationMatch;
-//                 referencedNodes.add(source);
-//                 referencedNodes.add(target);
-//             }
-
-//             // Check relationships with edge labels (e.g., A -- Label with spaces --> B)
-//             const edgeLabelMatch = line.match(/(\w+)\s*--\s*([^|>~\-*\s"][^|>~\-*\n]*?)\s*-->\s*(\w+)/);
-//             if (edgeLabelMatch) {
-//                 const [, source, label, target] = edgeLabelMatch;
-//                 referencedNodes.add(source);
-//                 referencedNodes.add(target);
-//                 if (nodeIds.has(label.split(' ')[0])) {
-//                     return {
-//                         isValid: false,
-//                         error: `Edge label '${label}' conflicts with an existing node ID '${label.split(' ')[0]}'. Wrap the label in quotes, e.g., "${label}".`,
-//                     };
-//                 }
-//                 if (!label.match(/^".*"$/)) {
-//                     return {
-//                         isValid: false,
-//                         error: `Invalid edge label '${label}' contains spaces and is not quoted. Wrap the label in quotes, e.g., "${label}".`,
-//                     };
-//                 }
-//             }
-//         }
-
-//         if (openSubgraphs !== 0) {
-//             return { isValid: false, error: 'Unclosed subgraph detected' };
-//         }
-
-//         for (const node of referencedNodes) {
-//             if (!nodeIds.has(node)) {
-//                 return { isValid: false, error: `Undefined node referenced: ${node}` };
-//             }
-//         }
-
-//         if (!nodeIds.size && !referencedNodes.size && !hasSubgraph) {
-//             return { isValid: false, error: 'Diagram is empty or lacks valid content' };
-//         }
-
-//         return { isValid: true };
-//     } catch (error) {
-//         return {
-//             isValid: false,
-//             error: error instanceof Error ? error.message : 'Syntax validation failed',
-//         };
-//     }
-// };
 // Simple Loader Component using TextShimmer
 const SimpleLoader = ({ text = 'Generating' }: { text?: string }) => {
     return (
@@ -416,74 +273,15 @@ export default function PRD({
           ]
         : [{ title: 'PRD', href: '#' }];
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30';
-        }
-    };
-
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return <CircleIcon className="h-3 w-3" />;
-            case 'in_progress':
-                return <ClockIcon className="h-3 w-3" />;
-            case 'completed':
-                return <CheckCircleIcon className="h-3 w-3" />;
-            default:
-                return <AlertCircleIcon className="h-3 w-3" />;
-        }
-    };
-
-    interface NavItem {
-        key: string;
-        icon: React.ComponentType<{ className?: string }>;
-        label: string;
-        muted?: boolean;
-        emphasize?: boolean;
-        active?: boolean;
-        disabled?: boolean;
-        onClick: () => void;
-    }
-
-    interface NavGroup {
-        label: string;
-        items: NavItem[];
-    }
-
     const completionPercentage = useMemo(() => {
-        const total = 5;
-        let done = 0;
-        if (sections?.overview) done++;
-        if (sections?.prd) done++;
-        if (sections?.data_modeling) done++;
-        if (project?.c4) done++;
-        if (sections?.non_functional_requirements) done++;
-        return Math.round((done / total) * 100);
-    }, [sections, project?.c4]);
+        return getCompletionPercentage(sections, [], project);
+    }, [sections, project]);
 
-    const getHealthIcon = () => {
-        if (completionPercentage >= 80) return <CheckCircleIcon className="h-3 w-3 text-emerald-600 dark:text-emerald-300" />;
-        if (completionPercentage >= 60) return <TrendingUpIcon className="h-3 w-3 text-blue-600 dark:text-blue-300" />;
-        if (completionPercentage >= 40) return <AlertCircleIcon className="h-3 w-3 text-orange-600 dark:text-orange-300" />;
-        return <AlertCircleIcon className="h-3 w-3 text-red-600 dark:text-red-300" />;
-    };
+    const health = useMemo(() => {
+        return getHealthStatus(completionPercentage);
+    }, [completionPercentage]);
 
-    const getHealthStatus = () => {
-        if (completionPercentage >= 80) return 'excellent';
-        if (completionPercentage >= 60) return 'good';
-        if (completionPercentage >= 40) return 'fair';
-        return 'needs attention';
-    };
-
-    const navGroups: NavGroup[] = project
+    const navGroups = project
         ? [
               {
                   label: 'Plan',
@@ -570,7 +368,6 @@ export default function PRD({
         const combined = featuresMarkdown ? `${base}\n\n---\n\n${featuresMarkdown}` : base;
         downloadMarkdown(fileName, combined);
     };
-
 
     // Initialize Mermaid
     useEffect(() => {
@@ -1028,114 +825,24 @@ export default function PRD({
             <div className="min-h-screen bg-background">
                 {!isFullscreen && project && (
                     <div className="flex">
-                        <aside
-                            className={`${isSidebarCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}
-                        >
-                            <div
-                                className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-                            >
-                                <div className="overflow-y-auto scrollbar-hide">
-                                    {/* Logo/Brand */}
-                                <div className="mb-6 border-b pb-4">
-                                    <a href="/" className="flex items-center text-lg font-bold text-foreground transition-opacity hover:opacity-80">
-                                        Sirius
-                                    </a>
-                                </div>
-
-                                    <div className="mb-6">
-                                        <div className="mb-3">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h1 className="text-sm font-semibold truncate">{project.name}</h1>
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <div className="flex items-center justify-between text-[10px]">
-                                                    <span className="text-muted-foreground">Progress</span>
-                                                    <span className="font-medium">{completionPercentage}%</span>
-                                                </div>
-                                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                                                    <div className="h-full bg-primary transition-all" style={{ width: `${completionPercentage}%` }} />
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-[10px]">
-                                                    {getHealthIcon()}
-                                                    <span className="text-muted-foreground">{getHealthStatus()}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <nav className="space-y-6">
-                                        {navGroups.map((group) => (
-                                            <div key={group.label} className="space-y-2">
-                                                <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                                    {group.label}
-                                                </div>
-                                                <ul className="space-y-1">
-                                                    {group.items.map((item) => (
-                                                        <li key={item.key}>
-                                                            <button
-                                                                onClick={item.disabled ? undefined : item.onClick}
-                                                                disabled={item.disabled}
-                                                                className={[
-                                                                    'flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
-                                                                    item.disabled
-                                                                        ? 'cursor-not-allowed opacity-50'
-                                                                        : item.active
-                                                                            ? 'bg-muted font-medium text-foreground'
-                                                                            : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
-                                                                    item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
-                                                                ].join(' ')}
-                                                                title={item.disabled ? 'Not available yet' : item.label}
-                                                            >
-                                                                <item.icon className="h-4 w-4 shrink-0" />
-                                                                <span className={item.muted ? 'opacity-70' : ''}>{item.label}</span>
-                                                            </button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        ))}
-                                    </nav>
-                                </div>
-
-                                <div className="shrink-0 border-t pt-3">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
-                                                <Avatar className="h-5 w-5 shrink-0">
-                                                    <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                                    <AvatarFallback className="text-[10px] bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                        {getInitials(auth.user.name)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="truncate text-xs font-medium text-foreground">{auth.user.name}</div>
-                                                    <div className="truncate text-[10px] text-muted-foreground">{auth.user.email}</div>
-                                                </div>
-                                                <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                            </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-56">
-                                            <UserMenuContent user={auth.user} />
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </div>
-                        </aside>
+                        <ProjectSidebar
+                            project={project}
+                            navGroups={navGroups}
+                            completionPercentage={completionPercentage}
+                            health={health}
+                            isCollapsed={isSidebarCollapsed}
+                            user={auth.user}
+                        />
 
                         <main className="min-w-0 flex-1">
                             <div className="flex h-screen flex-col">
                                 <div className="border-b px-4 py-3 sm:pl-6 lg:pl-6">
                                     <div className="mb-4 flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                                className="hidden h-8 w-8 p-0 lg:flex"
-                                                title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                            >
-                                                {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                            </Button>
+                                            <SidebarToggle
+                                                isCollapsed={isSidebarCollapsed}
+                                                onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                            />
                                             <Breadcrumbs breadcrumbs={breadcrumbs} />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -1167,99 +874,111 @@ export default function PRD({
                                                     <span>•</span>
                                                     <span>
                                                         Read time:{' '}
-                                                        {Math.max(1, Math.ceil(currentVersion.prd_content.trim().split(/\s+/).filter(Boolean).length / 200))} min
+                                                        {Math.max(
+                                                            1,
+                                                            Math.ceil(currentVersion.prd_content.trim().split(/\s+/).filter(Boolean).length / 200),
+                                                        )}{' '}
+                                                        min
                                                     </span>
                                                 </div>
                                             )}
                                         </div>
 
-                        {/* Content Area */}
-                        <ScrollArea className="flex-1 p-6">
-                            {isInitialGeneration ? (
-                                <SimpleLoader text="Generating PRD" />
-                            ) : currentVersion ? (
-                                <Card>
-                                    <CardContent className="p-0">
-                                        {isEditing ? (
-                                            <div className="flex flex-col">
-                                                <div className="border-b border-border bg-muted/50 p-3">
-                                                    <div className="flex items-center justify-between">
-                                                        <h3 className="text-sm font-medium">Edit PRD</h3>
-                                                        <div className="flex items-center space-x-2">
-                                                            <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                                                                Cancel
-                                                            </Button>
-                                                            <Button size="sm" onClick={handleContentUpdate}>
-                                                                <SaveIcon className="mr-1 h-3 w-3" />
-                                                                Save Changes
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                    <p className="mt-2 text-xs text-muted-foreground">
-                                                        Note: To edit features (name, summary, criteria, etc.), go to each feature's page. The PRD
-                                                        page is not for editing features directly.
-                                                    </p>
-                                                </div>
-                                                <Textarea
-                                                    value={editedContent}
-                                                    onChange={(e) => setEditedContent(e.target.value)}
-                                                    className="min-h-[500px] resize-none border-0 font-mono text-sm focus:ring-0"
-                                                    placeholder="Enter your PRD content in Markdown format..."
-                                                />
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="p-6">
-                                                    <div className="prose prose-slate dark:prose-invert prose-table-bordered max-w-none">
-                                                        <ReactMarkdown
-                                                            remarkPlugins={[remarkGfm]}
-                                                            rehypePlugins={[rehypeRaw]}
-                                                            components={{
-                                                                code: ({ className, children, ...props }) => {
-                                                                    const match = /language-(\w+)/.exec(className || '');
-                                                                    const language = match ? match[1] : '';
-                                                                    const isInline = !className?.includes('language-');
+                                        {/* Content Area */}
+                                        <ScrollArea className="flex-1 p-6">
+                                            {isInitialGeneration ? (
+                                                <SimpleLoader text="Generating PRD" />
+                                            ) : currentVersion ? (
+                                                <Card>
+                                                    <CardContent className="p-0">
+                                                        {isEditing ? (
+                                                            <div className="flex flex-col">
+                                                                <div className="border-b border-border bg-muted/50 p-3">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <h3 className="text-sm font-medium">Edit PRD</h3>
+                                                                        <div className="flex items-center space-x-2">
+                                                                            <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                                                                                Cancel
+                                                                            </Button>
+                                                                            <Button size="sm" onClick={handleContentUpdate}>
+                                                                                <SaveIcon className="mr-1 h-3 w-3" />
+                                                                                Save Changes
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <p className="mt-2 text-xs text-muted-foreground">
+                                                                        Note: To edit features (name, summary, criteria, etc.), go to each feature's
+                                                                        page. The PRD page is not for editing features directly.
+                                                                    </p>
+                                                                </div>
+                                                                <Textarea
+                                                                    value={editedContent}
+                                                                    onChange={(e) => setEditedContent(e.target.value)}
+                                                                    className="min-h-[500px] resize-none border-0 font-mono text-sm focus:ring-0"
+                                                                    placeholder="Enter your PRD content in Markdown format..."
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <div className="p-6">
+                                                                    <div className="prose prose-slate dark:prose-invert prose-table-bordered max-w-none">
+                                                                        <ReactMarkdown
+                                                                            remarkPlugins={[remarkGfm]}
+                                                                            rehypePlugins={[rehypeRaw]}
+                                                                            components={{
+                                                                                code: ({ className, children, ...props }) => {
+                                                                                    const match = /language-(\w+)/.exec(className || '');
+                                                                                    const language = match ? match[1] : '';
+                                                                                    const isInline = !className?.includes('language-');
 
-                                                                    if (language === 'mermaid' && !isInline) {
-                                                                        return <MermaidDiagram>{String(children).replace(/\n$/, '')}</MermaidDiagram>;
-                                                                    }
+                                                                                    if (language === 'mermaid' && !isInline) {
+                                                                                        return (
+                                                                                            <MermaidDiagram>
+                                                                                                {String(children).replace(/\n$/, '')}
+                                                                                            </MermaidDiagram>
+                                                                                        );
+                                                                                    }
 
-                                                                    return (
-                                                                        <code className={className} {...props}>
-                                                                            {children}
-                                                                        </code>
-                                                                    );
-                                                                },
-                                                            }}
-                                                        >
-                                                            {currentVersion.prd_content}
-                                                        </ReactMarkdown>
+                                                                                    return (
+                                                                                        <code className={className} {...props}>
+                                                                                            {children}
+                                                                                        </code>
+                                                                                    );
+                                                                                },
+                                                                            }}
+                                                                        >
+                                                                            {currentVersion.prd_content}
+                                                                        </ReactMarkdown>
+                                                                    </div>
+                                                                </div>
+                                                                {featuresMarkdown && (
+                                                                    <div className="mt-8 border-t border-border px-6 pt-8">
+                                                                        <div className="prose prose-slate dark:prose-invert max-w-none">
+                                                                            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                                                                                {`# Feature Requirements\n\n${featuresMarkdown}`}
+                                                                            </ReactMarkdown>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </CardContent>
+                                                </Card>
+                                            ) : (
+                                                <div className="flex h-96 items-center justify-center">
+                                                    <div className="text-center">
+                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
+                                                            <FileTextIcon className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+                                                        </div>
+                                                        <h3 className="mb-2 text-lg font-semibold text-slate-800 dark:text-white">
+                                                            No PRD Available
+                                                        </h3>
+                                                        <p className="text-slate-600 dark:text-white/70">
+                                                            Start a conversation to generate your first PRD.
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                {featuresMarkdown && (
-                                                    <div className="mt-8 border-t border-border pt-8 px-6">
-                                                        <div className="prose prose-slate dark:prose-invert max-w-none">
-                                                            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                                                                {`# Feature Requirements\n\n${featuresMarkdown}`}
-                                                            </ReactMarkdown>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <div className="flex h-96 items-center justify-center">
-                                    <div className="text-center">
-                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-                                            <FileTextIcon className="h-8 w-8 text-slate-400 dark:text-slate-500" />
-                                        </div>
-                                        <h3 className="mb-2 text-lg font-semibold text-slate-800 dark:text-white">No PRD Available</h3>
-                                        <p className="text-slate-600 dark:text-white/70">Start a conversation to generate your first PRD.</p>
-                                    </div>
-                                </div>
-                            )}
+                                            )}
                                         </ScrollArea>
                                     </div>
                                     {/* Right Sidebar for Versions/Chat could go here if needed */}
@@ -1368,7 +1087,7 @@ export default function PRD({
                                                 </div>
                                             )}
                                             {featuresMarkdown && !isEditing && (
-                                                  <div className="mt-8 border-t border-border pt-8 px-6">
+                                                <div className="mt-8 border-t border-border px-6 pt-8">
                                                     <div className="prose prose-slate dark:prose-invert max-w-none">
                                                         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                                                             {`# Feature Requirements\n\n${featuresMarkdown}`}

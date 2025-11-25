@@ -1,40 +1,29 @@
 ﻿import { PromptInput, PromptInputSubmit, PromptInputTextarea, PromptInputToolbar } from '@/components/ai-elements/prompt-input';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
-import { RepoConnectDialog } from '@/components/github/repo-connect-dialog';
-import { RepoManagementModal } from '@/components/github/repo-management-modal';
-import AppLogo from '@/components/app-logo';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import ProjectSidebar from '@/components/Projects/ProjectSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { TeamPreview } from '@/components/TeamPreview';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { UserMenuContent } from '@/components/user-menu-content';
-import { TeamPreview } from '@/components/TeamPreview';
 import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
+import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, RadialBarChart, RadialBar } from 'recharts';
 import {
     AlertCircleIcon,
     ArrowRightIcon,
     CheckCircleIcon,
-    ChevronDownIcon,
-    CircleIcon,
     ClockIcon,
     CodeIcon,
     DatabaseIcon,
     FileIcon,
     FileText as FileTextIcon,
-    Github as GithubIcon,
     HomeIcon,
     Layers as LayersIcon,
-    LightbulbIcon,
+    Lock as LockIcon,
     MessageCircleIcon,
-    PanelLeftClose,
-    PanelLeftOpen,
-    TrendingUpIcon,
     Users as UsersIcon,
     ZapIcon,
 } from 'lucide-react';
@@ -122,36 +111,8 @@ export default function ProjectShow({ project, sections, features = [], reposito
     const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
     const [isCreateFeatureModalOpen, setIsCreateFeatureModalOpen] = useState(false);
     const [isFloatingChatOpen, setIsFloatingChatOpen] = useState(false);
-    const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
-    const [isRepoManagementOpen, setIsRepoManagementOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isCreatingFeatures, setIsCreatingFeatures] = useState(false);
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
-
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return <CircleIcon className="h-4 w-4" />;
-            case 'in_progress':
-                return <ClockIcon className="h-4 w-4" />;
-            case 'completed':
-                return <CheckCircleIcon className="h-4 w-4" />;
-            default:
-                return <AlertCircleIcon className="h-4 w-4" />;
-        }
-    };
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -168,24 +129,97 @@ export default function ProjectShow({ project, sections, features = [], reposito
         }
     };
 
-    const completionPercentage = useMemo(() => {
-        const total = 6;
-        let done = 0;
-        if (sections.overview) done++;
-        if (sections.prd) done++;
-        if (features.length > 0) done++;
-        if (sections.data_modeling) done++;
-        if (project.c4) done++;
-        if (project.brief) done++;
-        return Math.round((done / total) * 100);
-    }, [sections, features.length, project.c4, project.brief]);
+    interface RoadmapStep {
+        id: string;
+        title: string;
+        description: string;
+        icon: React.ComponentType<{ className?: string }>;
+        isCompleted: boolean;
+        isCurrent: boolean;
+        isLocked: boolean;
+        actionType: 'navigate' | 'generate' | 'view' | 'create';
+        actionPath: string | null;
+        actionHandler?: () => void;
+    }
 
-    const health = useMemo(() => {
-        if (completionPercentage >= 80) return { label: 'excellent', Icon: CheckCircleIcon, color: 'text-emerald-600 dark:text-emerald-300' };
-        if (completionPercentage >= 60) return { label: 'good', Icon: TrendingUpIcon, color: 'text-blue-600 dark:text-blue-300' };
-        if (completionPercentage >= 40) return { label: 'fair', Icon: AlertCircleIcon, color: 'text-orange-600 dark:text-orange-300' };
-        return { label: 'needs attention', Icon: AlertCircleIcon, color: 'text-red-600 dark:text-red-300' };
-    }, [completionPercentage]);
+    const getRoadmapSteps = (): RoadmapStep[] => {
+        const overviewExists = !!sections.overview;
+        const featuresExist = features.length > 0;
+        const prdExists = !!sections.prd;
+        const erdExists = !!sections.data_modeling;
+        const c4Exists = !!project.c4;
+
+        const steps: RoadmapStep[] = [
+            {
+                id: 'overview',
+                title: 'System Overview',
+                description: 'Define the high-level system overview and requirements',
+                icon: FileIcon,
+                isCompleted: overviewExists,
+                isCurrent: !overviewExists,
+                isLocked: false,
+                actionType: 'navigate',
+                actionPath: `/projects/${project.id}/system-overview`,
+            },
+            {
+                id: 'features',
+                title: 'Features',
+                description: 'Break down the project into manageable features',
+                icon: ZapIcon,
+                isCompleted: featuresExist,
+                isCurrent: overviewExists && !featuresExist,
+                isLocked: !overviewExists,
+                actionType: featuresExist ? 'view' : 'create',
+                actionPath: featuresExist ? null : `/features/create/${project.id}`,
+            },
+            {
+                id: 'prd',
+                title: 'Product Requirements Document',
+                description: 'Create a detailed Product Requirements Document',
+                icon: FileTextIcon,
+                isCompleted: prdExists,
+                isCurrent: overviewExists && featuresExist && !prdExists,
+                isLocked: !overviewExists || !featuresExist,
+                actionType: prdExists ? 'navigate' : 'generate',
+                actionPath: prdExists ? `/projects/${project.id}/prd` : null,
+            },
+            {
+                id: 'erd',
+                title: 'Database Design',
+                description: 'Design the database schema and relationships',
+                icon: DatabaseIcon,
+                isCompleted: erdExists,
+                isCurrent: overviewExists && featuresExist && prdExists && !erdExists,
+                isLocked: !overviewExists || !featuresExist || !prdExists,
+                actionType: 'navigate',
+                actionPath: `/projects/${project.id}/erd`,
+            },
+            {
+                id: 'architecture',
+                title: 'System Architecture',
+                description: 'Visualize the system architecture using C4 model',
+                icon: LayersIcon,
+                isCompleted: c4Exists,
+                isCurrent: overviewExists && featuresExist && prdExists && erdExists && !c4Exists,
+                isLocked: !overviewExists || !featuresExist || !prdExists,
+                actionType: c4Exists ? 'navigate' : 'generate',
+                actionPath: c4Exists ? `/projects/${project.id}/c4` : null,
+            },
+        ];
+
+        return steps;
+    };
+
+    const roadmapSteps = useMemo(() => getRoadmapSteps(), [sections, features.length, project.c4]);
+    const currentStep = roadmapSteps.find((step) => step.isCurrent);
+    const completedStepsCount = roadmapSteps.filter((step) => step.isCompleted).length;
+    const totalStepsCount = roadmapSteps.length;
+
+    const completionPercentage = useMemo(() => {
+        return Math.round((completedStepsCount / totalStepsCount) * 100);
+    }, [completedStepsCount, totalStepsCount]);
+
+    const health = useMemo(() => getHealthStatus(completionPercentage), [completionPercentage]);
 
     const renderMarkdown = (markdown: string | null | undefined) => {
         if (!markdown || typeof markdown !== 'string') return null;
@@ -254,26 +288,9 @@ export default function ProjectShow({ project, sections, features = [], reposito
         e.currentTarget.reset();
     };
 
-    interface NavItem {
-        key: string;
-        icon: React.ComponentType<{ className?: string }>;
-        label: string;
-        muted?: boolean;
-        emphasize?: boolean;
-        active?: boolean;
-        badge?: string;
-        disabled?: boolean;
-        onClick: () => void;
-    }
-
-    interface NavGroup {
-        label: string;
-        items: NavItem[];
-    }
-
-    const navGroups: NavGroup[] = [
+    const navGroups = [
         {
-            label: 'Plan',
+            label: 'Project',
             items: [
                 {
                     key: 'home',
@@ -286,335 +303,42 @@ export default function ProjectShow({ project, sections, features = [], reposito
                     },
                 },
                 {
-                    key: 'overview',
-                    icon: FileIcon,
-                    label: 'System Overview',
-                    muted: !sections.overview,
-                    disabled: !sections.overview,
-                    onClick: () => sections.overview && router.get(`/projects/${project.id}/system-overview`),
-                },
-                {
-                    key: 'prd',
-                    icon: FileIcon,
-                    label: sections.prd ? 'PRD' : 'Generate PRD',
-                    emphasize: !sections.prd,
-                    disabled: !sections.prd,
-                    onClick: () => (sections.prd ? router.get(`/projects/${project.id}/prd`) : router.post(`/projects/${project.id}/prd/generate`)),
-                },
-                {
-                    key: 'features',
-                    icon: ZapIcon,
-                    label: 'Features',
-                    active: activeSection === 'features',
-                    disabled: features.length === 0,
-                    onClick: () => {
-                        if (features.length > 0) {
-                            setActiveSection('features');
-                        }
-                    },
-                },
-                {
                     key: 'team',
                     icon: UsersIcon,
-                    label: 'Team Collaboration',
+                    label: 'Team',
                     onClick: () => router.get(`/projects/${project.id}/team`),
-                },
-            ],
-        },
-        {
-            label: 'Design',
-            items: [
-                {
-                    key: 'brainstorming',
-                    icon: LightbulbIcon,
-                    label: 'Brainstorming',
-                    emphasize: true,
-                    onClick: () => router.get(`/projects/${project.id}/brainstorming`),
-                },
-            ],
-        },
-        {
-            label: 'Technical',
-            items: [
-                {
-                    key: 'erd',
-                    icon: DatabaseIcon,
-                    label: 'Database Designer',
-                    muted: !sections.data_modeling,
-                    disabled: !sections.data_modeling,
-                    onClick: () => sections.data_modeling && router.get(`/projects/${project.id}/erd`),
-                },
-                {
-                    key: 'c4',
-                    icon: LayersIcon,
-                    label: project.c4 ? 'System Architecture' : 'Generate C4',
-                    emphasize: !project.c4,
-                    disabled: !project.c4,
-                    onClick: () => {
-                        if (project.c4) {
-                            router.get(`/projects/${project.id}/c4`);
-                        } else {
-                            router.post(`/projects/${project.id}/c4/generate`);
-                        }
-                    },
-                },
-                {
-                    key: 'technology',
-                    icon: CodeIcon,
-                    label: 'Technology Stack',
-                    onClick: () => router.get(`/projects/${project.id}/technology`),
                 },
             ],
         },
     ];
 
-    const getNextSteps = () => {
-        const steps = [];
-        
-        // Priority 1: If overview is not created, it's the only step and has highest priority
-        if (!sections.overview) {
-            steps.push({
-                title: 'Generate System Overview',
-                description: 'Create a comprehensive system overview document - Required before proceeding',
-                action: () => router.get(`/projects/${project.id}/system-overview`),
-                icon: FileIcon,
-                priority: 'critical',
-                isLoading: false,
-            });
-            return steps; // Return early - only show overview step
+    const handleRoadmapAction = (step: RoadmapStep) => {
+        if (step.isLocked || (step.isCompleted && step.actionType === 'generate')) return;
+
+        if (step.id === 'features' && step.actionType === 'view') {
+            setActiveSection('features');
+            return;
         }
-        
-        // Priority 2: If overview exists but no features, show only the features step
-        if (features.length === 0) {
-            steps.push({
-                title: 'Create Features',
-                description: 'Define features to break down the work - Required before proceeding',
-                action: () => {
-                    setIsCreatingFeatures(true);
-                    router.get(`/features/create/${project.id}`, {}, {
-                        onFinish: () => setIsCreatingFeatures(false)
-                    });
+
+        if (step.actionType === 'navigate' && step.actionPath) {
+            router.get(step.actionPath);
+        } else if (step.actionType === 'generate') {
+            if (step.id === 'prd') {
+                router.post(`/projects/${project.id}/prd/generate`);
+            } else if (step.id === 'architecture') {
+                router.post(`/projects/${project.id}/c4/generate`);
+            }
+        } else if (step.actionType === 'create' && step.actionPath) {
+            setIsCreatingFeatures(true);
+            router.get(
+                step.actionPath,
+                {},
+                {
+                    onFinish: () => setIsCreatingFeatures(false),
                 },
-                icon: ZapIcon,
-                priority: 'critical',
-                isLoading: isCreatingFeatures,
-            });
-            return steps; // Return early - only show features step
+            );
         }
-        
-        // Priority 3: Only show PRD if overview and features exist
-        if (!sections.prd) {
-            steps.push({
-                title: 'Generate PRD',
-                description: 'Create a Product Requirements Document to define your project',
-                action: () => router.post(`/projects/${project.id}/prd/generate`),
-                icon: FileIcon,
-                priority: 'high',
-                isLoading: false,
-            });
-        }
-        
-        // Priority 4: Only show C4 if features are created and PRD exists
-        if (!project.c4 && sections.prd) {
-            steps.push({
-                title: 'Generate C4 Architecture',
-                description: 'Create system architecture diagrams using C4 model',
-                action: () => router.post(`/projects/${project.id}/c4/generate`),
-                icon: LayersIcon,
-                priority: 'medium',
-                isLoading: false,
-            });
-        }
-        return steps.slice(0, 3);
     };
-
-    const getCompletionBreakdown = () => {
-        // Check what should be disabled based on priority
-        const overviewExists = !!sections.overview;
-        const featuresExist = features.length > 0;
-        const prdExists = !!sections.prd;
-        
-        return [
-            {
-                name: 'System Overview',
-                completed: overviewExists,
-                icon: FileIcon,
-                href: `/projects/${project.id}/system-overview`,
-                disabled: false, // Always enabled as it's the first step
-            },
-            {
-                name: 'Features',
-                completed: featuresExist,
-                icon: ZapIcon,
-                href: featuresExist ? null : `/features/create/${project.id}`,
-                count: features.length,
-                disabled: !overviewExists, // Disabled if overview doesn't exist
-                action: featuresExist ? 'view' : 'create',
-            },
-            {
-                name: 'PRD',
-                completed: prdExists,
-                icon: FileIcon,
-                href: prdExists ? `/projects/${project.id}/prd` : null,
-                action: prdExists ? 'view' : 'generate',
-                disabled: !overviewExists || !featuresExist, // Disabled if overview or features don't exist
-            },
-            {
-                name: 'Database Design',
-                completed: !!sections.data_modeling,
-                icon: DatabaseIcon,
-                href: `/projects/${project.id}/erd`,
-                disabled: !overviewExists || !featuresExist, // Disabled if overview or features don't exist
-            },
-            {
-                name: 'System Architecture',
-                completed: !!project.c4,
-                icon: LayersIcon,
-                href: project.c4 ? `/projects/${project.id}/c4` : null,
-                action: project.c4 ? 'view' : 'generate',
-                disabled: !overviewExists || !featuresExist || !prdExists, // Disabled if overview, features, or PRD don't exist
-            },
-            {
-                name: 'Project Brief',
-                completed: !!project.brief,
-                icon: FileTextIcon,
-                href: null,
-                action: 'view',
-                disabled: !overviewExists || !featuresExist, // Disabled if overview or features don't exist
-            },
-        ];
-    };
-
-    const statusChartConfig: ChartConfig = {
-        completed: {
-            label: 'Completed',
-            theme: {
-                light: 'oklch(0.5638 0.1471 264.8522)', // chart-1
-                dark: 'oklch(0.5638 0.1471 264.8522)', // chart-1
-            },
-        },
-        'in_progress': {
-            label: 'In Progress',
-            theme: {
-                light: 'oklch(0.6907 0.1554 160.3454)', // chart-2
-                dark: 'oklch(0.6907 0.1554 160.3454)', // chart-2
-            },
-        },
-        draft: {
-            label: 'Draft',
-            theme: {
-                light: 'oklch(0.8214 0.16 82.5337)', // chart-3
-                dark: 'oklch(0.8214 0.16 82.5337)', // chart-3
-            },
-        },
-        archived: {
-            label: 'Archived',
-            theme: {
-                light: 'oklch(0.7064 0.1822 151.7125)', // chart-4
-                dark: 'oklch(0.7064 0.1822 151.7125)', // chart-4
-            },
-        },
-    };
-
-    const priorityChartConfig: ChartConfig = {
-        critical: {
-            label: 'Critical',
-            theme: {
-                light: 'oklch(0.6188 0.2376 25.7658)', // destructive
-                dark: 'oklch(0.6188 0.2376 25.7658)', // destructive
-            },
-        },
-        high: {
-            label: 'High',
-            theme: {
-                light: 'oklch(0.5638 0.1471 264.8522)', // chart-1
-                dark: 'oklch(0.5638 0.1471 264.8522)', // chart-1
-            },
-        },
-        medium: {
-            label: 'Medium',
-            theme: {
-                light: 'oklch(0.6907 0.1554 160.3454)', // chart-2
-                dark: 'oklch(0.6907 0.1554 160.3454)', // chart-2
-            },
-        },
-        low: {
-            label: 'Low',
-            theme: {
-                light: 'oklch(0.8214 0.16 82.5337)', // chart-3
-                dark: 'oklch(0.8214 0.16 82.5337)', // chart-3
-            },
-        },
-    };
-
-    const getFeatureStatusData = useMemo(() => {
-        const statusMap: Record<string, number> = {
-            completed: 0,
-            'in_progress': 0,
-            draft: 0,
-            archived: 0,
-        };
-
-        features.forEach((feature) => {
-            if (statusMap[feature.status] !== undefined) {
-                statusMap[feature.status]++;
-            }
-        });
-
-        return Object.entries(statusMap)
-            .filter(([_, count]) => count > 0)
-            .map(([status]) => ({
-                name: status === 'in_progress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1),
-                value: statusMap[status],
-                statusKey: status,
-                fill: `var(--color-${status})`,
-            }));
-    }, [features]);
-
-    const getFeaturePriorityData = useMemo(() => {
-        const priorityMap: Record<string, number> = {
-            critical: 0,
-            high: 0,
-            medium: 0,
-            low: 0,
-        };
-
-        features.forEach((feature) => {
-            if (priorityMap[feature.priority] !== undefined) {
-                priorityMap[feature.priority]++;
-            }
-        });
-
-        return Object.entries(priorityMap)
-            .filter(([_, count]) => count > 0)
-            .map(([priority]) => ({
-                name: priority.charAt(0).toUpperCase() + priority.slice(1),
-                value: priorityMap[priority],
-                priorityKey: priority,
-                fill: `var(--color-${priority})`,
-            }));
-    }, [features]);
-
-    const completionChartConfig: ChartConfig = {
-        completion: {
-            label: 'Completion',
-            theme: {
-                light: 'oklch(0.5638 0.1471 264.8522)', // chart-1 - blue
-                dark: 'oklch(0.5638 0.1471 264.8522)', // chart-1 - blue
-            },
-        },
-    };
-
-    const completionChartData = useMemo(
-        () => [
-            {
-                name: 'completion',
-                value: completionPercentage,
-                fill: 'var(--color-completion)',
-            },
-        ],
-        [completionPercentage],
-    );
 
     return (
         <>
@@ -622,558 +346,298 @@ export default function ProjectShow({ project, sections, features = [], reposito
 
             <div className="min-h-screen bg-background">
                 <div className="flex">
-                    <aside className={`${isSidebarCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}>
-                        <div
-                            className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-                        >
-                            <div className="overflow-y-auto scrollbar-hide">
-                            {/* Logo/Brand */}
-                                <div className="mb-6 border-b pb-4">
-                                    <a href="/" className="flex items-center text-lg font-bold text-foreground transition-opacity hover:opacity-80">
-                                        Sirius
-                                    </a>
-                                </div>
-
-                            <div className="mb-6">
-                                <div className="mb-3">
-                                    <div className="truncate text-sm font-medium text-foreground">{project.name}</div>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <span
-                                            className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs ${getStatusColor(project.status)}`}
-                                        >
-                                            {getStatusIcon(project.status)}
-                                            {project.status.replace('_', ' ')}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4">
-                                    <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>Progress</span>
-                                        <span>{completionPercentage}%</span>
-                                    </div>
-                                    <div className="h-1.5 w-full overflow-hidden rounded bg-muted">
-                                        <div className="h-full bg-foreground transition-all" style={{ width: `${completionPercentage}%` }} />
-                                    </div>
-                                    <div className="mt-2 flex items-center gap-1.5 text-xs">
-                                        <health.Icon className={`h-3.5 w-3.5 ${health.color}`} />
-                                        <span className={`capitalize ${health.color}`}>{health.label}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <nav className="space-y-6">
-                                {navGroups.map((group) => (
-                                    <div key={group.label} className="space-y-2">
-                                            <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                                {group.label}
-                                            </div>
-                                        <ul className="space-y-1">
-                                            {group.items.map((item) => (
-                                                <li key={item.key}>
-                                                    <button
-                                                        onClick={item.disabled ? undefined : item.onClick}
-                                                        disabled={item.disabled}
-                                                        className={[
-                                                            'flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
-                                                            item.disabled
-                                                                ? 'cursor-not-allowed opacity-50'
-                                                                : item.active
-                                                                  ? 'bg-muted font-medium text-foreground'
-                                                                  : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
-                                                            item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
-                                                            item.key === 'brainstorming' && !item.disabled
-                                                                ? 'bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/20'
-                                                                : '',
-                                                        ].join(' ')}
-                                                        title={item.disabled ? `${item.label} (Not created yet)` : item.label}
-                                                    >
-                                                        <item.icon className={`h-4 w-4 shrink-0 ${item.key === 'brainstorming' && !item.disabled ? 'text-amber-600 dark:text-amber-400' : ''}`} />
-                                                        <span
-                                                            className={
-                                                                item.muted
-                                                                    ? 'opacity-70'
-                                                                    : item.key === 'brainstorming' && !item.disabled
-                                                                      ? 'text-amber-900 dark:text-amber-200'
-                                                                      : ''
-                                                            }
-                                                        >
-                                                            {item.label}
-                                                        </span>
-                                                        {item.badge && (
-                                                            <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
-                                                                {item.badge}
-                                                            </Badge>
-                                                        )}
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-
-                                <div className="space-y-2">
-                                    <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Integrations</div>
-                                    <button
-                                        className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
-                                        onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
-                                    >
-                                        <span className="inline-flex items-center gap-2">
-                                            <GithubIcon className="h-4 w-4 shrink-0" />
-                                            GitHub
-                                        </span>
-                                        {repository ? (
-                                            <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                                                <CheckCircleIcon className="h-3.5 w-3.5" />
-                                                Connected
-                                            </span>
-                                        ) : (
-                                            <span className="text-xs">Connect</span>
-                                        )}
-                                    </button>
-                                </div>
-                            </nav>
-                            </div>
-
-                            <div className="shrink-0 border-t pt-3">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
-                                            <Avatar className="h-5 w-5 shrink-0">
-                                                <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                                <AvatarFallback className="text-[10px] bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                    {getInitials(auth.user.name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="truncate text-xs font-medium text-foreground">{auth.user.name}</div>
-                                                <div className="truncate text-[10px] text-muted-foreground">{auth.user.email}</div>
-                                            </div>
-                                            <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
-                                        <UserMenuContent user={auth.user} />
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-                        </aside>
+                    <ProjectSidebar
+                        project={project}
+                        navGroups={navGroups}
+                        repository={repository}
+                        completionPercentage={completionPercentage}
+                        isCollapsed={isSidebarCollapsed}
+                        user={auth.user}
+                    />
 
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-6 flex items-center gap-3">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    className="hidden h-8 w-8 p-0 lg:flex"
-                                    title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                >
-                                    {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                </Button>
+                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
                             <header className="mb-8">
-                                    <div>
-                                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{project.name}</h1>
-                                        <p className="mt-1 text-sm text-muted-foreground">Streamlined project workspace</p>
-                                    </div>
+                                <div>
+                                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">{project.name}</h1>
+                                    <p className="mt-1 text-sm text-muted-foreground">Streamlined project workspace</p>
+                                </div>
                             </header>
 
                             {activeSection === 'home' && (
                                 <section className="space-y-8">
-                                    {/* Project Metrics Dashboard */}
-                                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                        <div className="rounded border p-4">
-                                            <div className="mb-1 text-xs font-medium text-muted-foreground">Overall Progress</div>
-                                            <div className="mb-2 text-2xl font-semibold text-foreground">{completionPercentage}%</div>
-                                            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                                                <div
-                                                    className="h-full bg-foreground transition-all"
-                                                    style={{ width: `${completionPercentage}%` }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="rounded border p-4">
-                                            <div className="mb-1 text-xs font-medium text-muted-foreground">Total Features</div>
-                                            <div className="mb-2 text-2xl font-semibold text-foreground">{features.length}</div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {features.length > 0 ? (
-                                                    <>
-                                                        {features.filter((f) => f.status === 'completed').length} completed,{' '}
-                                                        {features.filter((f) => f.status === 'in_progress').length} in progress
-                                                    </>
-                                                ) : (
-                                                    'No features yet'
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <TeamPreview
-                                            projectId={project.id}
-                                            members={teamMembers}
-                                            totalCount={teamMembersCount}
-                                        />
-
-                                        <div className="rounded border p-4">
-                                            <div className="mb-1 text-xs font-medium text-muted-foreground">GitHub Integration</div>
-                                            <div className="mb-2 flex items-center gap-2">
-                                                {repository ? (
-                                                    <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400">
-                                                        <CheckCircleIcon className="h-4 w-4" />
-                                                        Connected
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-sm text-muted-foreground">Not connected</span>
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
-                                                className="text-xs text-muted-foreground hover:text-foreground"
-                                            >
-                                                {repository ? 'Manage' : 'Connect'}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Next Steps Section */}
-                                    {getNextSteps().length > 0 && (
-                                    <div className="space-y-4">
-                                    <div className="flex items-center gap-2">
-                                                <ArrowRightIcon className="h-5 w-5 text-foreground" />
-                                                <h2 className="text-lg font-semibold text-foreground">Next Steps</h2>
-                                    </div>
-                                            <div className="grid gap-4 md:grid-cols-3">
-                                                {getNextSteps().map((step, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="group cursor-pointer rounded border p-4 transition-colors hover:bg-muted/40"
-                                                        onClick={step.isLoading ? undefined : step.action}
-                                                    >
-                                                        <div className="mb-3 flex items-center gap-3">
-                                                            <div
-                                                                className={`flex h-10 w-10 items-center justify-center rounded ${
-                                                                    step.priority === 'critical' 
-                                                                        ? 'bg-red-100 dark:bg-red-500/10' 
-                                                                        : step.priority === 'high' 
-                                                                        ? 'bg-orange-100 dark:bg-orange-500/10' 
-                                                                        : 'bg-muted'
-                                                                }`}
-                                                            >
-                                                                {step.isLoading ? (
-                                                                    <svg
-                                                                        className="h-5 w-5 animate-spin text-red-600 dark:text-red-400"
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        fill="none"
-                                                                        viewBox="0 0 24 24"
-                                                                    >
-                                                                        <circle
-                                                                            className="opacity-25"
-                                                                            cx="12"
-                                                                            cy="12"
-                                                                            r="10"
-                                                                            stroke="currentColor"
-                                                                            strokeWidth="4"
-                                                                        ></circle>
-                                                                        <path
-                                                                            className="opacity-75"
-                                                                            fill="currentColor"
-                                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                                                        ></path>
-                                                                    </svg>
-                                                                ) : (
-                                                                <step.icon
-                                                                    className={`h-5 w-5 ${
-                                                                        step.priority === 'critical'
-                                                                            ? 'text-red-600 dark:text-red-400'
-                                                                            : step.priority === 'high' 
-                                                                            ? 'text-orange-600 dark:text-orange-400' 
-                                                                            : 'text-foreground'
-                                                                    }`}
-                                                                />
-                                                                )}
-                                </div>
-                                                            {step.priority === 'critical' && (
-                                                                <span className="rounded border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
-                                                                    Required
-                                                                </span>
-                                                            )}
-                                                            {step.priority === 'high' && (
-                                                                <span className="rounded border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400">
-                                                                    Priority
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <h3 className="mb-1 text-sm font-semibold text-foreground">
-                                                            {step.isLoading ? 'Loading...' : step.title}
-                                                        </h3>
-                                                        <p className="text-xs text-muted-foreground">{step.description}</p>
+                                    {/* Next Step Callout */}
+                                    {currentStep && (
+                                        <div className="rounded-lg border-l-4 border-l-primary bg-primary/5 p-6 dark:bg-primary/10">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex-1">
+                                                    <div className="mb-1 flex items-center gap-2">
+                                                        <span className="text-xs font-semibold tracking-wider text-primary uppercase">Next Step</span>
+                                                        <Badge variant="secondary" className="text-[10px]">
+                                                            {completedStepsCount} / {totalStepsCount} completed
+                                                        </Badge>
                                                     </div>
-                                                ))}
+                                                    <h3 className="mb-1 text-lg font-semibold text-foreground">{currentStep.title}</h3>
+                                                    <p className="text-sm text-muted-foreground">{currentStep.description}</p>
+                                                </div>
+                                                <Button
+                                                    onClick={() => handleRoadmapAction(currentStep)}
+                                                    disabled={currentStep.isLocked || isCreatingFeatures}
+                                                    size="lg"
+                                                    className="shrink-0"
+                                                >
+                                                    {isCreatingFeatures && currentStep.id === 'features' ? (
+                                                        <>
+                                                            <ClockIcon className="mr-2 h-4 w-4 animate-spin" />
+                                                            Creating...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            {currentStep.isCompleted
+                                                                ? 'View'
+                                                                : currentStep.actionType === 'generate'
+                                                                  ? 'Generate'
+                                                                  : currentStep.actionType === 'create'
+                                                                    ? 'Create'
+                                                                    : 'Open'}
+                                                            <ArrowRightIcon className="ml-2 h-4 w-4" />
+                                                        </>
+                                                    )}
+                                                </Button>
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* Completion Breakdown */}
-                                    <div className="space-y-4">
-                                        <h2 className="text-lg font-semibold text-foreground">Project Completion</h2>
-                                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                                            {getCompletionBreakdown().map((item, index) => (
+                                    {/* All Steps Complete State */}
+                                    {!currentStep && completedStepsCount === totalStepsCount && (
+                                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+                                            <div className="flex items-center gap-3">
+                                                <CheckCircleIcon className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                                                <div>
+                                                    <h3 className="font-semibold text-emerald-900 dark:text-emerald-100">All core steps complete!</h3>
+                                                    <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                                                        Your project roadmap is complete. Explore team collaboration and integrations.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid gap-8 lg:grid-cols-3">
+                                        <div className="space-y-8 lg:col-span-2">
+                                            {/* Project Roadmap */}
+                                            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                                                <div className="border-b p-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <h2 className="text-lg font-semibold text-foreground">Project Roadmap</h2>
+                                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                            <span>
+                                                                {completedStepsCount} of {totalStepsCount} steps
+                                                            </span>
+                                                            <span>•</span>
+                                                            <span>{Math.round((completedStepsCount / totalStepsCount) * 100)}%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="p-6">
+                                                    <div className="space-y-6">
+                                                        {roadmapSteps.map((step, index) => {
+                                                            const isLast = index === roadmapSteps.length - 1;
+                                                            const StepIcon = step.icon;
+
+                                                            return (
+                                                                <div key={step.id} className="relative">
+                                                                    {/* Connecting Line */}
+                                                                    {!isLast && (
+                                                                        <div
+                                                                            className={`absolute top-12 left-5 h-full w-0.5 ${
+                                                                                step.isCompleted
+                                                                                    ? 'bg-primary'
+                                                                                    : step.isCurrent
+                                                                                      ? 'bg-primary/30'
+                                                                                      : 'bg-muted'
+                                                                            }`}
+                                                                        />
+                                                                    )}
+
+                                                                    <div className="relative flex items-start gap-4">
+                                                                        {/* Step Icon/Status */}
+                                                                        <div
+                                                                            className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                                                                                step.isCompleted
+                                                                                    ? 'border-primary bg-primary text-primary-foreground'
+                                                                                    : step.isCurrent
+                                                                                      ? 'border-primary bg-background text-primary ring-4 ring-primary/20'
+                                                                                      : step.isLocked
+                                                                                        ? 'border-muted bg-muted text-muted-foreground opacity-50'
+                                                                                        : 'border-muted bg-background text-muted-foreground'
+                                                                            }`}
+                                                                        >
+                                                                            {step.isCompleted ? (
+                                                                                <CheckCircleIcon className="h-5 w-5" />
+                                                                            ) : step.isLocked ? (
+                                                                                <LockIcon className="h-5 w-5" />
+                                                                            ) : (
+                                                                                <StepIcon className="h-5 w-5" />
+                                                                            )}
+                                                                        </div>
+
+                                                                        {/* Step Content */}
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <div className="flex items-start justify-between gap-4">
+                                                                                <div className="flex-1">
+                                                                                    <div className="mb-1 flex items-center gap-2">
+                                                                                        <h3
+                                                                                            className={`font-semibold ${
+                                                                                                step.isCurrent
+                                                                                                    ? 'text-foreground'
+                                                                                                    : step.isLocked
+                                                                                                      ? 'text-muted-foreground'
+                                                                                                      : step.isCompleted
+                                                                                                        ? 'text-foreground'
+                                                                                                        : 'text-muted-foreground'
+                                                                                            }`}
+                                                                                        >
+                                                                                            {step.title}
+                                                                                        </h3>
+                                                                                        {step.isCurrent && (
+                                                                                            <Badge variant="default" className="text-[10px]">
+                                                                                                Current
+                                                                                            </Badge>
+                                                                                        )}
+                                                                                        {step.isCompleted && (
+                                                                                            <Badge
+                                                                                                variant="outline"
+                                                                                                className="border-emerald-200 text-[10px] text-emerald-700 dark:border-emerald-500/30 dark:text-emerald-400"
+                                                                                            >
+                                                                                                Complete
+                                                                                            </Badge>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <p
+                                                                                        className={`text-sm ${
+                                                                                            step.isLocked
+                                                                                                ? 'text-muted-foreground/70'
+                                                                                                : 'text-muted-foreground'
+                                                                                        }`}
+                                                                                    >
+                                                                                        {step.description}
+                                                                                    </p>
+                                                                                    {step.isLocked && (
+                                                                                        <p className="mt-1 text-xs text-muted-foreground">
+                                                                                            Complete previous steps to unlock
+                                                                                        </p>
+                                                                                    )}
+                                                                                </div>
+
+                                                                                {/* Action Button */}
+                                                                                {!step.isLocked && (
+                                                                                    <Button
+                                                                                        onClick={() => handleRoadmapAction(step)}
+                                                                                        disabled={
+                                                                                            (step.isCompleted && step.actionType === 'generate') ||
+                                                                                            (isCreatingFeatures && step.id === 'features')
+                                                                                        }
+                                                                                        variant={step.isCurrent ? 'default' : 'outline'}
+                                                                                        size="sm"
+                                                                                        className="shrink-0"
+                                                                                    >
+                                                                                        {isCreatingFeatures && step.id === 'features' ? (
+                                                                                            <>
+                                                                                                <ClockIcon className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                                                                                Creating...
+                                                                                            </>
+                                                                                        ) : step.isCompleted ? (
+                                                                                            step.actionType === 'generate' ? (
+                                                                                                'Regenerate'
+                                                                                            ) : (
+                                                                                                'View'
+                                                                                            )
+                                                                                        ) : step.actionType === 'generate' ? (
+                                                                                            'Generate'
+                                                                                        ) : step.actionType === 'create' ? (
+                                                                                            'Create'
+                                                                                        ) : (
+                                                                                            'Open'
+                                                                                        )}
+                                                                                    </Button>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Simplified Metrics */}
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
+                                                    <div className="mb-1 text-xs font-medium text-muted-foreground">Overall Progress</div>
+                                                    <div className="flex items-end justify-between">
+                                                        <div className="text-2xl font-bold">{completionPercentage}%</div>
+                                                        <health.Icon className={`h-5 w-5 ${health.color} mb-1`} />
+                                                    </div>
+                                                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                                        <div
+                                                            className="h-full bg-primary transition-all"
+                                                            style={{ width: `${completionPercentage}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+
                                                 <div
-                                                    key={index}
-                                                    className={`rounded border p-4 ${
-                                                        item.disabled 
-                                                            ? 'cursor-not-allowed opacity-50' 
-                                                            : (item.href || item.action) 
-                                                            ? 'cursor-pointer transition-colors hover:bg-muted/40' 
-                                                            : ''
-                                                    }`}
+                                                    className="cursor-pointer rounded-lg border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-muted/50"
                                                     onClick={() => {
-                                                        if (item.disabled) return;
-                                                        
-                                                        if (item.href) {
-                                                            router.get(item.href);
-                                                        } else if (item.action === 'view' && item.name === 'Project Brief') {
-                                                            setIsBriefModalOpen(true);
-                                                        } else if (item.action === 'generate') {
-                                                            if (item.name === 'PRD') {
-                                                                router.post(`/projects/${project.id}/prd/generate`);
-                                                            } else if (item.name === 'System Architecture') {
-                                                                router.post(`/projects/${project.id}/c4/generate`);
-                                                            }
-                                                        } else if (item.action === 'create' && item.name === 'Features') {
-                                                            setIsCreatingFeatures(true);
-                                                            router.get(`/features/create/${project.id}`, {}, {
-                                                                onFinish: () => setIsCreatingFeatures(false)
-                                                            });
+                                                        if (features.length > 0) {
+                                                            setActiveSection('features');
                                                         }
                                                     }}
-                                                    title={item.disabled ? `Complete previous steps first` : undefined}
                                                 >
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div
-                                                                className={`flex h-8 w-8 items-center justify-center rounded ${
-                                                                    item.completed ? 'bg-emerald-100 dark:bg-emerald-500/10' : 'bg-muted'
-                                                                }`}
-                                                            >
-                                                                {item.completed ? (
-                                                                    <CheckCircleIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                                                ) : (
-                                                                    <item.icon
-                                                                        className={`h-4 w-4 ${item.completed ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}
-                                                                    />
-                                                                )}
-                                                            </div>
-                                                            <div>
-                                                                <div className="text-sm font-medium text-foreground">{item.name}</div>
-                                                                {item.count !== undefined && (
-                                                                    <div className="text-xs text-muted-foreground">{item.count} items</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        {item.href || item.action ? (
-                                                            <ArrowRightIcon className="h-4 w-4 text-muted-foreground" />
-                                                        ) : null}
-                                                    </div>
-                                                    {!item.completed && (item.href || item.action) && (
-                                                        <div className="mt-3">
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="h-7 text-xs"
-                                                                disabled={item.disabled}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    if (item.disabled) return;
-                                                                    
-                                                                    if (item.href) {
-                                                                        router.get(item.href);
-                                                                    } else if (item.action === 'view' && item.name === 'Project Brief') {
-                                                                        setIsBriefModalOpen(true);
-                                                                    } else if (item.action === 'generate') {
-                                                                        if (item.name === 'PRD') {
-                                                                            router.post(`/projects/${project.id}/prd/generate`);
-                                                                        } else if (item.name === 'System Architecture') {
-                                                                            router.post(`/projects/${project.id}/c4/generate`);
-                                                                        }
-                                                                    } else if (item.action === 'create' && item.name === 'Features') {
-                                                                        setIsCreatingFeatures(true);
-                                                                        router.get(`/features/create/${project.id}`, {}, {
-                                                                            onFinish: () => setIsCreatingFeatures(false)
-                                                                        });
-                                                                    }
-                                                                }}
-                                                            >
-                                                                {item.action === 'generate' ? 'Generate' : item.action === 'create' ? 'Create' : 'Open'}
-                                                            </Button>
-                                                        </div>
-                                                    )}
+                                                    <div className="mb-1 text-xs font-medium text-muted-foreground">Total Features</div>
+                                                    <div className="text-2xl font-bold">{features.length}</div>
+                                                    <p className="mt-1 text-xs text-muted-foreground">
+                                                        {features.filter((f) => f.status === 'completed').length} completed
+                                                        {features.length > 0 && <span className="ml-1 text-primary">• Click to view</span>}
+                                                    </p>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
 
-                                    {/* Charts Section */}
-                                    <div className="space-y-6">
-                                        <div className="flex items-center justify-between">
-                                            <h2 className="text-lg font-semibold text-foreground">Project Analytics</h2>
-                                            {features.length > 0 && (
-                                                <Button size="sm" variant="outline" onClick={() => setActiveSection('features')}>
-                                                    View All Features
-                                                </Button>
-                                            )}
+                                                {/* Technology Stack Card */}
+                                                <div
+                                                    className="cursor-pointer rounded-lg border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-muted/50 sm:col-span-2"
+                                                    onClick={() => router.visit(`/projects/${project.id}/technology`)}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <div className="mb-1 text-xs font-medium text-muted-foreground">Technical</div>
+                                                            <div className="flex items-center gap-2 text-lg font-bold">
+                                                                <CodeIcon className="h-5 w-5 text-primary" />
+                                                                Technology Stack
+                                                            </div>
+                                                            <p className="mt-1 text-xs text-muted-foreground">View and manage project technologies</p>
+                                                        </div>
+                                                        <ArrowRightIcon className="h-5 w-5 text-muted-foreground" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        {features.length > 0 ? (
-                                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                                {/* Feature Status Chart */}
-                                        <div className="rounded border p-4">
-                                                    <div className="mb-4">
-                                                        <h3 className="text-sm font-semibold text-foreground">Feature Status</h3>
-                                                        <p className="text-xs text-muted-foreground">Distribution by status</p>
-                                                    </div>
-                                                    <ChartContainer config={statusChartConfig} className="h-[200px] w-full">
-                                                        <PieChart>
-                                                            <ChartTooltip content={<ChartTooltipContent nameKey="statusKey" />} />
-                                                            <Pie
-                                                                data={getFeatureStatusData}
-                                                                dataKey="value"
-                                                                nameKey="statusKey"
-                                                                cx="50%"
-                                                                cy="50%"
-                                                                outerRadius={70}
-                                                                label={({ value }) => value}
-                                                                labelLine={false}
-                                                            >
-                                                                {getFeatureStatusData.map((entry, index) => (
-                                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                                                ))}
-                                                            </Pie>
-                                                        </PieChart>
-                                                    </ChartContainer>
+                                        <div className="space-y-6">
+                                            {/* Team Preview */}
+                                            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                                                <div className="border-b p-4">
+                                                    <h3 className="text-sm font-semibold">Team</h3>
                                                 </div>
-
-                                                {/* Feature Priority Chart */}
-                                                <div className="rounded border p-4">
-                                                    <div className="mb-4">
-                                                        <h3 className="text-sm font-semibold text-foreground">Feature Priority</h3>
-                                                        <p className="text-xs text-muted-foreground">Distribution by priority</p>
-                                                    </div>
-                                                    <ChartContainer config={priorityChartConfig} className="h-[200px] w-full">
-                                                        <BarChart data={getFeaturePriorityData}>
-                                                            <ChartTooltip content={<ChartTooltipContent nameKey="priorityKey" />} />
-                                                            <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
-                                                            <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-                                                            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                                                {getFeaturePriorityData.map((entry, index) => (
-                                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                                                ))}
-                                                            </Bar>
-                                                        </BarChart>
-                                                    </ChartContainer>
+                                                <div className="p-4">
+                                                    <TeamPreview members={teamMembers} totalCount={teamMembersCount} projectId={project.id} />
                                                 </div>
-
-                                                {/* Completion Progress Chart */}
-                                                <div className="rounded border p-4">
-                                                    <div className="mb-4">
-                                                        <h3 className="text-sm font-semibold text-foreground">Project Completion</h3>
-                                                        <p className="text-xs text-muted-foreground">{completionPercentage}% complete</p>
-                                                    </div>
-                                                    <div className="relative h-[200px] w-full">
-                                                        <ChartContainer config={completionChartConfig} className="h-full w-full">
-                                                            <RadialBarChart
-                                                                cx="50%"
-                                                                cy="50%"
-                                                                innerRadius="70%"
-                                                                outerRadius="90%"
-                                                                data={completionChartData}
-                                                                startAngle={90}
-                                                                endAngle={-270}
-                                                            >
-                                                                <RadialBar dataKey="value" cornerRadius={4} fill="var(--color-completion)" background={{ fill: 'hsl(var(--muted))' }} />
-                                                            </RadialBarChart>
-                                                        </ChartContainer>
-                                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                            <div className="text-center">
-                                                                <div className="text-3xl font-bold text-foreground">{completionPercentage}%</div>
-                                                                <div className="text-xs text-muted-foreground mt-1">Complete</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            ) : (
-                                            <div className="rounded border p-12 text-center">
-                                                <ZapIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                                                <h3 className="text-sm font-semibold text-foreground mb-2">No Features Yet</h3>
-                                                <p className="text-xs text-muted-foreground mb-4">
-                                                    Create features to see analytics and insights about your project.
-                                                </p>
-                                                {sections.prd && (
-                                                    <Button size="sm" onClick={() => setIsCreateFeatureModalOpen(true)}>
-                                                        Create Feature
-                                                    </Button>
-                                            )}
-                                        </div>
-                                        )}
-                                    </div>
-
-                                    {/* Quick Access */}
-                                    <div className="space-y-4">
-                                            <h2 className="text-lg font-semibold text-foreground">Quick Access</h2>
-                                        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-                                            {/* Brainstorming - Always shown */}
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="justify-start bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/20"
-                                                onClick={() => router.get(`/projects/${project.id}/brainstorming`)}
-                                            >
-                                                <LightbulbIcon className="mr-2 h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                                <span className="text-amber-900 dark:text-amber-200">Brainstorming</span>
-                                            </Button>
-                                            
-                                            {/* PRD - Only show if exists */}
-                                            {sections.prd && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="justify-start"
-                                                    onClick={() => router.get(`/projects/${project.id}/prd`)}
-                                                >
-                                                    <FileIcon className="mr-2 h-4 w-4" />
-                                                    Open PRD
-                                                </Button>
-                                            )}
-                                            
-                                            {/* Database Designer - Only show if exists */}
-                                            {sections.data_modeling && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="justify-start"
-                                                    onClick={() => router.get(`/projects/${project.id}/erd`)}
-                                                >
-                                                    <DatabaseIcon className="mr-2 h-4 w-4" />
-                                                    Database Designer
-                                                </Button>
-                                            )}
-                                            
-                                            {/* C4 Diagram - Only show if exists */}
-                                            {project.c4 && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="justify-start"
-                                                    onClick={() => router.get(`/projects/${project.id}/c4`)}
-                                                >
-                                                    <LayersIcon className="mr-2 h-4 w-4" />
-                                                    C4 Diagram
-                                                </Button>
-                                            )}
+                                            </div>
                                         </div>
                                     </div>
                                 </section>
@@ -1204,7 +668,7 @@ export default function ProjectShow({ project, sections, features = [], reposito
                                                 <li
                                                     key={f.id}
                                                     className="cursor-pointer rounded border p-4 transition-colors hover:bg-muted/40"
-                                                    onClick={() => sections.prd && router.visit(`/features/${f.id}`)}
+                                                    onClick={() => router.visit(`/features/${f.id}`)}
                                                 >
                                                     <div className="mb-2 flex items-start justify-between gap-3">
                                                         <div className="min-w-0">
@@ -1230,7 +694,7 @@ export default function ProjectShow({ project, sections, features = [], reposito
                                 </section>
                             )}
                         </div>
-                        </main>
+                    </main>
                 </div>
 
                 <div className="fixed right-4 bottom-4 z-50 sm:right-6 sm:bottom-6">
@@ -1286,15 +750,6 @@ export default function ProjectShow({ project, sections, features = [], reposito
                         </div>
                     </DialogContent>
                 </Dialog>
-
-                <RepoConnectDialog open={isGithubModalOpen} onOpenChange={setIsGithubModalOpen} projectId={project.id} />
-
-                <RepoManagementModal
-                    open={isRepoManagementOpen}
-                    onOpenChange={setIsRepoManagementOpen}
-                    repository={repository}
-                    projectId={project.id}
-                />
 
                 <CreateFeatureModal open={isCreateFeatureModalOpen} onOpenChange={setIsCreateFeatureModalOpen} projectId={project.id} />
             </div>
