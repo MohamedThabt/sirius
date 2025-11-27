@@ -42,6 +42,10 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
         const [filteredNodes, setFilteredNodes] = useState<Node[]>(initialNodes);
         const [filteredEdges, setFilteredEdges] = useState<Edge[]>(initialEdges);
         const hasAppliedInitialLayout = useRef(false);
+        const [isDarkMode, setIsDarkMode] = useState(() => {
+            if (typeof document === 'undefined') return false;
+            return document.documentElement.classList.contains('dark');
+        });
 
         // Enhance nodes with edit/delete callbacks
         const enhancedNodes = filteredNodes.map((node) => ({
@@ -263,6 +267,23 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
             });
         }, [layoutTrigger]);
 
+        // Watch for theme changes
+        useEffect(() => {
+            const checkTheme = () => {
+                setIsDarkMode(document.documentElement.classList.contains('dark'));
+            };
+
+            const observer = new MutationObserver(checkTheme);
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class'],
+            });
+
+            checkTheme();
+
+            return () => observer.disconnect();
+        }, []);
+
         const onConnect = useCallback(
             (params: Connection) => {
                 const newEdge: Edge = {
@@ -318,11 +339,13 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
                     nodesDraggable={true}
                     nodesConnectable={true}
                     elementsSelectable={true}
+                    colorMode={isDarkMode ? 'dark' : 'light'}
                 >
                     <Background
                         variant={backgroundVariant}
                         gap={backgroundOptions.gap}
                         size={backgroundOptions.size}
+                        color={isDarkMode ? '#6b7280' : '#9ca3af'}
                         style={{
                             backgroundColor: 'transparent',
                             opacity: 0.4,
@@ -338,14 +361,12 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
                     .diagram-canvas-cursor .react-flow__node {
                         cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 12 L12 3 L21 12 L12 21 Z" fill="none" stroke="%2306b6d4" stroke-width="2"/><path d="M8 12 L12 8 L16 12 L12 16 Z" fill="%2306b6d4"/></svg>') 12 12, move !important;
                     }
-                    @media (prefers-color-scheme: dark) {
-                        .diagram-canvas-cursor,
-                        .diagram-canvas-cursor .react-flow__pane {
-                            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12 Z" fill="none" stroke="%23c084fc" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="%23c084fc"/></svg>') 12 12, auto !important;
-                        }
-                        .diagram-canvas-cursor .react-flow__node {
-                            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 12 L12 3 L21 12 L12 21 Z" fill="none" stroke="%2322d3ee" stroke-width="2"/><path d="M8 12 L12 8 L16 12 L12 16 Z" fill="%2322d3ee"/></svg>') 12 12, move !important;
-                        }
+                    .dark .diagram-canvas-cursor,
+                    .dark .diagram-canvas-cursor .react-flow__pane {
+                        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12 Z" fill="none" stroke="%23c084fc" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="%23c084fc"/></svg>') 12 12, auto !important;
+                    }
+                    .dark .diagram-canvas-cursor .react-flow__node {
+                        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 12 L12 3 L21 12 L12 21 Z" fill="none" stroke="%2322d3ee" stroke-width="2"/><path d="M8 12 L12 8 L16 12 L12 16 Z" fill="%2322d3ee"/></svg>') 12 12, move !important;
                     }
                 `}</style>
             </div>

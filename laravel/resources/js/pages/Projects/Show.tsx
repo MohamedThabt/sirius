@@ -1,10 +1,10 @@
 ﻿import { PromptInput, PromptInputSubmit, PromptInputTextarea, PromptInputToolbar } from '@/components/ai-elements/prompt-input';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
+import ProjectFlowCanvas from '@/components/Projects/ProjectFlowCanvas';
+import ProjectMetricsPanel from '@/components/Projects/ProjectMetricsPanel';
 import ProjectSidebar from '@/components/Projects/ProjectSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
-import { TeamPreview } from '@/components/TeamPreview';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useInitials } from '@/hooks/use-initials';
@@ -12,17 +12,15 @@ import { type User } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
-    AlertCircleIcon,
-    ArrowRightIcon,
-    CheckCircleIcon,
-    ClockIcon,
+    ChevronDown,
+    ChevronUp,
     CodeIcon,
     DatabaseIcon,
     FileIcon,
     FileText as FileTextIcon,
     HomeIcon,
     Layers as LayersIcon,
-    Lock as LockIcon,
+    Lightbulb as LightbulbIcon,
     MessageCircleIcon,
     Users as UsersIcon,
     ZapIcon,
@@ -97,10 +95,17 @@ interface Props {
     teamMembersCount?: number;
 }
 
-export default function ProjectShow({ project, sections, features = [], repository = null, teamMembers = [], teamMembersCount = 0 }: Props) {
+export default function ProjectShow({
+    project,
+    sections,
+    features = [],
+    brainstormingCompleted = false,
+    repository = null,
+    teamMembers = [],
+    teamMembersCount = 0,
+}: Props) {
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const getInitials = useInitials();
-    const [activeSection, setActiveSection] = useState<'home' | 'features'>('home');
 
     const breadcrumbs = [
         { title: 'Projects', href: '/projects' },
@@ -113,6 +118,7 @@ export default function ProjectShow({ project, sections, features = [], reposito
     const [isFloatingChatOpen, setIsFloatingChatOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isCreatingFeatures, setIsCreatingFeatures] = useState(false);
+    const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -137,9 +143,12 @@ export default function ProjectShow({ project, sections, features = [], reposito
         isCompleted: boolean;
         isCurrent: boolean;
         isLocked: boolean;
+        isHardLocked: boolean;
         actionType: 'navigate' | 'generate' | 'view' | 'create';
         actionPath: string | null;
         actionHandler?: () => void;
+        prerequisites: string[];
+        prerequisiteMessage?: string;
     }
 
     const getRoadmapSteps = (): RoadmapStep[] => {
@@ -148,7 +157,9 @@ export default function ProjectShow({ project, sections, features = [], reposito
         const prdExists = !!sections.prd;
         const erdExists = !!sections.data_modeling;
         const c4Exists = !!project.c4;
+        const technicalDetailsExist = !!(sections.technical_details || project.technical_details);
 
+        // Exclude Brainstorming from flow - it's only in sidebar
         const steps: RoadmapStep[] = [
             {
                 id: 'overview',
@@ -158,8 +169,37 @@ export default function ProjectShow({ project, sections, features = [], reposito
                 isCompleted: overviewExists,
                 isCurrent: !overviewExists,
                 isLocked: false,
+                isHardLocked: false,
                 actionType: 'navigate',
                 actionPath: `/projects/${project.id}/system-overview`,
+                prerequisites: [],
+            },
+            {
+                id: 'technical_details',
+                title: 'Technical Details',
+                description: 'Specify technical requirements and constraints',
+                icon: CodeIcon,
+                isCompleted: technicalDetailsExist,
+                isCurrent: !technicalDetailsExist && overviewExists,
+                isLocked: false,
+                isHardLocked: false,
+                actionType: 'navigate',
+                actionPath: `/projects/${project.id}/technical-details`,
+                prerequisites: [],
+            },
+            {
+                id: 'prd',
+                title: 'Product Requirements',
+                description: 'Create a detailed Product Requirements Document',
+                icon: FileTextIcon,
+                isCompleted: prdExists,
+                isCurrent: overviewExists && !prdExists,
+                isLocked: !overviewExists,
+                isHardLocked: !overviewExists,
+                actionType: prdExists ? 'navigate' : 'generate',
+                actionPath: prdExists ? `/projects/${project.id}/prd` : null,
+                prerequisites: ['overview'],
+                prerequisiteMessage: 'Complete System Overview to generate PRD',
             },
             {
                 id: 'features',
@@ -167,21 +207,13 @@ export default function ProjectShow({ project, sections, features = [], reposito
                 description: 'Break down the project into manageable features',
                 icon: ZapIcon,
                 isCompleted: featuresExist,
-                isCurrent: overviewExists && !featuresExist,
-                isLocked: !overviewExists,
-                actionType: featuresExist ? 'view' : 'create',
-                actionPath: featuresExist ? null : `/features/create/${project.id}`,
-            },
-            {
-                id: 'prd',
-                title: 'Product Requirements Document',
-                description: 'Create a detailed Product Requirements Document',
-                icon: FileTextIcon,
-                isCompleted: prdExists,
-                isCurrent: overviewExists && featuresExist && !prdExists,
-                isLocked: !overviewExists || !featuresExist,
-                actionType: prdExists ? 'navigate' : 'generate',
-                actionPath: prdExists ? `/projects/${project.id}/prd` : null,
+                isCurrent: overviewExists && prdExists && !featuresExist,
+                isLocked: !overviewExists || !prdExists,
+                isHardLocked: !overviewExists || !prdExists,
+                actionType: featuresExist ? 'navigate' : 'create',
+                actionPath: featuresExist ? `/projects/${project.id}/features` : `/features/create/${project.id}`,
+                prerequisites: ['overview', 'prd'],
+                prerequisiteMessage: 'Complete PRD to create features',
             },
             {
                 id: 'erd',
@@ -189,10 +221,13 @@ export default function ProjectShow({ project, sections, features = [], reposito
                 description: 'Design the database schema and relationships',
                 icon: DatabaseIcon,
                 isCompleted: erdExists,
-                isCurrent: overviewExists && featuresExist && prdExists && !erdExists,
-                isLocked: !overviewExists || !featuresExist || !prdExists,
+                isCurrent: overviewExists && prdExists && featuresExist && !erdExists,
+                isLocked: !overviewExists || !prdExists || !featuresExist,
+                isHardLocked: !prdExists || !featuresExist,
                 actionType: 'navigate',
                 actionPath: `/projects/${project.id}/erd`,
+                prerequisites: ['overview', 'prd', 'features'],
+                prerequisiteMessage: prdExists && featuresExist ? undefined : 'Complete PRD and Features to unlock Database Design',
             },
             {
                 id: 'architecture',
@@ -200,17 +235,20 @@ export default function ProjectShow({ project, sections, features = [], reposito
                 description: 'Visualize the system architecture using C4 model',
                 icon: LayersIcon,
                 isCompleted: c4Exists,
-                isCurrent: overviewExists && featuresExist && prdExists && erdExists && !c4Exists,
-                isLocked: !overviewExists || !featuresExist || !prdExists,
+                isCurrent: overviewExists && prdExists && featuresExist && erdExists && !c4Exists,
+                isLocked: !overviewExists || !prdExists || !featuresExist,
+                isHardLocked: !prdExists || !featuresExist,
                 actionType: c4Exists ? 'navigate' : 'generate',
                 actionPath: c4Exists ? `/projects/${project.id}/c4` : null,
+                prerequisites: ['overview', 'prd', 'features'],
+                prerequisiteMessage: prdExists && featuresExist ? undefined : 'Complete PRD and Features to unlock System Architecture',
             },
         ];
 
         return steps;
     };
 
-    const roadmapSteps = useMemo(() => getRoadmapSteps(), [sections, features.length, project.c4]);
+    const roadmapSteps = useMemo(() => getRoadmapSteps(), [sections, features.length, project.c4, project.technical_details]);
     const currentStep = roadmapSteps.find((step) => step.isCurrent);
     const completedStepsCount = roadmapSteps.filter((step) => step.isCompleted).length;
     const totalStepsCount = roadmapSteps.length;
@@ -295,40 +333,44 @@ export default function ProjectShow({ project, sections, features = [], reposito
                 {
                     key: 'home',
                     icon: HomeIcon,
-                    label: 'Project Home',
-                    active: activeSection === 'home',
+                    label: 'Dashboard',
+                    active: true,
                     onClick: () => {
-                        setActiveSection('home');
                         router.visit(`/projects/${project.id}`);
                     },
+                },
+                {
+                    key: 'brainstorming',
+                    icon: LightbulbIcon,
+                    label: 'Brainstorming',
+                    onClick: () => router.visit(`/projects/${project.id}/brainstorming`),
                 },
                 {
                     key: 'team',
                     icon: UsersIcon,
                     label: 'Team',
-                    onClick: () => router.get(`/projects/${project.id}/team`),
+                    onClick: () => router.visit(`/projects/${project.id}/team`),
                 },
             ],
         },
     ];
 
     const handleRoadmapAction = (step: RoadmapStep) => {
-        if (step.isLocked || (step.isCompleted && step.actionType === 'generate')) return;
+        if (step.isHardLocked) return;
 
-        if (step.id === 'features' && step.actionType === 'view') {
-            setActiveSection('features');
-            return;
-        }
+        if (step.actionType === 'generate' && step.isLocked) return;
 
         if (step.actionType === 'navigate' && step.actionPath) {
             router.get(step.actionPath);
         } else if (step.actionType === 'generate') {
+            if (step.isLocked) return;
             if (step.id === 'prd') {
                 router.post(`/projects/${project.id}/prd/generate`);
             } else if (step.id === 'architecture') {
                 router.post(`/projects/${project.id}/c4/generate`);
             }
         } else if (step.actionType === 'create' && step.actionPath) {
+            if (step.isLocked) return;
             setIsCreatingFeatures(true);
             router.get(
                 step.actionPath,
@@ -355,351 +397,89 @@ export default function ProjectShow({ project, sections, features = [], reposito
                         user={auth.user}
                     />
 
-                    <main className="min-w-0 flex-1">
-                        <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
-                            <div className="mb-6 flex items-center gap-3">
+                    <main className="flex min-w-0 flex-1 flex-col">
+                        {/* Minimal header bar with breadcrumbs */}
+                        <div className="shrink-0 border-b border-border/50 bg-muted/20 px-4 py-3 sm:px-6">
+                            <div className="flex items-center gap-3">
                                 <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
-                            <header className="mb-8">
-                                <div>
-                                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">{project.name}</h1>
-                                    <p className="mt-1 text-sm text-muted-foreground">Streamlined project workspace</p>
-                                </div>
-                            </header>
+                        </div>
 
-                            {activeSection === 'home' && (
-                                <section className="space-y-8">
-                                    {/* Next Step Callout */}
-                                    {currentStep && (
-                                        <div className="rounded-lg border-l-4 border-l-primary bg-primary/5 p-6 dark:bg-primary/10">
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="flex-1">
-                                                    <div className="mb-1 flex items-center gap-2">
-                                                        <span className="text-xs font-semibold tracking-wider text-primary uppercase">Next Step</span>
-                                                        <Badge variant="secondary" className="text-[10px]">
-                                                            {completedStepsCount} / {totalStepsCount} completed
-                                                        </Badge>
-                                                    </div>
-                                                    <h3 className="mb-1 text-lg font-semibold text-foreground">{currentStep.title}</h3>
-                                                    <p className="text-sm text-muted-foreground">{currentStep.description}</p>
-                                                </div>
-                                                <Button
-                                                    onClick={() => handleRoadmapAction(currentStep)}
-                                                    disabled={currentStep.isLocked || isCreatingFeatures}
-                                                    size="lg"
-                                                    className="shrink-0"
-                                                >
-                                                    {isCreatingFeatures && currentStep.id === 'features' ? (
-                                                        <>
-                                                            <ClockIcon className="mr-2 h-4 w-4 animate-spin" />
-                                                            Creating...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            {currentStep.isCompleted
-                                                                ? 'View'
-                                                                : currentStep.actionType === 'generate'
-                                                                  ? 'Generate'
-                                                                  : currentStep.actionType === 'create'
-                                                                    ? 'Create'
-                                                                    : 'Open'}
-                                                            <ArrowRightIcon className="ml-2 h-4 w-4" />
-                                                        </>
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )}
+                        {/* Split layout container - Always vertical */}
+                        <div className="relative flex flex-1 flex-col overflow-hidden">
+                            {/* Canvas Section */}
+                            <div
+                                className={`relative flex flex-col overflow-hidden transition-all ${
+                                    isCanvasExpanded ? 'h-full' : 'h-1/2'
+                                }`}
+                            >
+                                <ProjectFlowCanvas
+                                    steps={roadmapSteps.map((step) => ({
+                                        ...step,
+                                        onClick: () => handleRoadmapAction(step),
+                                    }))}
+                                    completionPercentage={completionPercentage}
+                                    completedStepsCount={completedStepsCount}
+                                    totalStepsCount={totalStepsCount}
+                                    health={health}
+                                    teamMembers={[]}
+                                    teamMembersCount={0}
+                                    projectId={project.id}
+                                    features={features}
+                                />
 
-                                    {/* All Steps Complete State */}
-                                    {!currentStep && completedStepsCount === totalStepsCount && (
-                                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10">
-                                            <div className="flex items-center gap-3">
-                                                <CheckCircleIcon className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                                                <div>
-                                                    <h3 className="font-semibold text-emerald-900 dark:text-emerald-100">All core steps complete!</h3>
-                                                    <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                                                        Your project roadmap is complete. Explore team collaboration and integrations.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="grid gap-8 lg:grid-cols-3">
-                                        <div className="space-y-8 lg:col-span-2">
-                                            {/* Project Roadmap */}
-                                            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                                                <div className="border-b p-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <h2 className="text-lg font-semibold text-foreground">Project Roadmap</h2>
-                                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                            <span>
-                                                                {completedStepsCount} of {totalStepsCount} steps
-                                                            </span>
-                                                            <span>•</span>
-                                                            <span>{Math.round((completedStepsCount / totalStepsCount) * 100)}%</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="p-6">
-                                                    <div className="space-y-6">
-                                                        {roadmapSteps.map((step, index) => {
-                                                            const isLast = index === roadmapSteps.length - 1;
-                                                            const StepIcon = step.icon;
-
-                                                            return (
-                                                                <div key={step.id} className="relative">
-                                                                    {/* Connecting Line */}
-                                                                    {!isLast && (
-                                                                        <div
-                                                                            className={`absolute top-12 left-5 h-full w-0.5 ${
-                                                                                step.isCompleted
-                                                                                    ? 'bg-primary'
-                                                                                    : step.isCurrent
-                                                                                      ? 'bg-primary/30'
-                                                                                      : 'bg-muted'
-                                                                            }`}
-                                                                        />
-                                                                    )}
-
-                                                                    <div className="relative flex items-start gap-4">
-                                                                        {/* Step Icon/Status */}
-                                                                        <div
-                                                                            className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                                                                                step.isCompleted
-                                                                                    ? 'border-primary bg-primary text-primary-foreground'
-                                                                                    : step.isCurrent
-                                                                                      ? 'border-primary bg-background text-primary ring-4 ring-primary/20'
-                                                                                      : step.isLocked
-                                                                                        ? 'border-muted bg-muted text-muted-foreground opacity-50'
-                                                                                        : 'border-muted bg-background text-muted-foreground'
-                                                                            }`}
-                                                                        >
-                                                                            {step.isCompleted ? (
-                                                                                <CheckCircleIcon className="h-5 w-5" />
-                                                                            ) : step.isLocked ? (
-                                                                                <LockIcon className="h-5 w-5" />
-                                                                            ) : (
-                                                                                <StepIcon className="h-5 w-5" />
-                                                                            )}
-                                                                        </div>
-
-                                                                        {/* Step Content */}
-                                                                        <div className="min-w-0 flex-1">
-                                                                            <div className="flex items-start justify-between gap-4">
-                                                                                <div className="flex-1">
-                                                                                    <div className="mb-1 flex items-center gap-2">
-                                                                                        <h3
-                                                                                            className={`font-semibold ${
-                                                                                                step.isCurrent
-                                                                                                    ? 'text-foreground'
-                                                                                                    : step.isLocked
-                                                                                                      ? 'text-muted-foreground'
-                                                                                                      : step.isCompleted
-                                                                                                        ? 'text-foreground'
-                                                                                                        : 'text-muted-foreground'
-                                                                                            }`}
-                                                                                        >
-                                                                                            {step.title}
-                                                                                        </h3>
-                                                                                        {step.isCurrent && (
-                                                                                            <Badge variant="default" className="text-[10px]">
-                                                                                                Current
-                                                                                            </Badge>
-                                                                                        )}
-                                                                                        {step.isCompleted && (
-                                                                                            <Badge
-                                                                                                variant="outline"
-                                                                                                className="border-emerald-200 text-[10px] text-emerald-700 dark:border-emerald-500/30 dark:text-emerald-400"
-                                                                                            >
-                                                                                                Complete
-                                                                                            </Badge>
-                                                                                        )}
-                                                                                    </div>
-                                                                                    <p
-                                                                                        className={`text-sm ${
-                                                                                            step.isLocked
-                                                                                                ? 'text-muted-foreground/70'
-                                                                                                : 'text-muted-foreground'
-                                                                                        }`}
-                                                                                    >
-                                                                                        {step.description}
-                                                                                    </p>
-                                                                                    {step.isLocked && (
-                                                                                        <p className="mt-1 text-xs text-muted-foreground">
-                                                                                            Complete previous steps to unlock
-                                                                                        </p>
-                                                                                    )}
-                                                                                </div>
-
-                                                                                {/* Action Button */}
-                                                                                {!step.isLocked && (
-                                                                                    <Button
-                                                                                        onClick={() => handleRoadmapAction(step)}
-                                                                                        disabled={
-                                                                                            (step.isCompleted && step.actionType === 'generate') ||
-                                                                                            (isCreatingFeatures && step.id === 'features')
-                                                                                        }
-                                                                                        variant={step.isCurrent ? 'default' : 'outline'}
-                                                                                        size="sm"
-                                                                                        className="shrink-0"
-                                                                                    >
-                                                                                        {isCreatingFeatures && step.id === 'features' ? (
-                                                                                            <>
-                                                                                                <ClockIcon className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                                                                                                Creating...
-                                                                                            </>
-                                                                                        ) : step.isCompleted ? (
-                                                                                            step.actionType === 'generate' ? (
-                                                                                                'Regenerate'
-                                                                                            ) : (
-                                                                                                'View'
-                                                                                            )
-                                                                                        ) : step.actionType === 'generate' ? (
-                                                                                            'Generate'
-                                                                                        ) : step.actionType === 'create' ? (
-                                                                                            'Create'
-                                                                                        ) : (
-                                                                                            'Open'
-                                                                                        )}
-                                                                                    </Button>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Simplified Metrics */}
-                                            <div className="grid gap-4 sm:grid-cols-2">
-                                                <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
-                                                    <div className="mb-1 text-xs font-medium text-muted-foreground">Overall Progress</div>
-                                                    <div className="flex items-end justify-between">
-                                                        <div className="text-2xl font-bold">{completionPercentage}%</div>
-                                                        <health.Icon className={`h-5 w-5 ${health.color} mb-1`} />
-                                                    </div>
-                                                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                                                        <div
-                                                            className="h-full bg-primary transition-all"
-                                                            style={{ width: `${completionPercentage}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    className="cursor-pointer rounded-lg border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-muted/50"
-                                                    onClick={() => {
-                                                        if (features.length > 0) {
-                                                            setActiveSection('features');
-                                                        }
-                                                    }}
-                                                >
-                                                    <div className="mb-1 text-xs font-medium text-muted-foreground">Total Features</div>
-                                                    <div className="text-2xl font-bold">{features.length}</div>
-                                                    <p className="mt-1 text-xs text-muted-foreground">
-                                                        {features.filter((f) => f.status === 'completed').length} completed
-                                                        {features.length > 0 && <span className="ml-1 text-primary">• Click to view</span>}
-                                                    </p>
-                                                </div>
-
-                                                {/* Technology Stack Card */}
-                                                <div
-                                                    className="cursor-pointer rounded-lg border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-muted/50 sm:col-span-2"
-                                                    onClick={() => router.visit(`/projects/${project.id}/technology`)}
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <div className="mb-1 text-xs font-medium text-muted-foreground">Technical</div>
-                                                            <div className="flex items-center gap-2 text-lg font-bold">
-                                                                <CodeIcon className="h-5 w-5 text-primary" />
-                                                                Technology Stack
-                                                            </div>
-                                                            <p className="mt-1 text-xs text-muted-foreground">View and manage project technologies</p>
-                                                        </div>
-                                                        <ArrowRightIcon className="h-5 w-5 text-muted-foreground" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-6">
-                                            {/* Team Preview */}
-                                            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                                                <div className="border-b p-4">
-                                                    <h3 className="text-sm font-semibold">Team</h3>
-                                                </div>
-                                                <div className="p-4">
-                                                    <TeamPreview members={teamMembers} totalCount={teamMembersCount} projectId={project.id} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </section>
-                            )}
-
-                            {activeSection === 'features' && (
-                                <section className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h2 className="text-lg font-semibold text-foreground">Features</h2>
-                                            {!sections.prd && (
-                                                <div className="mt-1 inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                                                    <AlertCircleIcon className="h-3.5 w-3.5" />
-                                                    <span>Generate PRD first to enable feature generation</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <Button onClick={() => setIsCreateFeatureModalOpen(true)} size="sm" disabled={!sections.prd}>
-                                            Create Feature
-                                        </Button>
-                                    </div>
-
-                                    {features.length === 0 ? (
-                                        <div className="rounded border p-8 text-center text-sm text-muted-foreground">No features yet.</div>
+                                {/* Collapse Toggle Button */}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsCanvasExpanded(!isCanvasExpanded)}
+                                    className="absolute bottom-4 right-4 z-20 gap-2 border-border/50 bg-background/90 shadow-md backdrop-blur-sm hover:bg-background hover:shadow-lg"
+                                    title={isCanvasExpanded ? 'Show metrics panel' : 'Expand canvas'}
+                                >
+                                    {isCanvasExpanded ? (
+                                        <>
+                                            <ChevronDown className="h-4 w-4" />
+                                            <span className="hidden sm:inline">Show Metrics</span>
+                                        </>
                                     ) : (
-                                        <ul className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                                            {features.map((f) => (
-                                                <li
-                                                    key={f.id}
-                                                    className="cursor-pointer rounded border p-4 transition-colors hover:bg-muted/40"
-                                                    onClick={() => router.visit(`/features/${f.id}`)}
-                                                >
-                                                    <div className="mb-2 flex items-start justify-between gap-3">
-                                                        <div className="min-w-0">
-                                                            <div className="truncate text-sm font-medium text-foreground">{f.name}</div>
-                                                            <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">{f.summary}</div>
-                                                        </div>
-                                                        <Badge className={`shrink-0 border text-xs capitalize ${getPriorityColor(f.priority)}`}>
-                                                            {f.priority}
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="mt-2 flex items-center gap-2">
-                                                        <Badge variant="outline" className="text-xs">
-                                                            {f.status === 'in_progress' ? 'In progress' : f.status}
-                                                        </Badge>
-                                                        <Badge variant="outline" className="text-xs">
-                                                            Order #{f.order_of_implementation}
-                                                        </Badge>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                        <>
+                                            <ChevronUp className="h-4 w-4" />
+                                            <span className="hidden sm:inline">Expand Canvas</span>
+                                        </>
                                     )}
-                                </section>
+                                </Button>
+                            </div>
+
+                            {/* Metrics Panel Section */}
+                            {!isCanvasExpanded && (
+                                <div className="h-1/2 border-t border-border/50">
+                                    <ProjectMetricsPanel
+                                        projectId={project.id}
+                                        completionPercentage={completionPercentage}
+                                        completedStepsCount={completedStepsCount}
+                                        totalStepsCount={totalStepsCount}
+                                        health={health}
+                                        teamMembers={teamMembers}
+                                        teamMembersCount={teamMembersCount}
+                                        repository={repository}
+                                        featuresCount={features.length}
+                                    />
+                                </div>
                             )}
                         </div>
                     </main>
                 </div>
 
-                <div className="fixed right-4 bottom-4 z-50 sm:right-6 sm:bottom-6">
-                    <Button onClick={() => setIsFloatingChatOpen(!isFloatingChatOpen)} className="h-14 w-14 rounded-full shadow-lg" size="icon">
-                        <MessageCircleIcon className="h-6 w-6" />
+                <div className="fixed right-4 bottom-4 z-40 sm:right-6 sm:bottom-6">
+                    <Button
+                        onClick={() => setIsFloatingChatOpen(!isFloatingChatOpen)}
+                        className="h-12 w-12 rounded-full border-2 border-border/50 bg-background/80 shadow-md backdrop-blur-sm transition-all hover:bg-background hover:shadow-lg"
+                        size="icon"
+                        variant="outline"
+                        aria-label="Open AI Assistant"
+                    >
+                        <MessageCircleIcon className="h-5 w-5 text-muted-foreground" />
                     </Button>
 
                     {isFloatingChatOpen && (

@@ -13,7 +13,7 @@ import {
     useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import C4Node from './C4Node';
 
 // Helper function to calculate boundary size
@@ -50,6 +50,10 @@ interface ReactFlowDiagramProps {
 // A new inner component to access the ReactFlow instance context
 const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
     const { fitView } = useReactFlow();
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        if (typeof document === 'undefined') return false;
+        return document.documentElement.classList.contains('dark');
+    });
 
     const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
         // This logic remains the same
@@ -125,6 +129,22 @@ const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
         setTimeout(() => fitView({ padding: 0.1, duration: 300 }), 50);
     }, [initialNodes, initialEdges, setNodes, setEdges, fitView]);
 
+    useEffect(() => {
+        const checkTheme = () => {
+            setIsDarkMode(document.documentElement.classList.contains('dark'));
+        };
+
+        const observer = new MutationObserver(checkTheme);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class'],
+        });
+
+        checkTheme();
+
+        return () => observer.disconnect();
+    }, []);
+
     return (
         <>
             <ReactFlow
@@ -136,8 +156,9 @@ const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
                 fitView
                 attributionPosition="bottom-left"
                 className="c4-diagram-cursor"
+                colorMode={isDarkMode ? 'dark' : 'light'}
             >
-                <Background color="#aaa" gap={16} variant={BackgroundVariant.Dots} />
+                <Background color={isDarkMode ? '#6b7280' : '#aaa'} gap={16} variant={BackgroundVariant.Dots} />
                 <ReactFlowControls position="bottom-left" className="c4-diagram-controls" />
             </ReactFlow>
             <style>{`
@@ -147,13 +168,11 @@ const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
                 .c4-diagram-cursor .react-flow__node {
                     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 12 L12 3 L21 12 L12 21 Z" fill="none" stroke="%2306b6d4" stroke-width="2"/><path d="M8 12 L12 8 L16 12 L12 16 Z" fill="%2306b6d4"/></svg>') 12 12, move !important;
                 }
-                @media (prefers-color-scheme: dark) {
-                    .c4-diagram-cursor .react-flow__pane {
-                        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12 Z" fill="none" stroke="%23c084fc" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="%23c084fc"/></svg>') 12 12, auto !important;
-                    }
-                    .c4-diagram-cursor .react-flow__node {
-                        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 12 L12 3 L21 12 L12 21 Z" fill="none" stroke="%2322d3ee" stroke-width="2"/><path d="M8 12 L12 8 L16 12 L12 16 Z" fill="%2322d3ee"/></svg>') 12 12, move !important;
-                    }
+                .dark .c4-diagram-cursor .react-flow__pane {
+                    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12 Z" fill="none" stroke="%23c084fc" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="%23c084fc"/></svg>') 12 12, auto !important;
+                }
+                .dark .c4-diagram-cursor .react-flow__node {
+                    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 12 L12 3 L21 12 L12 21 Z" fill="none" stroke="%2322d3ee" stroke-width="2"/><path d="M8 12 L12 8 L16 12 L12 16 Z" fill="%2322d3ee"/></svg>') 12 12, move !important;
                 }
             `}</style>
         </>

@@ -151,6 +151,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/projects/{project}/prd/preview-mermaid', [PRDController::class, 'previewMermaid'])->name('prd.preview-mermaid');
 
     // Features Controller routes
+    Route::get('/projects/{project}/features', [FeaturesController::class, 'index'])->name('features.index');
     Route::get('/features/create/{project}', [FeaturesController::class, 'generateSuggestionsAsync'])->name('features.create');
     Route::post('/features/create/{project}', [FeaturesController::class, 'createSystemFeatures'])->name('features.store');
     Route::post('/features/single/{project}', [FeaturesController::class, 'createSingleFeature'])->name('features.single.store');

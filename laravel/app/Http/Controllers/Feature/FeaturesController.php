@@ -16,6 +16,22 @@ use Inertia\Inertia;
 
 class FeaturesController extends Controller
 {
+    public function index(Project $project)
+    {
+        if ($project->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $features = $project->features()
+            ->orderBy('order_of_implementation')
+            ->get();
+
+        return Inertia::render('features/Index', [
+            'project' => $project,
+            'features' => $features,
+        ]);
+    }
+
     /**
      * Generate suggestion features for a project based on its base overview version.
      */
