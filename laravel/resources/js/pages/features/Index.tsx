@@ -1,6 +1,8 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
-import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type SharedData, type User } from '@/types';
@@ -13,7 +15,7 @@ import {
     Plus,
     ZapIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface Project {
     id: number;
@@ -21,6 +23,7 @@ interface Project {
     brief: string;
     overview: string;
     status: string;
+    c4?: string | null;
 }
 
 interface FeatureItem {
@@ -44,8 +47,6 @@ interface Props {
 export default function FeaturesIndex({ project, features }: Props) {
     const shared = usePage<SharedData>().props;
     const { auth } = shared;
-    const sidebarAuth: { user: User } = { user: auth.user as unknown as User };
-    const projects = (shared.projects as { id: number; name: string; status?: string }[] | undefined) || [];
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isCreateFeatureModalOpen, setIsCreateFeatureModalOpen] = useState(false);
 
@@ -54,6 +55,15 @@ export default function FeaturesIndex({ project, features }: Props) {
         { title: project.name, href: `/projects/${project.id}` },
         { title: 'Features', href: `/projects/${project.id}/features` },
     ];
+
+    const navGroups = useMemo(
+        () =>
+            buildProjectNavGroups({
+                project,
+                currentPage: 'features',
+            }),
+        [project.id],
+    );
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -100,22 +110,28 @@ export default function FeaturesIndex({ project, features }: Props) {
         <>
             <Head title={`Features - ${project.name}`} />
 
-            <div className="flex min-h-screen bg-background">
-                <ProjectsIndexSidebar
-                    auth={sidebarAuth}
-                    projects={projects}
-                    currentProjectId={project.id}
-                    isSidebarCollapsed={isSidebarCollapsed}
-                    onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                    onCreateProject={() => router.visit('/projects')}
-                    projectCount={projects.length}
-                />
+            <div className="min-h-screen bg-background">
+                <div className="flex">
+                    <ProjectSidebarPanel
+                        project={project}
+                        navGroups={navGroups}
+                        repository={null}
+                        completionPercentage={undefined}
+                        health={undefined}
+                        isCollapsed={isSidebarCollapsed}
+                        user={auth.user as unknown as User}
+                    />
 
-                <main className="min-w-0 flex-1">
-                    <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
-                        <div className="mb-6 flex items-center gap-3">
-                            <Breadcrumbs breadcrumbs={breadcrumbs} />
+                    <main className="flex min-w-0 flex-1 flex-col">
+                        <div className="shrink-0 border-b border-border/50 bg-muted/20 px-4 py-3 sm:px-6">
+                            <div className="flex items-center gap-3">
+                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+                                <Breadcrumbs breadcrumbs={breadcrumbs} />
+                            </div>
                         </div>
+
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
 
                         <header className="mb-8">
                             <div className="flex items-center justify-between">
@@ -205,8 +221,10 @@ export default function FeaturesIndex({ project, features }: Props) {
                                 </div>
                             </div>
                         )}
-                    </div>
-                </main>
+                            </div>
+                        </div>
+                    </main>
+                </div>
             </div>
 
             <CreateFeatureModal

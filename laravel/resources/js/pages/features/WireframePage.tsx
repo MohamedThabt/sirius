@@ -1,4 +1,4 @@
-import FeatureSidebar from '@/components/features/FeatureSidebar';
+import FeatureSidebar from '@/components/Features/FeatureSidebar';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { TextShimmer } from '@/components/ui/text-shimmer';

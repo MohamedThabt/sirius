@@ -1,4 +1,5 @@
 import AppLogo from '@/components/app-logo';
+import { RepoConnectDialog } from '@/components/github/repo-connect-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
@@ -9,13 +10,13 @@ import {
     AlertCircleIcon,
     CheckCircleIcon,
     ChevronDownIcon,
-    DatabaseIcon,
     FileIcon,
-    HomeIcon,
-    LayoutIcon,
-    WorkflowIcon,
+    GithubIcon,
+    LayoutDashboard,
+    LightbulbIcon,
+    UsersIcon,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface Project {
     id: number;
@@ -42,7 +43,7 @@ interface FeatureItem {
 interface Props {
     project: Project;
     feature: FeatureItem;
-    activeSection?: 'overview' | 'erd' | 'sequence' | 'wireframe' | 'specs';
+    activeSection?: 'dashboard' | 'overview' | 'erd' | 'sequence' | 'wireframe' | 'specs' | 'brainstorming' | 'team' | 'integrations' | 'github';
     auth: { user: User };
     isSidebarCollapsed?: boolean;
     onToggleSidebar?: () => void;
@@ -50,6 +51,7 @@ interface Props {
 
 export default function FeatureSidebar({ project, feature, activeSection, auth, isSidebarCollapsed = false }: Props) {
     const getInitials = useInitials();
+    const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
     const calculateProgress = useMemo(() => {
         const artifacts = [
             !!(feature.description && feature.acceptance_criteria), // Overview
@@ -87,66 +89,15 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
 
     const navGroups: NavGroup[] = [
         {
-            label: 'Project',
-            items: [
-                {
-                    key: 'project-home',
-                    icon: HomeIcon,
-                    label: 'Project Home',
-                    disabled: false,
-                    onClick: () => router.visit(`/projects/${project.id}`),
-                },
-            ],
-        },
-        {
             label: 'Feature',
             items: [
                 {
                     key: 'overview',
-                    icon: FileIcon,
-                    label: 'Overview',
+                    icon: LayoutDashboard,
+                    label: 'Feature',
                     active: activeSection === 'overview',
-                    disabled: !feature.description && !feature.acceptance_criteria,
+                    disabled: false,
                     onClick: () => router.visit(`/features/${feature.id}`),
-                },
-                {
-                    key: 'erd',
-                    icon: DatabaseIcon,
-                    label: 'ERD',
-                    muted: !feature.erd,
-                    active: activeSection === 'erd',
-                    disabled: !feature.erd,
-                    onClick: () => {
-                        if (feature.erd) {
-                            router.visit(`/features/${feature.id}/erd`);
-                        }
-                    },
-                },
-                {
-                    key: 'sequence',
-                    icon: WorkflowIcon,
-                    label: 'Sequence Diagram',
-                    muted: !feature.sequence_diagram,
-                    active: activeSection === 'sequence',
-                    disabled: !feature.sequence_diagram,
-                    onClick: () => {
-                        if (feature.sequence_diagram) {
-                            router.visit(`/features/${feature.id}/sequence-diagram`);
-                        }
-                    },
-                },
-                {
-                    key: 'wireframe',
-                    icon: LayoutIcon,
-                    label: 'Wireframe',
-                    muted: !feature.wireframe,
-                    active: activeSection === 'wireframe',
-                    disabled: !feature.wireframe,
-                    onClick: () => {
-                        if (feature.wireframe) {
-                            router.visit(`/features/${feature.id}/wireframe`);
-                        }
-                    },
                 },
                 {
                     key: 'specs',
@@ -158,10 +109,40 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
                 },
             ],
         },
+        {
+            label: 'Project Tools',
+            items: [
+                {
+                    key: 'brainstorming',
+                    icon: LightbulbIcon,
+                    label: 'Brainstorming',
+                    active: activeSection === 'brainstorming',
+                    disabled: false,
+                    onClick: () => router.visit(`/projects/${project.id}/brainstorming`),
+                },
+                {
+                    key: 'team',
+                    icon: UsersIcon,
+                    label: 'Team',
+                    active: activeSection === 'team',
+                    disabled: false,
+                    onClick: () => router.visit(`/projects/${project.id}/team`),
+                },
+                {
+                    key: 'github',
+                    icon: GithubIcon,
+                    label: 'GitHub',
+                    active: activeSection === 'github',
+                    disabled: false,
+                    onClick: () => setIsGithubModalOpen(true),
+                },
+            ],
+        },
     ];
 
     return (
-        <aside className={`${isSidebarCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}>
+        <>
+            <aside className={`${isSidebarCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}>
             <div
                 className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             >
@@ -249,5 +230,7 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
                 </div>
             </div>
         </aside>
+            <RepoConnectDialog open={isGithubModalOpen} onOpenChange={setIsGithubModalOpen} projectId={project.id} projectName={project.name} />
+        </>
     );
 }
