@@ -2,7 +2,6 @@ import { Badge } from '@/components/ui/badge';
 import { BaseNode, BaseNodeContent, BaseNodeFooter, BaseNodeHeader, BaseNodeHeaderTitle } from '@/components/ui/base-node';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { router } from '@inertiajs/react';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { AlertCircleIcon, CheckCircleIcon, ChevronDown, ChevronUp, Lock as LockIcon, List } from 'lucide-react';
 import { memo, useState } from 'react';
@@ -30,6 +29,15 @@ interface WorkflowNodeData {
     isExpandable?: boolean;
     isExpanded?: boolean;
     onToggleExpand?: () => void;
+    inputHandlePosition?: Position;
+    outputHandlePosition?: Position;
+    showInputHandle?: boolean;
+    showOutputHandle?: boolean;
+    inputHandleId?: string;
+    outputHandleId?: string;
+    secondaryOutputHandlePosition?: Position;
+    secondaryOutputHandleId?: string;
+    showSecondaryOutputHandle?: boolean;
 }
 
 type WorkflowNodeProps = NodeProps<WorkflowNodeData>;
@@ -49,6 +57,15 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
         isExpandable,
         isExpanded = false,
         onToggleExpand,
+        inputHandlePosition = Position.Left,
+        outputHandlePosition = Position.Right,
+        showInputHandle = true,
+        showOutputHandle = true,
+        inputHandleId,
+        outputHandleId,
+        secondaryOutputHandlePosition = Position.Right,
+        secondaryOutputHandleId,
+        showSecondaryOutputHandle = false,
     } = data;
 
     const isClickable = !isHardLocked;
@@ -74,11 +91,14 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
             onClick={isClickable ? onClick : undefined}
         >
                 {/* Input Handle */}
-                <Handle 
-                    type="target" 
-                    position={Position.Left} 
-                    className="!h-3 !w-3 !bg-primary !border-2 !border-background" 
-                />
+                {showInputHandle && (
+                    <Handle
+                        id={inputHandleId}
+                        type="target"
+                        position={inputHandlePosition}
+                        className="!h-3 !w-3 !bg-primary !border-2 !border-background"
+                    />
+                )}
 
                 {/* Header with Icon and Status */}
                 <BaseNodeHeader className={cn('justify-between', styles.background)}>
@@ -176,11 +196,22 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                 )}
 
                 {/* Output Handle */}
-                <Handle 
-                    type="source" 
-                    position={Position.Right} 
-                    className="!h-3 !w-3 !bg-primary !border-2 !border-background" 
-                />
+                {showOutputHandle && (
+                    <Handle
+                        id={outputHandleId}
+                        type="source"
+                        position={outputHandlePosition}
+                        className="!h-3 !w-3 !bg-primary !border-2 !border-background"
+                    />
+                )}
+                {showSecondaryOutputHandle && (
+                    <Handle
+                        id={secondaryOutputHandleId}
+                        type="source"
+                        position={secondaryOutputHandlePosition}
+                        className="!h-3 !w-3 !bg-primary !border-2 !border-background"
+                    />
+                )}
             </BaseNode>
     );
 });

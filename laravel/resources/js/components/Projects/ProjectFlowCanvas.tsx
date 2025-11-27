@@ -7,6 +7,7 @@ import {
     Edge,
     MarkerType,
     Node,
+    Position,
     ReactFlow,
     ReactFlowProvider,
     useEdgesState,
@@ -106,6 +107,7 @@ const FlowCanvas = ({
 
         const nodes: Node[] = steps.map((step) => {
             const layout = columnLayout[step.id] || { col: 0, row: 0 };
+            const isFeaturesNode = step.id === 'features';
             return {
                 id: step.id,
                 type: 'workflowNode',
@@ -123,7 +125,13 @@ const FlowCanvas = ({
                     isHardLocked: step.isHardLocked,
                     onClick: step.onClick,
                     prerequisiteMessage: step.prerequisiteMessage,
-                    ...(step.id === 'features' && features
+                    inputHandlePosition: Position.Left,
+                    outputHandlePosition: isFeaturesNode ? Position.Bottom : Position.Right,
+                    outputHandleId: isFeaturesNode ? 'features-bottom' : undefined,
+                    secondaryOutputHandlePosition: isFeaturesNode ? Position.Right : Position.Right,
+                    secondaryOutputHandleId: isFeaturesNode ? 'features-right' : undefined,
+                    showSecondaryOutputHandle: isFeaturesNode,
+                    ...(isFeaturesNode && features
                         ? {
                               features,
                               isExpandable: true,
@@ -139,11 +147,13 @@ const FlowCanvas = ({
 
         // Generate feature child nodes when expanded
         if (isFeaturesExpanded && features && features.length > 0) {
-            const featureRowY = startY + 3 * rowSpacing;
             const featureNodeWidth = 220;
-            const featureSpacing = 40;
+            const featureSpacing = 64;
             const featureStride = featureNodeWidth + featureSpacing;
-            const featuresNodeX = startX + columnLayout['features'].col * columnSpacing;
+            const featuresNodeLayout = columnLayout['features'] || { col: 0, row: 0 };
+            const featuresNodeX = startX + featuresNodeLayout.col * columnSpacing;
+            const featuresNodeY = startY + featuresNodeLayout.row * rowSpacing;
+            const featureRowY = featuresNodeY + 220;
             const totalWidth = features.length * featureNodeWidth + (features.length - 1) * featureSpacing;
             const startFeatureX = featuresNodeX - totalWidth / 2 + featureNodeWidth / 2;
 
@@ -165,6 +175,9 @@ const FlowCanvas = ({
                         isHardLocked: false,
                         onClick: () => router.visit(`/features/${feature.id}`),
                         prerequisiteMessage: undefined,
+                        inputHandlePosition: Position.Top,
+                        inputHandleId: `feature-${feature.id}-input`,
+                        showOutputHandle: false,
                     },
                     draggable: false,
                     selectable: true,
@@ -177,12 +190,13 @@ const FlowCanvas = ({
             { from: 'overview', to: 'prd' },
             { from: 'overview', to: 'features' },
             { from: 'technical_details', to: 'prd' },
-            { from: 'features', to: 'erd' },
-            { from: 'features', to: 'architecture' },
+            { from: 'features', to: 'erd', sourceHandle: 'features-right' },
+            { from: 'features', to: 'architecture', sourceHandle: 'features-right' },
         ];
 
         const edges: Edge[] = edgeConnections
-            .map(({ from, to }): Edge | null => {
+            .map((connection): Edge | null => {
+                const { from, to, sourceHandle } = connection;
                 const sourceStep = steps.find((s) => s.id === from);
                 const targetStep = steps.find((s) => s.id === to);
                 if (!sourceStep || !targetStep) return null;
@@ -193,6 +207,7 @@ const FlowCanvas = ({
                     id: `edge-${from}-${to}`,
                     source: from,
                     target: to,
+                    sourceHandle,
                     type: 'smoothstep',
                     animated: isCompleted,
                     markerEnd: {
@@ -217,6 +232,8 @@ const FlowCanvas = ({
                     id: `edge-features-feature-${feature.id}`,
                     source: 'features',
                     target: `feature-${feature.id}`,
+                    sourceHandle: 'features-bottom',
+                    targetHandle: `feature-${feature.id}-input`,
                     type: 'smoothstep',
                     animated: isCompleted,
                     markerEnd: {
