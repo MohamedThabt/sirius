@@ -68,9 +68,11 @@ async def generate_detailed_features(request: DetailedFeatureRequest) -> tuple[D
     try:
         logger.info("Calling Gemini API...")
         raw_response, usage = await ask_gemini(prompt)
+        logger.info(f"Raw Gemini response:\n{raw_response}")
 
         logger.info("Extracting JSON from response...")
         json_str = extract_json_from_response(raw_response)
+        logger.info(f"Extracted JSON string:\n{json_str}")
 
         if not json_str:
             logger.error("No valid JSON found in Gemini response")
@@ -89,8 +91,10 @@ async def generate_detailed_features(request: DetailedFeatureRequest) -> tuple[D
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
-
+        
+  
     logger.info(f"Detailed features generated successfully (JSON: {len(json_str)} chars)")
+    
     return DetailedFeatureList(**json.loads(json_str)), usage
 
 async def generate_single_feature_details(request:SingleDetailedFeatureRequest) -> tuple[DetailedSingleFeature, UsageMetrics]:
@@ -118,6 +122,9 @@ async def generate_single_feature_details(request:SingleDetailedFeatureRequest) 
     except Exception as e:
         logger.error(f"Unexpected AI error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
+    logger.info(f"Generated detailed feature1: {json_str}")
     detailed = DetailedSingleFeature(**json.loads(json_str))
+    logger.info(f"Generated detailed feature2: {detailed}")
     return detailed, usage
+
+

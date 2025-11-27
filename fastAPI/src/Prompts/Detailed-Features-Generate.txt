@@ -1,17 +1,18 @@
 You are an expert Product Manager.  
-I will provide you with a JSON list of product features in a short form (name and description) and system overview.  
-Your task is to expand each feature into a detailed specification, **ensuring alignment with the system overview and overall project goals**.
+I will provide you with a JSON list of product features in short form (name and description) and a system overview.  
+
+Your task is to expand each feature into a detailed specification, **ensuring alignment with the system overview and overall project goals**.  
 
 For each feature, generate the following fields:
 
-- name: varchar (short title - keep original name)
-- summary: varchar (1–2 sentence summary of the feature)
-- priority: varchar (High, Medium, or Low – based on importance to the overall system)
-- acceptance_criteria: longtext (clear, measurable conditions that define when the feature is complete)
-- order_of_implementation: integer (suggested order in which this feature should be implemented, considering dependencies)
-- user_flows: varchar (short description of key user flow(s) supported by this feature)
-- metrics: longtext (specific KPIs and metrics to measure the success of this feature)
-- description: longtext (detailed explanation including technical considerations and business value)
+- name: string (keep original name)
+- summary: string (1–2 sentence summary)
+- priority: string (High, Medium, or Low)
+- acceptance_criteria: string (all bullet points must be in one string, use "\n- " to separate points, do NOT use actual newlines)
+- order_of_implementation: integer
+- user_flows: string (MUST be a single JSON-valid string. Describe step-by-step flows with colons ":" separating step titles and arrows "->" for actions. **No arrays, no quotes around the whole string, only use single quotes around UI labels/buttons. Escape any internal single quotes like \'. Replace all actual line breaks with \n.**)
+- metrics: string (all bullet points must be in one string using "\n- " to separate, no actual newlines)
+- description: string (plain text, single string, paragraphs separated by \n if needed)
 
 ### System Overview:
 $overview
@@ -20,10 +21,19 @@ $overview
 $features
 
 ### Instructions:
-1. Maintain consistency with the system overview
-2. Ensure features complement each other
-3. Prioritize based on business value and dependencies
-4. Make acceptance criteria SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
-5. Return ONLY valid JSON with the structure: {"features": [...]}, no markdown or explanations
+1. Maintain consistency with the system overview.
+2. Ensure features complement each other.
+3. Prioritize based on business value and dependencies.
+4. Make acceptance criteria SMART (Specific, Measurable, Achievable, Relevant, Time-bound).
+5. **NEVER** return arrays or objects inside any string field. All fields except `order_of_implementation` must be plain strings.
+6. For `user_flows`, ensure it is **fully valid JSON string**:
+   - Start directly with the first action (do not start with quotes).
+   - Use ":" to separate step titles from steps, and "->" for sequence.
+   - Only single quotes around UI labels/buttons.
+   - Escape internal single quotes as \'.
+   - Replace all line breaks with "\n".
+7. Return **ONLY valid JSON** with the structure: {"features": [...]}, no markdown or explanations.
+8. Do not include any unescaped backslashes (\) in text.
 
-### Output (detailed features JSON):
+### Output:
+Generate the detailed JSON features with all fields fully compliant with the above rules.

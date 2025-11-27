@@ -38,7 +38,8 @@ async def generate_feature_erd(request: ERDrequest) -> tuple[str, UsageMetrics]:
         logger.error(f"Unexpected error during ERD generation: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
-    logger.info(f"ERD generated successfully")
+    logger.info(f"ERD generated successfully : {clean_mermaid}")
+    logger.info(f"erd inputs:, feature: {request.feature}")
     return clean_mermaid, usage
 
 
