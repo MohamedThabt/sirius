@@ -3,7 +3,8 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
 import ProjectFlowCanvas from '@/components/Projects/ProjectFlowCanvas';
 import ProjectMetricsPanel from '@/components/Projects/ProjectMetricsPanel';
-import ProjectSidebar from '@/components/Projects/ProjectSidebar';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,20 +12,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
-import {
-    ChevronDown,
-    ChevronUp,
-    CodeIcon,
-    DatabaseIcon,
-    FileIcon,
-    FileText as FileTextIcon,
-    HomeIcon,
-    Layers as LayersIcon,
-    Lightbulb as LightbulbIcon,
-    MessageCircleIcon,
-    Users as UsersIcon,
-    ZapIcon,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, CodeIcon, DatabaseIcon, FileIcon, FileText as FileTextIcon, Layers as LayersIcon, MessageCircleIcon, ZapIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface Project {
@@ -326,34 +314,14 @@ export default function ProjectShow({
         e.currentTarget.reset();
     };
 
-    const navGroups = [
-        {
-            label: 'Project',
-            items: [
-                {
-                    key: 'home',
-                    icon: HomeIcon,
-                    label: 'Dashboard',
-                    active: true,
-                    onClick: () => {
-                        router.visit(`/projects/${project.id}`);
-                    },
-                },
-                {
-                    key: 'brainstorming',
-                    icon: LightbulbIcon,
-                    label: 'Brainstorming',
-                    onClick: () => router.visit(`/projects/${project.id}/brainstorming`),
-                },
-                {
-                    key: 'team',
-                    icon: UsersIcon,
-                    label: 'Team',
-                    onClick: () => router.visit(`/projects/${project.id}/team`),
-                },
-            ],
-        },
-    ];
+    const navGroups = useMemo(
+        () =>
+            buildProjectNavGroups({
+                project,
+                currentPage: 'home',
+            }),
+        [project.id],
+    );
 
     const handleRoadmapAction = (step: RoadmapStep) => {
         if (step.isHardLocked) return;
@@ -388,11 +356,12 @@ export default function ProjectShow({
 
             <div className="min-h-screen bg-background">
                 <div className="flex">
-                    <ProjectSidebar
+                    <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
                         repository={repository}
                         completionPercentage={completionPercentage}
+                        health={health}
                         isCollapsed={isSidebarCollapsed}
                         user={auth.user}
                     />

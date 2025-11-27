@@ -1,68 +1,35 @@
-import { Head, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
-import { 
-    Users, 
-    Mail, 
-    MoreVertical, 
-    UserPlus, 
-    UserMinus, 
-    Shield, 
-    Clock,
-    XCircle,
-    Search,
-    AlertCircle,
-    ChevronDown,
-    Home as HomeIcon,
-    File as FileIcon,
-    Zap as ZapIcon,
-    Lightbulb as LightbulbIcon,
-    Database as DatabaseIcon,
-    Layers as LayersIcon,
-    Code as CodeIcon,
-    PanelLeftClose,
-    PanelLeftOpen,
-    Loader2,
-    CheckCircle,
-} from 'lucide-react';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import AppLogo from '@/components/app-logo';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Label } from "@/components/ui/label";
-import { Breadcrumbs } from "@/components/breadcrumbs";
-import { UserMenuContent } from "@/components/user-menu-content";
-import { useInitials } from "@/hooks/use-initials";
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-}
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useInitials } from '@/hooks/use-initials';
+import { type User as AuthUser } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import {
+    AlertCircle,
+    CheckCircle,
+    Clock,
+    Loader2,
+    Mail,
+    MoreVertical,
+    PanelLeftClose,
+    PanelLeftOpen,
+    Search,
+    Shield,
+    UserMinus,
+    UserPlus,
+    Users,
+    XCircle,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 interface SearchedUser {
     id: number;
@@ -128,7 +95,7 @@ interface Props {
 }
 
 export default function Team({ project, members, invitations, userInvitations, userRole }: Props) {
-    const { auth } = usePage<{ auth: { user: User } }>().props;
+    const { auth } = usePage<{ auth: { user: AuthUser } }>().props;
     const getInitials = useInitials();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -165,23 +132,10 @@ export default function Team({ project, members, invitations, userInvitations, u
         }
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
-
     const handleInviteMember = (e: React.FormEvent) => {
         e.preventDefault();
         if (!searchedUser) return;
-        
+
         router.post(
             `/projects/${project.id}/invitations`,
             { user_id: searchedUser.id, role: inviteRole },
@@ -193,20 +147,20 @@ export default function Team({ project, members, invitations, userInvitations, u
                     setInviteRole('viewer');
                     setSearchError('');
                 },
-            }
+            },
         );
     };
 
     const handleSearchUser = async () => {
         if (!searchEmail) return;
-        
+
         setIsSearching(true);
         setSearchError('');
         setSearchedUser(null);
 
         try {
             const response = await fetch(`/team/search-users?email=${encodeURIComponent(searchEmail)}`);
-            
+
             if (!response.ok) {
                 const error = await response.json();
                 setSearchError(error.error || 'User not found');
@@ -232,7 +186,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                     setIsEditRoleModalOpen(false);
                     setSelectedMember(null);
                 },
-            }
+            },
         );
     };
 
@@ -258,84 +212,14 @@ export default function Team({ project, members, invitations, userInvitations, u
         router.post(`/invitations/${invitationId}/decline`);
     };
 
-    const navGroups = [
-        {
-            label: 'Plan',
-            items: [
-                {
-                    key: 'home',
-                    icon: HomeIcon,
-                    label: 'Project Home',
-                    active: false,
-                    onClick: () => router.visit(`/projects/${project.id}`),
-                },
-                {
-                    key: 'overview',
-                    icon: FileIcon,
-                    label: 'System Overview',
-                    onClick: () => router.visit(`/projects/${project.id}/system-overview`),
-                },
-                {
-                    key: 'prd',
-                    icon: FileIcon,
-                    label: 'PRD',
-                    onClick: () => router.visit(`/projects/${project.id}/prd`),
-                },
-                {
-                    key: 'features',
-                    icon: ZapIcon,
-                    label: 'Features',
-                    onClick: () => {},
-                },
-            ],
-        },
-        {
-            label: 'Design',
-            items: [
-                {
-                    key: 'brainstorming',
-                    icon: LightbulbIcon,
-                    label: 'Brainstorming',
-                    onClick: () => router.visit(`/projects/${project.id}/brainstorming`),
-                },
-            ],
-        },
-        {
-            label: 'Technical',
-            items: [
-                {
-                    key: 'erd',
-                    icon: DatabaseIcon,
-                    label: 'Database Designer',
-                    onClick: () => router.visit(`/projects/${project.id}/erd`),
-                },
-                {
-                    key: 'c4',
-                    icon: LayersIcon,
-                    label: 'System Architecture',
-                    onClick: () => router.visit(`/projects/${project.id}/c4`),
-                },
-                {
-                    key: 'technology',
-                    icon: CodeIcon,
-                    label: 'Technology Stack',
-                    onClick: () => router.visit(`/projects/${project.id}/technology`),
-                },
-            ],
-        },
-        {
-            label: 'Collaboration',
-            items: [
-                {
-                    key: 'team',
-                    icon: Users,
-                    label: 'Team',
-                    active: true,
-                    onClick: () => {},
-                },
-            ],
-        },
-    ];
+    const navGroups = useMemo(
+        () =>
+            buildProjectNavGroups({
+                project,
+                currentPage: 'team',
+            }),
+        [project],
+    );
 
     return (
         <>
@@ -343,82 +227,7 @@ export default function Team({ project, members, invitations, userInvitations, u
 
             <div className="min-h-screen bg-background">
                 <div className="flex">
-                    <aside className={`${isSidebarCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}>
-                        <div
-                            className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-                        >
-                            <div className="overflow-y-auto scrollbar-hide">
-                                {/* Logo/Brand */}
-                                <div className="mb-6 border-b pb-4">
-                                    <a href="/" className="flex items-center gap-2 text-lg font-bold text-foreground hover:opacity-80 transition-opacity">
-                                        Sirius
-                                    </a>
-                                </div>
-
-                                <div className="mb-6">
-                                    <div className="mb-3">
-                                        <div className="truncate text-sm font-medium text-foreground">{project.name}</div>
-                                        <div className="mt-1 flex items-center gap-2">
-                                            <span className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs ${getStatusColor(project.status)}`}>
-                                                {project.status.replace('_', ' ')}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <nav className="space-y-6">
-                                    {navGroups.map((group) => (
-                                        <div key={group.label} className="space-y-2">
-                                            <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                                {group.label}
-                                            </div>
-                                            <ul className="space-y-1">
-                                                {group.items.map((item) => (
-                                                    <li key={item.key}>
-                                                        <button
-                                                            onClick={item.onClick}
-                                                            className={[
-                                                                'flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
-                                                                item.active
-                                                                    ? 'bg-muted font-medium text-foreground'
-                                                                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
-                                                            ].join(' ')}
-                                                        >
-                                                            <item.icon className="h-4 w-4 shrink-0" />
-                                                            <span>{item.label}</span>
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    ))}
-                                </nav>
-                            </div>
-
-                            <div className="shrink-0 border-t pt-3">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
-                                            <Avatar className="h-5 w-5 shrink-0">
-                                                <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                                <AvatarFallback className="text-[10px] bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                    {getInitials(auth.user.name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="truncate text-xs font-medium text-foreground">{auth.user.name}</div>
-                                                <div className="truncate text-[10px] text-muted-foreground">{auth.user.email}</div>
-                                            </div>
-                                            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
-                                        <UserMenuContent user={auth.user} />
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-                    </aside>
+                    <ProjectSidebarPanel project={project} navGroups={navGroups} isCollapsed={isSidebarCollapsed} user={auth.user} />
 
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
@@ -464,35 +273,38 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                 {userInvitations.map((invitation) => (
                                                     <div key={invitation.id} className="rounded-lg border p-4">
                                                         <div className="flex items-start justify-between gap-4">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-start gap-3 mb-3">
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="mb-3 flex items-start gap-3">
                                                                     {invitation.invited_by && (
                                                                         <Avatar className="h-10 w-10 shrink-0">
-                                                                            <AvatarImage 
-                                                                                src={invitation.invited_by.avatar} 
-                                                                                alt={invitation.invited_by.name} 
+                                                                            <AvatarImage
+                                                                                src={invitation.invited_by.avatar}
+                                                                                alt={invitation.invited_by.name}
                                                                             />
                                                                             <AvatarFallback className="bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                                                                 {getInitials(invitation.invited_by.name)}
                                                                             </AvatarFallback>
                                                                         </Avatar>
                                                                     )}
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <h3 className="font-semibold text-foreground text-lg mb-1">
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <h3 className="mb-1 text-lg font-semibold text-foreground">
                                                                             {invitation.project.name}
                                                                         </h3>
                                                                         {invitation.invited_by && (
-                                                                            <p className="text-sm text-muted-foreground mb-2">
-                                                                                <span className="font-medium">{invitation.invited_by.name}</span> invited you to join this project
+                                                                            <p className="mb-2 text-sm text-muted-foreground">
+                                                                                <span className="font-medium">{invitation.invited_by.name}</span>{' '}
+                                                                                invited you to join this project
                                                                             </p>
                                                                         )}
                                                                         {invitation.project.brief && (
-                                                                            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                                                            <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
                                                                                 {invitation.project.brief}
                                                                             </p>
                                                                         )}
                                                                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                                                            <Badge className={`border text-xs capitalize ${getRoleBadgeColor(invitation.role)}`}>
+                                                                            <Badge
+                                                                                className={`border text-xs capitalize ${getRoleBadgeColor(invitation.role)}`}
+                                                                            >
                                                                                 {invitation.role}
                                                                             </Badge>
                                                                             <span className="flex items-center gap-1">
@@ -503,20 +315,17 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex gap-2 shrink-0">
+                                                            <div className="flex shrink-0 gap-2">
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"
                                                                     onClick={() => handleDenyInvitation(invitation.id)}
-                                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
                                                                 >
                                                                     <XCircle className="mr-2 h-4 w-4" />
                                                                     Decline
                                                                 </Button>
-                                                                <Button
-                                                                    size="sm"
-                                                                    onClick={() => handleApproveInvitation(invitation.id)}
-                                                                >
+                                                                <Button size="sm" onClick={() => handleApproveInvitation(invitation.id)}>
                                                                     <CheckCircle className="mr-2 h-4 w-4" />
                                                                     Accept
                                                                 </Button>
@@ -541,12 +350,10 @@ export default function Team({ project, members, invitations, userInvitations, u
                                     <CardContent>
                                         <div className="space-y-4">
                                             {members.map((member) => (
-                                                <div 
-                                                    key={member.id} 
+                                                <div
+                                                    key={member.id}
                                                     className={`flex items-center justify-between rounded border p-4 ${
-                                                        member.role === 'owner' 
-                                                            ? 'bg-muted/30 border-muted-foreground/20' 
-                                                            : ''
+                                                        member.role === 'owner' ? 'border-muted-foreground/20 bg-muted/30' : ''
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-4">
@@ -565,7 +372,9 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                             </div>
                                                             <div className="text-sm text-muted-foreground">{member.email}</div>
                                                             <div className="mt-1 text-xs text-muted-foreground">
-                                                                {member.role === 'owner' ? 'Project Owner' : `Joined ${new Date(member.joined_at).toLocaleDateString()}`}
+                                                                {member.role === 'owner'
+                                                                    ? 'Project Owner'
+                                                                    : `Joined ${new Date(member.joined_at).toLocaleDateString()}`}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -639,9 +448,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                                 <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                                                                     <Clock className="h-3 w-3" />
                                                                     Invited {new Date(invitation.invited_at).toLocaleDateString()}
-                                                                    {invitation.invited_by && (
-                                                                        <span>by {invitation.invited_by.name}</span>
-                                                                    )}
+                                                                    {invitation.invited_by && <span>by {invitation.invited_by.name}</span>}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -649,11 +456,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                             <Badge className={`border text-xs capitalize ${getRoleBadgeColor(invitation.role)}`}>
                                                                 {invitation.role}
                                                             </Badge>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleCancelInvitation(invitation.id)}
-                                                            >
+                                                            <Button variant="ghost" size="sm" onClick={() => handleCancelInvitation(invitation.id)}>
                                                                 <XCircle className="mr-2 h-3 w-3" />
                                                                 Cancel
                                                             </Button>
@@ -671,15 +474,18 @@ export default function Team({ project, members, invitations, userInvitations, u
             </div>
 
             {/* Invite Member Modal */}
-            <Dialog open={isInviteModalOpen} onOpenChange={(open) => {
-                setIsInviteModalOpen(open);
-                if (!open) {
-                    setSearchEmail('');
-                    setSearchedUser(null);
-                    setSearchError('');
-                    setInviteRole('viewer');
-                }
-            }}>
+            <Dialog
+                open={isInviteModalOpen}
+                onOpenChange={(open) => {
+                    setIsInviteModalOpen(open);
+                    if (!open) {
+                        setSearchEmail('');
+                        setSearchedUser(null);
+                        setSearchError('');
+                        setInviteRole('viewer');
+                    }
+                }}
+            >
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Invite Team Member</DialogTitle>
@@ -699,22 +505,11 @@ export default function Team({ project, members, invitations, userInvitations, u
                                         placeholder="colleague@example.com"
                                         required
                                     />
-                                    <Button 
-                                        type="button" 
-                                        variant="secondary"
-                                        onClick={handleSearchUser}
-                                        disabled={isSearching || !searchEmail}
-                                    >
-                                        {isSearching ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Search className="h-4 w-4" />
-                                        )}
+                                    <Button type="button" variant="secondary" onClick={handleSearchUser} disabled={isSearching || !searchEmail}>
+                                        {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                                     </Button>
                                 </div>
-                                {searchError && (
-                                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">{searchError}</p>
-                                )}
+                                {searchError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{searchError}</p>}
                             </div>
 
                             {/* Display Found User */}
@@ -756,7 +551,9 @@ export default function Team({ project, members, invitations, userInvitations, u
                             <Button type="button" variant="outline" onClick={() => setIsInviteModalOpen(false)}>
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={!searchedUser}>Send Invitation</Button>
+                            <Button type="submit" disabled={!searchedUser}>
+                                Send Invitation
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -767,9 +564,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Edit Member Role</DialogTitle>
-                        <DialogDescription>
-                            Change the role for {selectedMember?.name}
-                        </DialogDescription>
+                        <DialogDescription>Change the role for {selectedMember?.name}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div>
@@ -800,9 +595,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Remove Team Member</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to remove {selectedMember?.name} from this project?
-                        </DialogDescription>
+                        <DialogDescription>Are you sure you want to remove {selectedMember?.name} from this project?</DialogDescription>
                     </DialogHeader>
                     <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
                         <div className="flex items-start gap-3">

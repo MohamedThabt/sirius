@@ -2,7 +2,8 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import DiagramCanvas from '@/components/database-designer/DiagramCanvas';
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import FormatSelector from '@/components/database-designer/FormatSelector';
-import ProjectSidebar from '@/components/Projects/ProjectSidebar';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +17,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { TextShimmer } from '@/components/ui/text-shimmer';
-import { useInitials } from '@/hooks/use-initials';
 import { useDBMLParser } from '@/hooks/useDBMLParser';
 import { type User } from '@/types';
 import { exportAsSQL } from '@/utils/exportUtils';
@@ -24,27 +24,7 @@ import { convertFormat, detectFormat, DiagramFormat } from '@/utils/formatConver
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant } from '@xyflow/react';
-import {
-    ChevronLeft,
-    ChevronRight,
-    CodeIcon,
-    DatabaseIcon,
-    Download,
-    FileCode,
-    FileIcon,
-    FileText,
-    Grid3X3,
-    HomeIcon,
-    Layers as LayersIcon,
-    LightbulbIcon,
-    Maximize2,
-    Palette,
-    Plus,
-    Search,
-    Snowflake,
-    TreePine,
-    ZapIcon,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, CodeIcon, Database as DatabaseIcon, Download, FileCode, FileIcon, FileText, Grid3X3, Layers, Maximize2, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -76,7 +56,6 @@ interface Props {
 
 export default function DatabaseDesigner({ project, initialContent, sections }: Props) {
     const { auth } = usePage<{ auth: { user: User } }>().props;
-    const getInitials = useInitials();
     const [content, setContent] = useState(initialContent ?? '');
     const [searchQuery, setSearchQuery] = useState('');
     const [localSearch, setLocalSearch] = useState('');
@@ -110,65 +89,14 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
         return getHealthStatus(completionPercentage);
     }, [completionPercentage]);
 
-    const navGroups = [
-        {
-            label: 'Plan',
-            items: [
-                { key: 'home', icon: HomeIcon, label: 'Project Home', onClick: () => router.visit(`/projects/${project.id}`) },
-                {
-                    key: 'overview',
-                    icon: FileIcon,
-                    label: 'System Overview',
-                    muted: !sections?.overview,
-                    disabled: !sections?.overview,
-                    onClick: () => sections?.overview && router.get(`/projects/${project.id}/system-overview`),
-                },
-                {
-                    key: 'prd',
-                    icon: FileIcon,
-                    label: sections?.prd ? 'PRD' : 'Generate PRD',
-                    emphasize: !sections?.prd,
-                    disabled: !sections?.prd,
-                    onClick: () => (sections?.prd ? router.get(`/projects/${project.id}/prd`) : router.post(`/projects/${project.id}/prd/generate`)),
-                },
-                { key: 'features', icon: ZapIcon, label: 'Features', onClick: () => router.visit(`/projects/${project.id}`) },
-            ],
-        },
-        {
-            label: 'Design',
-            items: [
-                {
-                    key: 'brainstorming',
-                    icon: LightbulbIcon,
-                    label: 'Brainstorming',
-                    onClick: () => router.get(`/projects/${project.id}/brainstorming`),
-                },
-            ],
-        },
-        {
-            label: 'Technical',
-            items: [
-                {
-                    key: 'erd',
-                    icon: DatabaseIcon,
-                    label: 'Database Designer',
-                    active: true,
-                    muted: !sections?.data_modeling,
-                    disabled: !sections?.data_modeling,
-                    onClick: () => sections?.data_modeling && router.get(`/projects/${project.id}/erd`),
-                },
-                {
-                    key: 'c4',
-                    icon: LayersIcon,
-                    label: project.c4 ? 'System Architecture' : 'Generate C4',
-                    emphasize: !project.c4,
-                    disabled: !project.c4,
-                    onClick: () => (project.c4 ? router.get(`/projects/${project.id}/c4`) : router.post(`/projects/${project.id}/c4/generate`)),
-                },
-                { key: 'technology', icon: CodeIcon, label: 'Technology Stack', onClick: () => router.get(`/projects/${project.id}/technology`) },
-            ],
-        },
-    ];
+    const navGroups = useMemo(
+        () =>
+            buildProjectNavGroups({
+                project,
+                currentPage: 'erd',
+            }),
+        [project],
+    );
 
     // Sync theme with application's global theme
     useEffect(() => {
@@ -336,7 +264,7 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
             <div className="min-h-screen bg-background">
                 {!isFullScreen && (
                     <div className="flex">
-                        <ProjectSidebar
+                        <ProjectSidebarPanel
                             project={project}
                             navGroups={navGroups}
                             completionPercentage={completionPercentage}
@@ -421,7 +349,7 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
                                                                 Dots
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleBackgroundChange(BackgroundVariant.Lines)}>
-                                                                <LayersIcon className="mr-2 h-4 w-4" />
+                                                                <Layers className="mr-2 h-4 w-4" />
                                                                 Lines
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleBackgroundChange(BackgroundVariant.Cross)}>

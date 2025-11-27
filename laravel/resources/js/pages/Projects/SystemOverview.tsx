@@ -1,5 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import ProjectSidebar from '@/components/Projects/ProjectSidebar';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,29 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
-import { useInitials } from '@/hooks/use-initials';
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    BotIcon,
-    CheckIcon,
-    CodeIcon,
-    CopyIcon,
-    DatabaseIcon,
-    EyeIcon,
-    FileIcon,
-    FileTextIcon,
-    HomeIcon,
-    Layers as LayersIcon,
-    LightbulbIcon,
-    PencilIcon,
-    SaveIcon,
-    SendIcon,
-    SparklesIcon,
-    StarIcon,
-    ZapIcon,
-} from 'lucide-react';
+import { ArrowLeft, BotIcon, CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, PencilIcon, SaveIcon, SendIcon, SparklesIcon, StarIcon } from 'lucide-react';
 import mermaid from 'mermaid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -233,7 +214,6 @@ export default function SystemOverview({
     features = [],
 }: Props) {
     const { auth } = usePage<{ auth: { user: any } }>().props;
-    const getInitials = useInitials();
     const [currentVersion, setCurrentVersion] = useState<OverviewVersion | null>(null);
     const [overviewVersions, setOverviewVersions] = useState<OverviewVersion[]>(initialOverviewVersions || []);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -791,90 +771,34 @@ export default function SystemOverview({
         setIsEditing(false);
     };
 
-    const navGroups = project
-        ? [
-              {
-                  label: 'Plan',
-                  items: [
-                      { key: 'home', icon: HomeIcon, label: 'Project Home', onClick: () => router.visit(`/projects/${project?.id}`) },
-                      {
-                          key: 'overview',
-                          icon: FileIcon,
-                          label: 'System Overview',
-                          active: true,
-                          onClick: () => router.get(`/projects/${project?.id}/system-overview`),
-                      },
-                      {
-                          key: 'prd',
-                          icon: FileIcon,
-                          label: sections.prd ? 'PRD' : 'Generate PRD',
-                          emphasize: !sections.prd,
-                          disabled: !sections.prd,
-                          onClick: () =>
-                              sections.prd ? router.get(`/projects/${project?.id}/prd`) : router.post(`/projects/${project?.id}/prd/generate`),
-                      },
-                      { key: 'features', icon: ZapIcon, label: 'Features', onClick: () => router.visit(`/projects/${project?.id}`) },
-                  ],
-              },
-              {
-                  label: 'Design',
-                  items: [
-                      {
-                          key: 'brainstorming',
-                          icon: LightbulbIcon,
-                          label: 'Brainstorming',
-                          onClick: () => router.get(`/projects/${project?.id}/brainstorming`),
-                      },
-                  ],
-              },
-              {
-                  label: 'Technical',
-                  items: [
-                      {
-                          key: 'erd',
-                          icon: DatabaseIcon,
-                          label: 'Database Designer',
-                          muted: !sections.data_modeling,
-                          disabled: !sections.data_modeling,
-                          onClick: () => sections.data_modeling && router.get(`/projects/${project?.id}/erd`),
-                      },
-                      {
-                          key: 'c4',
-                          icon: LayersIcon,
-                          label: project?.c4 ? 'System Architecture' : 'Generate C4',
-                          emphasize: !project?.c4,
-                          disabled: !project?.c4,
-                          onClick: () =>
-                              project?.c4 ? router.get(`/projects/${project?.id}/c4`) : router.post(`/projects/${project?.id}/c4/generate`),
-                      },
-                      {
-                          key: 'technology',
-                          icon: CodeIcon,
-                          label: 'Technology Stack',
-                          onClick: () => router.get(`/projects/${project?.id}/technology`),
-                      },
-                  ],
-              },
-          ]
-        : [];
+    const navGroups = useMemo(() => {
+        if (!project) {
+            return [];
+        }
+
+        return buildProjectNavGroups({
+            project,
+            currentPage: 'overview',
+        });
+    }, [project]);
 
     return (
         <>
             <Head title={`System Overview - ${project?.name || 'Project'}`} />
 
             <div className="min-h-screen bg-background">
-                {project && (
-                    <div className="flex">
-                        <ProjectSidebar
-                            project={project}
-                            navGroups={navGroups}
-                            completionPercentage={completionPercentage}
-                            health={health}
-                            isCollapsed={isSidebarCollapsed}
-                            user={auth.user}
-                        />
+            {project && (
+                <div className="flex">
+                    <ProjectSidebarPanel
+                        project={project}
+                        navGroups={navGroups}
+                        completionPercentage={completionPercentage}
+                        health={health}
+                        isCollapsed={isSidebarCollapsed}
+                        user={auth.user}
+                    />
 
-                        <main className="min-w-0 flex-1">
+                    <main className="min-w-0 flex-1">
                             <div className="flex h-screen flex-col">
                                 <div className="px-4 py-4 sm:px-6 lg:px-8">
                                     <div className="mb-4 flex items-center gap-3">

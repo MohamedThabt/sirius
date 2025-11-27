@@ -1,0 +1,264 @@
+import { RepoConnectDialog } from '@/components/github/repo-connect-dialog';
+import { RepoManagementModal } from '@/components/github/repo-management-modal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { UserMenuContent } from '@/components/user-menu-content';
+import { useInitials } from '@/hooks/use-initials';
+import { type User } from '@/types';
+import { AlertCircleIcon, CheckCircleIcon, ChevronDownIcon, CircleIcon, ClockIcon, Github as GithubIcon, TrendingUpIcon } from 'lucide-react';
+import { useMemo, useState } from 'react';
+
+export interface ProjectSidebarProject {
+    id: number;
+    name: string;
+    status: string;
+    c4?: string | null;
+    brief?: string;
+}
+
+export interface ProjectSidebarRepository {
+    id: number;
+    provider: string;
+    repo_id: string;
+    name: string;
+    full_name: string;
+    owner_login: string;
+    owner_type: string;
+    default_branch: string;
+    html_url: string;
+    ssh_url: string;
+    visibility: string;
+}
+
+export interface ProjectNavItem {
+    key: string;
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    muted?: boolean;
+    emphasize?: boolean;
+    active?: boolean;
+    badge?: string;
+    disabled?: boolean;
+    hidden?: boolean;
+    onClick: () => void;
+}
+
+export interface ProjectNavGroup {
+    label: string;
+    items: ProjectNavItem[];
+}
+
+export interface ProjectSidebarPanelProps {
+    project: ProjectSidebarProject;
+    navGroups: ProjectNavGroup[];
+    repository?: ProjectSidebarRepository | null;
+    completionPercentage?: number;
+    health?: {
+        label: string;
+        Icon: React.ComponentType<{ className?: string }>;
+        color: string;
+    };
+    isCollapsed: boolean;
+    user: User;
+}
+
+export default function ProjectSidebarPanel({
+    project,
+    navGroups,
+    repository = null,
+    completionPercentage,
+    health,
+    isCollapsed,
+    user,
+}: ProjectSidebarPanelProps) {
+    const getInitials = useInitials();
+    const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
+    const [isRepoManagementOpen, setIsRepoManagementOpen] = useState(false);
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'draft':
+                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
+            case 'in_progress':
+                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
+            case 'completed':
+                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
+            default:
+                return 'bg-muted text-muted-foreground border-border';
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'draft':
+                return <CircleIcon className="h-4 w-4" />;
+            case 'in_progress':
+                return <ClockIcon className="h-4 w-4" />;
+            case 'completed':
+                return <CheckCircleIcon className="h-4 w-4" />;
+            default:
+                return <AlertCircleIcon className="h-4 w-4" />;
+        }
+    };
+
+    const defaultHealth = useMemo(() => {
+        if (completionPercentage === undefined) return undefined;
+        if (completionPercentage >= 80) return { label: 'excellent', Icon: CheckCircleIcon, color: 'text-emerald-600 dark:text-emerald-300' };
+        if (completionPercentage >= 60) return { label: 'good', Icon: TrendingUpIcon, color: 'text-blue-600 dark:text-blue-300' };
+        if (completionPercentage >= 40) return { label: 'fair', Icon: AlertCircleIcon, color: 'text-orange-600 dark:text-orange-300' };
+        return { label: 'needs attention', Icon: AlertCircleIcon, color: 'text-red-600 dark:text-red-300' };
+    }, [completionPercentage]);
+
+    const activeHealth = health || defaultHealth;
+
+    return (
+        <>
+            <aside className={`${isCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}>
+                <div
+                    className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                >
+                    <div className="scrollbar-hide overflow-y-auto">
+                        <div className="mb-6 border-b pb-4">
+                            <a href="/" className="flex items-center text-lg font-bold text-foreground transition-opacity hover:opacity-80">
+                                Sirius
+                            </a>
+                        </div>
+
+                        <div className="mb-6">
+                            <div className="mb-3">
+                                <div className="truncate text-sm font-medium text-foreground">{project.name}</div>
+                                <div className="mt-1 flex items-center gap-2">
+                                    <span
+                                        className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs ${getStatusColor(project.status)}`}
+                                    >
+                                        {getStatusIcon(project.status)}
+                                        {project.status.replace('_', ' ')}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {completionPercentage !== undefined && activeHealth && (
+                                <div className="mt-4">
+                                    <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                                        <span>Progress</span>
+                                        <span>{completionPercentage}%</span>
+                                    </div>
+                                    <div className="h-1.5 w-full overflow-hidden rounded bg-muted">
+                                        <div className="h-full bg-foreground transition-all" style={{ width: `${completionPercentage}%` }} />
+                                    </div>
+                                    <div className="mt-2 flex items-center gap-1.5 text-xs">
+                                        <activeHealth.Icon className={`h-3.5 w-3.5 ${activeHealth.color}`} />
+                                        <span className={`capitalize ${activeHealth.color}`}>{activeHealth.label}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <nav className="space-y-6">
+                            {navGroups.map((group) => (
+                                <div key={group.label} className="space-y-2">
+                                    <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</div>
+                                    <ul className="space-y-1">
+                                        {group.items
+                                            .filter((item) => !item.hidden)
+                                            .map((item) => (
+                                                <li key={item.key}>
+                                                    <button
+                                                        onClick={item.disabled ? undefined : item.onClick}
+                                                        disabled={item.disabled}
+                                                        className={[
+                                                            'flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
+                                                            item.disabled
+                                                                ? 'cursor-not-allowed opacity-50'
+                                                                : item.active
+                                                                  ? 'bg-muted font-medium text-foreground'
+                                                                  : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
+                                                            item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
+                                                            item.key === 'brainstorming' && !item.disabled
+                                                                ? 'border border-amber-200 bg-amber-50 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:hover:bg-amber-500/20'
+                                                                : '',
+                                                        ].join(' ')}
+                                                        title={item.disabled ? `${item.label} (Not created yet)` : item.label}
+                                                    >
+                                                        <item.icon
+                                                            className={`h-4 w-4 shrink-0 ${item.key === 'brainstorming' && !item.disabled ? 'text-amber-600 dark:text-amber-400' : ''}`}
+                                                        />
+                                                        <span
+                                                            className={
+                                                                item.muted
+                                                                    ? 'opacity-70'
+                                                                    : item.key === 'brainstorming' && !item.disabled
+                                                                      ? 'text-amber-900 dark:text-amber-200'
+                                                                      : ''
+                                                            }
+                                                        >
+                                                            {item.label}
+                                                        </span>
+                                                        {item.badge && (
+                                                            <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
+                                                                {item.badge}
+                                                            </Badge>
+                                                        )}
+                                                    </button>
+                                                </li>
+                                            ))}
+                                    </ul>
+                                </div>
+                            ))}
+
+                            <div className="space-y-2">
+                                <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Integrations</div>
+                                <button
+                                    className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                                    onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
+                                >
+                                    <span className="inline-flex items-center gap-2">
+                                        <GithubIcon className="h-4 w-4 shrink-0" />
+                                        GitHub
+                                    </span>
+                                    {repository ? (
+                                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                                            <CheckCircleIcon className="h-3.5 w-3.5" />
+                                            Connected
+                                        </span>
+                                    ) : (
+                                        <span className="text-xs">Connect</span>
+                                    )}
+                                </button>
+                            </div>
+                        </nav>
+                    </div>
+
+                    <div className="shrink-0 border-t pt-3">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
+                                    <Avatar className="h-5 w-5 shrink-0">
+                                        <AvatarImage src={user.avatar} alt={user.name} />
+                                        <AvatarFallback className="bg-neutral-200 text-[10px] text-black dark:bg-neutral-700 dark:text-white">
+                                            {getInitials(user.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="truncate text-xs font-medium text-foreground">{user.name}</div>
+                                        <div className="truncate text-[10px] text-muted-foreground">{user.email}</div>
+                                    </div>
+                                    <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <UserMenuContent user={user} />
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
+            </aside>
+
+            <RepoConnectDialog open={isGithubModalOpen} onOpenChange={setIsGithubModalOpen} projectId={project.id} />
+
+            <RepoManagementModal open={isRepoManagementOpen} onOpenChange={setIsRepoManagementOpen} repository={repository} projectId={project.id} />
+        </>
+    );
+}
+

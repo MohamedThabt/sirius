@@ -1,5 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import ProjectSidebar from '@/components/Projects/ProjectSidebar';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,28 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
-import { useInitials } from '@/hooks/use-initials';
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { type User } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import {
-    CheckIcon,
-    CodeIcon,
-    CopyIcon,
-    DatabaseIcon,
-    EyeIcon,
-    FileIcon,
-    FileTextIcon,
-    HomeIcon,
-    Layers as LayersIcon,
-    LightbulbIcon,
-    Maximize2,
-    Minimize2,
-    PencilIcon,
-    SaveIcon,
-    SendIcon,
-    ZapIcon,
-} from 'lucide-react';
+import { CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, Maximize2, Minimize2, PencilIcon, SaveIcon, SendIcon } from 'lucide-react';
 import mermaid from 'mermaid';
 import { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -255,7 +238,6 @@ export default function PRD({
     sections,
 }: Props) {
     const { auth } = usePage<{ auth: { user: User } }>().props;
-    const getInitials = useInitials();
     const [currentVersion, setCurrentVersion] = useState<PRDVersion | null>(null);
     const [prdVersions, setPrdVersions] = useState<PRDVersion[]>(initialPRDVersions || []);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -281,69 +263,16 @@ export default function PRD({
         return getHealthStatus(completionPercentage);
     }, [completionPercentage]);
 
-    const navGroups = project
-        ? [
-              {
-                  label: 'Plan',
-                  items: [
-                      { key: 'home', icon: HomeIcon, label: 'Project Home', onClick: () => router.visit(`/projects/${project.id}`) },
-                      {
-                          key: 'overview',
-                          icon: FileIcon,
-                          label: 'System Overview',
-                          muted: !sections?.overview,
-                          disabled: !sections?.overview,
-                          onClick: () => sections?.overview && router.get(`/projects/${project.id}/system-overview`),
-                      },
-                      {
-                          key: 'prd',
-                          icon: FileIcon,
-                          label: sections?.prd ? 'PRD' : 'Generate PRD',
-                          emphasize: !sections?.prd,
-                          active: true,
-                          disabled: !sections?.prd,
-                          onClick: () =>
-                              sections?.prd ? router.get(`/projects/${project.id}/prd`) : router.post(`/projects/${project.id}/prd/generate`),
-                      },
-                      { key: 'features', icon: ZapIcon, label: 'Features', onClick: () => router.visit(`/projects/${project.id}`) },
-                  ],
-              },
-              {
-                  label: 'Design',
-                  items: [
-                      {
-                          key: 'brainstorming',
-                          icon: LightbulbIcon,
-                          label: 'Brainstorming',
-                          onClick: () => router.get(`/projects/${project.id}/brainstorming`),
-                      },
-                  ],
-              },
-              {
-                  label: 'Technical',
-                  items: [
-                      {
-                          key: 'erd',
-                          icon: DatabaseIcon,
-                          label: 'Database Designer',
-                          muted: !sections?.data_modeling,
-                          disabled: !sections?.data_modeling,
-                          onClick: () => sections?.data_modeling && router.get(`/projects/${project.id}/erd`),
-                      },
-                      {
-                          key: 'c4',
-                          icon: LayersIcon,
-                          label: project.c4 ? 'System Architecture' : 'Generate C4',
-                          emphasize: !project.c4,
-                          disabled: !project.c4,
-                          onClick: () =>
-                              project.c4 ? router.get(`/projects/${project.id}/c4`) : router.post(`/projects/${project.id}/c4/generate`),
-                      },
-                      { key: 'technology', icon: CodeIcon, label: 'Technology Stack', onClick: () => router.get(`/projects/${project.id}/technology`) },
-                  ],
-              },
-          ]
-        : [];
+    const navGroups = useMemo(() => {
+        if (!project) {
+            return [];
+        }
+
+        return buildProjectNavGroups({
+            project,
+            currentPage: 'prd',
+        });
+    }, [project]);
 
     const toggleFullscreen = () => {
         setIsFullscreen(!isFullscreen);
@@ -825,7 +754,7 @@ export default function PRD({
             <div className="min-h-screen bg-background">
                 {!isFullscreen && project && (
                     <div className="flex">
-                        <ProjectSidebar
+                        <ProjectSidebarPanel
                             project={project}
                             navGroups={navGroups}
                             completionPercentage={completionPercentage}
