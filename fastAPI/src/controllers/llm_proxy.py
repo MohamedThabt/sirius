@@ -1,38 +1,64 @@
-# from openai import OpenAI
+import logging
+from models.usage import UsageMetrics
+from openai import AsyncOpenAI
+from dotenv import load_dotenv
+load_dotenv()
 
-# PROXY_URL = "http://localhost:4000"
-# MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-2"]
+client = AsyncOpenAI(
+    api_key="any key",
+    base_url="http://localhost:4000"
+)
 
+logger = logging.getLogger(__name__)
 
-# EXHAUSTED_MODELS = set()
+async def proxy(prompt: str , model: str) -> tuple[str, UsageMetrics]:
+    """
+    Call Gemini API via LiteLLM proxy and track token usage.
+    
+    Args:
+        prompt: The input prompt
+        
+    Returns:
+        Tuple of (response_text, usage_metrics)
+    """
 
-# def ask_llm(prompt: str):
-#     for model in MODELS:
-#         if model in EXHAUSTED_MODELS:
-#             print(f" Skipping {model} (quota already exhausted)")
-#             continue
+    messages = [
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
 
-#         try:
-#             client = OpenAI(base_url=f"{PROXY_URL}/v1", api_key="dummy_key")
-
-#             completion = client.chat.completions.create(
-#                 model=model,
-#                 messages=[{"role": "user", "content": prompt}],
-#             )
-
-#             return {
-#                 "model_used": model,
-#                 "response": completion.choices[0].message.content
-#             }
-
-#         except Exception as e:
-#             error_msg = str(e)
-#             if "quota" in error_msg.lower() or "429" in error_msg:
-#                 print(f" Quota exceeded for {model}, switching to next one...")
-#                 EXHAUSTED_MODELS.add(model) 
-#                 continue
-
-#             print(f" Model {model} failed: {e}")
-#             continue
-
-#     return {"error": "All models failed to respond."}
+    try:
+        response = await client.chat.completions.create(
+            model="cerebras",
+            messages=messages,
+            temperature=0.7,
+            top_p=0.8
+        )
+        
+        # Get response text
+        response_text = response.choices[0].message.content
+        
+        # Extract token usage
+        input_tokens = response.usage.prompt_tokens
+        output_tokens = response.usage.completion_tokens
+        
+        # Create usage metrics
+        metrics = UsageMetrics(
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cost=0.0
+        )
+        
+        # Log usage
+        logger.info(
+            f"Gemini response via proxy - {len(response_text)} chars, "
+            f"Tokens: {input_tokens + output_tokens} (input: {input_tokens}, output: {output_tokens})"
+        )
+        
+        return response_text, metrics
+        
+    except Exception as e:
+        logger.error(f"Error calling Gemini via LiteLLM proxy: {str(e)}")
+        raise
