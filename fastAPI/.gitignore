@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+test-env/
+test-env
+
 # C extensions
 *.so
 
@@ -152,7 +155,7 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-
+configllm.yaml
 test.py
 output.md
 # PyCharm
