@@ -4,10 +4,8 @@ import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import {
     Activity,
-    CheckCircle2,
     GitBranch,
     Lightbulb,
-    TrendingUp,
     Users as UsersIcon,
     Zap,
 } from 'lucide-react';
@@ -69,184 +67,202 @@ export default function ProjectMetricsPanel({
 
     return (
         <div className={cn('h-full overflow-y-auto bg-background', className)}>
-            <div className="grid gap-6 p-6 lg:grid-cols-2">
-                {/* Metrics Overview */}
-                <div className="space-y-4">
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                        <Activity className="h-4 w-4" />
-                        Project Metrics
-                    </h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="rounded-lg border border-border bg-card p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Progress</p>
-                                    <p className="mt-1 text-2xl font-bold text-foreground">{completionPercentage}%</p>
-                                </div>
-                                <TrendingUp className="h-8 w-8 text-primary/20" />
-                            </div>
-                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-                                <div
-                                    className="h-full bg-primary transition-all"
-                                    style={{ width: `${completionPercentage}%` }}
-                                />
-                            </div>
-                        </div>
+            <div className="space-y-8 p-8">
+                {/* Ultra-Minimal Project Status */}
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-sm font-medium tracking-wide text-muted-foreground">PROJECT STATUS</h3>
+                    </div>
 
-                        <div className="rounded-lg border border-border bg-card p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Steps</p>
-                                    <p className="mt-1 text-2xl font-bold text-foreground">
-                                        {completedStepsCount}/{totalStepsCount}
-                                    </p>
-                                </div>
-                                <CheckCircle2 className="h-8 w-8 text-emerald-500/20" />
-                            </div>
-                            <p className="mt-3 text-xs text-muted-foreground">Completed</p>
+                    {/* Progress Bar */}
+                    <div className="space-y-3">
+                        <div className="flex items-baseline justify-between">
+                            <span className="text-4xl font-light tracking-tight text-foreground">{completionPercentage}%</span>
+                            <span className="text-sm text-muted-foreground">
+                                {completedStepsCount} of {totalStepsCount} steps
+                            </span>
                         </div>
+                        <div className="h-1 overflow-hidden rounded-full bg-muted/50">
+                            <div
+                                className="h-full bg-foreground transition-all duration-700 ease-out"
+                                style={{ width: `${completionPercentage}%` }}
+                            />
+                        </div>
+                    </div>
 
-                        <div className="rounded-lg border border-border bg-card p-4 sm:col-span-2">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Health Status</p>
-                                    <div className="mt-2 flex items-center gap-2">
-                                        <health.Icon className={cn('h-5 w-5', health.color)} />
-                                        <p className="text-lg font-semibold capitalize text-foreground">{health.label}</p>
-                                    </div>
-                                </div>
+                    {/* Metrics Grid - Ultra Minimal */}
+                    <div className="grid gap-6 pt-2 sm:grid-cols-3">
+                        <div className="space-y-1">
+                            <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Health</p>
+                            <div className="flex items-center gap-2">
+                                <health.Icon className={cn('h-5 w-5', health.color)} />
+                                <p className="text-lg font-medium capitalize text-foreground">{health.label}</p>
                             </div>
                         </div>
 
                         {featuresCount > 0 && (
-                            <div className="rounded-lg border border-border bg-card p-4 sm:col-span-2">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-xs text-muted-foreground">Features</p>
-                                        <p className="mt-1 text-2xl font-bold text-foreground">{featuresCount}</p>
-                                    </div>
-                                    <Zap className="h-8 w-8 text-amber-500/20" />
+                            <div className="space-y-1">
+                                <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Features</p>
+                                <div className="flex items-center gap-2">
+                                    <Zap className="h-5 w-5 text-amber-500" />
+                                    <p className="text-lg font-medium text-foreground">{featuresCount}</p>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => router.visit(`/projects/${projectId}/features`)}
-                                    className="mt-2 h-auto w-full justify-start p-0 text-xs text-primary hover:underline"
-                                >
-                                    View all features →
-                                </Button>
                             </div>
                         )}
+
+                        <div className="space-y-1">
+                            <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Team</p>
+                            <div className="flex items-center gap-2">
+                                <UsersIcon className="h-5 w-5 text-muted-foreground" />
+                                <p className="text-lg font-medium text-foreground">{teamMembersCount || 0}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Team & Integrations */}
-                <div className="space-y-4">
-                    {/* Team Members */}
-                    {teamMembers.length > 0 && (
-                        <div>
-                            <div className="mb-3 flex items-center justify-between">
-                                <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                                    <UsersIcon className="h-4 w-4" />
-                                    Team ({teamMembersCount})
-                                </h3>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => router.visit(`/projects/${projectId}/team`)}
-                                    className="h-auto p-0 text-xs text-primary hover:underline"
-                                >
-                                    View all →
-                                </Button>
-                            </div>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                {teamMembers.slice(0, 4).map((member) => (
-                                    <div
-                                        key={member.id}
-                                        className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/50"
-                                    >
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
-                                            {member.avatar ? (
-                                                <img
-                                                    src={member.avatar}
-                                                    alt={member.name}
-                                                    className="h-full w-full rounded-full object-cover"
-                                                />
-                                            ) : (
-                                                getInitials(member.name)
-                                            )}
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <div className="truncate text-sm font-medium text-foreground">{member.name}</div>
-                                            <div className="truncate text-xs text-muted-foreground">{member.email}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                {/* Divider */}
+                <div className="border-t border-border/30" />
 
-                    {/* Repository Integration */}
-                    {repository && (
-                        <div>
-                            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-                                <GitBranch className="h-4 w-4" />
-                                Repository
-                            </h3>
-                            <div className="rounded-lg border border-border bg-card p-4">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate font-medium text-foreground">{repository.name}</p>
-                                        <div className="mt-1 flex items-center gap-2">
-                                            <Badge variant="outline" className="text-xs capitalize">
-                                                {repository.provider}
-                                            </Badge>
-                                            <Badge variant="outline" className="text-xs capitalize">
-                                                {repository.visibility}
-                                            </Badge>
+                {/* Quick Actions Grid */}
+                <div className="grid gap-6 lg:grid-cols-2">
+                    {/* Brainstorming Card */}
+                    <button
+                        onClick={() => router.visit(`/projects/${projectId}/brainstorming`)}
+                        className="group relative overflow-hidden rounded-lg border border-border/50 bg-card p-6 text-left transition-all hover:border-primary/50 hover:shadow-sm"
+                    >
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Lightbulb className="h-5 w-5 text-amber-500" />
+                                    <h4 className="text-base font-medium text-foreground">Brainstorming</h4>
+                                </div>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Explore ideas and refine your project vision
+                                </p>
+                            </div>
+                            <svg
+                                className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </button>
+
+                    {/* Features Card */}
+                    {featuresCount > 0 && (
+                        <button
+                            onClick={() => router.visit(`/projects/${projectId}/features`)}
+                            className="group relative overflow-hidden rounded-lg border border-border/50 bg-card p-6 text-left transition-all hover:border-primary/50 hover:shadow-sm"
+                        >
+                            <div className="flex items-start justify-between">
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <Zap className="h-5 w-5 text-amber-500" />
+                                        <h4 className="text-base font-medium text-foreground">Features</h4>
+                                    </div>
+                                    <p className="text-sm leading-relaxed text-muted-foreground">
+                                        View and manage {featuresCount} project features
+                                    </p>
+                                </div>
+                                <svg
+                                    className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </button>
+                    )}
+                </div>
+
+                {/* Team & Repository - Only if they exist */}
+                {(teamMembers.length > 0 || repository) && (
+                    <>
+                        <div className="border-t border-border/30" />
+
+                        <div className="grid gap-8 lg:grid-cols-2">
+                            {/* Team Members - Minimal */}
+                            {teamMembers.length > 0 && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <UsersIcon className="h-4 w-4 text-muted-foreground" />
+                                            <h4 className="text-sm font-medium tracking-wide text-muted-foreground">TEAM</h4>
                                         </div>
+                                        {teamMembersCount > 4 && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => router.visit(`/projects/${projectId}/team`)}
+                                                className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                                            >
+                                                View all →
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <div className="space-y-3">
+                                        {teamMembers.slice(0, 3).map((member) => (
+                                            <div key={member.id} className="flex items-center gap-3">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                                                    {member.avatar ? (
+                                                        <img
+                                                            src={member.avatar}
+                                                            alt={member.name}
+                                                            className="h-full w-full rounded-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        getInitials(member.name)
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="truncate text-sm font-medium text-foreground">{member.name}</div>
+                                                    <div className="truncate text-xs text-muted-foreground">{member.email}</div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => window.open(repository.html_url, '_blank')}
-                                    className="mt-3 h-auto w-full justify-start p-0 text-xs text-primary hover:underline"
-                                >
-                                    Open repository →
-                                </Button>
-                            </div>
-                        </div>
-                    )}
+                            )}
 
-                    {/* Quick Actions */}
-                    <div>
-                        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-                            <Lightbulb className="h-4 w-4" />
-                            Quick Actions
-                        </h3>
-                        <div className="grid gap-2 sm:grid-cols-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => router.visit(`/projects/${projectId}/brainstorming`)}
-                                className="justify-start"
-                            >
-                                <Lightbulb className="h-4 w-4" />
-                                Brainstorming
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => router.visit(`/projects/${projectId}/features`)}
-                                className="justify-start"
-                            >
-                                <Zap className="h-4 w-4" />
-                                Features
-                            </Button>
+                            {/* Repository - Minimal */}
+                            {repository && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <GitBranch className="h-4 w-4 text-muted-foreground" />
+                                        <h4 className="text-sm font-medium tracking-wide text-muted-foreground">REPOSITORY</h4>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="truncate text-sm font-medium text-foreground">{repository.name}</p>
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <Badge variant="outline" className="text-xs capitalize">
+                                                    {repository.provider}
+                                                </Badge>
+                                                <Badge variant="outline" className="text-xs capitalize">
+                                                    {repository.visibility}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => window.open(repository.html_url, '_blank')}
+                                            className="h-auto p-0 text-sm text-muted-foreground hover:text-foreground"
+                                        >
+                                            Open repository →
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    </div>
-                </div>
+                    </>
+                )}
             </div>
         </div>
     );
