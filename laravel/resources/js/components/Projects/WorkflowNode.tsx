@@ -135,7 +135,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
 
                 {/* Content */}
                 <BaseNodeContent className="space-y-3">
-                    <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
+                    <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">{description}</p>
 
                     {/* Status Badge - Always show a badge for every status */}
                     <div className="flex justify-center">

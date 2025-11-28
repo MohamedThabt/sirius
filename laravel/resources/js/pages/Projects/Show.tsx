@@ -172,7 +172,7 @@ export default function ProjectShow({
                 isLocked: false,
                 isHardLocked: false,
                 actionType: 'navigate',
-                actionPath: `/projects/${project.id}/technical-details`,
+                actionPath: `/projects/${project.id}/technology`,
                 prerequisites: [],
             },
             {
