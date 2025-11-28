@@ -27,6 +27,7 @@ import { BackgroundVariant } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, CodeIcon, Database as DatabaseIcon, Download, FileCode, FileIcon, FileText, Grid3X3, Layers, Maximize2, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 
 interface Project {
     id: number;
@@ -624,6 +625,7 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
                     </div>
                 )}
             </div>
+            <Toaster />
         </>
     );
 }

@@ -14,9 +14,8 @@ import SocialProof from '@/components/landing/SocialProof';
 import StatsSection from '@/components/landing/StatsSection';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import WorkflowSection from '@/components/landing/WorkflowSection';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import './landing.css';
@@ -24,6 +23,7 @@ import './landing.css';
 const queryClient = new QueryClient();
 
 export default function Landing() {
+    useFlashToasts();
     // Force dark mode for landing page
     useEffect(() => {
         document.documentElement.classList.add('dark');
@@ -37,8 +37,6 @@ export default function Landing() {
         <div className="linear-landing dark min-h-screen bg-background text-foreground">
             <QueryClientProvider client={queryClient}>
                 <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
                     <main>
                         <Navbar />
                         <Hero />

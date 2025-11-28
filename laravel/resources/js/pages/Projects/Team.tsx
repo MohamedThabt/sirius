@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInitials } from '@/hooks/use-initials';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type User as AuthUser } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
@@ -91,10 +92,12 @@ interface Props {
     members: TeamMember[];
     invitations: PendingInvitation[];
     userInvitations: UserInvitation[];
+    searchedUser: SearchedUser | null;
     userRole: string | null;
 }
 
-export default function Team({ project, members, invitations, userInvitations, userRole }: Props) {
+export default function Team({ project, members, invitations, userInvitations, userRole, searchedUser: initialSearchedUser }: Props) {
+    useFlashToasts();
     const { auth } = usePage<{ auth: { user: AuthUser } }>().props;
     const getInitials = useInitials();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -103,11 +106,27 @@ export default function Team({ project, members, invitations, userInvitations, u
     const [isRemoveMemberModalOpen, setIsRemoveMemberModalOpen] = useState(false);
     const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
     const [searchEmail, setSearchEmail] = useState('');
-    const [searchedUser, setSearchedUser] = useState<SearchedUser | null>(null);
+    const [searchedUser, setSearchedUser] = useState<SearchedUser | null>(initialSearchedUser);
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState('');
     const [inviteRole, setInviteRole] = useState<'admin' | 'developer' | 'viewer'>('viewer');
     const [newRole, setNewRole] = useState<'admin' | 'developer' | 'viewer'>('viewer');
+    const [memberSearch, setMemberSearch] = useState('');
+
+    // Update local state when prop changes
+    useMemo(() => {
+        setSearchedUser(initialSearchedUser);
+    }, [initialSearchedUser]);
+
+    const filteredMembers = useMemo(() => {
+        if (!memberSearch) return members;
+        const lowerSearch = memberSearch.toLowerCase();
+        return members.filter(
+            (member) =>
+                member.name.toLowerCase().includes(lowerSearch) ||
+                member.email.toLowerCase().includes(lowerSearch)
+        );
+    }, [members, memberSearch]);
 
     const breadcrumbs = [
         { title: 'Projects', href: '/projects' },
@@ -151,29 +170,30 @@ export default function Team({ project, members, invitations, userInvitations, u
         );
     };
 
-    const handleSearchUser = async () => {
+    const handleSearchUser = () => {
         if (!searchEmail) return;
 
         setIsSearching(true);
         setSearchError('');
         setSearchedUser(null);
 
-        try {
-            const response = await fetch(`/team/search-users?email=${encodeURIComponent(searchEmail)}`);
-
-            if (!response.ok) {
-                const error = await response.json();
-                setSearchError(error.error || 'User not found');
-                return;
+        router.get(
+            `/projects/${project.id}/team`,
+            { search_email: searchEmail },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['searchedUser'],
+                onSuccess: () => {
+                    setIsSearching(false);
+                    // If no user found, searchedUser prop will be null (or whatever backend returns)
+                    // We might want to check if it's null and set error
+                    // But since we are using useMemo to sync prop to state, we can check state in useEffect or just rely on prop.
+                    // However, onSuccess runs after props update.
+                },
+                onFinish: () => setIsSearching(false),
             }
-
-            const user = await response.json();
-            setSearchedUser(user);
-        } catch {
-            setSearchError('Failed to search user');
-        } finally {
-            setIsSearching(false);
-        }
+        );
     };
 
     const handleUpdateRole = () => {
@@ -341,21 +361,41 @@ export default function Team({ project, members, invitations, userInvitations, u
                                 {/* Team Members */}
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle className="flex items-center gap-2">
-                                            <Users className="h-5 w-5" />
-                                            Team Members ({members.length})
-                                        </CardTitle>
-                                        <CardDescription>Manage roles and permissions for your team</CardDescription>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle className="flex items-center gap-2">
+                                                    <Users className="h-5 w-5" />
+                                                    Team Members ({filteredMembers.length})
+                                                </CardTitle>
+                                                <CardDescription>Manage roles and permissions for your team</CardDescription>
+                                            </div>
+                                            <div className="w-64">
+                                                <div className="relative">
+                                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                    <Input
+                                                        placeholder="Search members..."
+                                                        value={memberSearch}
+                                                        onChange={(e) => setMemberSearch(e.target.value)}
+                                                        className="pl-8"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-4">
-                                            {members.map((member) => (
-                                                <div
-                                                    key={member.id}
-                                                    className={`flex items-center justify-between rounded border p-4 ${
-                                                        member.role === 'owner' ? 'border-muted-foreground/20 bg-muted/30' : ''
-                                                    }`}
-                                                >
+                                            {filteredMembers.length === 0 ? (
+                                                <div className="py-8 text-center text-muted-foreground">
+                                                    No team members found matching "{memberSearch}"
+                                                </div>
+                                            ) : (
+                                                filteredMembers.map((member) => (
+                                                    <div
+                                                        key={member.id}
+                                                        className={`flex items-center justify-between rounded border p-4 ${
+                                                            member.role === 'owner' ? 'border-muted-foreground/20 bg-muted/30' : ''
+                                                        }`}
+                                                    >
                                                     <div className="flex items-center gap-4">
                                                         <Avatar className="h-10 w-10">
                                                             <AvatarImage src={member.avatar} alt={member.name} />
@@ -416,7 +456,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                         )}
                                                     </div>
                                                 </div>
-                                            ))}
+                                            )))}
                                         </div>
                                     </CardContent>
                                 </Card>

@@ -7,6 +7,7 @@ import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
@@ -92,6 +93,7 @@ export default function ProjectShow({
     teamMembers = [],
     teamMembersCount = 0,
 }: Props) {
+    useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const getInitials = useInitials();
 
@@ -380,7 +382,7 @@ export default function ProjectShow({
                             {/* Canvas Section */}
                             <div
                                 className={`relative flex flex-col overflow-hidden transition-all ${
-                                    isCanvasExpanded ? 'h-full' : 'h-1/2'
+                                    isCanvasExpanded ? 'h-full' : 'flex-1'
                                 }`}
                             >
                                 <ProjectFlowCanvas
@@ -388,10 +390,6 @@ export default function ProjectShow({
                                         ...step,
                                         onClick: () => handleRoadmapAction(step),
                                     }))}
-                                    completionPercentage={completionPercentage}
-                                    completedStepsCount={completedStepsCount}
-                                    totalStepsCount={totalStepsCount}
-                                    health={health}
                                     teamMembers={[]}
                                     teamMembersCount={0}
                                     projectId={project.id}
@@ -403,7 +401,7 @@ export default function ProjectShow({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setIsCanvasExpanded(!isCanvasExpanded)}
-                                    className="absolute bottom-4 right-4 z-20 gap-2 border-border/50 bg-background/90 shadow-md backdrop-blur-sm hover:bg-background hover:shadow-lg"
+                                    className="absolute bottom-0 left-0 z-20 gap-2 rounded-none rounded-tr-lg border-t border-r border-border/50 bg-background/90 shadow-md backdrop-blur-sm hover:bg-background hover:shadow-lg"
                                     title={isCanvasExpanded ? 'Show metrics panel' : 'Expand canvas'}
                                 >
                                     {isCanvasExpanded ? (
@@ -422,7 +420,7 @@ export default function ProjectShow({
 
                             {/* Metrics Panel Section */}
                             {!isCanvasExpanded && (
-                                <div className="h-1/2 border-t border-border/50">
+                                <div className="border-t border-border/50 shrink-0">
                                     <ProjectMetricsPanel
                                         projectId={project.id}
                                         completionPercentage={completionPercentage}
@@ -433,6 +431,7 @@ export default function ProjectShow({
                                         teamMembersCount={teamMembersCount}
                                         repository={repository}
                                         featuresCount={features.length}
+                                        className="h-auto max-h-[50vh]"
                                     />
                                 </div>
                             )}

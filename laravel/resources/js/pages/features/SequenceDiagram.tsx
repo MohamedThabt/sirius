@@ -7,6 +7,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
@@ -64,6 +65,7 @@ const sampleMermaidSequence = `sequenceDiagram
     Frontend-->>User: Update UI`;
 
 export default function SequenceDiagram({ project, feature, featureId, initialContent, isGenerating: initialIsGenerating = false }: Props) {
+    useFlashToasts();
     const { auth } = usePage().props as any;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [content, setContent] = useState(initialContent ?? sampleMermaidSequence);

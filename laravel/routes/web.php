@@ -12,6 +12,7 @@ use App\Http\Controllers\Project\InvitationController;
 use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\ProjectTeamController;
 use App\Http\Controllers\Project\SystemOverviewController;
+use App\Http\Controllers\Project\ArchitectureController;
 use App\Models\Project;
 use App\Models\ProjectInvitation;
 use Illuminate\Foundation\Application;
@@ -51,9 +52,6 @@ Route::get('/beta', function () {
 })->name('beta.page');
 Route::post('/beta/signup', [BetaController::class, 'store'])->name('beta.store');
 
-// Route::get('/dashboard', function () {
-//     return Inertia::render('user/dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Project routes
 // TODO: Add middleware 'verified'
@@ -75,62 +73,16 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/projects/{project}/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
 
     // C4 Diagram routes
-    Route::get('/projects/{project}/c4', [ProjectController::class, 'getC4'])->name('projects.c4');
-    Route::post('/projects/{project}/c4/generate', [ProjectController::class, 'generateC4'])->name('projects.c4.generate');
-    Route::post('/projects/{project}/c4/generate-async', [ProjectController::class, 'generateC4Async'])->name('projects.c4.generate-async');
-    Route::post('/projects/{project}/c4/edit', [ProjectController::class, 'editC4'])->name('projects.c4.edit');
+    Route::get('/projects/{project}/c4', [ArchitectureController::class, 'getC4'])->name('projects.c4');
+    Route::post('/projects/{project}/c4/generate', [ArchitectureController::class, 'generateC4'])->name('projects.c4.generate');
+    Route::post('/projects/{project}/c4/generate-async', [ArchitectureController::class, 'generateC4Async'])->name('projects.c4.generate-async');
+    Route::post('/projects/{project}/c4/edit', [ArchitectureController::class, 'editC4'])->name('projects.c4.edit');
 
-    Route::get('/projects/{project}/brainstorming', function (Project $project) {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        return Inertia::render('Projects/Brainstorming', [
-            'project' => $project,
-        ]);
-    })->name('projects.brainstorming');
-
-    // Brainstorming scene
+    // Brainstorming routes
+    Route::get('/projects/{project}/brainstorming', [BrainstormingController::class, 'show'])->name('projects.brainstorming');
     Route::get('/projects/{project}/brainstorming/scene', [BrainstormingController::class, 'show'])->name('projects.brainstorming.scene.show');
     Route::post('/projects/{project}/brainstorming/scene', [BrainstormingController::class, 'save'])->name('projects.brainstorming.scene.save');
 
-    Route::get('/projects/{project}/system-architecture', function (Project $project) {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        return Inertia::render('Projects/SystemArchitecture', [
-            'project' => $project,
-        ]);
-    })->name('projects.system-architecture');
-    Route::get('/test-fastapi', [ProjectController::class, 'testFastAPI'])->name('test.fastapi');
-
-    Route::get('/features/database-designer/{project}', function (Project $project) {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        return Inertia::render('features/DatabaseDesigner', [
-            'project' => $project,
-        ]);
-    })->name('features.database-designer');
-
-    Route::get('/features/wireframe', function () {
-        return Inertia::render('features/WireframePage');
-    })->name('features.wireframe');
-
-    Route::get('/features/user-journey/{project}', function (Project $project) {
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        return Inertia::render('features/UserJourney', [
-            'project' => $project,
-        ]);
-    })->name('features.user-journey');
 
     // System Overview Controller routes
     Route::post('/projects/{project}/system-overview/create', [SystemOverviewController::class, 'create'])->name('system-overview.create');
@@ -192,12 +144,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Team Collaboration Routes
     Route::get('/projects/{project}/team', [ProjectTeamController::class, 'index'])->name('projects.team.index');
-    Route::get('/team/search-users', [ProjectTeamController::class, 'searchUsers'])->name('team.searchUsers');
     Route::get('/team/my-invitations', [ProjectTeamController::class, 'myInvitations'])->name('team.myInvitations');
     Route::patch('/projects/{project}/team/role', [ProjectTeamController::class, 'updateRole'])->name('projects.team.updateRole');
     Route::delete('/projects/{project}/team/member/{user}', [ProjectTeamController::class, 'removeMember'])->name('projects.team.removeMember');
     Route::post('/projects/{project}/team/leave', [ProjectTeamController::class, 'leave'])->name('projects.team.leave');
-    Route::get('/projects/{project}/team/stats', [ProjectTeamController::class, 'stats'])->name('projects.team.stats');
 });
 
 require __DIR__.'/auth.php';
@@ -207,3 +157,4 @@ require __DIR__.'/settings.php';
 Route::prefix('admin')->group(function () {
     require __DIR__.'/admin.php';
 });
+

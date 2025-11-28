@@ -5,6 +5,7 @@ import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type SharedData, type User } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
@@ -45,6 +46,7 @@ interface Props {
 }
 
 export default function FeaturesIndex({ project, features }: Props) {
+    useFlashToasts();
     const shared = usePage<SharedData>().props;
     const { auth } = shared;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);

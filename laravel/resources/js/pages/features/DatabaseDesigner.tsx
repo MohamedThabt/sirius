@@ -8,6 +8,8 @@ import { BackgroundVariant, Edge, Node } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 import AddTableDialog from '@/components/database-designer/AddTableDialog';
 import DiagramCanvas from '@/components/database-designer/DiagramCanvas';
@@ -128,6 +130,7 @@ Ref: reviews.product_id > products.id
 `;
 
 export default function DatabaseDesigner({ project, feature, initialContent, featureId, isGenerating: initialIsGenerating = false }: Props) {
+    useFlashToasts();
     const { auth } = usePage().props as any;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [content, setContent] = useState(initialContent ?? sampleDBML);
@@ -644,6 +647,13 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                                                 `/features/${featureId}/erd/edit`,
                                                 { erd: content },
                                                 {
+                                                    onSuccess: () => {
+                                                        setIsDirty(false);
+                                                        toast.success('ERD saved successfully!');
+                                                    },
+                                                    onError: () => {
+                                                        toast.error('Failed to save ERD. Please try again.');
+                                                    },
                                                     onFinish: () => setIsSaving(false),
                                                 },
                                             );
@@ -802,6 +812,7 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                     </div>
                 </div>
             </div>
+            <Toaster />
         </>
     );
 }

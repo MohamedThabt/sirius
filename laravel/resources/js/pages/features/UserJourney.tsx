@@ -5,6 +5,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
@@ -40,6 +41,7 @@ const sampleMermaidJourney = `journey
       Guided onboarding: 2: User`;
 
 export default function UserJourney({ project }: Props) {
+    useFlashToasts();
     const { auth } = usePage().props as any;
     const [content, setContent] = useState(sampleMermaidJourney);
     const [prompt, setPrompt] = useState('');

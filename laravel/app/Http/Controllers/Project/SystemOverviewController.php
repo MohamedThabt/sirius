@@ -8,20 +8,25 @@ use App\Models\ProjectOverviewVersion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use Inertia\Response;
+use App\Traits\StructuredLogger;
 
 class SystemOverviewController extends Controller
 {
+    use StructuredLogger;
+
     /**
-     * Create a new system overview version from project brief
+     * Create a new system overview version from project brief.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
     public function create(Request $request, Project $project)
     {
         // Ensure user owns the project
         if ($project->user_id !== auth()->id()) {
-            abort(403);
+            return back()->with('error', 'You do not have permission to access this project.');
         }
 
         $validated = $request->validate([
@@ -39,89 +44,110 @@ class SystemOverviewController extends Controller
             'expected_users' => 'nullable|string|max:50',
         ]);
 
-        // Create project brief
-        $projectBrief = "# Project Brief: {$project->name}\n\n";
-        $projectBrief .= "## Project Purpose\n";
-        $projectBrief .= $validated['why_making']."\n\n";
-        $projectBrief .= "## Target Audience\n";
-        $projectBrief .= $validated['who_for']."\n";
-        if (! empty($validated['expected_users'])) {
-            $projectBrief .= '**Expected User Scale:** '.$validated['expected_users']." users\n";
-        }
-        $projectBrief .= "\n";
-        $projectBrief .= "## Value Proposition\n";
-        $projectBrief .= $validated['what_valuable']."\n\n";
-        $projectBrief .= "## Features & Functionality\n";
-        $projectBrief .= $validated['features_functionality']."\n\n";
+        try {
+            // Create project brief
+            $projectBrief = "# Project Brief: {$project->name}\n\n";
+            $projectBrief .= "## Project Purpose\n";
+            $projectBrief .= $validated['why_making']."\n\n";
+            $projectBrief .= "## Target Audience\n";
+            $projectBrief .= $validated['who_for']."\n";
+            if (! empty($validated['expected_users'])) {
+                $projectBrief .= '**Expected User Scale:** '.$validated['expected_users']." users\n";
+            }
+            $projectBrief .= "\n";
+            $projectBrief .= "## Value Proposition\n";
+            $projectBrief .= $validated['what_valuable']."\n\n";
+            $projectBrief .= "## Features & Functionality\n";
+            $projectBrief .= $validated['features_functionality']."\n\n";
 
-        if (! empty($validated['data_model_details'])) {
-            $projectBrief .= "## Data Model Details\n";
-            $projectBrief .= $validated['data_model_details']."\n\n";
-        }
-
-        // Add technical details section if any technical field is provided
-        $hasTechnicalDetails = ! empty($validated['platform_targets']) ||
-            ! empty($validated['frontend_tech']) ||
-            ! empty($validated['backend_tech']) ||
-            ! empty($validated['database_tech']) ||
-            ! empty($validated['ai_usage']) ||
-            ! empty($validated['external_services']);
-
-        if ($hasTechnicalDetails) {
-            $projectBrief .= "## Technical Details\n\n";
-
-            if (! empty($validated['platform_targets'])) {
-                $projectBrief .= "### Platform Targets\n";
-                $projectBrief .= $validated['platform_targets']."\n\n";
+            if (! empty($validated['data_model_details'])) {
+                $projectBrief .= "## Data Model Details\n";
+                $projectBrief .= $validated['data_model_details']."\n\n";
             }
 
-            if (! empty($validated['frontend_tech'])) {
-                $projectBrief .= "### Frontend Technology\n";
-                $projectBrief .= $validated['frontend_tech']."\n\n";
+            // Add technical details section if any technical field is provided
+            $hasTechnicalDetails = ! empty($validated['platform_targets']) ||
+                ! empty($validated['frontend_tech']) ||
+                ! empty($validated['backend_tech']) ||
+                ! empty($validated['database_tech']) ||
+                ! empty($validated['ai_usage']) ||
+                ! empty($validated['external_services']);
+
+            if ($hasTechnicalDetails) {
+                $projectBrief .= "## Technical Details\n\n";
+
+                if (! empty($validated['platform_targets'])) {
+                    $projectBrief .= "### Platform Targets\n";
+                    $projectBrief .= $validated['platform_targets']."\n\n";
+                }
+
+                if (! empty($validated['frontend_tech'])) {
+                    $projectBrief .= "### Frontend Technology\n";
+                    $projectBrief .= $validated['frontend_tech']."\n\n";
+                }
+
+                if (! empty($validated['backend_tech'])) {
+                    $projectBrief .= "### Backend Technology\n";
+                    $projectBrief .= $validated['backend_tech']."\n\n";
+                }
+
+                if (! empty($validated['database_tech'])) {
+                    $projectBrief .= "### Database Technology\n";
+                    $projectBrief .= $validated['database_tech']."\n\n";
+                }
+
+                if (! empty($validated['ai_usage'])) {
+                    $projectBrief .= "### AI Usage\n";
+                    $projectBrief .= $validated['ai_usage']."\n\n";
+                }
+
+                if (! empty($validated['external_services'])) {
+                    $projectBrief .= "### External Services\n";
+                    $projectBrief .= $validated['external_services']."\n\n";
+                }
             }
 
-            if (! empty($validated['backend_tech'])) {
-                $projectBrief .= "### Backend Technology\n";
-                $projectBrief .= $validated['backend_tech']."\n\n";
+            $projectBrief .= "---\n";
+            $projectBrief .= '*Brief generated on '.now()->format('F j, Y').'*';
+
+            // Update project with brief
+            $project->update([
+                'brief' => $projectBrief,
+                'status' => 'in_progress',
+            ]);
+
+            // Save technical intake data if any technical field is filled
+            if (
+                ! empty($validated['platform_targets']) ||
+                ! empty($validated['frontend_tech']) ||
+                ! empty($validated['backend_tech']) ||
+                ! empty($validated['database_tech']) ||
+                ! empty($validated['ai_usage']) ||
+                ! empty($validated['external_services'])
+            ) {
+                $project->technicalIntake()->updateOrCreate(
+                    ['project_id' => $project->id],
+                    [
+                        'platform_targets' => $validated['platform_targets'] ?? null,
+                        'frontend_tech' => $validated['frontend_tech'] ?? null,
+                        'backend_tech' => $validated['backend_tech'] ?? null,
+                        'database_tech' => $validated['database_tech'] ?? null,
+                        'ai_usage' => $validated['ai_usage'] ?? null,
+                        'external_services' => $validated['external_services'] ?? null,
+                    ],
+                );
             }
 
-            if (! empty($validated['database_tech'])) {
-                $projectBrief .= "### Database Technology\n";
-                $projectBrief .= $validated['database_tech']."\n\n";
-            }
-
-            if (! empty($validated['ai_usage'])) {
-                $projectBrief .= "### AI Usage\n";
-                $projectBrief .= $validated['ai_usage']."\n\n";
-            }
-
-            if (! empty($validated['external_services'])) {
-                $projectBrief .= "### External Services\n";
-                $projectBrief .= $validated['external_services']."\n\n";
-            }
-        }
-
-        $projectBrief .= "---\n";
-        $projectBrief .= '*Brief generated on '.now()->format('F j, Y').'*';
-
-        // Update project with brief
-        $project->update([
-            'brief' => $projectBrief,
-            'status' => 'in_progress',
-        ]);
-
-        // Save technical intake data if any technical field is filled
-        if (
-            ! empty($validated['platform_targets']) ||
-            ! empty($validated['frontend_tech']) ||
-            ! empty($validated['backend_tech']) ||
-            ! empty($validated['database_tech']) ||
-            ! empty($validated['ai_usage']) ||
-            ! empty($validated['external_services'])
-        ) {
-            $project->technicalIntake()->updateOrCreate(
-                ['project_id' => $project->id],
-                [
+            // Store the validated data in session for async generation
+            session([
+                'pending_overview_generation' => [
+                    'project_id' => $project->id,
+                    'why_making' => $validated['why_making'],
+                    'who_for' => $validated['who_for'],
+                    'what_valuable' => $validated['what_valuable'],
+                    'features_functionality' => $validated['features_functionality'],
+                    'data_model_details' => $validated['data_model_details'] ?? null,
+                    'expected_users' => $validated['expected_users'] ?? null,
                     'platform_targets' => $validated['platform_targets'] ?? null,
                     'frontend_tech' => $validated['frontend_tech'] ?? null,
                     'backend_tech' => $validated['backend_tech'] ?? null,
@@ -129,62 +155,50 @@ class SystemOverviewController extends Controller
                     'ai_usage' => $validated['ai_usage'] ?? null,
                     'external_services' => $validated['external_services'] ?? null,
                 ],
-            );
+            ]);
+
+            // Load features for the response
+            $project->load('features');
+
+            return Inertia::render('Projects/SystemOverview', [
+                'project' => $project,
+                'overviewVersions' => [],
+                'hasFeatures' => $project->features()->exists(),
+                'isGenerating' => true,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'create', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to create system overview.');
         }
-
-        // Store the validated data in session for async generation
-        session([
-            'pending_overview_generation' => [
-                'project_id' => $project->id,
-                'why_making' => $validated['why_making'],
-                'who_for' => $validated['who_for'],
-                'what_valuable' => $validated['what_valuable'],
-                'features_functionality' => $validated['features_functionality'],
-                'data_model_details' => $validated['data_model_details'] ?? null,
-                'expected_users' => $validated['expected_users'] ?? null,
-                'platform_targets' => $validated['platform_targets'] ?? null,
-                'frontend_tech' => $validated['frontend_tech'] ?? null,
-                'backend_tech' => $validated['backend_tech'] ?? null,
-                'database_tech' => $validated['database_tech'] ?? null,
-                'ai_usage' => $validated['ai_usage'] ?? null,
-                'external_services' => $validated['external_services'] ?? null,
-            ],
-        ]);
-
-        // Load features for the response
-        $project->load('features');
-
-        return Inertia::render('Projects/SystemOverview', [
-            'project' => $project,
-            'overviewVersions' => [],
-            'hasFeatures' => $project->features()->exists(),
-            'isGenerating' => true,
-        ]);
     }
 
     /**
-     * Generate overview asynchronously after initial page load
+     * Generate overview asynchronously after initial page load.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Illuminate\Http\JsonResponse
      */
     public function generateAsync(Request $request, Project $project)
     {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        // Increase execution time for FastAPI calls
-        set_time_limit(180);
-
-        $pendingData = session('pending_overview_generation');
-
-        if (! $pendingData || $pendingData['project_id'] !== $project->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No pending generation data found',
-            ], 400);
-        }
-
         try {
+            // Ensure user owns the project
+            if ($project->user_id !== auth()->id()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+
+            // Increase execution time for FastAPI calls
+            set_time_limit(180);
+
+            $pendingData = session('pending_overview_generation');
+
+            if (! $pendingData || $pendingData['project_id'] !== $project->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No pending generation data found',
+                ], 400);
+            }
+
             // Build description from multi-step form data (matching brief format for consistency)
             $projectDescription = "# Project Brief: {$project->name}\n\n";
             $projectDescription .= "## Project Purpose\n";
@@ -278,8 +292,6 @@ class SystemOverviewController extends Controller
                 // Clear pending session data
                 session()->forget('pending_overview_generation');
 
-                Log::info('Successfully created overview version for project: '.$project->id);
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Overview generated successfully',
@@ -287,64 +299,70 @@ class SystemOverviewController extends Controller
                     'hasFeatures' => $project->features()->exists(),
                 ]);
             } else {
-                Log::error('FastAPI overview generation failed: '.$response->body());
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to generate system overview. Please try again.',
-                ], 500);
+                throw new \Exception('FastAPI overview generation failed: ' . $response->body());
             }
-        } catch (\Exception $e) {
-            Log::error('Error calling FastAPI for overview generation: '.$e->getMessage());
-
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'generateAsync', 'project_id' => $project->id]);
             return response()->json([
                 'success' => false,
-                'message' => 'System overview generation is currently unavailable.',
+                'message' => 'Failed to generate system overview. Please try again.',
             ], 500);
         }
     }
 
     /**
-     * Show the system overview page with base version
+     * Show the system overview page with base version.
+     *
+     * @param Project $project
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
     public function show(Project $project)
     {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
+        try {
+            // Ensure user owns the project
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            // Load project with overview versions and features
+            $project->load(['overviewVersions', 'features']);
+
+            return Inertia::render('Projects/SystemOverview', [
+                'project' => $project,
+                'overviewVersions' => $project->overviewVersions()->get(),
+                'hasFeatures' => $project->features()->exists(),
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'show', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to load system overview.');
         }
-
-        // Load project with overview versions and features
-        $project->load(['overviewVersions', 'features']);
-
-        return Inertia::render('Projects/SystemOverview', [
-            'project' => $project,
-            'overviewVersions' => $project->overviewVersions()->get(),
-            'hasFeatures' => $project->features()->exists(),
-        ]);
     }
 
     /**
-     * Regenerate system overview from project brief
+     * Regenerate system overview from project brief.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
     public function regenerate(Request $request, Project $project)
     {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        // Ensure project has a brief
-        if (empty($project->brief)) {
-            return redirect()
-                ->route('projects.prepare', $project)
-                ->with('error', 'Project brief is required. Please prepare your project first.');
-        }
-
-        // Increase execution time for FastAPI calls
-        set_time_limit(180);
-
         try {
+            // Ensure user owns the project
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            // Ensure project has a brief
+            if (empty($project->brief)) {
+                return redirect()
+                    ->route('projects.prepare', $project)
+                    ->with('error', 'Project brief is required. Please prepare your project first.');
+            }
+
+            // Increase execution time for FastAPI calls
+            set_time_limit(180);
+
             // Use project brief as the description
             $projectDescription = $project->brief;
 
@@ -427,8 +445,6 @@ class SystemOverviewController extends Controller
                     ->where('id', '!=', $overviewVersion->id)
                     ->update(['is_base_version' => false]);
 
-                Log::info('Successfully regenerated overview version for project: '.$project->id);
-
                 // Return an Inertia response (or redirect) so Inertia visit succeeds
                 $project->load(['overviewVersions', 'features']);
 
@@ -438,33 +454,27 @@ class SystemOverviewController extends Controller
                     'hasFeatures' => $project->features()->exists(),
                 ])->with('success', 'Overview regenerated successfully');
             } else {
-                Log::error('FastAPI overview regeneration failed: '.$response->body());
-
-                return redirect()
-                    ->back()
-                    ->with('error', 'Failed to regenerate system overview. Please try again.');
+                throw new \Exception('FastAPI overview regeneration failed: ' . $response->body());
             }
-        } catch (\Exception $e) {
-            Log::error('Error calling FastAPI for overview regeneration: '.$e->getMessage());
-
-            return redirect()
-                ->back()
-                ->with('error', 'System overview regeneration is currently unavailable.');
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'regenerate', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to regenerate system overview. Please try again.');
         }
     }
 
     /**
-     * Update overview with AI based on engineer notes
+     * Update overview with AI based on engineer notes.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Illuminate\Http\JsonResponse
      */
     public function updateWithAi(Request $request, Project $project)
     {
         // Ensure user owns the project
         if ($project->user_id !== auth()->id()) {
-            abort(403);
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-
-        // Increase execution time for FastAPI calls
-        set_time_limit(180);
 
         $validated = $request->validate([
             'system_overview' => 'required|string',
@@ -472,6 +482,9 @@ class SystemOverviewController extends Controller
         ]);
 
         try {
+            // Increase execution time for FastAPI calls
+            set_time_limit(180);
+
             // Call FastAPI endpoint to edit overview
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
             $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
@@ -508,16 +521,10 @@ class SystemOverviewController extends Controller
                     'hasFeatures' => $project->features()->exists(),
                 ]);
             } else {
-                Log::error('FastAPI overview edit failed: '.$response->body());
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to update system overview with AI. Please try again.',
-                ], 500);
+                throw new \Exception('FastAPI overview edit failed: ' . $response->body());
             }
-        } catch (\Exception $e) {
-            Log::error('Error calling FastAPI for overview edit: '.$e->getMessage());
-
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'updateWithAi', 'project_id' => $project->id]);
             return response()->json([
                 'success' => false,
                 'message' => 'AI overview update is currently unavailable.',
@@ -526,86 +533,104 @@ class SystemOverviewController extends Controller
     }
 
     /**
-     * Update overview version manually by user
+     * Update overview version manually by user.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @param ProjectOverviewVersion $overviewVersion
+     * @return \Illuminate\Http\JsonResponse
      */
     public function userUpdate(Request $request, Project $project, ProjectOverviewVersion $overviewVersion)
     {
-
-        // Ensure user owns the project and the overview version belongs to the project
-        if ($project->user_id !== auth()->id() || $overviewVersion->project_id !== $project->id) {
-            Log::error('Access denied for user update', [
-                'project_user_id' => $project->user_id,
-                'auth_user_id' => auth()->id(),
-                'overview_project_id' => $overviewVersion->project_id,
-                'project_id' => $project->id,
-            ]);
-            abort(403);
-        }
-
         $validated = $request->validate([
             'overview' => 'required|string',
         ]);
 
-        // Update the overview version
-        $overviewVersion->update([
-            'overview' => $validated['overview'],
-        ]);
+        try {
+            // Ensure user owns the project and the overview version belongs to the project
+            if ($project->user_id !== auth()->id() || $overviewVersion->project_id !== $project->id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Overview updated successfully',
-            'overviewVersions' => $project->overviewVersions()->get(),
-            'hasFeatures' => $project->features()->exists(),
-        ]);
+            // Update the overview version
+            $overviewVersion->update([
+                'overview' => $validated['overview'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Overview updated successfully',
+                'overviewVersions' => $project->overviewVersions()->get(),
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'userUpdate', 'project_id' => $project->id, 'version_id' => $overviewVersion->id]);
+            return response()->json(['success' => false, 'message' => 'Failed to update overview.'], 500);
+        }
     }
 
     /**
-     * Mark a version as base version
+     * Mark a version as base version.
+     *
+     * @param Project $project
+     * @param ProjectOverviewVersion $overviewVersion
+     * @return \Illuminate\Http\JsonResponse
      */
     public function markAsBase(Project $project, ProjectOverviewVersion $overviewVersion)
     {
-        // Ensure user owns the project and the overview version belongs to the project
-        if ($project->user_id !== auth()->id() || $overviewVersion->project_id !== $project->id) {
-            abort(403);
+        try {
+            // Ensure user owns the project and the overview version belongs to the project
+            if ($project->user_id !== auth()->id() || $overviewVersion->project_id !== $project->id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+
+            DB::transaction(function () use ($project, $overviewVersion) {
+                // Mark all versions as not base
+                $project->overviewVersions()->update(['is_base_version' => false]);
+
+                // Mark selected version as base
+                $overviewVersion->update(['is_base_version' => true]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Version marked as base successfully',
+                'overviewVersions' => $project->overviewVersions()->get(),
+                'hasFeatures' => $project->features()->exists(),
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'markAsBase', 'project_id' => $project->id, 'version_id' => $overviewVersion->id]);
+            return response()->json(['success' => false, 'message' => 'Failed to mark version as base.'], 500);
         }
-
-        DB::transaction(function () use ($project, $overviewVersion) {
-            // Mark all versions as not base
-            $project->overviewVersions()->update(['is_base_version' => false]);
-
-            // Mark selected version as base
-            $overviewVersion->update(['is_base_version' => true]);
-        });
-
-        Log::info('Successfully marked overview version as base: '.$overviewVersion->id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Version marked as base successfully',
-            'overviewVersions' => $project->overviewVersions()->get(),
-            'hasFeatures' => $project->features()->exists(),
-        ]);
     }
 
     /**
-     * Preview a Mermaid diagram from System Overview content
+     * Preview a Mermaid diagram from System Overview content.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
     public function previewMermaid(Request $request, Project $project)
     {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
         $validated = $request->validate([
             'content' => 'required|string',
             'title' => 'nullable|string',
         ]);
 
-        return Inertia::render('Projects/MermaidPreview', [
-            'content' => $validated['content'],
-            'title' => $validated['title'] ?? 'Mermaid Diagram',
-            'projectName' => $project->name,
-        ]);
+        try {
+            // Ensure user owns the project
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            return Inertia::render('Projects/MermaidPreview', [
+                'content' => $validated['content'],
+                'title' => $validated['title'] ?? 'Mermaid Diagram',
+                'projectName' => $project->name,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'previewMermaid', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to preview Mermaid diagram.');
+        }
     }
 }

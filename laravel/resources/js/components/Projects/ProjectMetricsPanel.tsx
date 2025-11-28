@@ -77,8 +77,14 @@ export default function ProjectMetricsPanel({
 
                     {/* Progress Bar */}
                     <div className="space-y-3">
-                        <div className="flex items-baseline justify-between">
-                            <span className="text-4xl font-light tracking-tight text-foreground">{completionPercentage}%</span>
+                        <div className="flex items-end justify-between">
+                            <div className="flex items-center gap-3">
+                                <span className="text-4xl font-light tracking-tight text-foreground">{completionPercentage}%</span>
+                                <div className="mb-1 flex items-center gap-1.5 rounded-full bg-muted/50 px-2.5 py-0.5">
+                                    <health.Icon className={cn('h-3.5 w-3.5', health.color)} />
+                                    <span className="text-sm font-medium capitalize text-foreground">{health.label}</span>
+                                </div>
+                            </div>
                             <span className="text-sm text-muted-foreground">
                                 {completedStepsCount} of {totalStepsCount} steps
                             </span>
@@ -88,35 +94,6 @@ export default function ProjectMetricsPanel({
                                 className="h-full bg-foreground transition-all duration-700 ease-out"
                                 style={{ width: `${completionPercentage}%` }}
                             />
-                        </div>
-                    </div>
-
-                    {/* Metrics Grid - Ultra Minimal */}
-                    <div className="grid gap-6 pt-2 sm:grid-cols-3">
-                        <div className="space-y-1">
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Health</p>
-                            <div className="flex items-center gap-2">
-                                <health.Icon className={cn('h-5 w-5', health.color)} />
-                                <p className="text-lg font-medium capitalize text-foreground">{health.label}</p>
-                            </div>
-                        </div>
-
-                        {featuresCount > 0 && (
-                            <div className="space-y-1">
-                                <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Features</p>
-                                <div className="flex items-center gap-2">
-                                    <Zap className="h-5 w-5 text-amber-500" />
-                                    <p className="text-lg font-medium text-foreground">{featuresCount}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="space-y-1">
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground/70">Team</p>
-                            <div className="flex items-center gap-2">
-                                <UsersIcon className="h-5 w-5 text-muted-foreground" />
-                                <p className="text-lg font-medium text-foreground">{teamMembersCount || 0}</p>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import { send } from '@/routes/verification';
 import { type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 import DeleteUser from '@/components/delete-user';
 import InputError from '@/components/input-error';
@@ -12,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import SettingsLayout from '@/layouts/settings/layout';
 
 function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
+    useFlashToasts();
     const { auth } = usePage<SharedData>().props;
 
     return (

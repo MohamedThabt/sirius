@@ -4,7 +4,7 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'sonner';
-import { ToastProvider } from './components/toast-provider';
+import { Toaster } from '@/components/ui/sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -16,9 +16,10 @@ createInertiaApp({
         const root = createRoot(el);
 
         root.render(
-            <ToastProvider>
+            <>
                 <App {...props} />
-            </ToastProvider>,
+                <Toaster />
+            </>,
         );
     },
     progress: {

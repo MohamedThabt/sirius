@@ -1,5 +1,6 @@
 import { update } from '@/actions/App/Http/Controllers/Settings/PasswordController';
 import InputError from '@/components/input-error';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
 import { useRef } from 'react';
@@ -10,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import SettingsLayout from '@/layouts/settings/layout';
 
 function Password() {
+    useFlashToasts();
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 

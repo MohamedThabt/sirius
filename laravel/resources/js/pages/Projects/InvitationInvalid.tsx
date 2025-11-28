@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AlertCircleIcon, HomeIcon } from 'lucide-react';
 import { Head, router } from '@inertiajs/react';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 interface Props {
     message: string;
 }
 
-export default function InvitationInvalid({ message }: Props) {
+ export default function InvitationInvalid({ message }: Props) {
+    useFlashToasts();
     const handleGoHome = () => {
         router.get('/projects');
     };

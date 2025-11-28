@@ -9,11 +9,30 @@ import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useC4Parser } from '@/hooks/useC4Parser';
 import { type User } from '@/types';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Maximize, Sparkles } from 'lucide-react';
+import {
+    ArrowLeft,
+    ChevronLeft,
+    ChevronRight,
+    Code,
+    Download,
+    Layout,
+    Maximize2,
+    Minimize2,
+    PanelLeftClose,
+    PanelLeftOpen,
+    Save,
+    Settings,
+    Share2,
+    Sparkles,
+    ZoomIn,
+    ZoomOut,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 
 interface Project {
     id: number;
@@ -63,6 +82,7 @@ const emptyC4Template = `{
 }`;
 
 export default function SystemArchitecture({ project, errorMessage, isGenerating: initialIsGenerating = false, sections }: Props) {
+    useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const [content, setContent] = useState(project.c4 || emptyC4Template);
     const [prompt, setPrompt] = useState('');
@@ -460,7 +480,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                                     className="absolute top-4 right-4 z-10 h-8 w-8 rounded border"
                                                     title="Enter Full Screen"
                                                 >
-                                                    <Maximize className="h-4 w-4" />
+                                                    <Maximize2 className="h-4 w-4" />
                                                     <span className="sr-only">Enter Full Screen</span>
                                                 </Button>
 
@@ -575,6 +595,8 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                     </div>
                 )}
             </div>
+
+            <Toaster />
         </>
     );
 }

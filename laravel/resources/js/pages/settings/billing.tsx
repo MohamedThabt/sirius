@@ -1,10 +1,11 @@
 import { Head } from '@inertiajs/react';
-
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Button } from '@/components/ui/button';
 import { CreditCardIcon } from 'lucide-react';
 import SettingsLayout from '@/layouts/settings/layout';
 
 function Billing() {
+    useFlashToasts();
     return (
         <>
             <Head title="Billing Settings" />

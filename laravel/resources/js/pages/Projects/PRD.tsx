@@ -10,6 +10,8 @@ import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { type User } from '@/types';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { Toaster } from '@/components/ui/sonner';
 import { Head, router, usePage } from '@inertiajs/react';
 import { CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, Maximize2, Minimize2, PencilIcon, SaveIcon, SendIcon } from 'lucide-react';
 import mermaid from 'mermaid';
@@ -237,6 +239,7 @@ export default function PRD({
     isGenerating: initialIsGenerating = false,
     sections,
 }: Props) {
+    useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const [currentVersion, setCurrentVersion] = useState<PRDVersion | null>(null);
     const [prdVersions, setPrdVersions] = useState<PRDVersion[]>(initialPRDVersions || []);
@@ -672,41 +675,21 @@ export default function PRD({
     };
 
     // Handle manual content update
-    const handleContentUpdate = async () => {
-        if (!editedContent.trim()) return;
+    const handleContentUpdate = () => {
+        if (!project) return;
 
-        try {
-            const csrfToken =
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
-                document.cookie
-                    .split('; ')
-                    .find((row) => row.startsWith('XSRF-TOKEN='))
-                    ?.split('=')[1];
-
-            const response = await fetch(`/projects/${project?.id}/prd/edit`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                    'X-Requested-With': 'XMLHttpRequest',
+        router.post(
+            `/projects/${project.id}/prd/edit`,
+            { prd_content: editedContent },
+            {
+                onSuccess: () => {
+                    setIsEditing(false);
+                    // Reload to get updated PRD
+                    router.reload({ only: ['prdVersions'] });
                 },
-                body: JSON.stringify({
-                    prd_content: editedContent,
-                }),
-            });
-
-            if (response.ok) {
-                window.location.reload();
-                return;
-            } else {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error('Failed to update PRD');
-            }
-        } catch (error) {
-            console.error('Error updating PRD:', error);
-        }
+                preserveScroll: true,
+            },
+        );
     };
 
     // Handle marking version as base using markAsBase controller method
@@ -1051,6 +1034,7 @@ export default function PRD({
                     </div>
                 )}
             </div>
+            <Toaster />
         </>
     );
 }

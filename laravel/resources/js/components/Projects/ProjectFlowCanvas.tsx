@@ -1,5 +1,4 @@
 import WorkflowNode from '@/components/Projects/WorkflowNode';
-import ReactFlowControls from '@/components/ui/ReactFlowControls';
 import { router } from '@inertiajs/react';
 import {
     Background,
@@ -300,7 +299,7 @@ const FlowCanvas = ({
                         variant={BackgroundVariant.Dots}
                         color={isDarkMode ? '#6b7280' : '#9ca3af'}
                     />
-                    <ReactFlowControls position="bottom-left" />
+
                 </ReactFlow>
 
                 {/* Progress Badge */}

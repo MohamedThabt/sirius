@@ -8,108 +8,87 @@ use App\Models\Project;
 use App\Models\ProjectRepository;
 use App\Services\Github\GithubClient;
 use App\Services\Github\RepoBootstrapService;
+use App\Services\Documentation\ProjectSpecsExportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
+use App\Traits\StructuredLogger;
+use Throwable;
 
 class GithubController extends Controller
 {
+    use StructuredLogger;
+
     /**
      * Ensure user has GitHub authentication.
-     * If not authenticated or token expired, redirect to OAuth.
+     *
+     * Checks if the user has a valid GitHub token.
+     *
+     * @param Project $project
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
-    public function ensureAuth(Project $project): JsonResponse|RedirectResponse
+    public function ensureAuth(Project $project)
     {
-        Log::info('GitHub auth check initiated', [
-            'user_id' => auth()->id(),
-            'project_id' => $project->id,
-            'project_name' => $project->name,
-        ]);
+        try {
+            if ($project->user_id !== auth()->id()) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
 
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            Log::warning('GitHub auth check failed - unauthorized', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_owner_id' => $project->user_id,
+            $token = auth()->user()->githubToken;
+
+            if (!$token || $token->isExpired()) {
+                // Store the project ID in session to return after OAuth
+                session(['github_oauth_return_project' => $project->id]);
+
+                return response()->json([
+                    'authenticated' => false,
+                    'redirect_url' => route('github.redirect')
+                ]);
+            }
+
+            return response()->json([
+                'authenticated' => true,
+                'username' => $token->username,
+                'avatar' => $token->avatar,
             ]);
-            abort(403);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'ensureAuth', 'project_id' => $project->id]);
+            return response()->json(['error' => 'An error occurred while checking GitHub authentication.'], 500);
         }
-
-        $token = auth()->user()->githubToken;
-
-        if (! $token || $token->isExpired()) {
-            Log::info('GitHub token missing or expired, redirecting to OAuth', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'has_token' => ! is_null($token),
-                'is_expired' => $token ? $token->isExpired() : null,
-                'expires_at' => $token?->expires_at,
-            ]);
-
-            // Store the project ID in session to return after OAuth
-            session(['github_oauth_return_project' => $project->id]);
-
-            return redirect()->route('github.redirect');
-        }
-
-        Log::info('GitHub auth check successful', [
-            'user_id' => auth()->id(),
-            'project_id' => $project->id,
-            'github_username' => $token->username,
-        ]);
-
-        return response()->json([
-            'authenticated' => true,
-            'username' => $token->username,
-            'avatar' => $token->avatar,
-        ]);
     }
 
     /**
      * Redirect to GitHub OAuth.
+     *
+     * Initiates the GitHub OAuth flow with required scopes.
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function redirect(): RedirectResponse
+    public function redirect()
     {
-        Log::info('Initiating GitHub OAuth redirect', [
-            'user_id' => auth()->id(),
-            'scopes' => ['repo', 'delete_repo', 'read:org'],
-            'redirect_uri' => config('services.github.redirect'),
-        ]);
-
-        return Socialite::driver('github')
-            ->scopes(['repo', 'delete_repo', 'read:org'])
-            ->redirect();
+        try {
+            return Socialite::driver('github')
+                ->scopes(['repo', 'delete_repo', 'read:org'])
+                ->redirect();
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'redirect']);
+            return back()->with('error', 'Failed to initiate GitHub authentication.');
+        }
     }
 
     /**
      * Handle GitHub OAuth callback.
+     *
+     * Processes the callback from GitHub, stores the token, and redirects back to the project.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function callback(Request $request): RedirectResponse
+    public function callback(Request $request)
     {
-        Log::info('GitHub OAuth callback received', [
-            'user_id' => auth()->id(),
-            'has_code' => $request->has('code'),
-            'has_state' => $request->has('state'),
-            'has_error' => $request->has('error'),
-            'error' => $request->get('error'),
-            'error_description' => $request->get('error_description'),
-        ]);
-
         try {
             $githubUser = Socialite::driver('github')->user();
-
-            Log::info('GitHub user data retrieved', [
-                'user_id' => auth()->id(),
-                'github_id' => $githubUser->id,
-                'github_username' => $githubUser->nickname,
-                'approved_scopes' => $githubUser->approvedScopes ?? [],
-                'has_token' => ! empty($githubUser->token),
-                'has_refresh_token' => ! empty($githubUser->refreshToken),
-                'expires_in' => $githubUser->expiresIn ?? null,
-            ]);
 
             $token = GithubToken::updateOrCreate(
                 ['user_id' => auth()->id()],
@@ -125,14 +104,6 @@ class GithubController extends Controller
                 ]
             );
 
-            Log::info('GitHub token stored successfully', [
-                'user_id' => auth()->id(),
-                'github_username' => $githubUser->nickname,
-                'token_id' => $token->id,
-                'scopes' => $token->scope,
-                'expires_at' => $token->expires_at,
-            ]);
-
             // Redirect back to the project if stored in session
             $projectId = session()->get('github_oauth_return_project');
 
@@ -141,44 +112,15 @@ class GithubController extends Controller
                 $project = Project::find($projectId);
 
                 if ($project && $project->user_id === auth()->id()) {
-                    Log::info('Redirecting to project after GitHub OAuth', [
-                        'user_id' => auth()->id(),
-                        'project_id' => $project->id,
-                    ]);
-
                     return redirect("/projects/{$project->id}")
                         ->with('success', 'GitHub connected successfully!');
                 }
-
-                Log::warning('Project not found or unauthorized after GitHub OAuth', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $projectId,
-                    'project_exists' => ! is_null($project),
-                    'project_owner_id' => $project?->user_id,
-                ]);
             }
-
-            Log::info('Redirecting to projects index after GitHub OAuth', [
-                'user_id' => auth()->id(),
-            ]);
 
             return redirect()->route('projects.index')
                 ->with('success', 'GitHub connected successfully!');
-        } catch (\Exception $e) {
-            Log::error('GitHub OAuth callback failed', [
-                'user_id' => auth()->id(),
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
-                'request_data' => [
-                    'code' => $request->get('code') ? 'present' : 'missing',
-                    'state' => $request->get('state') ? 'present' : 'missing',
-                    'error' => $request->get('error'),
-                ],
-            ]);
-
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'callback']);
             return redirect()->route('projects.index')
                 ->with('error', 'Failed to connect GitHub. Please try again.');
         }
@@ -186,99 +128,38 @@ class GithubController extends Controller
 
     /**
      * List available repositories (user + organizations).
+     *
+     * Fetches repositories from the user's GitHub account and organizations.
+     *
+     * @param Project $project
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function listRepos(Project $project): JsonResponse
+    public function listRepos(Project $project)
     {
-        Log::info('Listing GitHub repositories', [
-            'user_id' => auth()->id(),
-            'project_id' => $project->id,
-        ]);
-
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            Log::warning('Unauthorized attempt to list repositories', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_owner_id' => $project->user_id,
-            ]);
-            abort(403);
-        }
-
-        $token = auth()->user()->githubToken;
-
-        if (! $token || $token->isExpired()) {
-            Log::warning('GitHub token missing or expired for repo listing', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'has_token' => ! is_null($token),
-                'is_expired' => $token ? $token->isExpired() : null,
-            ]);
-
-            return response()->json([
-                'error' => 'GitHub authentication required',
-            ], 401);
-        }
-
         try {
+            if ($project->user_id !== auth()->id()) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            $token = auth()->user()->githubToken;
+
+            if (!$token || $token->isExpired()) {
+                return response()->json(['error' => 'GitHub authentication required'], 401);
+            }
+
             $client = new GithubClient($token);
-
-            Log::info('Fetching GitHub user info', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-            ]);
-
-            // Get user info
             $user = $client->getUser();
-
-            Log::info('Fetching user repositories', [
-                'user_id' => auth()->id(),
-                'github_username' => $user['login'] ?? $token->username,
-            ]);
-
-            // Get user repositories
             $userRepos = $client->listUserRepos();
-
-            Log::info('Fetching organizations', [
-                'user_id' => auth()->id(),
-            ]);
-
-            // Get organizations
             $orgs = $client->getOrgs();
 
-            Log::info('Organizations retrieved', [
-                'user_id' => auth()->id(),
-                'org_count' => count($orgs),
-                'org_names' => array_column($orgs, 'login'),
-            ]);
-
-            // Get org repositories
             $orgRepos = [];
             foreach ($orgs as $org) {
-                Log::info('Fetching repositories for organization', [
-                    'user_id' => auth()->id(),
-                    'org_login' => $org['login'],
-                ]);
-
                 $repos = $client->listOrgRepos($org['login']);
                 $orgRepos[$org['login']] = [
                     'org' => $org,
                     'repos' => $repos,
                 ];
-
-                Log::info('Organization repositories retrieved', [
-                    'user_id' => auth()->id(),
-                    'org_login' => $org['login'],
-                    'repo_count' => count($repos),
-                ]);
             }
-
-            Log::info('GitHub repositories listed successfully', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'user_repos_count' => count($userRepos),
-                'organizations_count' => count($orgRepos),
-                'total_org_repos' => array_sum(array_map(fn ($org) => count($org['repos']), $orgRepos)),
-            ]);
 
             return response()->json([
                 'user' => [
@@ -288,44 +169,23 @@ class GithubController extends Controller
                 'userRepos' => $userRepos,
                 'organizations' => $orgRepos,
             ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to list GitHub repositories', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json([
-                'error' => 'Failed to fetch repositories',
-            ], 500);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'listRepos', 'project_id' => $project->id]);
+            return response()->json(['error' => 'Failed to fetch repositories'], 500);
         }
     }
 
     /**
      * Create a new repository on GitHub.
+     *
+     * Creates a new repo via GitHub API and links it to the project.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function createRepo(Request $request, Project $project): JsonResponse
+    public function createRepo(Request $request, Project $project)
     {
-        Log::info('Creating GitHub repository', [
-            'user_id' => auth()->id(),
-            'project_id' => $project->id,
-            'request_data' => $request->only(['name', 'visibility', 'owner_type', 'owner_login']),
-        ]);
-
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            Log::warning('Unauthorized attempt to create repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_owner_id' => $project->user_id,
-            ]);
-            abort(403);
-        }
-
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'visibility' => 'required|in:public,private',
@@ -334,35 +194,19 @@ class GithubController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
-        $token = auth()->user()->githubToken;
-
-        if (! $token || $token->isExpired()) {
-            Log::warning('GitHub token missing or expired for repo creation', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'has_token' => ! is_null($token),
-                'is_expired' => $token ? $token->isExpired() : null,
-            ]);
-
-            return response()->json([
-                'error' => 'GitHub authentication required',
-            ], 401);
-        }
-
         try {
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You are not authorized to perform this action.');
+            }
+
+            $token = auth()->user()->githubToken;
+
+            if (!$token || $token->isExpired()) {
+                return back()->with('error', 'GitHub authentication required. Please connect your account.');
+            }
+
             $client = new GithubClient($token);
-
-            // Create repository
             $isPrivate = $validated['visibility'] === 'private';
-
-            Log::info('Calling GitHub API to create repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_name' => $validated['name'],
-                'owner_type' => $validated['owner_type'],
-                'owner_login' => $validated['owner_login'],
-                'is_private' => $isPrivate,
-            ]);
 
             if ($validated['owner_type'] === 'user') {
                 $repo = $client->createUserRepo(
@@ -379,35 +223,12 @@ class GithubController extends Controller
                 );
             }
 
-            if (! $repo) {
-                $errorMessage = $client->getLastErrorMessage() ?? 'Failed to create repository';
-                $errorDetails = $client->getLastError();
-
-                Log::error('GitHub API returned null for repository creation', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_name' => $validated['name'],
-                    'owner_login' => $validated['owner_login'],
-                    'github_error' => $errorMessage,
-                    'github_error_details' => $errorDetails,
-                ]);
-
-                return response()->json([
-                    'error' => $errorMessage,
-                    'details' => $errorDetails,
-                ], $errorDetails['status'] ?? 500);
+            if (!$repo) {
+                $errorMessage = $client->getLastErrorMessage() ?? 'Failed to create repository on GitHub.';
+                return back()->with('error', $errorMessage);
             }
 
-            Log::info('GitHub repository created via API', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_id' => $repo['id'],
-                'repo_full_name' => $repo['full_name'],
-                'repo_url' => $repo['html_url'],
-            ]);
-
-            // Store repository information
-            $projectRepo = ProjectRepository::updateOrCreate(
+            ProjectRepository::updateOrCreate(
                 ['project_id' => $project->id],
                 [
                     'provider' => 'github',
@@ -423,119 +244,50 @@ class GithubController extends Controller
                 ]
             );
 
-            Log::info('GitHub repository created and linked successfully', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_repo_id' => $projectRepo->id,
-                'repo_full_name' => $repo['full_name'],
-                'default_branch' => $projectRepo->default_branch,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'repository' => $projectRepo,
-                'message' => 'Repository created successfully',
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to create GitHub repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_name' => $validated['name'] ?? null,
-                'owner_login' => $validated['owner_login'] ?? null,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json([
-                'error' => 'Failed to create repository: '.$e->getMessage(),
-            ], 500);
+            return back()->with('success', 'Repository created and linked successfully.');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'createRepo', 'project_id' => $project->id]);
+            return back()->with('error', 'An error occurred while creating the repository.');
         }
     }
 
     /**
      * Link an existing repository to the project.
+     *
+     * Verifies the repository exists and links it to the project in the database.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function linkExistingRepo(Request $request, Project $project): JsonResponse
+    public function linkExistingRepo(Request $request, Project $project)
     {
-        Log::info('Linking existing GitHub repository', [
-            'user_id' => auth()->id(),
-            'project_id' => $project->id,
-            'repo_full_name' => $request->get('full_name'),
-        ]);
-
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            Log::warning('Unauthorized attempt to link repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_owner_id' => $project->user_id,
-            ]);
-            abort(403);
-        }
-
         $validated = $request->validate([
             'full_name' => 'required|string|max:200',
         ]);
 
-        $token = auth()->user()->githubToken;
-
-        if (! $token || $token->isExpired()) {
-            Log::warning('GitHub token missing or expired for repo linking', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'has_token' => ! is_null($token),
-                'is_expired' => $token ? $token->isExpired() : null,
-            ]);
-
-            return response()->json([
-                'error' => 'GitHub authentication required',
-            ], 401);
-        }
-
         try {
-            $client = new GithubClient($token);
-
-            Log::info('Fetching repository information from GitHub', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $validated['full_name'],
-            ]);
-
-            // Get repository information
-            $repo = $client->getRepo($validated['full_name']);
-
-            if (! $repo) {
-                Log::warning('GitHub repository not found or not accessible', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $validated['full_name'],
-                ]);
-
-                return response()->json([
-                    'error' => 'Repository not found',
-                ], 404);
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You are not authorized to perform this action.');
             }
 
-            // Extract owner info
+            $token = auth()->user()->githubToken;
+
+            if (!$token || $token->isExpired()) {
+                return back()->with('error', 'GitHub authentication required. Please connect your account.');
+            }
+
+            $client = new GithubClient($token);
+            $repo = $client->getRepo($validated['full_name']);
+
+            if (!$repo) {
+                return back()->with('error', 'Repository not found on GitHub.');
+            }
+
             $ownerLogin = $repo['owner']['login'];
             $ownerType = $repo['owner']['type'] === 'Organization' ? 'org' : 'user';
 
-            Log::info('Repository retrieved from GitHub', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_id' => $repo['id'],
-                'repo_full_name' => $repo['full_name'],
-                'owner_login' => $ownerLogin,
-                'owner_type' => $ownerType,
-                'is_private' => $repo['private'] ?? false,
-                'default_branch' => $repo['default_branch'] ?? 'main',
-            ]);
-
-            // Store repository information
-            $projectRepo = ProjectRepository::updateOrCreate(
+            ProjectRepository::updateOrCreate(
                 ['project_id' => $project->id],
                 [
                     'provider' => 'github',
@@ -551,394 +303,135 @@ class GithubController extends Controller
                 ]
             );
 
-            Log::info('Checking if repository is empty', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $validated['full_name'],
-            ]);
-
-            // Check if repo is empty and can be bootstrapped
-            $isEmpty = $client->isRepoEmpty($validated['full_name']);
-
-            Log::info('GitHub repository linked successfully', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_repo_id' => $projectRepo->id,
-                'repo_full_name' => $repo['full_name'],
-                'is_empty' => $isEmpty,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'repository' => $projectRepo,
-                'is_empty' => $isEmpty,
-                'message' => 'Repository linked successfully',
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to link GitHub repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $validated['full_name'] ?? null,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json([
-                'error' => 'Failed to link repository: '.$e->getMessage(),
-            ], 500);
+            return back()->with('success', 'Repository linked successfully.');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'linkExistingRepo', 'project_id' => $project->id]);
+            return back()->with('error', 'An error occurred while linking the repository.');
         }
     }
 
     /**
      * Push initial commit to the repository.
+     *
+     * Bootstraps the repository with initial project files.
+     *
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function pushInitial(Project $project): JsonResponse
+    public function pushInitial(Project $project)
     {
-        Log::info('Initiating push to GitHub repository', [
-            'user_id' => auth()->id(),
-            'project_id' => $project->id,
-            'project_name' => $project->name,
-        ]);
-
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            Log::warning('Unauthorized attempt to push to repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_owner_id' => $project->user_id,
-            ]);
-            abort(403);
-        }
-
-        $repository = $project->repository;
-
-        if (! $repository) {
-            Log::warning('No repository linked for push attempt', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-            ]);
-
-            return response()->json([
-                'error' => 'No repository linked to this project',
-            ], 404);
-        }
-
-        $token = auth()->user()->githubToken;
-
-        if (! $token || $token->isExpired()) {
-            Log::warning('GitHub token missing or expired for push', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name,
-                'has_token' => ! is_null($token),
-                'is_expired' => $token ? $token->isExpired() : null,
-            ]);
-
-            return response()->json([
-                'error' => 'GitHub authentication required',
-            ], 401);
-        }
-
         try {
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You are not authorized to perform this action.');
+            }
+
+            $repository = $project->repository;
+
+            if (!$repository) {
+                return back()->with('error', 'No repository linked to this project.');
+            }
+
+            $token = auth()->user()->githubToken;
+
+            if (!$token || $token->isExpired()) {
+                return back()->with('error', 'GitHub authentication required.');
+            }
+
             $client = new GithubClient($token);
             $bootstrapService = new RepoBootstrapService($client, $repository);
-
-            Log::info('Starting bootstrap process', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name,
-                'repo_id' => $repository->id,
-                'default_branch' => $repository->default_branch,
-            ]);
 
             $success = $bootstrapService->pushInitialCommit();
 
             if ($success) {
-                Log::info('Bootstrap completed successfully', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Files have been successfully uploaded to the repository.',
-                ]);
+                return back()->with('success', 'Files have been successfully uploaded to the repository.');
             } else {
-                Log::warning('Bootstrap process returned false', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                ]);
-
-                return response()->json([
-                    'error' => 'Failed to push files to the repository.',
-                ], 500);
+                return back()->with('error', 'Failed to push files to the repository.');
             }
-        } catch (\Exception $e) {
-            Log::error('Failed to bootstrap repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name ?? null,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json([
-                'error' => 'Failed to push files: '.$e->getMessage(),
-            ], 500);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'pushInitial', 'project_id' => $project->id]);
+            return back()->with('error', 'An error occurred while pushing files.');
         }
     }
 
     /**
-     * Delete a GitHub repository.
+     * Unlink the GitHub repository from the project.
+     *
+     * Removes the repository link from the database but DOES NOT delete the repository from GitHub.
+     *
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function deleteRepo(Project $project): RedirectResponse
+    public function deleteRepo(Project $project)
     {
-        Log::info('Attempting to delete GitHub repository', [
-            'user_id' => auth()->id(),
-            'project_id' => $project->id,
-            'project_name' => $project->name,
-        ]);
-
-        if ($project->user_id !== auth()->id()) {
-            Log::warning('Unauthorized attempt to delete repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_owner_id' => $project->user_id,
-            ]);
-            abort(403);
-        }
-
-        $repository = $project->repository;
-
-        if (! $repository) {
-            Log::warning('No repository linked for deletion attempt', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-            ]);
-
-            return back()->withErrors([
-                'error' => 'No repository linked to this project',
-            ]);
-        }
-
-        $token = auth()->user()->githubToken;
-
-        if (! $token || $token->isExpired()) {
-            Log::warning('GitHub token missing or expired for repository deletion', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name,
-                'has_token' => ! is_null($token),
-                'is_expired' => $token ? $token->isExpired() : null,
-            ]);
-
-            return back()->withErrors([
-                'error' => 'GitHub authentication required',
-            ]);
-        }
-
         try {
-            $client = new GithubClient($token);
-
-            Log::info('Calling GitHub API to delete repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name,
-                'repo_id' => $repository->id,
-            ]);
-
-            $success = $client->deleteRepo($repository->full_name);
-
-            if ($success) {
-                Log::info('Repository deleted from GitHub, removing database record', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                    'repo_id' => $repository->id,
-                ]);
-
-                $repository->delete();
-
-                Log::info('Repository deleted successfully', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                ]);
-
-                return back()->with([
-                    'success' => true,
-                    'message' => 'Repository deleted successfully',
-                ]);
-            } else {
-                $errorMessage = $client->getLastErrorMessage() ?? 'Failed to delete repository from GitHub';
-                $errorDetails = $client->getLastError();
-
-                // Check if it's a permission issue
-                if (isset($errorDetails['status']) && $errorDetails['status'] === 403) {
-                    $errorMessage = 'Insufficient permissions to delete repository. Please reconnect your GitHub account with delete_repo permission.';
-                }
-
-                Log::error('Failed to delete repository from GitHub', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                    'error' => $errorMessage,
-                    'error_details' => $errorDetails,
-                ]);
-
-                return back()->withErrors([
-                    'error' => $errorMessage,
-                ]);
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You are not authorized to perform this action.');
             }
-        } catch (\Exception $e) {
-            Log::error('Exception during repository deletion', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name ?? null,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
-            ]);
 
-            return back()->withErrors([
-                'error' => 'Failed to delete repository: '.$e->getMessage(),
-            ]);
+            $repository = $project->repository;
+
+            if (!$repository) {
+                return back()->with('error', 'No repository linked to this project.');
+            }
+
+            // Only delete from database, do NOT delete from GitHub
+            $repository->delete();
+
+            return back()->with('success', 'Repository unlinked successfully.');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'deleteRepo', 'project_id' => $project->id]);
+            return back()->with('error', 'An error occurred while unlinking the repository.');
         }
     }
 
     /**
      * Sync repository specs folder with latest project documentation.
+     *
+     * Generates project specifications and syncs them to the GitHub repository.
+     *
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function syncRepo(Project $project): RedirectResponse
+    public function syncRepo(Project $project)
     {
-        Log::info('Attempting to sync repository specs', [
-            'user_id' => auth()->id(),
-            'project_id' => $project->id,
-            'project_name' => $project->name,
-        ]);
-
-        if ($project->user_id !== auth()->id()) {
-            Log::warning('Unauthorized attempt to sync repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'project_owner_id' => $project->user_id,
-            ]);
-            abort(403);
-        }
-
-        $repository = $project->repository;
-
-        if (! $repository) {
-            Log::warning('No repository linked for sync attempt', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-            ]);
-
-            return back()->withErrors([
-                'error' => 'No repository linked to this project',
-            ]);
-        }
-
-        $token = auth()->user()->githubToken;
-
-        if (! $token || $token->isExpired()) {
-            Log::warning('GitHub token missing or expired for repository sync', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name,
-                'has_token' => ! is_null($token),
-                'is_expired' => $token ? $token->isExpired() : null,
-            ]);
-
-            return back()->withErrors([
-                'error' => 'GitHub authentication required',
-            ]);
-        }
-
         try {
-            $client = new GithubClient($token);
-            $specsExportService = app(\App\Services\Documentation\ProjectSpecsExportService::class);
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You are not authorized to perform this action.');
+            }
 
-            Log::info('Generating specs files for sync', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name,
-            ]);
+            $repository = $project->repository;
+
+            if (!$repository) {
+                return back()->with('error', 'No repository linked to this project.');
+            }
+
+            $token = auth()->user()->githubToken;
+
+            if (!$token || $token->isExpired()) {
+                return back()->with('error', 'GitHub authentication required.');
+            }
+
+            $client = new GithubClient($token);
+            $specsExportService = app(ProjectSpecsExportService::class);
 
             $specFiles = $specsExportService->build($project);
 
             if (empty($specFiles)) {
-                Log::warning('No specs files to sync', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                ]);
-
-                return back()->withErrors([
-                    'error' => 'No specifications available to sync',
-                ]);
+                return back()->with('error', 'No specifications available to sync.');
             }
-
-            Log::info('Checking if repository is empty', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name,
-            ]);
 
             $isEmpty = $client->isRepoEmpty($repository->full_name);
 
             if ($isEmpty) {
-                Log::info('Repository is empty, using bootstrap service', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                ]);
-
                 $bootstrapService = new RepoBootstrapService($client, $repository, $specsExportService);
                 $success = $bootstrapService->pushInitialCommit();
 
                 if ($success) {
-                    Log::info('Repository specs bootstrapped successfully', [
-                        'user_id' => auth()->id(),
-                        'project_id' => $project->id,
-                        'repo_full_name' => $repository->full_name,
-                        'files_count' => count($specFiles),
-                    ]);
-
-                    return back()->with([
-                        'success' => true,
-                        'message' => 'Specifications synced successfully',
-                        'files_count' => count($specFiles),
-                    ]);
+                    return back()->with('success', 'Specifications synced successfully (bootstrapped).');
                 } else {
-                    Log::error('Failed to bootstrap repository specs', [
-                        'user_id' => auth()->id(),
-                        'project_id' => $project->id,
-                        'repo_full_name' => $repository->full_name,
-                    ]);
-
-                    return back()->withErrors([
-                        'error' => 'Failed to sync specifications to empty repository',
-                    ]);
+                    return back()->with('error', 'Failed to sync specifications to empty repository.');
                 }
             }
-
-            Log::info('Pushing specs files to repository', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name,
-                'files_count' => count($specFiles),
-            ]);
 
             $branch = $repository->default_branch ?? 'main';
             $success = $client->commitFiles(
@@ -949,44 +442,13 @@ class GithubController extends Controller
             );
 
             if ($success) {
-                Log::info('Repository specs synced successfully', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                    'files_count' => count($specFiles),
-                ]);
-
-                return back()->with([
-                    'success' => true,
-                    'message' => 'Specifications synced successfully',
-                    'files_count' => count($specFiles),
-                ]);
+                return back()->with('success', 'Specifications synced successfully.');
             } else {
-                Log::error('Failed to sync repository specs', [
-                    'user_id' => auth()->id(),
-                    'project_id' => $project->id,
-                    'repo_full_name' => $repository->full_name,
-                ]);
-
-                return back()->withErrors([
-                    'error' => 'Failed to sync specifications to repository',
-                ]);
+                return back()->with('error', 'Failed to sync specifications to repository.');
             }
-        } catch (\Exception $e) {
-            Log::error('Exception during repository sync', [
-                'user_id' => auth()->id(),
-                'project_id' => $project->id,
-                'repo_full_name' => $repository->full_name ?? null,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->withErrors([
-                'error' => 'Failed to sync repository: '.$e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'syncRepo', 'project_id' => $project->id]);
+            return back()->with('error', 'An error occurred while syncing the repository.');
         }
     }
 }

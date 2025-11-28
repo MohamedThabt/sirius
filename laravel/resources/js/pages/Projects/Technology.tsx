@@ -3,6 +3,7 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { type User } from '@/types';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head, router, usePage } from '@inertiajs/react';
 import { CodeIcon, DatabaseIcon, LightbulbIcon, MonitorSmartphoneIcon, PanelLeftClose, PanelLeftOpen, PlugIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -42,6 +43,7 @@ interface Props {
 }
 
 export default function Technology({ project, technicalIntake, sections }: Props) {
+    useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 

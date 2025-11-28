@@ -3,11 +3,13 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { type User } from '@/types';
-import { Excalidraw } from '@excalidraw/excalidraw';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { Excalidraw, exportToBlob, serializeAsJSON } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import { Head, router, usePage } from '@inertiajs/react';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Toaster } from '@/components/ui/sonner';
 
 interface Project {
     id: number;
@@ -36,6 +38,7 @@ interface BrainstormingPageProps {
 }
 
 export default function Brainstorming({ project, sections }: BrainstormingPageProps) {
+    useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -94,9 +97,9 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
         };
     }, []); // We no longer need the media query listener.
 
-    const handleChange = useCallback((els: any[], app: any, f: Record<string, any>) => {
+    const handleChange = useCallback((els: readonly any[], app: any, f: Record<string, any>) => {
         setHasUnsavedChanges(true);
-        setElements(els);
+        setElements(els as any[]);
         setAppState(app);
         setFiles(f);
     }, []);
@@ -172,6 +175,7 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
                     </main>
                 </div>
             </div>
+            <Toaster />
         </>
     );
 }

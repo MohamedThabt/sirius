@@ -1,9 +1,10 @@
 import { Head } from '@inertiajs/react';
-
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppearanceTabs from '@/components/appearance-tabs';
 import SettingsLayout from '@/layouts/settings/layout';
 
 function Appearance() {
+    useFlashToasts();
     return (
         <>
             <Head title="Appearance Settings" />

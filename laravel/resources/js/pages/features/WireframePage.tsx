@@ -6,6 +6,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { WireframeRenderer, type SchemaNode as RendererSchemaNode } from './components/WireframeRenderer';
 
 type SchemaNode = RendererSchemaNode;
@@ -208,6 +209,7 @@ function getNodeLabel(node: SchemaNode): string {
 }
 
 export default function WireframePage({ schema, project, feature, isGenerating: initialIsGenerating = false }: WireframePageProps) {
+    useFlashToasts();
     const { auth } = usePage().props as any;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [content, setContent] = useState<string>(JSON.stringify(schema || sampleSchema, null, 2));

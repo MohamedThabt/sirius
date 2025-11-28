@@ -10,6 +10,8 @@ import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { toast } from 'sonner';
 import { ArrowLeft, BotIcon, CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, PencilIcon, SaveIcon, SendIcon, SparklesIcon, StarIcon } from 'lucide-react';
 import mermaid from 'mermaid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -213,6 +215,7 @@ export default function SystemOverview({
     sections = { overview: null, prd: null, data_modeling: null, non_functional_requirements: null },
     features = [],
 }: Props) {
+    useFlashToasts();
     const { auth } = usePage<{ auth: { user: any } }>().props;
     const [currentVersion, setCurrentVersion] = useState<OverviewVersion | null>(null);
     const [overviewVersions, setOverviewVersions] = useState<OverviewVersion[]>(initialOverviewVersions || []);
@@ -676,15 +679,12 @@ export default function SystemOverview({
     };
 
     // Handle manual content update using userUpdate controller method
+    // Handle manual content update using userUpdate controller method
     const handleContentUpdate = async () => {
         if (!currentVersion || !editedContent.trim()) return;
 
-        console.log('Updating content for version:', currentVersion.id);
-        console.log('Project ID:', project?.id);
-        console.log('URL:', `/projects/${project?.id}/system-overview/${currentVersion.id}/user-update`);
-
         try {
-            // Get CSRF token from meta tag or cookie
+            // Get CSRF token
             const csrfToken =
                 document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
                 document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
@@ -692,8 +692,6 @@ export default function SystemOverview({
                     .split('; ')
                     .find((row) => row.startsWith('XSRF-TOKEN='))
                     ?.split('=')[1];
-
-            console.log('CSRF Token:', csrfToken);
 
             const response = await fetch(`/projects/${project?.id}/system-overview/${currentVersion.id}/user-update`, {
                 method: 'POST',
@@ -707,32 +705,28 @@ export default function SystemOverview({
                 }),
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-
             if (response.ok) {
                 const data = await response.json();
-                console.log('Response data:', data);
-                // Update local state
-                const updatedVersion = { ...currentVersion, overview: editedContent };
-                setCurrentVersion(updatedVersion);
-                setOverviewVersions((prev) => prev.map((v) => (v.id === currentVersion.id ? updatedVersion : v)));
-                setIsEditing(false);
-
-                // Update hasFeatures state if provided
-                if (typeof data.hasFeatures === 'boolean') {
-                    setProjectHasFeatures(data.hasFeatures);
+                if (data.success) {
+                    const updatedVersion = { ...currentVersion, overview: editedContent };
+                    setCurrentVersion(updatedVersion);
+                    setOverviewVersions((prev) => prev.map((v) => (v.id === currentVersion.id ? updatedVersion : v)));
+                    setIsEditing(false);
+                    toast.success(data.message || 'Overview updated successfully');
+                } else {
+                    throw new Error(data.message || 'Failed to update overview');
                 }
             } else {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error('Failed to update overview');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to update overview');
             }
         } catch (error) {
             console.error('Error updating overview:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to update overview');
         }
     };
 
+    // Handle marking version as base using markAsBase controller method
     // Handle marking version as base using markAsBase controller method
     const handleMarkAsBase = async (version: OverviewVersion) => {
         try {
@@ -755,13 +749,28 @@ export default function SystemOverview({
             });
 
             if (response.ok) {
-                // Refresh the page to get updated versions
-                window.location.reload();
+                const data = await response.json();
+                if (data.success) {
+                    // Update local state
+                    if (data.overviewVersions) {
+                        setOverviewVersions(data.overviewVersions);
+                        // Update current version if it was the one marked as base
+                        const updatedCurrent = data.overviewVersions.find((v: OverviewVersion) => v.id === currentVersion?.id);
+                        if (updatedCurrent) {
+                            setCurrentVersion(updatedCurrent);
+                        }
+                    }
+                    toast.success(data.message || 'Version marked as base successfully');
+                } else {
+                    throw new Error(data.message || 'Failed to mark version as base');
+                }
             } else {
-                throw new Error('Failed to mark version as base');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to mark version as base');
             }
         } catch (error) {
             console.error('Error marking version as base:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to mark version as base');
         }
     };
 

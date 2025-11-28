@@ -7,6 +7,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Check, ChevronLeft, Plus, Sparkles, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type User, type SharedData } from '@/types';
 
 interface Project {
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function FeaturesSuggestion({ project, generatedFeatures = [] }: Props) {
+    useFlashToasts();
     const shared = usePage<SharedData>().props;
     const { auth } = shared;
     const sidebarAuth: { user: User } = { user: (auth.user as unknown) as User };

@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     AlertCircleIcon,
@@ -111,6 +112,7 @@ export default function MermaidPreview({
     project,
     sections,
 }: Props) {
+    useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const getInitials = useInitials();
     const [svg, setSvg] = useState<string>('');

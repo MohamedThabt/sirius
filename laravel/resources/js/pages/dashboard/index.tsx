@@ -1,5 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head } from '@inertiajs/react';
 
 interface Stats {
@@ -37,6 +38,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function AdminDashboard({ stats }: Props) {
+    useFlashToasts();
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Dashboard" />

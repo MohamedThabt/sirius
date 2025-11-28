@@ -9,63 +9,84 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Traits\StructuredLogger;
 
 class PRDController extends Controller
 {
+    use StructuredLogger;
+
+    /**
+     * Show the PRD generation page.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @param FeatureMarkdownService $featureMarkdownService
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
+     */
     public function generate(Request $request, Project $project, FeatureMarkdownService $featureMarkdownService)
     {
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
+        try {
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            $project->loadMissing(['features', 'baseOverviewVersion']);
+
+            $overviewText = (string) ($project->baseOverviewVersion?->overview ?? '');
+
+            if ($overviewText === '') {
+                return redirect()->route('projects.show', $project)->with('error', 'Please create a base System Overview before generating the PRD.');
+            }
+
+            // Store project data in session for async generation
+            session([
+                'pending_prd_generation' => [
+                    'project_id' => $project->id,
+                ],
+            ]);
+
+            $featuresMarkdown = $featureMarkdownService->formatProjectFeaturesToMarkdown($project);
+
+            return Inertia::render('Projects/PRD', [
+                'project' => $project,
+                'prdVersions' => [],
+                'featuresMarkdown' => $featuresMarkdown,
+                'isGenerating' => true,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'generate', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to load PRD generation page.');
         }
-
-        $project->loadMissing(['features', 'baseOverviewVersion']);
-
-        $overviewText = (string) ($project->baseOverviewVersion?->overview ?? '');
-
-        if ($overviewText === '') {
-            return redirect()->route('projects.show', $project)->with('error', 'Please create a base System Overview before generating the PRD.');
-        }
-
-        // Store project data in session for async generation
-        session([
-            'pending_prd_generation' => [
-                'project_id' => $project->id,
-            ],
-        ]);
-
-        $featuresMarkdown = $featureMarkdownService->formatProjectFeaturesToMarkdown($project);
-
-        return Inertia::render('Projects/PRD', [
-            'project' => $project,
-            'prdVersions' => [],
-            'featuresMarkdown' => $featuresMarkdown,
-            'isGenerating' => true,
-        ]);
     }
 
     /**
-     * Generate PRD asynchronously after initial page load
+     * Generate PRD asynchronously after initial page load.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @param FeatureMarkdownService $featureMarkdownService
+     * @return \Illuminate\Http\JsonResponse
      */
     public function generateAsync(Request $request, Project $project, FeatureMarkdownService $featureMarkdownService)
     {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        // Increase execution time for FastAPI calls
-        set_time_limit(180);
-
-        $pendingData = session('pending_prd_generation');
-
-        if (! $pendingData || $pendingData['project_id'] !== $project->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No pending generation data found',
-            ], 400);
-        }
-
         try {
+            // Ensure user owns the project
+            if ($project->user_id !== auth()->id()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+
+            // Increase execution time for FastAPI calls
+            set_time_limit(180);
+
+            $pendingData = session('pending_prd_generation');
+
+            if (! $pendingData || $pendingData['project_id'] !== $project->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No pending generation data found',
+                ], 400);
+            }
+
             $project->loadMissing(['features', 'baseOverviewVersion']);
 
             $features = $project->features->map(function ($feature) {
@@ -132,101 +153,124 @@ class PRDController extends Controller
                     'featuresMarkdown' => $featuresMarkdown,
                 ]);
             } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to generate PRD',
-                ], 500);
+                throw new \Exception('FastAPI PRD generation failed: ' . $response->body());
             }
         } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'generateAsync', 'project_id' => $project->id]);
             return response()->json([
                 'success' => false,
-                'message' => 'PRD generation error: '.$e->getMessage(),
+                'message' => 'Failed to generate PRD. Please try again.',
             ], 500);
         }
     }
 
-    public function show(Project $project, FeatureMarkdownService $featureMarkdownService): Response
+    /**
+     * Show the PRD page.
+     *
+     * @param Project $project
+     * @param FeatureMarkdownService $featureMarkdownService
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
+     */
+    public function show(Project $project, FeatureMarkdownService $featureMarkdownService)
     {
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
+        try {
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            $project->loadMissing(['features']);
+
+            $prdVersions = [];
+            if (! empty($project->prd)) {
+                $prdVersions[] = [
+                    'id' => 0,
+                    'project_id' => $project->id,
+                    'prd_content' => $project->prd,
+                    'version_number' => 1,
+                    'is_base_version' => true,
+                    'user_prompt' => null,
+                    'created_at' => $project->created_at?->toISOString() ?? now()->toISOString(),
+                    'updated_at' => $project->updated_at?->toISOString() ?? now()->toISOString(),
+                ];
+            }
+
+            $featuresMarkdown = $featureMarkdownService->formatProjectFeaturesToMarkdown($project);
+
+            return Inertia::render('Projects/PRD', [
+                'project' => $project,
+                'prdVersions' => $prdVersions,
+                'featuresMarkdown' => $featuresMarkdown,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'show', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to load PRD.');
         }
-
-        $project->loadMissing(['features']);
-
-        $prdVersions = [];
-        if (! empty($project->prd)) {
-            $prdVersions[] = [
-                'id' => 0,
-                'project_id' => $project->id,
-                'prd_content' => $project->prd,
-                'version_number' => 1,
-                'is_base_version' => true,
-                'user_prompt' => null,
-                'created_at' => $project->created_at?->toISOString() ?? now()->toISOString(),
-                'updated_at' => $project->updated_at?->toISOString() ?? now()->toISOString(),
-            ];
-        }
-
-        $featuresMarkdown = $featureMarkdownService->formatProjectFeaturesToMarkdown($project);
-
-        return Inertia::render('Projects/PRD', [
-            'project' => $project,
-            'prdVersions' => $prdVersions,
-            'featuresMarkdown' => $featuresMarkdown,
-        ]);
     }
 
     /**
      * Save manual PRD edits from the user.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function edit(Request $request, Project $project)
     {
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
         $validated = $request->validate([
             'prd_content' => 'required|string',
         ]);
 
-        $project->update(['prd' => $validated['prd_content']]);
+        try {
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to edit this PRD.');
+            }
 
-        return redirect()->route('projects.prd', $project)
-            ->with('message', 'PRD saved successfully.');
+            $project->update(['prd' => $validated['prd_content']]);
+
+            return back()->with('success', 'PRD saved successfully.');
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'edit', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to save PRD.');
+        }
     }
 
     /**
      * Apply engineer notes to current PRD using external AI edit endpoint and save.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function aiEdit(Request $request, Project $project)
     {
-        // Increase execution time for FastAPI calls
-        set_time_limit(180);
-
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
         $validated = $request->validate([
             'engineer_notes' => 'required|string',
         ]);
 
-        $currentPrd = (string) ($project->prd ?? '');
-        if ($currentPrd === '') {
-            return redirect()->route('projects.show', $project)->with('error', 'No existing PRD found to edit. Please generate a PRD first.');
-        }
-
-        $payload = [
-            'system_PRD' => $currentPrd,
-            'engineer_notes' => $validated['engineer_notes'],
-        ];
-
         try {
+            // Increase execution time for FastAPI calls
+            set_time_limit(180);
+
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to edit this PRD.');
+            }
+
+            $currentPrd = (string) ($project->prd ?? '');
+            if ($currentPrd === '') {
+                return redirect()->route('projects.show', $project)->with('error', 'No existing PRD found to edit. Please generate a PRD first.');
+            }
+
+            $payload = [
+                'system_PRD' => $currentPrd,
+                'engineer_notes' => $validated['engineer_notes'],
+            ];
+
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
             $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/PRD/edit', $payload);
+
             if (! $response->successful()) {
-                return redirect()->route('projects.prd', $project)->with('error', 'Failed to apply PRD edit.');
+                throw new \Exception('FastAPI PRD edit failed: ' . $response->body());
             }
 
             $updatedPrd = $response->json('PRD');
@@ -234,32 +278,41 @@ class PRDController extends Controller
                 $project->update(['prd' => $updatedPrd]);
             }
 
-            return redirect()->route('projects.prd', $project)->with('success', 'PRD updated successfully.');
+            return back()->with('success', 'PRD updated successfully.');
         } catch (\Throwable $e) {
-            return redirect()->route('projects.prd', $project)->with('error', 'PRD edit error: '.$e->getMessage());
+            $this->logException($e, ['action' => 'aiEdit', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to update PRD with AI.');
         }
     }
 
     /**
-     * Preview a Mermaid diagram from PRD content
+     * Preview a Mermaid diagram from PRD content.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
     public function previewMermaid(Request $request, Project $project)
     {
-        // Ensure user owns the project
-        if ($project->user_id !== auth()->id()) {
-            abort(403);
-        }
-
         $validated = $request->validate([
             'content' => 'required|string',
             'title' => 'nullable|string',
         ]);
 
-        return Inertia::render('Projects/MermaidPreview', [
-            'content' => $validated['content'],
-            'title' => $validated['title'] ?? 'Mermaid Diagram',
-            'projectName' => $project->name,
-        ]);
+        try {
+            // Ensure user owns the project
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            return Inertia::render('Projects/MermaidPreview', [
+                'content' => $validated['content'],
+                'title' => $validated['title'] ?? 'Mermaid Diagram',
+                'projectName' => $project->name,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'previewMermaid', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to preview Mermaid diagram.');
+        }
     }
 }
-

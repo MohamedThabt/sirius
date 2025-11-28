@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useInitials } from '@/hooks/use-initials';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head, router } from '@inertiajs/react';
 import {
     CheckCircleIcon,
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export default function AcceptInvitation({ invitation, project }: Props) {
+    useFlashToasts();
     const getInitials = useInitials();
 
     const handleAccept = () => {

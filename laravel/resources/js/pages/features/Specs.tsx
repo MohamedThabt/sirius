@@ -1,6 +1,7 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head, usePage } from '@inertiajs/react';
 import { CheckIcon, CopyIcon, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useState } from 'react';
@@ -61,6 +62,7 @@ const convertEscapedMermaid = (escapedString: string): string => {
 };
 
 export default function Specs({ project, feature, specsMarkdown }: Props) {
+    useFlashToasts();
     const { auth } = usePage().props as any;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
