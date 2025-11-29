@@ -138,13 +138,14 @@
     }
 }
 
-/* Sirius Hero Section */
+/* Sirius Hero Section - Enhanced Space Theme */
 .linear-landing .sirius-hero {
     position: relative;
-    padding: clamp(5rem, 10vw, 8rem) 1.5rem 6rem;
-    background: radial-gradient(circle at 20% 20%, rgba(72, 99, 255, 0.25), transparent 45%),
-        radial-gradient(circle at 80% 0%, rgba(187, 108, 217, 0.2), transparent 40%),
-        linear-gradient(180deg, #010109 0%, #040611 40%, #020205 100%);
+    padding: clamp(6rem, 12vw, 10rem) 1.5rem 8rem;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(72, 99, 255, 0.15), transparent 50%),
+        radial-gradient(circle at 80% 0%, rgba(187, 108, 217, 0.12), transparent 45%),
+        linear-gradient(180deg, #010109 0%, #030510 40%, #020205 100%);
     color: #f8fbff;
     font-family:
         'Poppins',
@@ -153,7 +154,7 @@
         BlinkMacSystemFont,
         'Segoe UI',
         sans-serif;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     overflow: hidden;
 }
 
@@ -161,8 +162,8 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.12), transparent 60%);
-    opacity: 0.4;
+    background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 65%);
+    opacity: 0.3;
     pointer-events: none;
 }
 
@@ -175,49 +176,160 @@
 }
 
 .linear-landing .hero-gradient {
-    background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.08), transparent 55%);
-    filter: blur(10px);
-    opacity: 0.6;
+    background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.05), transparent 60%);
+    filter: blur(12px);
+    opacity: 0.5;
 }
 
+/* Enhanced smooth star field */
 .linear-landing .hero-stars {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1px);
-    background-size: 140px 140px;
-    animation: star-drift 80s linear infinite;
-    opacity: 0.4;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.25) 0.8px, transparent 0.8px);
+    background-size: 160px 160px;
+    animation: star-drift 100s linear infinite;
+    opacity: 0.3;
 }
 
 .linear-landing .hero-stars--two {
-    background-size: 200px 200px;
-    opacity: 0.25;
-    animation-duration: 110s;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+    background-size: 220px 220px;
+    opacity: 0.18;
+    animation-duration: 130s;
 }
 
 .linear-landing .hero-stars--three {
-    background-size: 90px 90px;
-    opacity: 0.15;
-    animation-duration: 65s;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.15) 0.6px, transparent 0.6px);
+    background-size: 100px 100px;
+    opacity: 0.12;
+    animation-duration: 75s;
 }
 
+/* Elegant minimalistic nebula effects */
 .linear-landing .hero-nebula {
     mix-blend-mode: screen;
-    filter: blur(60px);
-    opacity: 0.45;
+    filter: blur(80px);
+    opacity: 0.25;
+    animation: nebula-float 20s ease-in-out infinite;
 }
 
 .linear-landing .hero-nebula--left {
-    background: radial-gradient(circle, rgba(88, 158, 255, 0.5), transparent 55%);
-    width: 50%;
-    height: 50%;
-    transform: translate(-20%, -10%);
+    background: radial-gradient(circle, rgba(88, 158, 255, 0.35), transparent 60%);
+    width: 45%;
+    height: 45%;
+    transform: translate(-15%, -5%);
+    animation-duration: 25s;
 }
 
 .linear-landing .hero-nebula--right {
-    background: radial-gradient(circle, rgba(255, 108, 217, 0.4), transparent 60%);
-    width: 45%;
-    height: 45%;
-    right: 5%;
-    bottom: 10%;
+    background: radial-gradient(circle, rgba(255, 108, 217, 0.28), transparent 65%);
+    width: 40%;
+    height: 40%;
+    right: 8%;
+    bottom: 12%;
+    animation-duration: 22s;
+    animation-delay: -10s;
+}
+
+/* Shooting Stars */
+.linear-landing .hero-shooting-star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), transparent);
+    border-radius: 50%;
+    opacity: 0;
+    animation: shooting-star 3s ease-out infinite;
+}
+
+.linear-landing .hero-shooting-star::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.8), transparent);
+    transform: translateX(3px);
+}
+
+.linear-landing .hero-shooting-star--1 {
+    top: 20%;
+    right: 15%;
+    animation-delay: 1s;
+}
+
+.linear-landing .hero-shooting-star--2 {
+    top: 45%;
+    right: 60%;
+    animation-delay: 4s;
+}
+
+.linear-landing .hero-shooting-star--3 {
+    top: 70%;
+    right: 30%;
+    animation-delay: 7s;
+}
+
+.linear-landing .hero-shooting-star--4 {
+    top: 35%;
+    right: 85%;
+    animation-delay: 2.5s;
+}
+
+.linear-landing .hero-shooting-star--5 {
+    top: 60%;
+    right: 50%;
+    animation-delay: 5.5s;
+}
+
+.linear-landing .hero-shooting-star--6 {
+    top: 15%;
+    right: 45%;
+    animation-delay: 8.5s;
+}
+
+.linear-landing .hero-shooting-star--7 {
+    top: 80%;
+    right: 70%;
+    animation-delay: 3s;
+}
+
+.linear-landing .hero-shooting-star--8 {
+    top: 50%;
+    right: 20%;
+    animation-delay: 6s;
+}
+
+/* Floating Planets */
+.linear-landing .hero-planet {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.15;
+    filter: blur(1px);
+}
+
+.linear-landing .hero-planet--1 {
+    width: 120px;
+    height: 120px;
+    top: 15%;
+    left: 10%;
+    background: radial-gradient(circle at 30% 30%, rgba(147, 197, 253, 0.6), rgba(99, 102, 241, 0.3));
+    box-shadow: 
+        inset -10px -10px 20px rgba(0, 0, 0, 0.3),
+        0 0 40px rgba(99, 102, 241, 0.2);
+    animation: planet-float 30s ease-in-out infinite;
+}
+
+.linear-landing .hero-planet--2 {
+    width: 80px;
+    height: 80px;
+    bottom: 25%;
+    right: 15%;
+    background: radial-gradient(circle at 35% 35%, rgba(251, 207, 232, 0.5), rgba(219, 39, 119, 0.2));
+    box-shadow: 
+        inset -8px -8px 16px rgba(0, 0, 0, 0.25),
+        0 0 30px rgba(219, 39, 119, 0.15);
+    animation: planet-float 25s ease-in-out infinite reverse;
 }
 
 .linear-landing .hero-inner {
@@ -480,7 +592,19 @@
         background-position: 0 0;
     }
     to {
-        background-position: -1200px 800px;
+        background-position: -1400px 900px;
+    }
+}
+
+@keyframes nebula-float {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(5%, 3%) scale(1.05);
+    }
+    66% {
+        transform: translate(-3%, -2%) scale(0.98);
     }
 }
 
@@ -501,6 +625,30 @@
     }
     50% {
         opacity: 0.6;
+    }
+}
+
+@keyframes shooting-star {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) rotate(-45deg);
+    }
+    5% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-300px, 300px) rotate(-45deg);
+    }
+}
+
+@keyframes planet-float {
+    0%,
+    100% {
+        transform: translateY(0px) scale(1);
+    }
+    50% {
+        transform: translateY(-20px) scale(1.05);
     }
 }
 

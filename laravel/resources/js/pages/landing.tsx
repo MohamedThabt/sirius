@@ -9,9 +9,6 @@ import HeroIllustration from '@/components/landing/HeroIllustration';
 import MetricsSection from '@/components/landing/MetricsSection';
 import Navbar from '@/components/landing/Navbar';
 import PersonasSection from '@/components/landing/PersonasSection';
-import PricingSection from '@/components/landing/PricingSection';
-import SocialProof from '@/components/landing/SocialProof';
-import StatsSection from '@/components/landing/StatsSection';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import WorkflowSection from '@/components/landing/WorkflowSection';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -41,7 +38,6 @@ export default function Landing() {
                         <Navbar />
                         <Hero />
                         <HeroIllustration />
-                        <SocialProof />
                         <Features />
                         <ComparisonSection />
                         <ActionSlidesSection />
@@ -49,9 +45,7 @@ export default function Landing() {
                         <MetricsSection />
                         <PersonasSection />
                         <TestimonialsSection />
-                        <PricingSection />
                         <CompetitorComparison />
-                        <StatsSection />
                         <FinalCTA />
                         <Footer />
                     </main>

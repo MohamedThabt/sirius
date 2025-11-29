@@ -2,27 +2,24 @@ import AppLogoIcon from "@/components/app-logo-icon";
 
 const Footer = () => {
   const links = {
-    product: ["Features", "Pricing", "Integrations", "Roadmap"],
-    resources: ["Documentation", "Blog", "Templates", "API Docs"],
-    company: ["About", "Careers", "Contact", "Brand"],
     legal: ["Privacy", "Terms", "Security", "Compliance"],
   };
 
   return (
     <footer className="relative border-t border-[hsl(var(--subtle-border))] py-16 md:py-20 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-          {/* Logo */}
-          <div className="col-span-2 md:col-span-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          {/* Logo and Description */}
+          <div>
             <div className="mb-4">
               <AppLogoIcon className="h-8 w-auto" />
             </div>
-            <p className="text-sm text-[hsl(var(--text-secondary))]">
-              AI-powered documentation generation for software engineers
+            <p className="text-sm text-[hsl(var(--text-secondary))] max-w-md">
+              AI-powered documentation generation for software engineers. Transform your ideas into complete technical specifications.
             </p>
           </div>
 
-          {/* Links */}
+          {/* Legal Links */}
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
               <h4 className="text-sm font-semibold mb-4 capitalize text-[hsl(var(--text-primary))]">
@@ -47,7 +44,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="mt-16 pt-8 border-t border-[hsl(var(--subtle-border))] flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-[hsl(var(--text-tertiary))]">
-            © 2025 DevMind. All rights reserved.
+            © 2025 Sirius. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-sm text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors">
