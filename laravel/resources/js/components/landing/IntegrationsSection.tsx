@@ -22,7 +22,7 @@ const IntegrationsSection = () => {
             className="text-lg text-[hsl(var(--text-secondary))] max-w-2xl mx-auto animate-fade-in-up"
             style={{ animationDelay: "0.1s", opacity: 0 }}
           >
-            Connect Dayra to the tools your team already uses.
+            Connect Sirius to the tools your team already uses.
           </p>
         </div>
 

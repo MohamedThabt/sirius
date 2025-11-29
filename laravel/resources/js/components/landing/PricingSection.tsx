@@ -8,7 +8,7 @@ const PricingSection = () => {
       price: "$0",
       period: "",
       role: "Individual Engineer",
-      description: "Test Dayra with a single project",
+      description: "Test Sirius with a single project",
       features: [
         "1 User",
         "1 Project workspace",

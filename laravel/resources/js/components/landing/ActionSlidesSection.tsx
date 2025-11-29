@@ -386,7 +386,7 @@ const ActionSlidesSection = () => {
                 <div className="mb-16 text-center">
                     <h2 className="mb-4 text-4xl font-bold md:text-5xl">See It in Action</h2>
                     <p className="text-lg text-[#95A2B3]">
-                        See how Dayra transforms project briefs into comprehensive documentation and exports to GitHub
+                        See how Sirius transforms project briefs into comprehensive documentation and exports to GitHub
                     </p>
                 </div>
 

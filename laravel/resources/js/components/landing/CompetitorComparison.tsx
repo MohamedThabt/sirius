@@ -5,7 +5,7 @@ const CompetitorComparison = () => {
   const workflowSteps = [
     {
       icon: FileText,
-      title: "Plan with Dayra",
+      title: "Plan with Sirius",
       description: "Generate PRDs, ERDs, wireframes, and specs",
       color: "from-[hsl(var(--bg-tertiary))] to-[hsl(var(--bg-tertiary))]/70",
       borderColor: "border-[hsl(var(--bg-tertiary))]/40",
@@ -39,7 +39,7 @@ const CompetitorComparison = () => {
               Works Best with AI Code Generators
             </h2>
             <p className="mx-auto max-w-2xl text-lg leading-relaxed text-[hsl(var(--text-secondary))]">
-              Dayra automates pre-code planning and documentation. Export to GitHub, then hand off to Copilot or Cursor for seamless code generation.
+              Sirius automates pre-code planning and documentation. Export to GitHub, then hand off to Copilot or Cursor for seamless code generation.
             </p>
           </div>
 
@@ -173,7 +173,7 @@ const CompetitorComparison = () => {
               <div>
                 <h3 className="mb-4 text-2xl font-semibold text-white">Perfect Integration</h3>
                 <p className="mb-6 text-[hsl(var(--text-secondary))] leading-relaxed">
-                  Dayra generates comprehensive documentation and exports it to your GitHub repository. 
+                  Sirius generates comprehensive documentation and exports it to your GitHub repository. 
                   When you use Copilot or Cursor, they can read your specs directly from the repo, 
                   providing better context for code generation.
                 </p>

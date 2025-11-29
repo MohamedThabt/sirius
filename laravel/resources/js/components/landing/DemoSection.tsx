@@ -331,7 +331,7 @@ const DemoSection = () => {
             <div className="container mx-auto px-6">
                 <h2 className="mb-4 text-center text-4xl font-bold md:text-5xl">See It in Action</h2>
                 <p className="mb-16 text-center text-lg text-[#95A2B3]">
-                    See how Dayra transforms project briefs into comprehensive documentation and exports to GitHub
+                    See how Sirius transforms project briefs into comprehensive documentation and exports to GitHub
                 </p>
 
                 <Tabs defaultValue="overview" className="mx-auto max-w-6xl">

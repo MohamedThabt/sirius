@@ -26,7 +26,7 @@ const MetricsSection = () => {
     <section className="py-24">
       <div className="container mx-auto px-6">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">
-          Why Choose Dayra for Documentation?
+          Why Choose Sirius for Documentation?
         </h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-6xl mx-auto mt-16">

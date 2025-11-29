@@ -158,24 +158,6 @@ const HeroIllustration = () => {
                     active: true,
                     onClick: () => {},
                 },
-                {
-                    key: 'overview',
-                    icon: FileIcon,
-                    label: 'System Overview',
-                    onClick: () => {},
-                },
-                {
-                    key: 'prd',
-                    icon: FileIcon,
-                    label: 'PRD',
-                    onClick: () => {},
-                },
-                {
-                    key: 'features',
-                    icon: ZapIcon,
-                    label: 'Features',
-                    onClick: () => {},
-                },
             ],
         },
         {
@@ -185,29 +167,6 @@ const HeroIllustration = () => {
                     key: 'brainstorming',
                     icon: LightbulbIcon,
                     label: 'Brainstorming',
-                    onClick: () => {},
-                },
-            ],
-        },
-        {
-            label: 'Technical',
-            items: [
-                {
-                    key: 'erd',
-                    icon: DatabaseIcon,
-                    label: 'Database Designer',
-                    onClick: () => {},
-                },
-                {
-                    key: 'c4',
-                    icon: LayersIcon,
-                    label: 'System Architecture',
-                    onClick: () => {},
-                },
-                {
-                    key: 'technology',
-                    icon: CodeIcon,
-                    label: 'Technology Stack',
                     onClick: () => {},
                 },
             ],

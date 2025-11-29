@@ -29,7 +29,7 @@ const PersonasSection = () => {
           Built for Software Engineers & Teams
         </h2>
         <p className="text-center text-[#95A2B3] text-lg mb-16">
-          From individual engineers to engineering teams, Dayra automates your pre-code documentation workflow
+          From individual engineers to engineering teams, Sirius automates your pre-code documentation workflow
         </p>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">

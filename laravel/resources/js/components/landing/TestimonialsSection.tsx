@@ -1,7 +1,7 @@
 const TestimonialsSection = () => {
   const testimonials = [
     {
-      quote: "Dayra has transformed our pre-code workflow. What used to take weeks of documentation now happens in hours with AI-generated PRDs, ERDs, and wireframes.",
+      quote: "Sirius has transformed our pre-code workflow. What used to take weeks of documentation now happens in hours with AI-generated PRDs, ERDs, and wireframes.",
       author: "Sarah Chen",
       role: "Engineering Lead",
       company: "TechStart",
@@ -15,7 +15,7 @@ const TestimonialsSection = () => {
       avatar: "MR",
     },
     {
-      quote: "We've eliminated weeks of manual documentation work. Dayra generates everything we need - from PRDs to sequence diagrams - automatically.",
+      quote: "We've eliminated weeks of manual documentation work. Sirius generates everything we need - from PRDs to sequence diagrams - automatically.",
       author: "Emma Williams",
       role: "CTO",
       company: "Acme Corp",
