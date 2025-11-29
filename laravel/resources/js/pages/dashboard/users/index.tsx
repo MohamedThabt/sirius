@@ -1,11 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
-import { EyeIcon } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { UsersIcon, FolderIcon, GitBranchIcon, TrendingUpIcon } from 'lucide-react';
 import { useState } from 'react';
 
 interface User {
@@ -17,6 +18,13 @@ interface User {
     avatar?: string;
 }
 
+interface Summary {
+    total: number;
+    with_projects: number;
+    this_month: number;
+    with_github: number;
+}
+
 interface Props {
     users: {
         data: User[];
@@ -26,6 +34,7 @@ interface Props {
     filters: {
         search?: string;
     };
+    summary: Summary;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -39,12 +48,18 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function UsersIndex({ users, filters }: Props) {
+export default function UsersIndex({ users, filters, summary }: Props) {
     const [search, setSearch] = useState(filters.search || '');
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/users', { search }, { preserveState: true });
+    const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            router.get('/admin/users', search ? { search } : {}, { preserveState: true });
+        }
+    };
+
+    const clearSearch = () => {
+        setSearch('');
+        router.get('/admin/users');
     };
 
     return (
@@ -57,28 +72,61 @@ export default function UsersIndex({ users, filters }: Props) {
                     <Badge variant="outline">{users.meta?.total || 0} Total Users</Badge>
                 </div>
 
-                <form onSubmit={handleSearch} className="flex gap-2">
+                {/* Summary Cards */}
+                <div className="grid gap-4 md:grid-cols-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                            <UsersIcon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.total}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">With Projects</CardTitle>
+                            <FolderIcon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.with_projects}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+                            <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.this_month}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">With GitHub</CardTitle>
+                            <GitBranchIcon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.with_github}</div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="flex gap-2">
                     <Input
                         type="text"
-                        placeholder="Search users by name or email..."
+                        placeholder="Search users by name or email... (Press Enter)"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={handleSearchKeyDown}
                         className="max-w-sm"
                     />
-                    <Button type="submit">Search</Button>
                     {search && (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                                setSearch('');
-                                router.get('/admin/users');
-                            }}
-                        >
+                        <Button variant="outline" onClick={clearSearch}>
                             Clear
                         </Button>
                     )}
-                </form>
+                </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <Table>
@@ -88,12 +136,15 @@ export default function UsersIndex({ users, filters }: Props) {
                                 <TableHead>Email</TableHead>
                                 <TableHead>Projects</TableHead>
                                 <TableHead>Joined</TableHead>
-                                <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {users.data.map((user) => (
-                                <TableRow key={user.id}>
+                                <TableRow 
+                                    key={user.id}
+                                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                    onClick={() => router.visit(`/admin/users/${user.id}`)}
+                                >
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             {user.avatar ? (
@@ -111,14 +162,6 @@ export default function UsersIndex({ users, filters }: Props) {
                                         <Badge variant="secondary">{user.projects_count} projects</Badge>
                                     </TableCell>
                                     <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                                    <TableCell>
-                                        <Link href={`/admin/users/${user.id}`}>
-                                            <Button variant="outline" size="sm">
-                                                <EyeIcon className="mr-2 h-4 w-4" />
-                                                View
-                                            </Button>
-                                        </Link>
-                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

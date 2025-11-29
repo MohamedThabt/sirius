@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\BetaInvitation;
+use App\Models\Feature;
+use App\Models\GithubToken;
 use App\Models\Project;
 use App\Models\User;
 use App\Traits\StructuredLogger;
@@ -16,24 +19,124 @@ class DashboardController extends Controller
     use StructuredLogger;
 
     /**
-     * Display the admin dashboard with key statistics.
+     * Display the admin dashboard with comprehensive statistics.
      *
      * Shows:
-     * - Total counts for users, projects, and admins
-     * - 5 most recent users with basic info
-     * - 5 most recent projects with user relationship
+     * - Total and contextual counts for users, projects, admins
+     * - Feature and PRD counts
+     * - Beta invitation stats
+     * - GitHub integration stats
+     * - Project status breakdown
+     * - Recent activity (users, projects, admins, beta invitations)
      *
      * @return Response Inertia response rendering the dashboard index page
      */
     public function index(): Response
     {
         try {
+            // User stats
+            $totalUsers = User::count();
+            $usersWithProjects = User::has('projects')->count();
+            $usersThisMonth = User::where('created_at', '>=', now()->startOfMonth())->count();
+            $usersThisWeek = User::where('created_at', '>=', now()->startOfWeek())->count();
+
+            // Project stats
+            $totalProjects = Project::count();
+            $projectsByStatus = Project::selectRaw('status, COUNT(*) as count')
+                ->groupBy('status')
+                ->pluck('count', 'status')
+                ->toArray();
+            $projectsThisMonth = Project::where('created_at', '>=', now()->startOfMonth())->count();
+            $projectsWithPrd = Project::whereNotNull('prd')->where('prd', '!=', '')->count();
+            $projectsWithErd = Project::whereNotNull('erd')->where('erd', '!=', '')->count();
+            $projectsWithC4 = Project::whereNotNull('c4')->where('c4', '!=', '')->count();
+
+            // Feature stats
+            $totalFeatures = Feature::count();
+            $featuresByStatus = Feature::selectRaw('status, COUNT(*) as count')
+                ->groupBy('status')
+                ->pluck('count', 'status')
+                ->toArray();
+            $featuresByPriority = Feature::selectRaw('priority, COUNT(*) as count')
+                ->groupBy('priority')
+                ->pluck('count', 'priority')
+                ->toArray();
+
+            // Admin stats
+            $totalAdmins = Admin::count();
+            $superAdmins = Admin::where('role', Admin::ROLE_SUPER_ADMIN)->count();
+            $regularAdmins = Admin::where('role', Admin::ROLE_ADMIN)->count();
+
+            // Beta invitation stats
+            $betaPending = BetaInvitation::where('status', BetaInvitation::STATUS_PENDING)->count();
+            $betaApproved = BetaInvitation::where('status', BetaInvitation::STATUS_APPROVED)->count();
+            $betaDenied = BetaInvitation::where('status', BetaInvitation::STATUS_DENIED)->count();
+            $betaTotal = $betaPending + $betaApproved + $betaDenied;
+
+            // GitHub integration stats
+            $usersWithGithub = GithubToken::count();
+            $projectsWithRepo = Project::has('repository')->count();
+
+            // Recent activity
+            $recentUsers = User::latest()
+                ->take(5)
+                ->get(['id', 'name', 'email', 'avatar', 'created_at']);
+
+            $recentProjects = Project::with('user:id,name,email')
+                ->latest()
+                ->take(5)
+                ->get(['id', 'name', 'user_id', 'status', 'created_at', 'updated_at']);
+
+            $recentAdmins = Admin::with('creator:id,name')
+                ->latest()
+                ->take(5)
+                ->get(['id', 'name', 'email', 'role', 'created_by', 'created_at']);
+
+            $recentBetaInvitations = BetaInvitation::with('invitedBy:id,name')
+                ->latest()
+                ->take(5)
+                ->get(['id', 'name', 'email', 'status', 'invited_by', 'created_at']);
+
             $stats = [
-                'total_users' => User::count(),
-                'total_projects' => Project::count(),
-                'total_admins' => Admin::count(),
-                'recent_users' => User::latest()->take(5)->get(['id', 'name', 'email', 'created_at']),
-                'recent_projects' => Project::with('user:id,name')->latest()->take(5)->get(['id', 'name', 'user_id', 'status', 'created_at']),
+                // User metrics
+                'total_users' => $totalUsers,
+                'users_with_projects' => $usersWithProjects,
+                'users_this_month' => $usersThisMonth,
+                'users_this_week' => $usersThisWeek,
+
+                // Project metrics
+                'total_projects' => $totalProjects,
+                'projects_by_status' => $projectsByStatus,
+                'projects_this_month' => $projectsThisMonth,
+                'projects_with_prd' => $projectsWithPrd,
+                'projects_with_erd' => $projectsWithErd,
+                'projects_with_c4' => $projectsWithC4,
+
+                // Feature metrics
+                'total_features' => $totalFeatures,
+                'features_by_status' => $featuresByStatus,
+                'features_by_priority' => $featuresByPriority,
+
+                // Admin metrics
+                'total_admins' => $totalAdmins,
+                'super_admins' => $superAdmins,
+                'regular_admins' => $regularAdmins,
+
+                // Beta metrics
+                'beta_pending' => $betaPending,
+                'beta_approved' => $betaApproved,
+                'beta_denied' => $betaDenied,
+                'beta_total' => $betaTotal,
+
+                // GitHub integration
+                'users_with_github' => $usersWithGithub,
+                'projects_with_repo' => $projectsWithRepo,
+
+                // Recent activity
+                'recent_users' => $recentUsers,
+                'recent_projects' => $recentProjects,
+                'recent_admins' => $recentAdmins,
+                'recent_beta_invitations' => $recentBetaInvitations,
             ];
 
             return Inertia::render('dashboard/index', compact('stats'));

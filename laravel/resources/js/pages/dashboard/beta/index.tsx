@@ -46,6 +46,15 @@ interface BetaInvitation {
   created_at: string;
 }
 
+interface BetaSummary {
+  total: number;
+  pending: number;
+  approved: number;
+  denied: number;
+  this_week: number;
+  this_month: number;
+}
+
 interface IndexProps {
   invitations: {
     data: BetaInvitation[];
@@ -61,6 +70,7 @@ interface IndexProps {
     status?: string;
   };
   statuses: Array<{ value: string; label: string }>;
+  summary?: BetaSummary;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -74,7 +84,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-const BetaIndex = ({ invitations, filters, statuses }: IndexProps) => {
+const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
   const [search, setSearch] = useState(filters.search || "");
   const [statusFilter, setStatusFilter] = useState(filters.status || "");
   const [approveLoading, setApproveLoading] = useState<number | null>(null);
@@ -166,9 +176,11 @@ const BetaIndex = ({ invitations, filters, statuses }: IndexProps) => {
     }
   };
 
-  const totalPending = invitations.data.filter((i) => i.status === "pending").length;
-  const totalApproved = invitations.data.filter((i) => i.status === "approved").length;
-  const totalDenied = invitations.data.filter((i) => i.status === "denied").length;
+  // Use summary from controller if available, otherwise calculate locally
+  const totalPending = summary?.pending ?? invitations.data.filter((i) => i.status === "pending").length;
+  const totalApproved = summary?.approved ?? invitations.data.filter((i) => i.status === "approved").length;
+  const totalDenied = summary?.denied ?? invitations.data.filter((i) => i.status === "denied").length;
+  const totalInvitations = summary?.total ?? invitations.total;
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -181,7 +193,7 @@ const BetaIndex = ({ invitations, filters, statuses }: IndexProps) => {
               <UserPlus className="h-4 w-4" />
               Create Invitation
             </Button>
-            <Badge variant="outline">{invitations.total} Total</Badge>
+            <Badge variant="outline">{totalInvitations} Total</Badge>
             <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
               {totalPending} Pending
             </Badge>
@@ -191,6 +203,11 @@ const BetaIndex = ({ invitations, filters, statuses }: IndexProps) => {
             <Badge variant="secondary" className="bg-red-500/10 text-red-600 dark:text-red-400">
               {totalDenied} Denied
             </Badge>
+            {summary?.this_week !== undefined && (
+              <Badge variant="outline" className="text-muted-foreground">
+                {summary.this_week} this week
+              </Badge>
+            )}
           </div>
         </div>
 

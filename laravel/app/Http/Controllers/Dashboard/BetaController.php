@@ -53,6 +53,16 @@ class BetaController extends Controller
                 ->paginate(15)
                 ->withQueryString();
 
+            // Summary stats
+            $summary = [
+                'total' => BetaInvitation::count(),
+                'pending' => BetaInvitation::where('status', BetaInvitation::STATUS_PENDING)->count(),
+                'approved' => BetaInvitation::where('status', BetaInvitation::STATUS_APPROVED)->count(),
+                'denied' => BetaInvitation::where('status', BetaInvitation::STATUS_DENIED)->count(),
+                'this_week' => BetaInvitation::where('created_at', '>=', now()->startOfWeek())->count(),
+                'this_month' => BetaInvitation::where('created_at', '>=', now()->startOfMonth())->count(),
+            ];
+
             return Inertia::render('dashboard/beta/index', [
                 'invitations' => $invitations,
                 'filters' => $request->only(['search', 'status']),
@@ -61,6 +71,7 @@ class BetaController extends Controller
                     ['value' => 'approved', 'label' => 'Approved'],
                     ['value' => 'denied', 'label' => 'Denied'],
                 ],
+                'summary' => $summary,
             ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'index']);

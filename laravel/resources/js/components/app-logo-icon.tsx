@@ -2,7 +2,7 @@ import { ImgHTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
 
-const lightLogoUrl = new URL('../../images/LightModeSirius.png', import.meta.url).href;
+const lightLogoUrl = new URL('../../images/brand-logo.png', import.meta.url).href;
 const darkLogoUrl = new URL('../../images/brand-logo.png', import.meta.url).href;
 
 type AppLogoIconProps = ImgHTMLAttributes<HTMLImageElement>;

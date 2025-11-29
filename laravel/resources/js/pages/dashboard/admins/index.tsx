@@ -1,12 +1,23 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
-import { PencilIcon, PlusIcon, TrashIcon } from 'lucide-react';
-import { useState } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { PencilIcon, PlusIcon, TrashIcon, ShieldIcon, ShieldCheckIcon } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 
 interface Admin {
     id: number;
@@ -20,12 +31,36 @@ interface Admin {
     };
 }
 
+interface Role {
+    value: string;
+    label: string;
+}
+
+interface Summary {
+    total: number;
+    super_admins: number;
+    admins: number;
+}
+
 interface Props {
     admins: {
         data: Admin[];
         links: any[];
         meta: any;
     };
+    filters: {
+        search?: string;
+        role?: string;
+    };
+    roles: Role[];
+    summary: Summary;
+}
+
+interface AdminFormData {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -39,17 +74,106 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function AdminsIndex({ admins }: Props) {
-    const [search, setSearch] = useState('');
+export default function AdminsIndex({ admins, filters, roles, summary }: Props) {
+    const [search, setSearch] = useState(filters?.search || '');
+    const [roleFilter, setRoleFilter] = useState(filters?.role || 'all');
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/admins', { search }, { preserveState: true });
+    // Create form
+    const createForm = useForm<AdminFormData>({
+        name: '',
+        email: '',
+        password: '',
+        role: 'admin',
+    });
+
+    // Edit form
+    const editForm = useForm<AdminFormData>({
+        name: '',
+        email: '',
+        password: '',
+        role: 'admin',
+    });
+
+    // Debounced filter function
+    const debouncedFilter = useDebouncedCallback((searchValue: string, roleValue: string) => {
+        const filterData: { search?: string; role?: string } = {};
+        if (searchValue) filterData.search = searchValue;
+        if (roleValue && roleValue !== 'all') filterData.role = roleValue;
+
+        router.get('/admin/admins', filterData, { preserveState: true });
+    }, 300);
+
+    // Handle search change with debounce
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        debouncedFilter(value, roleFilter);
     };
 
-    const handleDelete = (admin: Admin) => {
+    // Handle role filter change - instant apply
+    const handleRoleChange = (value: string) => {
+        setRoleFilter(value);
+        const filterData: { search?: string; role?: string } = {};
+        if (search) filterData.search = search;
+        if (value && value !== 'all') filterData.role = value;
+        router.get('/admin/admins', filterData, { preserveState: true });
+    };
+
+    const clearFilters = () => {
+        setSearch('');
+        setRoleFilter('all');
+        router.get('/admin/admins');
+    };
+
+    const handleDelete = (admin: Admin, e: React.MouseEvent) => {
+        e.stopPropagation();
         if (confirm(`Are you sure you want to delete ${admin.name}?`)) {
             router.delete(`/admin/admins/${admin.id}`);
+        }
+    };
+
+    const handleRowClick = (admin: Admin) => {
+        setSelectedAdmin(admin);
+        editForm.setData({
+            name: admin.name,
+            email: admin.email,
+            password: '',
+            role: admin.role,
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditClick = (admin: Admin, e: React.MouseEvent) => {
+        e.stopPropagation();
+        handleRowClick(admin);
+    };
+
+    const openCreateModal = () => {
+        createForm.reset();
+        setIsCreateModalOpen(true);
+    };
+
+    const handleCreateSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        createForm.post('/admin/admins', {
+            onSuccess: () => {
+                setIsCreateModalOpen(false);
+                createForm.reset();
+            },
+        });
+    };
+
+    const handleEditSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (selectedAdmin) {
+            editForm.put(`/admin/admins/${selectedAdmin.id}`, {
+                onSuccess: () => {
+                    setIsEditModalOpen(false);
+                    setSelectedAdmin(null);
+                },
+            });
         }
     };
 
@@ -60,24 +184,71 @@ export default function AdminsIndex({ admins }: Props) {
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Admin Management</h1>
-                    <Link href="/admin/admins/create">
-                        <Button>
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            Add Admin
-                        </Button>
-                    </Link>
+                    <Button onClick={openCreateModal}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        Add Admin
+                    </Button>
                 </div>
 
-                <form onSubmit={handleSearch} className="flex gap-2">
+                {/* Summary Cards */}
+                <div className="grid gap-4 md:grid-cols-3">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Total Admins</CardTitle>
+                            <ShieldIcon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.total}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
+                            <ShieldCheckIcon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.super_admins}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Regular Admins</CardTitle>
+                            <ShieldIcon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{summary.admins}</div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Filters */}
+                <div className="flex flex-wrap gap-2">
                     <Input
                         type="text"
-                        placeholder="Search admins..."
+                        placeholder="Search by name or email..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         className="max-w-sm"
                     />
-                    <Button type="submit">Search</Button>
-                </form>
+                    <Select value={roleFilter} onValueChange={handleRoleChange}>
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Filter by role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            {roles.map((role) => (
+                                <SelectItem key={role.value} value={role.value}>
+                                    {role.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {(search || (roleFilter && roleFilter !== 'all')) && (
+                        <Button variant="outline" onClick={clearFilters}>
+                            Clear
+                        </Button>
+                    )}
+                </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <Table>
@@ -93,7 +264,11 @@ export default function AdminsIndex({ admins }: Props) {
                         </TableHeader>
                         <TableBody>
                             {admins.data.map((admin) => (
-                                <TableRow key={admin.id}>
+                                <TableRow 
+                                    key={admin.id} 
+                                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                    onClick={() => handleRowClick(admin)}
+                                >
                                     <TableCell className="font-medium">{admin.name}</TableCell>
                                     <TableCell>{admin.email}</TableCell>
                                     <TableCell>
@@ -105,15 +280,17 @@ export default function AdminsIndex({ admins }: Props) {
                                     <TableCell>{new Date(admin.created_at).toLocaleDateString()}</TableCell>
                                     <TableCell>
                                         <div className="flex gap-2">
-                                            <Link href={`/admin/admins/${admin.id}/edit`}>
-                                                <Button variant="outline" size="sm">
-                                                    <PencilIcon className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm"
+                                                onClick={(e) => handleEditClick(admin, e)}
+                                            >
+                                                <PencilIcon className="h-4 w-4" />
+                                            </Button>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleDelete(admin)}
+                                                onClick={(e) => handleDelete(admin, e)}
                                                 className="text-red-600 hover:text-red-700"
                                             >
                                                 <TrashIcon className="h-4 w-4" />
@@ -126,12 +303,192 @@ export default function AdminsIndex({ admins }: Props) {
                     </Table>
                 </div>
 
-                {/* Pagination would go here if needed */}
+                {admins.data.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <p className="text-lg font-medium text-muted-foreground">No admins found</p>
+                        {(search || (roleFilter && roleFilter !== 'all')) && (
+                            <p className="text-sm text-muted-foreground">Try adjusting your search criteria</p>
+                        )}
+                    </div>
+                )}
+
+                {/* Pagination info */}
                 <div className="flex justify-center">
                     <p className="text-sm text-muted-foreground">
                         Showing {admins.data.length} of {admins.meta?.total || 0} admins
                     </p>
                 </div>
+
+                {/* Create Admin Modal */}
+                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Create New Admin</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleCreateSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="create-name">Name</Label>
+                                <Input
+                                    id="create-name"
+                                    type="text"
+                                    value={createForm.data.name}
+                                    onChange={(e) => createForm.setData('name', e.target.value)}
+                                    required
+                                />
+                                {createForm.errors.name && (
+                                    <p className="text-sm text-red-600">{createForm.errors.name}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-email">Email</Label>
+                                <Input
+                                    id="create-email"
+                                    type="email"
+                                    value={createForm.data.email}
+                                    onChange={(e) => createForm.setData('email', e.target.value)}
+                                    required
+                                />
+                                {createForm.errors.email && (
+                                    <p className="text-sm text-red-600">{createForm.errors.email}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-password">Password</Label>
+                                <Input
+                                    id="create-password"
+                                    type="password"
+                                    value={createForm.data.password}
+                                    onChange={(e) => createForm.setData('password', e.target.value)}
+                                    required
+                                />
+                                {createForm.errors.password && (
+                                    <p className="text-sm text-red-600">{createForm.errors.password}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-role">Role</Label>
+                                <Select
+                                    value={createForm.data.role}
+                                    onValueChange={(value) => createForm.setData('role', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {createForm.errors.role && (
+                                    <p className="text-sm text-red-600">{createForm.errors.role}</p>
+                                )}
+                            </div>
+
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsCreateModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={createForm.processing}>
+                                    {createForm.processing ? 'Creating...' : 'Create Admin'}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Edit Admin Modal */}
+                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Edit Admin - {selectedAdmin?.name}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleEditSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-name">Name</Label>
+                                <Input
+                                    id="edit-name"
+                                    type="text"
+                                    value={editForm.data.name}
+                                    onChange={(e) => editForm.setData('name', e.target.value)}
+                                    required
+                                />
+                                {editForm.errors.name && (
+                                    <p className="text-sm text-red-600">{editForm.errors.name}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-email">Email</Label>
+                                <Input
+                                    id="edit-email"
+                                    type="email"
+                                    value={editForm.data.email}
+                                    onChange={(e) => editForm.setData('email', e.target.value)}
+                                    required
+                                />
+                                {editForm.errors.email && (
+                                    <p className="text-sm text-red-600">{editForm.errors.email}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-password">Password</Label>
+                                <Input
+                                    id="edit-password"
+                                    type="password"
+                                    value={editForm.data.password}
+                                    onChange={(e) => editForm.setData('password', e.target.value)}
+                                    placeholder="Leave blank to keep current password"
+                                />
+                                {editForm.errors.password && (
+                                    <p className="text-sm text-red-600">{editForm.errors.password}</p>
+                                )}
+                                <p className="text-sm text-muted-foreground">
+                                    Leave blank to keep the current password
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-role">Role</Label>
+                                <Select
+                                    value={editForm.data.role}
+                                    onValueChange={(value) => editForm.setData('role', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {editForm.errors.role && (
+                                    <p className="text-sm text-red-600">{editForm.errors.role}</p>
+                                )}
+                            </div>
+
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={editForm.processing}>
+                                    {editForm.processing ? 'Updating...' : 'Update Admin'}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

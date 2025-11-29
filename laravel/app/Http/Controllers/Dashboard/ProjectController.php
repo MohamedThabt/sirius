@@ -51,10 +51,23 @@ class ProjectController extends Controller
 
             $statuses = Project::distinct('status')->pluck('status');
 
+            // Summary stats
+            $summary = [
+                'total' => Project::count(),
+                'by_status' => Project::selectRaw('status, COUNT(*) as count')
+                    ->groupBy('status')
+                    ->pluck('count', 'status')
+                    ->toArray(),
+                'with_prd' => Project::whereNotNull('prd')->where('prd', '!=', '')->count(),
+                'with_erd' => Project::whereNotNull('erd')->where('erd', '!=', '')->count(),
+                'this_month' => Project::where('created_at', '>=', now()->startOfMonth())->count(),
+            ];
+
             return Inertia::render('dashboard/projects/index', [
                 'projects' => $projects,
                 'statuses' => $statuses,
                 'filters' => $request->only(['search', 'status']),
+                'summary' => $summary,
             ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'index']);
@@ -73,6 +86,7 @@ class ProjectController extends Controller
      * - Repository details
      * - Team members and invitations
      * - User's total projects count
+     * - Project metrics (features, completion, etc.)
      *
      * @param Project $project The project to display
      * @return Response Inertia response rendering the project show page
@@ -80,28 +94,80 @@ class ProjectController extends Controller
     public function show(Project $project): Response
     {
         try {
-            $project->load(
+            $project->load([
                 'user:id,name,email,avatar,created_at',
-                'overviewVersions',
+                'overviewVersions' => function ($query) {
+                    $query->orderBy('version_number', 'desc');
+                },
                 'baseOverviewVersion',
                 'latestOverviewVersion',
                 'features',
                 'technicalIntake',
                 'repository',
-                'members:id,name,email',
-                'invitations',
+                'members:id,name,email,avatar',
+                'invitations.user:id,name,email',
+                'invitations.inviter:id,name',
                 'pendingInvitations',
                 'projectUsers'
-            );
+            ]);
 
             // Load user's total projects count
             $project->user->loadCount('projects');
 
-            return Inertia::render('dashboard/projects/show', compact('project'));
+            // Calculate project metrics
+            $projectMetrics = [
+                'total_features' => $project->features->count(),
+                'features_by_status' => $project->features
+                    ->groupBy('status')
+                    ->map->count()
+                    ->toArray(),
+                'features_by_priority' => $project->features
+                    ->groupBy('priority')
+                    ->map->count()
+                    ->toArray(),
+                'total_members' => $project->members->count(),
+                'pending_invitations' => $project->pendingInvitations->count(),
+                'overview_versions_count' => $project->overviewVersions->count(),
+                'has_prd' => !empty($project->prd),
+                'has_erd' => !empty($project->erd),
+                'has_c4' => !empty($project->c4),
+                'has_technical_details' => !empty($project->technical_details),
+                'has_repository' => $project->repository !== null,
+                'completion_percentage' => $this->calculateProjectCompletion($project),
+            ];
+
+            // Prepare project data with explicit relationships
+            $projectData = $project->toArray();
+            $projectData['overviewVersions'] = $project->overviewVersions->toArray();
+            $projectData['baseOverviewVersion'] = $project->baseOverviewVersion?->toArray();
+            $projectData['latestOverviewVersion'] = $project->latestOverviewVersion?->toArray();
+
+            return Inertia::render('dashboard/projects/show', [
+                'project' => $projectData,
+                'projectMetrics' => $projectMetrics,
+            ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'show', 'project_id' => $project->id]);
             return back()->with('error', 'Failed to load project details. Please try again.');
         }
+    }
+
+    /**
+     * Calculate project completion percentage based on filled sections.
+     */
+    private function calculateProjectCompletion(Project $project): int
+    {
+        $sections = [
+            !empty($project->brief),
+            !empty($project->prd),
+            !empty($project->erd),
+            !empty($project->c4),
+            !empty($project->technical_details),
+            $project->features->isNotEmpty(),
+        ];
+
+        $completed = count(array_filter($sections));
+        return (int) round(($completed / count($sections)) * 100);
     }
 
     /**
@@ -157,14 +223,17 @@ class ProjectController extends Controller
      * Shows the database schema design for the project.
      *
      * @param Project $project The project to display
-     * @return Response Inertia response rendering the ERD page
+     * @return Response Inertia response rendering the ERD page with project's ERD content
      */
     public function erd(Project $project): Response
     {
         try {
             $project->load('user:id,name,email');
 
-            return Inertia::render('dashboard/projects/erd', compact('project'));
+            return Inertia::render('dashboard/projects/erd', [
+                'project' => $project,
+                'initialContent' => $project->erd ?? '',
+            ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'erd', 'project_id' => $project->id]);
             return back()->with('error', 'Failed to load ERD diagram. Please try again.');
@@ -195,19 +264,56 @@ class ProjectController extends Controller
      * Display the technical details page.
      *
      * Shows comprehensive technical specifications and implementation details.
+     * Loads the technical intake to display technology stack information.
      *
      * @param Project $project The project to display
-     * @return Response Inertia response rendering the technical details page
+     * @return Response Inertia response rendering the technical details page with technology stack
      */
     public function technicalDetails(Project $project): Response
     {
         try {
-            $project->load('user:id,name,email');
+            $project->load('user:id,name,email', 'technicalIntake');
 
-            return Inertia::render('dashboard/projects/technical-details', compact('project'));
+            return Inertia::render('dashboard/projects/technical-details', [
+                'project' => $project,
+                'technicalIntake' => $project->technicalIntake,
+            ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'technicalDetails', 'project_id' => $project->id]);
             return back()->with('error', 'Failed to load technical details. Please try again.');
+        }
+    }
+
+    /**
+     * Display a preview of the Overview document.
+     *
+     * Expected request data:
+     * - content: string (required) - The markdown content to preview
+     * - title: string (required) - The document title
+     * - projectName: string (required) - The project name
+     *
+     * @param Request $request The incoming HTTP request
+     * @param Project $project The project being previewed
+     * @return Response Inertia response rendering the Overview preview page
+     */
+    public function overviewPreview(Request $request, Project $project): Response
+    {
+        try {
+            $validated = $request->validate([
+                'content' => 'required|string',
+                'title' => 'required|string',
+                'projectName' => 'required|string',
+            ]);
+
+            return Inertia::render('dashboard/projects/overview-preview', [
+                'content' => $validated['content'],
+                'title' => $validated['title'],
+                'projectName' => $validated['projectName'],
+                'project' => $project,
+            ]);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'overviewPreview', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to load Overview preview. Please try again.');
         }
     }
 

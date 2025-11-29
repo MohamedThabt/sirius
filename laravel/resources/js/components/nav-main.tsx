@@ -31,7 +31,7 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
 
     const isItemActive = (item: ExtendedNavItem): boolean => {
         const itemHref = typeof item.href === 'string' ? item.href : item.href.url;
-        return page.url.startsWith(itemHref);
+        return page.url === itemHref || page.url.startsWith(itemHref + '/');
     };
 
     const hasActiveChild = (item: ExtendedNavItem): boolean => {
@@ -45,7 +45,7 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
     const renderStatusBadge = (item: ExtendedNavItem) => {
         if (item.badge) {
             return (
-                <Badge variant="secondary" className="ml-auto h-5 min-w-5 px-1 text-xs">
+                <Badge variant="secondary" className="ml-auto h-5 min-w-5 rounded-full px-1.5 text-[10px] font-medium">
                     {item.badge}
                 </Badge>
             );
@@ -55,7 +55,7 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
             return (
                 <item.StatusIcon
                     className={cn(
-                        'ml-auto h-3.5 w-3.5 transition-colors duration-200',
+                        'ml-auto h-3 w-3 transition-all duration-300',
                         item.status === 'completed' && 'text-emerald-500 dark:text-emerald-400',
                         item.status === 'in_progress' && 'animate-spin text-blue-500 dark:text-blue-400',
                         item.status === 'pending' && 'text-muted-foreground/40'
@@ -68,9 +68,13 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
     };
 
     return (
-        <SidebarGroup className="px-2 py-0">
-            {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
-            <SidebarMenu>
+        <SidebarGroup className="px-1 py-0">
+            {title && (
+                <SidebarGroupLabel className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                    {title}
+                </SidebarGroupLabel>
+            )}
+            <SidebarMenu className="gap-0.5">
                 {items.map((item: ExtendedNavItem) => {
                     const hasChildren = item.items && item.items.length > 0;
                     const isActive = isItemActive(item);
@@ -83,15 +87,24 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                         asChild
                                         isActive={isActive || hasActiveChild(item)}
                                         tooltip={{ children: item.title }}
-                                        className="transition-all duration-200 ease-out hover:translate-x-0.5"
+                                        className={cn(
+                                            "group/btn relative rounded-lg transition-all duration-200",
+                                            "hover:bg-primary/5",
+                                            isActive && "bg-primary/10 text-primary font-medium"
+                                        )}
                                     >
                                         <Link href={item.href} prefetch>
-                                            {item.icon && <item.icon className="transition-transform duration-200" />}
-                                            <span>{item.title}</span>
+                                            {item.icon && (
+                                                <item.icon className={cn(
+                                                    "h-4 w-4 transition-all duration-200",
+                                                    isActive ? "text-primary" : "text-muted-foreground group-hover/btn:text-foreground"
+                                                )} />
+                                            )}
+                                            <span className="text-sm">{item.title}</span>
                                             {renderStatusBadge(item)}
                                         </Link>
                                     </SidebarMenuButton>
-                                    <SidebarMenuSub>
+                                    <SidebarMenuSub className="ml-3 border-l border-border/40 pl-2">
                                         {item.items.map((subItem: ExtendedNavItem) => {
                                             const subIsActive = isItemActive(subItem);
                                             return (
@@ -99,13 +112,20 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                                     <SidebarMenuSubButton
                                                         asChild
                                                         isActive={subIsActive}
-                                                        className="transition-all duration-200 ease-out hover:translate-x-0.5"
+                                                        className={cn(
+                                                            "rounded-md transition-all duration-200",
+                                                            "hover:bg-primary/5",
+                                                            subIsActive && "bg-primary/10 text-primary font-medium"
+                                                        )}
                                                     >
                                                         <Link href={subItem.href} prefetch>
                                                             {subItem.icon && (
-                                                                <subItem.icon className="h-4 w-4 transition-transform duration-200" />
+                                                                <subItem.icon className={cn(
+                                                                    "h-3.5 w-3.5 transition-all duration-200",
+                                                                    subIsActive ? "text-primary" : "text-muted-foreground"
+                                                                )} />
                                                             )}
-                                                            <span>{subItem.title}</span>
+                                                            <span className="text-sm">{subItem.title}</span>
                                                             {renderStatusBadge(subItem)}
                                                         </Link>
                                                     </SidebarMenuSubButton>
@@ -119,11 +139,20 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                     asChild
                                     isActive={isActive}
                                     tooltip={{ children: item.title }}
-                                    className="transition-all duration-200 ease-out hover:translate-x-0.5"
+                                    className={cn(
+                                        "group/btn relative rounded-lg transition-all duration-200",
+                                        "hover:bg-primary/5",
+                                        isActive && "bg-primary/10 text-primary font-medium"
+                                    )}
                                 >
                                     <Link href={item.href} prefetch>
-                                        {item.icon && <item.icon className="transition-transform duration-200" />}
-                                        <span>{item.title}</span>
+                                        {item.icon && (
+                                            <item.icon className={cn(
+                                                "h-4 w-4 transition-all duration-200",
+                                                isActive ? "text-primary" : "text-muted-foreground group-hover/btn:text-foreground"
+                                            )} />
+                                        )}
+                                        <span className="text-sm">{item.title}</span>
                                         {renderStatusBadge(item)}
                                     </Link>
                                 </SidebarMenuButton>

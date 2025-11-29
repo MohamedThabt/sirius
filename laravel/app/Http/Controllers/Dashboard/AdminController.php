@@ -21,22 +21,53 @@ class AdminController extends Controller
      * Display a paginated list of all administrators.
      *
      * Only accessible by super administrators.
+     * Supports filtering by search (name/email) and role.
      *
+     * @param Request $request The incoming HTTP request
      * @return Response Inertia response rendering the admins index page
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         try {
             // Only super admins can manage admins
             if (!auth('admin')->user()->isSuperAdmin()) {
                 abort(403, 'Only super admins can manage admins.');
             }
-            
-            $admins = Admin::with('creator:id,name')
-                ->latest()
-                ->paginate(10);
 
-            return Inertia::render('dashboard/admins/index', compact('admins'));
+            $query = Admin::with('creator:id,name');
+
+            // Search filter
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            }
+
+            // Role filter
+            if ($request->filled('role')) {
+                $query->where('role', $request->role);
+            }
+
+            $admins = $query->latest()->paginate(10)->withQueryString();
+
+            // Summary stats
+            $summary = [
+                'total' => Admin::count(),
+                'super_admins' => Admin::where('role', Admin::ROLE_SUPER_ADMIN)->count(),
+                'admins' => Admin::where('role', Admin::ROLE_ADMIN)->count(),
+            ];
+
+            return Inertia::render('dashboard/admins/index', [
+                'admins' => $admins,
+                'filters' => $request->only(['search', 'role']),
+                'roles' => [
+                    ['value' => Admin::ROLE_ADMIN, 'label' => 'Admin'],
+                    ['value' => Admin::ROLE_SUPER_ADMIN, 'label' => 'Super Admin'],
+                ],
+                'summary' => $summary,
+            ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'index']);
             return back()->with('error', 'Failed to load administrators. Please try again later.');

@@ -50,12 +50,18 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('projects/{project}/overview', [ProjectController::class, 'overview'])->name('admin.projects.overview');
     Route::get('projects/{project}/prd', [ProjectController::class, 'prd'])->name('admin.projects.prd');
     Route::post('projects/{project}/prd/preview', [ProjectController::class, 'prdPreview'])->name('admin.projects.prd.preview');
+    Route::post('projects/{project}/overview/preview', [ProjectController::class, 'overviewPreview'])->name('admin.projects.overview.preview');
     Route::get('projects/{project}/erd', [ProjectController::class, 'erd'])->name('admin.projects.erd');
     Route::get('projects/{project}/c4', [ProjectController::class, 'c4'])->name('admin.projects.c4');
     Route::get('projects/{project}/technical-details', [ProjectController::class, 'technicalDetails'])->name('admin.projects.technical-details');
     
     // Feature Management
     Route::get('features/{feature}', [FeatureController::class, 'show'])->name('admin.features.show');
+    Route::get('features/{feature}/specs', [FeatureController::class, 'specs'])->name('admin.features.specs');
+    Route::get('features/{feature}/erd', [FeatureController::class, 'erd'])->name('admin.features.erd');
+    Route::get('features/{feature}/sequence-diagram', [FeatureController::class, 'sequenceDiagram'])->name('admin.features.sequence-diagram');
+    Route::get('features/{feature}/wireframe', [FeatureController::class, 'wireframe'])->name('admin.features.wireframe');
+    Route::get('features/{feature}/user-journey', [FeatureController::class, 'userJourney'])->name('admin.features.user-journey');
     
     // Admin Profile (Password Change Only)
     Route::get('profile', function () {
