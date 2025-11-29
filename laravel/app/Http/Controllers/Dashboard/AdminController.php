@@ -4,119 +4,206 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Traits\StructuredLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class AdminController extends Controller
 {
+    use StructuredLogger;
+
+    /**
+     * Display a paginated list of all administrators.
+     *
+     * Only accessible by super administrators.
+     *
+     * @return Response Inertia response rendering the admins index page
+     */
     public function index(): Response
     {
-        // Only super admins can manage admins
-        if (!auth('admin')->user()->isSuperAdmin()) {
-            abort(403, 'Only super admins can manage admins.');
-        }
-        
-        $admins = Admin::with('creator:id,name')
-            ->latest()
-            ->paginate(10);
+        try {
+            // Only super admins can manage admins
+            if (!auth('admin')->user()->isSuperAdmin()) {
+                abort(403, 'Only super admins can manage admins.');
+            }
+            
+            $admins = Admin::with('creator:id,name')
+                ->latest()
+                ->paginate(10);
 
-        return Inertia::render('dashboard/admins/index', compact('admins'));
+            return Inertia::render('dashboard/admins/index', compact('admins'));
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'index']);
+            return back()->with('error', 'Failed to load administrators. Please try again later.');
+        }
     }
 
+    /**
+     * Show the form for creating a new administrator.
+     *
+     * Only accessible by super administrators.
+     *
+     * @return Response Inertia response rendering the admin creation form
+     */
     public function create(): Response
     {
-        // Only super admins can create admins
-        if (!auth('admin')->user()->isSuperAdmin()) {
-            abort(403, 'Only super admins can create admins.');
+        try {
+            // Only super admins can create admins
+            if (!auth('admin')->user()->isSuperAdmin()) {
+                abort(403, 'Only super admins can create admins.');
+            }
+            
+            return Inertia::render('dashboard/admins/create');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'create']);
+            return back()->with('error', 'Failed to load admin creation form. Please try again.');
         }
-        
-        return Inertia::render('dashboard/admins/create');
     }
 
+    /**
+     * Store a newly created administrator in the database.
+     *
+     * Expected request data:
+     * - name: string (required, max:255)
+     * - email: string (required, email, unique in admins table)
+     * - password: string (required, min:6)
+     * - role: string (required, must be 'admin' or 'super_admin')
+     *
+     * @param Request $request The incoming HTTP request
+     * @return RedirectResponse Redirect back with success or error message
+     */
     public function store(Request $request): RedirectResponse
     {
-        // Only super admins can create admins
-        if (!auth('admin')->user()->isSuperAdmin()) {
-            abort(403, 'Only super admins can create admins.');
+        try {
+            // Only super admins can create admins
+            if (!auth('admin')->user()->isSuperAdmin()) {
+                abort(403, 'Only super admins can create admins.');
+            }
+
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:admins',
+                'password' => 'required|string|min:6',
+                'role' => ['required', Rule::in([Admin::ROLE_ADMIN, Admin::ROLE_SUPER_ADMIN])],
+            ]);
+
+            Admin::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+                'created_by' => auth('admin')->id(),
+            ]);
+
+            return back()->with('success', 'Admin created successfully.');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'store']);
+            return back()->with('error', 'Failed to create admin. Please try again.');
         }
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:admins',
-            'password' => 'required|string|min:6',
-            'role' => ['required', Rule::in([Admin::ROLE_ADMIN, Admin::ROLE_SUPER_ADMIN])],
-        ]);
-
-        Admin::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'created_by' => auth('admin')->id(),
-        ]);
-
-        return redirect()->route('admin.admins.index')
-            ->with('success', 'Admin created successfully.');
     }
 
+    /**
+     * Show the form for editing an existing administrator.
+     *
+     * Only accessible by super administrators.
+     *
+     * @param Admin $admin The admin model instance to edit
+     * @return Response Inertia response rendering the admin edit form
+     */
     public function edit(Admin $admin): Response
     {
-        // Only super admins can edit admins
-        if (!auth('admin')->user()->isSuperAdmin()) {
-            abort(403, 'Only super admins can edit admins.');
+        try {
+            // Only super admins can edit admins
+            if (!auth('admin')->user()->isSuperAdmin()) {
+                abort(403, 'Only super admins can edit admins.');
+            }
+            
+            return Inertia::render('dashboard/admins/edit', compact('admin'));
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'edit', 'admin_id' => $admin->id]);
+            return back()->with('error', 'Failed to load admin edit form. Please try again.');
         }
-        
-        return Inertia::render('dashboard/admins/edit', compact('admin'));
     }
 
+    /**
+     * Update an existing administrator in the database.
+     *
+     * Expected request data:
+     * - name: string (required, max:255)
+     * - email: string (required, email, unique except current admin)
+     * - role: string (required, must be 'admin' or 'super_admin')
+     * - password: string (optional, min:6) - only updated if provided
+     *
+     * @param Request $request The incoming HTTP request
+     * @param Admin $admin The admin model instance to update
+     * @return RedirectResponse Redirect back with success or error message
+     */
     public function update(Request $request, Admin $admin): RedirectResponse
     {
-        // Only super admins can update admins
-        if (!auth('admin')->user()->isSuperAdmin()) {
-            abort(403, 'Only super admins can update admins.');
+        try {
+            // Only super admins can update admins
+            if (!auth('admin')->user()->isSuperAdmin()) {
+                abort(403, 'Only super admins can update admins.');
+            }
+
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => ['required', 'string', 'email', 'max:255', Rule::unique('admins')->ignore($admin->id)],
+                'role' => ['required', Rule::in([Admin::ROLE_ADMIN, Admin::ROLE_SUPER_ADMIN])],
+                'password' => 'nullable|string|min:6',
+            ]);
+
+            $data = [
+                'name' => $request->name,
+                'email' => $request->email,
+                'role' => $request->role,
+            ];
+
+            if ($request->filled('password')) {
+                $data['password'] = Hash::make($request->password);
+            }
+
+            $admin->update($data);
+
+            return back()->with('success', 'Admin updated successfully.');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'update', 'admin_id' => $admin->id]);
+            return back()->with('error', 'Failed to update admin. Please try again.');
         }
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('admins')->ignore($admin->id)],
-            'role' => ['required', Rule::in([Admin::ROLE_ADMIN, Admin::ROLE_SUPER_ADMIN])],
-            'password' => 'nullable|string|min:6',
-        ]);
-
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-        ];
-
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
-
-        $admin->update($data);
-
-        return redirect()->route('admin.admins.index')
-            ->with('success', 'Admin updated successfully.');
     }
 
+    /**
+     * Delete an administrator from the database.
+     *
+     * Prevents administrators from deleting themselves.
+     * Only accessible by super administrators.
+     *
+     * @param Admin $admin The admin model instance to delete
+     * @return RedirectResponse Redirect back with success or error message
+     */
     public function destroy(Admin $admin): RedirectResponse
     {
-        // Only super admins can delete admins
-        if (!auth('admin')->user()->isSuperAdmin()) {
-            abort(403, 'Only super admins can delete admins.');
+        try {
+            // Only super admins can delete admins
+            if (!auth('admin')->user()->isSuperAdmin()) {
+                abort(403, 'Only super admins can delete admins.');
+            }
+
+            if ($admin->id === auth('admin')->id()) {
+                return back()->with('error', 'You cannot delete yourself.');
+            }
+
+            $admin->delete();
+
+            return back()->with('success', 'Admin deleted successfully.');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'destroy', 'admin_id' => $admin->id]);
+            return back()->with('error', 'Failed to delete admin. Please try again.');
         }
-
-        if ($admin->id === auth('admin')->id()) {
-            return back()->with('error', 'You cannot delete yourself.');
-        }
-
-        $admin->delete();
-
-        return redirect()->route('admin.admins.index')
-            ->with('success', 'Admin deleted successfully.');
     }
 }
