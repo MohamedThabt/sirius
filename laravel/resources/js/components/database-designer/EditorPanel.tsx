@@ -1,18 +1,20 @@
 import { detectFormat } from '@/utils/formatConverters';
 import { Editor } from '@monaco-editor/react';
-import { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface EditorPanelProps {
     value: string;
     onChange: (value: string) => void;
     onMount?: (editor: any, monaco: any) => void;
     readOnly?: boolean;
+    isResizing?: boolean;
 }
 
-const EditorPanel = ({ value, onChange, onMount, readOnly = false }: EditorPanelProps) => {
+const EditorPanel = React.memo(({ value, onChange, onMount, readOnly = false, isResizing = false }: EditorPanelProps) => {
     const format = detectFormat(value);
     const editorRef = useRef<any>(null);
     const monacoRef = useRef<any>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const handleEditorChange = (val: string | undefined) => {
         if (!readOnly) {
@@ -75,8 +77,35 @@ const EditorPanel = ({ value, onChange, onMount, readOnly = false }: EditorPanel
         }
     };
 
+    // Handle manual layout updates
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const resizeObserver = new ResizeObserver(() => {
+            if (!isResizing && editorRef.current) {
+                editorRef.current.layout();
+            }
+        });
+
+        resizeObserver.observe(containerRef.current);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [isResizing]);
+
+    // Force layout update when resizing finishes
+    useEffect(() => {
+        if (!isResizing && editorRef.current) {
+            // Small delay to ensure container has settled
+            requestAnimationFrame(() => {
+                editorRef.current.layout();
+            });
+        }
+    }, [isResizing]);
+
     return (
-        <div className="editor-panel h-full flex-1">
+        <div ref={containerRef} className="editor-panel h-full flex-1">
             <div className="h-full w-full">
                 <Editor
                     height="100%"
@@ -93,7 +122,7 @@ const EditorPanel = ({ value, onChange, onMount, readOnly = false }: EditorPanel
                         lineNumbers: 'on',
                         renderWhitespace: 'selection',
                         scrollBeyondLastLine: false,
-                        automaticLayout: true,
+                        automaticLayout: false, // Disabled for performance
                         tabSize: 2,
                         insertSpaces: true,
                         wordWrap: 'on',
@@ -107,6 +136,6 @@ const EditorPanel = ({ value, onChange, onMount, readOnly = false }: EditorPanel
             </div>
         </div>
     );
-};
+});
 
 export default EditorPanel;

@@ -82,6 +82,8 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
     const [leftWidth, setLeftWidth] = useState(50);
     const [isResizing, setIsResizing] = useState(false);
     const rafIdRef = useRef<number | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const currentWidthRef = useRef(50);
 
     // Sync theme with application's global theme
     useEffect(() => {
@@ -244,7 +246,7 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
         }
 
         rafIdRef.current = requestAnimationFrame(() => {
-            const container = document.getElementById('resizable-container');
+            const container = containerRef.current;
             if (!container) return;
 
             const containerRect = container.getBoundingClientRect();
@@ -252,7 +254,9 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
 
             // Limit width between 20% and 80%
             if (newWidth >= 20 && newWidth <= 80) {
-                setLeftWidth(newWidth);
+                // Directly update the CSS variable to avoid re-renders
+                container.style.setProperty('--left-width', `${newWidth}%`);
+                currentWidthRef.current = newWidth;
             }
         });
     }, []);
@@ -263,6 +267,8 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
             cancelAnimationFrame(rafIdRef.current);
             rafIdRef.current = null;
         }
+        // Sync the state with the final width
+        setLeftWidth(currentWidthRef.current);
     }, []);
 
     useEffect(() => {
@@ -329,6 +335,7 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
 
                 <div
                     id="resizable-container"
+                    ref={containerRef}
                     className={`relative flex flex-1 overflow-hidden ${isResizing ? 'cursor-col-resize select-none' : ''}`}
                     style={{ '--left-width': `${leftWidth}%` } as React.CSSProperties}
                 >
@@ -350,8 +357,8 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
                     {/* Collapsible Left Panel - Editor - Hidden in full screen */}
                     {!isFullScreen && (
                         <div
-                            className={`flex h-full min-w-0 flex-col transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0' : 'opacity-100'}`}
-                            style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
+                            className={`flex h-full min-w-0 flex-col transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0' : 'opacity-100'} ${isResizing ? 'pointer-events-none' : ''}`}
+                            style={{ width: isEditorCollapsed ? '0' : 'var(--left-width)' }}
                         >
                             <div className="relative flex-1 overflow-hidden">
                                 {/* Top toolbar with Save button */}
@@ -374,6 +381,7 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
                                             setContent(val);
                                             setIsDirty(val !== lastSavedContent);
                                         }}
+                                        isResizing={isResizing}
                                     />
                                 </div>
 
@@ -442,8 +450,7 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
 
                     {/* Right Panel - Diagram */}
                     <div
-                        className={`relative flex min-w-0 flex-col transition-all duration-300 ease-in-out overflow-hidden ${isFullScreen ? 'w-full border-l-0' : isEditorCollapsed ? 'w-full border-l-0' : 'border-l border-border'}`}
-                        style={!isFullScreen && !isEditorCollapsed ? { width: `${100 - leftWidth}%` } : {}}
+                        className={`relative flex flex-1 min-w-0 flex-col transition-all duration-300 ease-in-out overflow-hidden ${isFullScreen ? 'w-full border-l-0' : isEditorCollapsed ? 'w-full border-l-0' : 'border-l border-border'} ${isResizing ? 'pointer-events-none' : ''}`}
                     >
                         {isGenerating ? (
                             <div className="flex h-full items-center justify-center bg-muted/10">

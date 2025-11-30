@@ -72,7 +72,7 @@ const ZOOM_LIMITS = {
     step: 0.1,
 };
 
-export const MermaidViewerPane: React.FC<MermaidViewerPaneProps> = ({ code, error, setError, isFullScreen = false, onToggleFullScreen }) => {
+export const MermaidViewerPane: React.FC<MermaidViewerPaneProps> = React.memo(({ code, error, setError, isFullScreen = false, onToggleFullScreen }) => {
     // Refs
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -458,4 +458,4 @@ console.log("Rendering Mermaid code:\n", normalizedCode);
             </div>
         </div>
     );
-};
+});;
