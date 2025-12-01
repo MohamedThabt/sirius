@@ -21,8 +21,38 @@ import {
     FileTextIcon,
     DatabaseIcon,
     BoxIcon,
-    ExternalLinkIcon
+    ExternalLinkIcon,
+    ServerIcon,
+    CpuIcon,
+    HardDriveIcon,
+    ActivityIcon,
+    WifiOffIcon,
+    ScrollTextIcon,
 } from 'lucide-react';
+
+// FastAPI Health Status Interface
+interface FastApiHealth {
+    status: 'healthy' | 'degraded' | 'unhealthy' | 'offline';
+    timestamp: string;
+    service?: string;
+    version?: string;
+    error?: string;
+    system?: {
+        cpu_percent: number;
+        memory_percent: number;
+        memory_used_gb: number;
+        memory_total_gb: number;
+        disk_percent: number;
+        disk_used_gb: number;
+        disk_total_gb: number;
+    };
+    checks?: {
+        api: boolean;
+        cpu_ok: boolean;
+        memory_ok: boolean;
+        disk_ok: boolean;
+    };
+}
 
 interface Stats {
     // User metrics
@@ -58,6 +88,9 @@ interface Stats {
     // GitHub integration
     users_with_github: number;
     projects_with_repo: number;
+
+    // FastAPI Health Status
+    fastapi_health: FastApiHealth;
 
     // Recent activity
     recent_users: Array<{
@@ -235,7 +268,128 @@ export default function AdminDashboard({ stats }: Props) {
                         label="Beta Invitations" 
                         badge={stats.beta_pending}
                     />
+                    <QuickLink href="/admin/logs" icon={ScrollTextIcon} label="FastAPI Logs" />
                 </div>
+
+                {/* FastAPI Health Status */}
+                <Card className={cn(
+                    "border bg-card/50 transition-all duration-300",
+                    stats.fastapi_health?.status === 'healthy' && "border-emerald-500/30 bg-emerald-500/5",
+                    stats.fastapi_health?.status === 'degraded' && "border-amber-500/30 bg-amber-500/5",
+                    stats.fastapi_health?.status === 'unhealthy' && "border-red-500/30 bg-red-500/5",
+                    stats.fastapi_health?.status === 'offline' && "border-zinc-500/30 bg-zinc-500/5",
+                )}>
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground/80">
+                                <ServerIcon className="h-4 w-4 text-muted-foreground/70" />
+                                FastAPI Service Status
+                            </CardTitle>
+                            <Badge 
+                                variant="outline"
+                                className={cn(
+                                    "border px-2.5 py-0.5 text-xs font-medium",
+                                    stats.fastapi_health?.status === 'healthy' && "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+                                    stats.fastapi_health?.status === 'degraded' && "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+                                    stats.fastapi_health?.status === 'unhealthy' && "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400",
+                                    stats.fastapi_health?.status === 'offline' && "border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400",
+                                )}
+                            >
+                                {stats.fastapi_health?.status === 'healthy' && <CheckCircleIcon className="mr-1 h-3 w-3" />}
+                                {stats.fastapi_health?.status === 'degraded' && <AlertCircleIcon className="mr-1 h-3 w-3" />}
+                                {stats.fastapi_health?.status === 'unhealthy' && <AlertCircleIcon className="mr-1 h-3 w-3" />}
+                                {stats.fastapi_health?.status === 'offline' && <WifiOffIcon className="mr-1 h-3 w-3" />}
+                                {stats.fastapi_health?.status ? stats.fastapi_health.status.charAt(0).toUpperCase() + stats.fastapi_health.status.slice(1) : 'Unknown'}
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {stats.fastapi_health?.status === 'offline' ? (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <WifiOffIcon className="h-4 w-4" />
+                                <span>{stats.fastapi_health?.error || 'Unable to connect to FastAPI service'}</span>
+                            </div>
+                        ) : stats.fastapi_health?.system ? (
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                {/* CPU Usage */}
+                                <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                        "rounded-lg p-2",
+                                        stats.fastapi_health?.checks?.cpu_ok ? "bg-emerald-500/10" : "bg-red-500/10"
+                                    )}>
+                                        <CpuIcon className={cn(
+                                            "h-4 w-4",
+                                            stats.fastapi_health?.checks?.cpu_ok ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                                        )} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground/70">CPU Usage</p>
+                                        <p className="text-lg font-semibold tabular-nums text-foreground/90">
+                                            {stats.fastapi_health.system.cpu_percent}%
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                {/* Memory Usage */}
+                                <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                        "rounded-lg p-2",
+                                        stats.fastapi_health?.checks?.memory_ok ? "bg-emerald-500/10" : "bg-red-500/10"
+                                    )}>
+                                        <ActivityIcon className={cn(
+                                            "h-4 w-4",
+                                            stats.fastapi_health?.checks?.memory_ok ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                                        )} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground/70">Memory</p>
+                                        <p className="text-lg font-semibold tabular-nums text-foreground/90">
+                                            {stats.fastapi_health.system.memory_percent}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground/50">
+                                            {stats.fastapi_health.system.memory_used_gb} / {stats.fastapi_health.system.memory_total_gb} GB
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                {/* Disk Usage */}
+                                <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                        "rounded-lg p-2",
+                                        stats.fastapi_health?.checks?.disk_ok ? "bg-emerald-500/10" : "bg-red-500/10"
+                                    )}>
+                                        <HardDriveIcon className={cn(
+                                            "h-4 w-4",
+                                            stats.fastapi_health?.checks?.disk_ok ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                                        )} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground/70">Disk</p>
+                                        <p className="text-lg font-semibold tabular-nums text-foreground/90">
+                                            {stats.fastapi_health.system.disk_percent}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground/50">
+                                            {stats.fastapi_health.system.disk_used_gb} / {stats.fastapi_health.system.disk_total_gb} GB
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <AlertCircleIcon className="h-4 w-4" />
+                                <span>{stats.fastapi_health?.error || 'Service status unavailable'}</span>
+                            </div>
+                        )}
+                        
+                        {stats.fastapi_health?.service && stats.fastapi_health?.version && (
+                            <div className="mt-3 flex items-center gap-4 border-t border-border/30 pt-3 text-xs text-muted-foreground/60">
+                                <span>{stats.fastapi_health.service}</span>
+                                <span>v{stats.fastapi_health.version}</span>
+                                <span>Last checked: {new Date(stats.fastapi_health.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
                 {/* Primary Stats Grid */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

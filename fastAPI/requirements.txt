@@ -6,4 +6,5 @@ pydantic-settings==2.12.0
 google-generativeai
 litellm[proxy]==1.80.0
 openai==2.8.0
+psutil==5.9.8
 

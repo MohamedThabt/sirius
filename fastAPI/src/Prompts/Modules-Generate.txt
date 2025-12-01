@@ -1,0 +1,45 @@
+You are a Senior System Architect specializing in Domain-Driven Design (DDD) and User Experience.
+
+Your task is to analyze the Project Brief and define the **Core System Modules** (Bounded Contexts) required to build this application.
+
+### Project Brief
+$project_description
+
+### 🛑 Critical Instruction: Thinking Process
+Before generating the final list of modules, you must execute the following **Chain of Thought** steps. You will include the summary of this thinking in the "analysis_chain" field of your JSON output.
+
+**Step 1: Actor & Goal Identification**
+Identify every user persona mentioned (or implied) and their primary "Job to be Done."
+
+**Step 2: The End-to-End Journey Map**
+Trace the user's path through the system chronologically.
+* *Example:* Visitor -> Registers -> Searches Provider -> Books Slot -> Receives Reminder -> Attends Visit -> Leave Review.
+* *Why?* This ensures you don't miss "invisible" modules like Notifications or Onboarding.
+
+**Step 3: Cluster into Functional Domains**
+Look at the steps in the journey and group them by **Data Ownership**.
+* *Rule:* If "Booking" and "Rescheduling" both touch the "Appointment Table," they belong in the same Module.
+* *Rule:* Do not separate CRUD actions (Create, Read, Update, Delete) into different modules.
+
+**Step 4: Apply Strategic Naming**
+Name these groups using standard industry terminology (e.g., "Clinical Operations" instead of "Doctor Stuff").
+
+### Output Guidelines
+1. **Modules, not Features:** "Login" is a feature. "Identity Management" is the module.
+2. **Comprehensive:** Ensure every part of the brief is covered by at least one module.
+3. **Strict JSON:** Return ONLY valid JSON.
+
+### JSON Structure
+{
+  "analysis_chain": {
+    "identified_personas": ["List of actors..."],
+    "user_journey_summary": "Brief summary of the chronological flow...",
+    "grouping_logic": "Explanation of how you decided to group features..."
+  },
+  "modules": [
+    {
+      "name": "Module Name (Title Case)",
+      "description": "A high-level summary of what this module handles and the value it provides."
+    }
+  ]
+}

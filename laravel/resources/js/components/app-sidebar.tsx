@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
-import { Briefcase, FolderOpen, LayoutDashboard, Shield, Users, Zap } from 'lucide-react';
+import { Briefcase, FolderOpen, LayoutDashboard, ScrollText, Shield, Users, Zap } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppearanceToggleDropdown from './appearance-dropdown';
 
@@ -43,6 +43,11 @@ const adminNavItems: NavItem[] = [
         title: 'Projects',
         href: '/admin/projects',
         icon: Briefcase,
+    },
+    {
+        title: 'FastAPI Logs',
+        href: '/admin/logs',
+        icon: ScrollText,
     },
 ];
 

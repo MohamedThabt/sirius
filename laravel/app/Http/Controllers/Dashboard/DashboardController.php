@@ -10,6 +10,7 @@ use App\Models\GithubToken;
 use App\Models\Project;
 use App\Models\User;
 use App\Traits\StructuredLogger;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -97,6 +98,9 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get(['id', 'name', 'email', 'status', 'invited_by', 'created_at']);
 
+            // FastAPI Health Check
+            $fastApiHealth = $this->getFastApiHealthStatus();
+
             $stats = [
                 // User metrics
                 'total_users' => $totalUsers,
@@ -137,12 +141,48 @@ class DashboardController extends Controller
                 'recent_projects' => $recentProjects,
                 'recent_admins' => $recentAdmins,
                 'recent_beta_invitations' => $recentBetaInvitations,
+
+                // FastAPI Health Status
+                'fastapi_health' => $fastApiHealth,
             ];
 
             return Inertia::render('dashboard/index', compact('stats'));
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'index']);
             return back()->with('error', 'Failed to load dashboard statistics. Please try again.');
+        }
+    }
+
+    /**
+     * Get FastAPI service health status.
+     *
+     * @return array Health status data from FastAPI or error state
+     */
+    private function getFastApiHealthStatus(): array
+    {
+        try {
+            $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
+            
+            $response = Http::timeout(5)
+                ->get($fastApiBaseUrl . '/v1/health');
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            return [
+                'status' => 'unhealthy',
+                'error' => 'FastAPI returned status: ' . $response->status(),
+                'timestamp' => now()->toISOString(),
+            ];
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'getFastApiHealthStatus']);
+            
+            return [
+                'status' => 'offline',
+                'error' => 'Unable to connect to FastAPI service',
+                'timestamp' => now()->toISOString(),
+            ];
         }
     }
 }

@@ -3,11 +3,13 @@ Consolidated Routes Module
 All API routes are centralized here for better organization and maintainability.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query, Response
+from typing import Optional
 
 # Import all controller functions directly
 from controllers.overview_controller import generate_system_overview as ov_generate, edit_system_overview as ov_edit
 from controllers.features_controller import generate_features, generate_detailed_features, generate_single_feature_details
+from controllers.modules_controller import generate_suggestion_modules
 from controllers.brd_controller import generate_brd, edit_brd
 from controllers.prd_controller import generate_prd_with_flow, edit_prd
 from controllers.erd_controller import generate_feature_erd, edit_feature_erd, merge_feature_erds
@@ -15,16 +17,25 @@ from controllers.wireframe_controller import generate_feature_wireframe, edit_fe
 from controllers.sequence_controller import generate_feature_sequence, edit_feature_sequence
 from controllers.c4_controller import generate_c4, edit_c4
 from controllers.flow_diagram_controller import generate_flow
+from controllers.health_controller import get_health_status, get_simple_health
+from controllers.logs_controller import (
+    get_logs,
+    get_log_stats,
+    clear_logs,
+    download_log
+)
 
 # Import all models
 from models.overview import RequirementsRequest, SystemOverview, EditOverviewRequest
 from models.features import FeatureList, DetailedFeatureList, DetailedFeatureRequest, Feature,DetailedFeature,SingleDetailedFeatureRequest,DetailedSingleFeature
+from models.modules import ModuleList, ModuleGenerationRequest
 from models.BRD import BRDRequest, SystemBRD, EditBRDRequest
 from models.prd import SystemPRD, EditPRDRequest, PRDWithFlowRequest, PRDWithFlowResponse
 from models.ERD import ERDrequest, FeatureERD, EditERDRequest, MergeERDRequest, ProjectERD
 from models.wireframe import WireframeRequest, FeatureWireframe, EditWireframeRequest
 from models.Sequence import SequenceRequest, FeatureSequence, EditSequenceRequest
 from models.C4 import C4Request, SystemC4, EditC4Request
+from models.logs import LogResponse, LogStatsResponse, ClearLogsResponse
 
 from utils.logger import get_logger
 
@@ -85,6 +96,21 @@ async def generate_single_detailed_feature_endpoint(request:SingleDetailedFeatur
     result.usage = usage
     return result
     
+
+
+# ============================================================================
+# MODULES ROUTES (v1/modules) - Stage S2: DDD System Modules Generation
+# ============================================================================
+
+modules_router = APIRouter(prefix="/v1/modules", tags=["Modules"])
+
+
+@modules_router.post("/suggestion/generate", response_model=ModuleList)
+async def generate_suggestion_modules_endpoint(request: ModuleGenerationRequest):
+    """Generate system modules using DDD approach with Chain of Thought reasoning"""
+    result, usage = await generate_suggestion_modules(request)
+    result.usage = usage
+    return result
 
 
 # ============================================================================
@@ -235,11 +261,107 @@ async def generate_flow_endpoint(request: FeatureList):
 
 
 # ============================================================================
+# HEALTH CHECK ROUTES (v1/health)
+# ============================================================================
+
+health_router = APIRouter(prefix="/v1/health", tags=["Health"])
+
+
+@health_router.get("")
+async def health_check_endpoint():
+    """Get comprehensive health status of the FastAPI service"""
+    return await get_health_status()
+
+
+@health_router.get("/simple")
+async def simple_health_endpoint():
+    """Simple health check for load balancers"""
+    return await get_simple_health()
+
+
+# ============================================================================
+# LOGS ROUTES (v1/logs)
+# ============================================================================
+
+logs_router = APIRouter(prefix="/v1/logs", tags=["Logs"])
+
+
+@logs_router.get("", response_model=LogResponse)
+async def get_logs_endpoint(
+    log_type: str = Query("app", description="Log type: 'app' or 'error'"),
+    page: int = Query(1, ge=1, description="Page number"),
+    per_page: int = Query(50, ge=1, le=100, description="Items per page (max 100)"),
+    level: Optional[str] = Query(None, description="Filter by log level"),
+    search: Optional[str] = Query(None, description="Search query")
+):
+    """
+    Get paginated log entries with optional filtering.
+    
+    - **log_type**: 'app' for all logs, 'error' for error-only logs
+    - **page**: Page number (1-indexed)
+    - **per_page**: Number of entries per page (1-100)
+    - **level**: Filter by log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    - **search**: Search text in log messages
+    """
+    return await get_logs(
+        log_type=log_type,
+        page=page,
+        per_page=per_page,
+        level=level,
+        search=search
+    )
+
+
+@logs_router.get("/stats", response_model=LogStatsResponse)
+async def get_log_stats_endpoint():
+    """Get comprehensive statistics for all log files."""
+    return await get_log_stats()
+
+
+@logs_router.delete("/clear", response_model=ClearLogsResponse)
+async def clear_logs_endpoint(
+    log_type: Optional[str] = Query(None, description="Log type to clear: 'app', 'error', or None for all")
+):
+    """
+    Clear log files.
+    
+    - **log_type**: Specific log to clear ('app' or 'error'), or None to clear all
+    """
+    return await clear_logs(log_type=log_type)
+
+
+@logs_router.get("/download/{log_type}")
+async def download_log_endpoint(log_type: str = "app"):
+    """
+    Download log file.
+    
+    - **log_type**: Log type to download ('app' or 'error')
+    """
+    content, filename = await download_log(log_type)
+    
+    if content is None:
+        return Response(
+            content="Log file not found or empty",
+            status_code=404,
+            media_type="text/plain"
+        )
+    
+    return Response(
+        content=content,
+        media_type="text/plain",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
+
+# ============================================================================
 # ROUTER AGGREGATION
 # ============================================================================
 # Include all sub-routers into the main router
 router.include_router(overview_router)
 router.include_router(features_router)
+router.include_router(modules_router)
 router.include_router(brd_router)
 router.include_router(prd_router)
 router.include_router(erd_router)
@@ -247,3 +369,5 @@ router.include_router(wireframe_router)
 router.include_router(sequence_router)
 router.include_router(c4_router)
 router.include_router(flow_router)
+router.include_router(health_router)
+router.include_router(logs_router)
