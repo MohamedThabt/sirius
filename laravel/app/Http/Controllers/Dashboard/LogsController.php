@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Traits\StructuredLogger;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -24,120 +24,44 @@ class LogsController extends Controller
     }
 
     /**
-     * Display the logs dashboard page.
+     * Display the logs dashboard page with paginated logs.
      *
+     * @param Request $request The incoming HTTP request
      * @return Response Inertia response rendering the logs page
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         try {
-            // Get initial log stats
+            // Get log stats
             $stats = $this->fetchLogStats();
 
-            return Inertia::render('dashboard/logs/index', [
-                'initialStats' => $stats,
+            // Get paginated logs
+            $logsData = $this->fetchLogs($request);
+
+            return Inertia::render('dashboard/fastApiLogs/index', [
+                'stats' => $stats,
+                'logs' => $logsData,
+                'filters' => $request->only(['log_type', 'level', 'search', 'page', 'per_page']),
             ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'logs.index']);
 
-            return Inertia::render('dashboard/logs/index', [
-                'initialStats' => null,
-                'error' => 'Failed to load log statistics.',
+            return Inertia::render('dashboard/fastApiLogs/index', [
+                'stats' => null,
+                'logs' => null,
+                'filters' => $request->only(['log_type', 'level', 'search', 'page', 'per_page']),
+                'error' => 'Failed to load log data.',
             ]);
         }
     }
 
     /**
-     * Get paginated logs via API.
+     * Clear logs and redirect back with status.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return RedirectResponse Redirect back with success or error message
      */
-    public function getLogs(Request $request): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'log_type' => 'sometimes|string|in:app,error',
-                'page' => 'sometimes|integer|min:1',
-                'per_page' => 'sometimes|integer|min:1|max:100',
-                'level' => 'sometimes|nullable|string|in:DEBUG,INFO,WARNING,ERROR,CRITICAL',
-                'search' => 'sometimes|nullable|string|max:255',
-            ]);
-
-            $queryParams = [
-                'log_type' => $validated['log_type'] ?? 'app',
-                'page' => $validated['page'] ?? 1,
-                'per_page' => $validated['per_page'] ?? 50,
-            ];
-
-            if (!empty($validated['level'])) {
-                $queryParams['level'] = $validated['level'];
-            }
-
-            if (!empty($validated['search'])) {
-                $queryParams['search'] = $validated['search'];
-            }
-
-            $response = Http::timeout(10)
-                ->get($this->getBaseUrl() . '/v1/logs', $queryParams);
-
-            if ($response->successful()) {
-                return response()->json($response->json());
-            }
-
-            $this->logWarning('Failed to fetch logs from FastAPI', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-
-            return response()->json([
-                'error' => 'Failed to fetch logs from FastAPI service',
-                'status' => $response->status(),
-            ], 500);
-        } catch (Throwable $e) {
-            $this->logException($e, ['action' => 'logs.getLogs']);
-
-            return response()->json([
-                'error' => 'Failed to fetch logs',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Get log statistics.
-     *
-     * @return JsonResponse
-     */
-    public function getStats(): JsonResponse
-    {
-        try {
-            $stats = $this->fetchLogStats();
-
-            if ($stats) {
-                return response()->json($stats);
-            }
-
-            return response()->json([
-                'error' => 'Failed to fetch log statistics',
-            ], 500);
-        } catch (Throwable $e) {
-            $this->logException($e, ['action' => 'logs.getStats']);
-
-            return response()->json([
-                'error' => 'Failed to fetch log statistics',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Clear logs.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function clearLogs(Request $request): JsonResponse
+    public function clearLogs(Request $request): RedirectResponse
     {
         try {
             $validated = $request->validate([
@@ -157,7 +81,7 @@ class LogsController extends Controller
                     'log_type' => $validated['log_type'] ?? 'all',
                 ]);
 
-                return response()->json($response->json());
+                return back()->with('success', 'Logs cleared successfully.');
             }
 
             $this->logWarning('Failed to clear logs via FastAPI', [
@@ -165,17 +89,11 @@ class LogsController extends Controller
                 'body' => $response->body(),
             ]);
 
-            return response()->json([
-                'error' => 'Failed to clear logs',
-                'status' => $response->status(),
-            ], 500);
+            return back()->with('error', 'Failed to clear logs.');
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'logs.clearLogs']);
 
-            return response()->json([
-                'error' => 'Failed to clear logs',
-                'message' => $e->getMessage(),
-            ], 500);
+            return back()->with('error', 'Failed to clear logs: ' . $e->getMessage());
         }
     }
 
@@ -183,15 +101,13 @@ class LogsController extends Controller
      * Download log file.
      *
      * @param string $logType
-     * @return \Illuminate\Http\Response|JsonResponse
+     * @return \Illuminate\Http\Response|RedirectResponse
      */
-    public function downloadLog(string $logType)
+    public function downloadLog(string $logType): \Illuminate\Http\Response|RedirectResponse
     {
         try {
             if (!in_array($logType, ['app', 'error'])) {
-                return response()->json([
-                    'error' => 'Invalid log type',
-                ], 400);
+                return back()->with('error', 'Invalid log type.');
             }
 
             $response = Http::timeout(30)
@@ -206,17 +122,53 @@ class LogsController extends Controller
                 ]);
             }
 
-            return response()->json([
-                'error' => 'Failed to download log file',
-                'status' => $response->status(),
-            ], 500);
+            return back()->with('error', 'Failed to download log file.');
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'logs.downloadLog', 'log_type' => $logType]);
 
-            return response()->json([
-                'error' => 'Failed to download log file',
-                'message' => $e->getMessage(),
-            ], 500);
+            return back()->with('error', 'Failed to download log file: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Fetch logs from FastAPI.
+     *
+     * @param Request $request
+     * @return array|null
+     */
+    private function fetchLogs(Request $request): ?array
+    {
+        try {
+            $queryParams = [
+                'log_type' => $request->input('log_type', 'app'),
+                'page' => $request->input('page', 1),
+                'per_page' => $request->input('per_page', 50),
+            ];
+
+            if ($request->filled('level')) {
+                $queryParams['level'] = $request->input('level');
+            }
+
+            if ($request->filled('search')) {
+                $queryParams['search'] = $request->input('search');
+            }
+
+            $response = Http::timeout(10)
+                ->get($this->getBaseUrl() . '/v1/logs', $queryParams);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            $this->logWarning('Failed to fetch logs from FastAPI', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return null;
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'fetchLogs']);
+            return null;
         }
     }
 

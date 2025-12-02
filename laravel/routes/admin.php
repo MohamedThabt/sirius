@@ -67,8 +67,6 @@ Route::middleware('auth:admin')->group(function () {
     // FastAPI Logs Management
     Route::prefix('logs')->name('admin.logs.')->group(function () {
         Route::get('/', [LogsController::class, 'index'])->name('index');
-        Route::get('/api', [LogsController::class, 'getLogs'])->name('api');
-        Route::get('/stats', [LogsController::class, 'getStats'])->name('stats');
         Route::delete('/clear', [LogsController::class, 'clearLogs'])->name('clear');
         Route::get('/download/{logType}', [LogsController::class, 'downloadLog'])->name('download');
     });
