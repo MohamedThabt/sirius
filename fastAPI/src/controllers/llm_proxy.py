@@ -1,5 +1,5 @@
 import logging
-from models.usage import UsageMetrics
+from ..models.usage import UsageMetrics
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 load_dotenv()

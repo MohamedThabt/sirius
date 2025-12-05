@@ -1,6 +1,6 @@
 """Services package for FastAPI application"""
-from services.fallback_service import FallbackService
-from services.module_fallback_factory import ModuleFallbackFactory
+from .fallback_service import FallbackService
+from .module_fallback_factory import ModuleFallbackFactory
 
 __all__ = [
     "FallbackService",

@@ -40,6 +40,15 @@ interface Sections {
     non_functional_requirements: string | null;
 }
 
+interface FeatureItem {
+    id: number;
+    name: string;
+    summary: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    status: 'draft' | 'in_progress' | 'completed' | 'archived';
+    order_of_implementation: number;
+}
+
 interface ModuleItem {
     id: number;
     name: string;
@@ -48,6 +57,7 @@ interface ModuleItem {
     order_of_implementation: number;
     metrics?: string | null;
     erd?: string | null;
+    features?: FeatureItem[];
 }
 
 interface Repository {

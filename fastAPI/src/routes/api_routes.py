@@ -8,7 +8,7 @@ from typing import Optional
 
 # Import all controller functions directly
 from controllers.overview_controller import generate_system_overview as ov_generate, edit_system_overview as ov_edit
-from controllers.features_controller import generate_features, generate_detailed_features, generate_single_feature_details
+from controllers.features_controller import generate_suggestion_features_for_module, regenerate_suggestion_features, generate_feature_details, generate_single_feature
 from controllers.modules_controller import generate_suggestion_modules, regenerate_suggestion_modules, generate_module_details, generate_single_module
 from controllers.brd_controller import generate_brd, edit_brd
 from controllers.prd_controller import generate_prd_with_flow, edit_prd
@@ -27,7 +27,7 @@ from controllers.logs_controller import (
 
 # Import all models
 from models.overview import RequirementsRequest, SystemOverview, EditOverviewRequest
-from models.features import FeatureList, DetailedFeatureList, DetailedFeatureRequest, SingleDetailedFeatureRequest, DetailedSingleFeature
+from models.features import FeatureList, FeatureDetailsRequest, FeatureDetailsResponse, SingleFeatureRequest, SingleFeatureResponse, FeatureGenerationRequest, FeatureSuggestionList, FeatureRegenerationRequest, RegeneratedFeatureList
 from models.modules import ModuleList, ModuleGenerationRequest, ModuleRegenerationRequest, RegeneratedModuleList, ModuleDetailsRequest, ModuleDetailsResponse, SingleModuleRequest, SingleModuleResponse
 from models.BRD import BRDRequest, SystemBRD, EditBRDRequest
 from models.prd import SystemPRD, EditPRDRequest, PRDWithFlowRequest, PRDWithFlowResponse
@@ -66,33 +66,39 @@ async def edit_system_overview_endpoint(request: EditOverviewRequest):
 
 
 # ============================================================================
-# FEATURES ROUTES (v1/features)
+# MODULE-BASED FEATURES ROUTES (v1/features/module)
 # ============================================================================
 
-features_router = APIRouter(prefix="/v1/features", tags=["Features"])
+features_router = APIRouter(prefix="/v1/features/module", tags=["Module Features"])
 
-
-@features_router.post("/suggestion/generate", response_model=FeatureList)
-async def generate_features_endpoint(request: RequirementsRequest):
-    """Generate initial feature suggestions from project description"""
-    result, usage = await generate_features(request)
+@features_router.post("/suggestion/generate", response_model=FeatureSuggestionList)
+async def generate_module_feature_suggestions_endpoint(request: FeatureGenerationRequest):
+    """Generate feature suggestions for a module based on its ERD and context"""
+    result, usage = await generate_suggestion_features_for_module(request)
     result.usage = usage
     return result
 
 
-@features_router.post("/detailed/generate", response_model=DetailedFeatureList)
-async def generate_detailed_features_endpoint(request: DetailedFeatureRequest):
-    """Generate detailed information for each feature"""
-    result, usage = await generate_detailed_features(request)
+@features_router.post("/suggestion/regenerate", response_model=RegeneratedFeatureList)
+async def regenerate_module_feature_suggestions_endpoint(request: FeatureRegenerationRequest):
+    """Regenerate feature suggestions with user feedback"""
+    result, usage = await regenerate_suggestion_features(request)
     result.usage = usage
     return result
 
-@features_router.post("/detailedSingle/generate", response_model=DetailedSingleFeature)
-async def generate_single_detailed_feature_endpoint(request:SingleDetailedFeatureRequest):
-    """
-    Generate detailed info for a single feature with PRD context.
-    """
-    result, usage = await generate_single_feature_details(request)
+
+@features_router.post("/details/generate", response_model=FeatureDetailsResponse)
+async def generate_module_feature_details_endpoint(request: FeatureDetailsRequest):
+    """Generate detailed information for selected features (enrichment phase)"""
+    result, usage = await generate_feature_details(request)
+    result.usage = usage
+    return result
+
+
+@features_router.post("/single/generate", response_model=SingleFeatureResponse)
+async def generate_single_module_feature_endpoint(request: SingleFeatureRequest):
+    """Generate a single enriched feature with context"""
+    result, usage = await generate_single_feature(request)
     result.usage = usage
     return result
     

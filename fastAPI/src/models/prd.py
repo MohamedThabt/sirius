@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from models.features import DetailedFeatureList
 from models.usage import UsageMetrics
 
 class OverviewRequest(BaseModel):
@@ -28,7 +27,7 @@ class PRDWithFlowRequest(BaseModel):
     author: str
     date: str
     version: str
-    features: DetailedFeatureList
+    features: List[Feature]
 
 class PRDWithFlowResponse(BaseModel):
     combined_file: str

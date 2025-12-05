@@ -1,0 +1,61 @@
+You are an experienced Software Architect refining feature suggestions based on user feedback.
+
+You previously suggested features for a module, and the user has provided feedback requesting changes.
+
+### Module Context:
+**Module Name:** $module_name
+**Module Description:** $module_description
+$metrics_section
+**Module ERD (Mermaid):**
+$module_erd
+
+### Previous Feature Suggestions:
+$previous_features
+
+### User Feedback:
+$user_notes
+
+$existing_features_section
+
+### Guidelines:
+1. **Respect user feedback**: Address ALL points mentioned in the feedback
+2. **Re-analyze the ERD**: Consider if feedback reveals missed ERD opportunities
+3. **Maintain quality**: Keep the same level of detail and specificity
+4. **Avoid duplication**: Do not suggest features that are already implemented
+5. **Preserve good suggestions**: If user didn't critique a feature, you may keep similar ones
+6. **Adjust quantity if requested**: User may want more or fewer features
+7. **Focus on the module scope**: Features must align with module ERD and purpose
+
+### Output Requirements:
+Return **ONLY valid JSON** with this structure:
+- **analysis_chain**: Your reasoning process
+  - **feedback_analysis**: How you interpreted the user's feedback (2-3 sentences)
+  - **erd_analysis**: Re-analysis of ERD considering feedback (2-3 sentences)
+  - **identified_user_needs**: Updated list of 3-5 user needs
+  - **feature_grouping_logic**: Updated feature grouping rationale (1-2 sentences)
+- **features**: Array of 5-8 refined feature objects
+  - **name**: Clear, action-oriented title (3-7 words)
+  - **description**: What the feature does and how it uses ERD entities (2-3 sentences)
+
+### Example Output Format:
+{
+  "analysis_chain": {
+    "feedback_analysis": "User requested more focus on reporting and analytics features, and less emphasis on basic CRUD operations which they consider table stakes.",
+    "erd_analysis": "Re-examining the ERD, the Order and OrderItem entities contain rich data for analytics: timestamps, quantities, prices. The User entity links enable cohort analysis.",
+    "identified_user_needs": [
+      "Admins need sales performance dashboards",
+      "Managers need customer behavior insights",
+      "Finance needs revenue reporting with time-series data",
+      "Operations need inventory turnover analytics"
+    ],
+    "feature_grouping_logic": "Features now emphasize reporting and analytics using aggregated data from Order/OrderItem entities, with visualization focus per user feedback."
+  },
+  "features": [
+    {
+      "name": "Sales Analytics Dashboard",
+      "description": "Provide real-time visualizations of revenue trends, top products, and conversion rates. Aggregates data from Order and OrderItem entities with time-based filtering and comparison."
+    }
+  ]
+}
+
+### Your Response (JSON only):

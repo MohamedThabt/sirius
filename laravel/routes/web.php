@@ -104,15 +104,20 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/projects/{project}/prd/ai-edit', [PRDController::class, 'aiEdit'])->name('prd.ai-edit');
     Route::post('/projects/{project}/prd/preview-mermaid', [PRDController::class, 'previewMermaid'])->name('prd.preview-mermaid');
 
-    // Features Controller routes
+    // Features routes (module-based)
     Route::get('/projects/{project}/features', [FeaturesController::class, 'index'])->name('features.index');
-    Route::get('/features/create/{project}', [FeaturesController::class, 'generateSuggestionsAsync'])->name('features.create');
-    Route::post('/features/create/{project}', [FeaturesController::class, 'createSystemFeatures'])->name('features.store');
-    Route::post('/features/single/{project}', [FeaturesController::class, 'createSingleFeature'])->name('features.single.store');
-    Route::get('/features/{feature}', [FeaturesController::class, 'show'])->name('features.show');
-    Route::get('/features/{feature}/specs', [FeaturesController::class, 'specs'])->name('features.specs.show');
-    Route::put('/features/{feature}/update', [FeaturesController::class, 'update'])->name('features.update');
-
+    
+    // Feature generation routes (module-based) - MUST come before show route to avoid conflicts
+    Route::get('/projects/{project}/modules/{module}/features/create', [FeaturesController::class, 'generateSuggestionFeatures'])->name('features.module.create');
+    Route::post('/projects/{project}/modules/{module}/features/regenerate', [FeaturesController::class, 'regenerateSuggestionFeatures'])->name('features.module.regenerate');
+    Route::post('/projects/{project}/modules/{module}/features/create', [FeaturesController::class, 'createSystemFeatures'])->name('features.module.store');
+    Route::post('/projects/{project}/modules/{module}/features/single', [FeaturesController::class, 'createSingleFeature'])->name('features.module.single.store');
+    
+    // Feature detail routes (must come after specific routes like 'create')
+    Route::get('/projects/{project}/modules/{module}/features/{feature}', [FeaturesController::class, 'show'])->name('features.show');
+    Route::get('/projects/{project}/modules/{module}/features/{feature}/specs', [FeaturesController::class, 'specs'])->name('features.specs.show');
+    Route::put('/projects/{project}/modules/{module}/features/{feature}/update', [FeaturesController::class, 'update'])->name('features.update');
+    
     // Modules Controller routes
     Route::get('/projects/{project}/modules', [ModuleController::class, 'index'])->name('modules.index');
     Route::get('/modules/create/{project}', [ModuleController::class, 'generateSuggestionModules'])->name('modules.create');

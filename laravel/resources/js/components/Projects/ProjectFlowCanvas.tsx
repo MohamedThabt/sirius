@@ -14,8 +14,8 @@ import {
     useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Box as BoxIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Box as BoxIcon, Zap as ZapIcon } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface WorkflowStep {
     id: string;
@@ -39,6 +39,15 @@ interface Health {
     color: string;
 }
 
+interface FeatureItem {
+    id: number;
+    name: string;
+    summary: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    status: 'draft' | 'in_progress' | 'completed' | 'archived';
+    order_of_implementation: number;
+}
+
 interface ModuleItem {
     id: number;
     name: string;
@@ -47,6 +56,7 @@ interface ModuleItem {
     order_of_implementation: number;
     metrics?: string | null;
     erd?: string | null;
+    features?: FeatureItem[];
 }
 
 interface ProjectFlowCanvasProps {
@@ -86,10 +96,18 @@ const FlowCanvas = ({
 }) => {
     const { fitView } = useReactFlow();
     const [isModulesExpanded, setIsModulesExpanded] = useState(false);
+    const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({});
     const [isDarkMode, setIsDarkMode] = useState(() => {
         if (typeof document === 'undefined') return false;
         return document.documentElement.classList.contains('dark');
     });
+
+    const toggleModuleExpanded = useCallback((moduleId: number) => {
+        setExpandedModules(prev => ({
+            ...prev,
+            [moduleId]: !prev[moduleId]
+        }));
+    }, []);
 
     const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
         const nodeWidth = 240;
@@ -161,7 +179,46 @@ const FlowCanvas = ({
             const totalWidth = modules.length * moduleNodeWidth + (modules.length - 1) * moduleSpacing;
             const startModuleX = modulesNodeX - totalWidth / 2 + moduleNodeWidth / 2;
 
+            // Calculate which modules are expanded and their feature counts
+            const expandedModuleIndices = modules.map((m, i) => ({
+                index: i,
+                isExpanded: expandedModules[m.id] || false,
+                featureCount: m.features?.length || 0,
+                module: m
+            })).filter(m => m.isExpanded);
+
+            // Calculate cumulative horizontal offset for each expanded module's features
+            let cumulativeFeatureOffset = 0;
+            const featureOffsets: Record<number, { startX: number; rowY: number }> = {};
+            
+            const featureNodeWidth = 200;
+            const featureSpacing = 60;
+            const featureStride = featureNodeWidth + featureSpacing;
+            const baseFeatureRowY = moduleRowY + 280;
+
+            expandedModuleIndices.forEach((expandedModule, expandedIndex) => {
+                const totalFeatureWidth = expandedModule.featureCount * featureNodeWidth + 
+                    (expandedModule.featureCount - 1) * featureSpacing;
+                
+                // Stagger rows: even indices at one level, odd at another
+                const rowOffset = expandedIndex % 2 === 1 ? 250 : 0;
+                
+                featureOffsets[expandedModule.module.id] = {
+                    startX: cumulativeFeatureOffset,
+                    rowY: baseFeatureRowY + rowOffset
+                };
+                
+                cumulativeFeatureOffset += totalFeatureWidth + 100; // Add gap between module's features
+            });
+            
+            // Center all features under the modules
+            const totalAllFeaturesWidth = cumulativeFeatureOffset - 100; // Remove last gap
+            const centerOffset = totalAllFeaturesWidth > 0 ? -totalAllFeaturesWidth / 2 + modulesNodeX : 0;
+
             modules.forEach((module, index) => {
+                const hasFeatures = module.features && module.features.length > 0;
+                const isModuleExpanded = expandedModules[module.id] || false;
+                
                 nodes.push({
                     id: `module-${module.id}`,
                     type: 'workflowNode',
@@ -181,11 +238,52 @@ const FlowCanvas = ({
                         prerequisiteMessage: undefined,
                         inputHandlePosition: Position.Top,
                         inputHandleId: `module-${module.id}-input`,
-                        showOutputHandle: false,
+                        outputHandlePosition: hasFeatures ? Position.Bottom : undefined,
+                        outputHandleId: hasFeatures ? `module-${module.id}-output` : undefined,
+                        showOutputHandle: hasFeatures,
+                        // Feature expansion props
+                        features: module.features,
+                        isExpandable: hasFeatures,
+                        isExpanded: isModuleExpanded,
+                        onToggleExpand: hasFeatures ? () => toggleModuleExpanded(module.id) : undefined,
                     },
                     draggable: false,
                     selectable: true,
                 });
+
+                // Generate feature child nodes when this module is expanded
+                if (isModuleExpanded && module.features && module.features.length > 0) {
+                    const offset = featureOffsets[module.id];
+                    
+                    module.features.forEach((feature, featureIndex) => {
+                        const featureX = centerOffset + offset.startX + featureIndex * featureStride;
+                        
+                        nodes.push({
+                            id: `feature-${feature.id}`,
+                            type: 'workflowNode',
+                            position: {
+                                x: featureX,
+                                y: offset.rowY,
+                            },
+                            data: {
+                                title: feature.name,
+                                description: feature.summary || 'Feature details',
+                                icon: ZapIcon,
+                                isCompleted: feature.status === 'completed',
+                                isCurrent: feature.status === 'in_progress',
+                                isLocked: false,
+                                isHardLocked: false,
+                                onClick: () => router.visit(`/projects/${projectId}/modules/${module.id}/features/${feature.id}`),
+                                prerequisiteMessage: undefined,
+                                inputHandlePosition: Position.Top,
+                                inputHandleId: `feature-${feature.id}-input`,
+                                showOutputHandle: false,
+                            },
+                            draggable: false,
+                            selectable: true,
+                        });
+                    });
+                }
             });
         }
 
@@ -232,6 +330,8 @@ const FlowCanvas = ({
         if (isModulesExpanded && modules && modules.length > 0) {
             modules.forEach((module) => {
                 const isCompleted = module.status === 'completed';
+                const isModuleExpanded = expandedModules[module.id] || false;
+                
                 edges.push({
                     id: `edge-modules-module-${module.id}`,
                     source: 'modules',
@@ -251,11 +351,37 @@ const FlowCanvas = ({
                         stroke: isCompleted ? '#10b981' : '#9ca3af',
                     },
                 });
+
+                // Add feature edges when module is expanded
+                if (isModuleExpanded && module.features && module.features.length > 0) {
+                    module.features.forEach((feature) => {
+                        const isFeatureCompleted = feature.status === 'completed';
+                        edges.push({
+                            id: `edge-module-${module.id}-feature-${feature.id}`,
+                            source: `module-${module.id}`,
+                            target: `feature-${feature.id}`,
+                            sourceHandle: `module-${module.id}-output`,
+                            targetHandle: `feature-${feature.id}-input`,
+                            type: 'smoothstep',
+                            animated: isFeatureCompleted,
+                            markerEnd: {
+                                type: MarkerType.ArrowClosed,
+                                width: 20,
+                                height: 20,
+                                color: isFeatureCompleted ? '#10b981' : '#9ca3af',
+                            },
+                            style: {
+                                strokeWidth: 2,
+                                stroke: isFeatureCompleted ? '#10b981' : '#9ca3af',
+                            },
+                        });
+                    });
+                }
             });
         }
 
         return { nodes, edges };
-    }, [steps, modules, isModulesExpanded]);
+    }, [steps, modules, isModulesExpanded, expandedModules, projectId]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -264,7 +390,7 @@ const FlowCanvas = ({
         setNodes(initialNodes);
         setEdges(initialEdges);
         setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 50);
-    }, [initialNodes, initialEdges, setNodes, setEdges, fitView, isModulesExpanded]);
+    }, [initialNodes, initialEdges, setNodes, setEdges, fitView, isModulesExpanded, expandedModules]);
 
     useEffect(() => {
         const checkTheme = () => {

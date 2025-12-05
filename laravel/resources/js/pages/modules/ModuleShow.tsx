@@ -23,6 +23,7 @@ import {
     Layers,
     PencilIcon,
     Plus,
+    Sparkles,
     ZapIcon,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -68,6 +69,7 @@ export default function ModuleShow({ project, module }: Props) {
     const { auth } = shared;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [editingField, setEditingField] = useState<string | null>(null);
+    const [isGeneratingFeatures, setIsGeneratingFeatures] = useState(false);
 
     const { data, setData, put, processing } = useForm({
         name: module.name,
@@ -458,10 +460,46 @@ export default function ModuleShow({ project, module }: Props) {
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-lg font-semibold text-foreground">Module Features</h2>
-                                        <Button variant="outline" size="sm" className="gap-2" onClick={() => router.visit(`/projects/${project.id}/features`)}>
-                                            <Plus className="h-4 w-4" />
-                                            Add Feature
-                                        </Button>
+                                        <div className="flex items-center gap-2">
+                                            {features.length > 0 && (
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    className="gap-2" 
+                                                    onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}/features/single`)}
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                    Add Feature
+                                                </Button>
+                                            )}
+                                            {features.length === 0 && (
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
+                                                    className="gap-2"
+                                                    disabled={!module.erd || isGeneratingFeatures}
+                                                    onClick={() => {
+                                                        setIsGeneratingFeatures(true);
+                                                        router.visit(`/projects/${project.id}/modules/${module.id}/features/create`, {
+                                                            onFinish: () => setIsGeneratingFeatures(false),
+                                                        });
+                                                    }}
+                                                    title={!module.erd ? 'Generate ERD first to enable feature generation' : 'Generate features with AI'}
+                                                >
+                                                    {isGeneratingFeatures ? (
+                                                        <>
+                                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                                            Generating...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles className="h-4 w-4" />
+                                                            Generate Features
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {features.length === 0 ? (
@@ -469,7 +507,10 @@ export default function ModuleShow({ project, module }: Props) {
                                             <ZapIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
                                             <p className="mt-4 text-sm font-medium text-foreground">No features yet</p>
                                             <p className="mt-1 text-xs text-muted-foreground">
-                                                Features will appear here when linked to this module
+                                                {!module.erd 
+                                                    ? 'Generate an ERD first, then you can generate features for this module'
+                                                    : 'Click "Generate Features" to create AI-powered feature suggestions'
+                                                }
                                             </p>
                                         </div>
                                     ) : (
@@ -478,7 +519,7 @@ export default function ModuleShow({ project, module }: Props) {
                                                 <div
                                                     key={feature.id}
                                                     className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md"
-                                                    onClick={() => router.visit(`/features/${feature.id}`)}
+                                                    onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)}
                                                 >
                                                     <div className="mb-4 flex items-start justify-between gap-3">
                                                         <div className="min-w-0 flex-1">

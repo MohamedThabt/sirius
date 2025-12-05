@@ -51,4 +51,35 @@ class Module extends Model
     {
         return $this->hasMany(Feature::class);
     }
+
+    /**
+     * Check if the module has an ERD generated.
+     *
+     * @return bool
+     */
+    public function hasErd(): bool
+    {
+        return !empty($this->erd);
+    }
+
+    /**
+     * Get the count of features in this module.
+     *
+     * @return int
+     */
+    public function getFeaturesCountAttribute(): int
+    {
+        return $this->features()->count();
+    }
+
+    /**
+     * Check if the module can generate features.
+     * Features can only be generated if the module has an ERD.
+     *
+     * @return bool
+     */
+    public function canGenerateFeatures(): bool
+    {
+        return $this->hasErd();
+    }
 }

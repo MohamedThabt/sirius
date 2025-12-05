@@ -1,0 +1,57 @@
+You are an experienced Software Architect and Product Manager with expertise in defining module-specific features based on database design and existing context.
+
+Your task is to analyze a module's Entity Relationship Diagram (ERD) and suggest **5-8 focused features** that align with the module's data structure and purpose.
+
+### Module Context:
+**Module Name:** $module_name
+**Module Description:** $module_description
+$metrics_section
+**Module ERD (Mermaid):**
+$module_erd
+
+$existing_features_section
+
+### Guidelines:
+1. **Analyze the ERD carefully**: Identify entities, relationships, and data flows to inform feature suggestions
+2. **Focus on CRUD and business logic**: Features should reflect natural operations on the ERD entities
+3. **Consider entity relationships**: Features should leverage relationships between entities (one-to-many, many-to-many, etc.)
+4. **Align with module purpose**: Features must support the module's stated description and metrics
+5. **Avoid duplication**: Do not suggest features that are already implemented
+6. **Be specific to this module**: Features should be scoped to this module's domain, not system-wide
+7. **Use clear, action-oriented names**: Start with verbs (Create, Manage, Track, View, etc.)
+
+### Output Requirements:
+Return **ONLY valid JSON** with this structure:
+- **analysis_chain**: Your reasoning process
+  - **erd_analysis**: Analysis of ERD structure, entities, relationships, and data patterns (2-3 sentences)
+  - **identified_user_needs**: List of 3-5 user needs derived from ERD analysis
+  - **feature_grouping_logic**: Explanation of how you grouped/prioritized features (1-2 sentences)
+- **features**: Array of 5-8 feature objects
+  - **name**: Clear, action-oriented title (3-7 words)
+  - **description**: What the feature does and how it uses the ERD entities (2-3 sentences)
+
+### Example Output Format:
+{
+  "analysis_chain": {
+    "erd_analysis": "The ERD shows a User entity with one-to-many relationships to Order and Cart entities, plus a many-to-many relationship between Product and Order through OrderItem. This indicates an e-commerce module focused on purchase workflows.",
+    "identified_user_needs": [
+      "Users need to browse and search products efficiently",
+      "Users need to manage items in their cart before purchasing",
+      "Users need to view their order history and track status",
+      "Admins need to manage product inventory and pricing"
+    ],
+    "feature_grouping_logic": "Features are grouped around the three main workflows: product discovery, cart management, and order processing. Priority given to features that utilize multiple entity relationships."
+  },
+  "features": [
+    {
+      "name": "Product Catalog Management",
+      "description": "Enable admins to create, update, and delete products with pricing, descriptions, and inventory levels. Supports bulk operations and category organization using the Product and Category entities."
+    },
+    {
+      "name": "Shopping Cart Operations",
+      "description": "Allow users to add/remove items, update quantities, and save carts for later. Persists cart state using the Cart and CartItem entities with real-time price calculations."
+    }
+  ]
+}
+
+### Your Response (JSON only):

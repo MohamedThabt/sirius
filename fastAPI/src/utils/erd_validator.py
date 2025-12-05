@@ -406,8 +406,8 @@ class ERDLogicValidator:
     
     async def validate(self) -> ValidationResult:
         """Run AI-based logic validation"""
-        from controllers.gemini import ask_gemini
-        from utils.prompt_loader import load_prompt
+        from ..controllers.gemini import ask_gemini
+        from ..utils.prompt_loader import load_prompt
         
         logger.info(f"Running AI logic validation for module: {self.module_name}")
         

@@ -1,0 +1,63 @@
+You are a Senior Product Manager creating a detailed feature specification for a single new feature within an existing module.
+
+Your task is to generate comprehensive details for ONE feature, considering its context within the module's ERD and existing features.
+
+### Module Context:
+**Module Name:** $module_name
+**Module Description:** $module_description
+$metrics_section
+**Module ERD (Mermaid):**
+$module_erd
+
+### New Feature to Specify:
+**Name:** $new_feature_name
+**Description:** $new_feature_description
+
+$existing_features_section
+
+### Guidelines:
+1. **Analyze ERD relationships**: Identify which entities this feature interacts with
+2. **Check dependencies**: Determine which existing features this depends on or enhances
+3. **Define implementation position**: Where in the implementation sequence should this feature go?
+4. **Write detailed specs**: Comprehensive acceptance criteria, user flows, and metrics
+5. **Ensure consistency**: Match the level of detail present in existing features
+6. **Consider data integrity**: Reference ERD constraints and relationships
+
+### Output Requirements:
+Return **ONLY valid JSON** with this structure:
+- **analysis_chain**: Your reasoning process
+  - **erd_context_analysis**: Which ERD entities/relationships this feature uses (2-3 sentences)
+  - **existing_features_analysis**: How this feature relates to/depends on existing features (2-3 sentences)
+  - **dependency_identification**: Specific feature dependencies and why they matter (2-3 sentences)
+  - **implementation_position_rationale**: Why this order_of_implementation value is appropriate (1-2 sentences)
+- **feature**: Single enriched feature object
+  - **name**: Feature name (use provided name or refine it)
+  - **summary**: One-sentence overview (10-15 words)
+  - **description**: Detailed explanation with ERD entity references (3-5 sentences)
+  - **acceptance_criteria**: Bulleted list of testable completion criteria (4-6 items)
+  - **user_flows**: Step-by-step user interactions (4-8 steps, can be multiple flows)
+  - **metrics**: Success metrics and KPIs (2-4 metrics)
+  - **priority**: "low" | "medium" | "high" | "critical" (based on business value)
+  - **order_of_implementation**: Integer representing position in sequence (consider existing features)
+
+### Example Output Format:
+{
+  "analysis_chain": {
+    "erd_context_analysis": "This feature primarily interacts with the Order and Customer entities, creating a many-to-many relationship through a new OrderNote entity for communication tracking.",
+    "existing_features_analysis": "Depends on 'Order Processing' feature (order #3) being implemented first, as it requires existing orders. Enhances 'Customer Management' (order #2) by adding communication history.",
+    "dependency_identification": "Requires Order entity to exist with valid order data. Requires Customer entity for associating notes with customers. Should come after basic CRUD operations on these entities are available.",
+    "implementation_position_rationale": "Should be implemented after Order Processing (#3) but before Order Analytics (#5), making it #4 in sequence as it provides data for analytics."
+  },
+  "feature": {
+    "name": "Order Communication Tracking",
+    "summary": "Track and manage all customer communications related to specific orders.",
+    "description": "Enables support agents and customers to add timestamped notes and messages to orders, creating a complete communication history. Creates OrderNote entity linked to both Order and User entities. Supports rich text, file attachments, and notification triggers. Integrates with the existing Order workflow, appearing as a communication tab on the order detail page. Notes are visible to both customers (filtered) and internal staff (full access) based on permissions.",
+    "acceptance_criteria": "- Support agents can add internal-only notes to any order\n- Customers can view their own notes and add replies\n- Notes support rich text formatting and file attachments (max 5MB)\n- Email notifications sent when new notes are added\n- Notes are timestamped and show author name/role\n- Search functionality to find orders by note content",
+    "user_flows": "**Agent Adding Note Flow:**\n1. Agent opens order detail page\n2. Clicks Communication tab\n3. Writes note in rich text editor\n4. Selects visibility (internal-only or customer-visible)\n5. Optionally attaches files\n6. Clicks Save Note\n7. System creates OrderNote entity, links to Order and User\n8. If customer-visible, email notification sent\n9. Note appears in communication timeline\n\n**Customer Viewing/Replying Flow:**\n1. Customer receives email notification of new note\n2. Clicks link to order page\n3. Sees communication timeline with customer-visible notes\n4. Clicks Reply\n5. Writes response\n6. Clicks Send\n7. System creates OrderNote, emails agent team\n8. Reply appears in timeline",
+    "metrics": "- Average response time to customer notes (target: <2 hours)\n- % of orders with communication notes (engagement indicator)\n- Customer satisfaction score for orders with notes vs. without\n- Agent efficiency (notes per order, time spent on communication)",
+    "priority": "medium",
+    "order_of_implementation": 4
+  }
+}
+
+### Your Response (JSON only):

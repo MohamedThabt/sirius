@@ -35,6 +35,11 @@ interface Project {
     name: string;
 }
 
+interface Module {
+    id: number;
+    name: string;
+}
+
 interface FeatureItem {
     id: number;
     name: string;
@@ -55,10 +60,11 @@ interface FeatureItem {
 
 interface Props {
     project: Project;
+    module: Module;
     feature: FeatureItem;
 }
 
-export default function Show({ project, feature }: Props) {
+export default function Show({ project, module, feature }: Props) {
     useFlashToasts();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { auth } = usePage().props as any;
@@ -297,7 +303,7 @@ export default function Show({ project, feature }: Props) {
                     onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 />
                 <main className="flex-1 overflow-y-auto">
-                    <div className="mx-auto max-w-7xl px-6 py-8">
+                    <div className="px-4 py-6 lg:px-6">
                         {/* Header */}
                         <div className="mb-8">
                             <div className="mb-4 flex items-center gap-3">
@@ -312,7 +318,9 @@ export default function Show({ project, feature }: Props) {
                                 <Breadcrumbs
                                     breadcrumbs={[
                                         { title: project.name, href: `/projects/${project.id}` },
-                                        { title: feature.name, href: `/features/${feature.id}` },
+                                        { title: 'Modules', href: `/projects/${project.id}/modules` },
+                                        { title: module.name, href: `/projects/${project.id}/modules/${module.id}` },
+                                        { title: feature.name, href: `/projects/${project.id}/modules/${module.id}/features/${feature.id}` },
                                     ]}
                                 />
                             </div>
