@@ -37,8 +37,8 @@ const parseDBML = (dbml: string): ParsedSchema => {
     const tables: ParsedTable[] = [];
     const relations: ParsedRelation[] = [];
 
-    // Parse tables
-    const tableRegex = /Table\s+(\w+)\s*\{([^}]+)\}/g;
+    // Parse tables - handle both DBML "Table name {" and converted from Mermaid
+    const tableRegex = /Table\s+(\w+)\s*\{([^}]+)\}/gi;
     let tableMatch;
 
     while ((tableMatch = tableRegex.exec(dbml)) !== null) {
@@ -48,17 +48,21 @@ const parseDBML = (dbml: string): ParsedSchema => {
         const fields = fieldsBlock
             .split('\n')
             .map((line) => line.trim())
-            .filter((line) => line && !line.startsWith('//'))
+            .filter((line) => line && !line.startsWith('//') && !line.startsWith('--'))
             .map((line) => {
-                // Parse field definition: fieldname type [attributes]
-                const fieldMatch = line.match(/(\w+)\s+(\w+)(?:\s*\[([^\]]+)\])?/);
+                // Remove inline comments
+                const lineWithoutComment = line.split('--')[0].trim();
+                if (!lineWithoutComment) return null;
+                
+                // Parse field definition: fieldname type [attributes] or fieldname type "ref:..."
+                const fieldMatch = lineWithoutComment.match(/(\w+)\s+(\w+)(?:\s*\[([^\]]+)\])?(?:\s*"([^"]*)")?/);
                 if (!fieldMatch) return null;
 
-                const [, name, type, attributes] = fieldMatch;
-                const attrs = attributes?.toLowerCase() || '';
+                const [, name, type, attributes, refString] = fieldMatch;
+                const attrs = (attributes || '').toLowerCase();
                 
-                // Check for inline ref: syntax for FK references
-                const refMatch = line.match(/ref:(\w+)\.(\w+)/);
+                // Check for inline ref: syntax for FK references (both in [] and "")
+                const refMatch = lineWithoutComment.match(/ref:>?\s*(\w+)\.(\w+)/i);
                 const isForeignKey = attrs.includes('ref') || attrs.includes('fk') || !!refMatch;
 
                 const field: ParsedTable['fields'][0] = {
@@ -82,7 +86,9 @@ const parseDBML = (dbml: string): ParsedSchema => {
             })
             .filter(Boolean) as ParsedTable['fields'];
 
-        tables.push({ name: tableName, fields });
+        if (fields.length > 0) {
+            tables.push({ name: tableName, fields });
+        }
     }
 
     // Parse relationships

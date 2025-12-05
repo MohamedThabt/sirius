@@ -201,7 +201,7 @@ class ProjectController extends Controller
                     'user_stories' => null,
                     'non_functional_requirements' => $project->non_functional_requirements,
                 ],
-                'features' => $project->features,
+                'modules' => $project->modules,
                 'brainstormingCompleted' => ! empty($project->brainstorming_scene),
                 'teamMembers' => $teamMembers,
                 'teamMembersCount' => $teamMembersCount,

@@ -146,38 +146,54 @@ export const mermaidToDbml = (mermaidContent: string): string => {
     const tables: ParsedTable[] = [];
     const relations: ParsedRelation[] = [];
 
-    // Parse Mermaid tables
+    // Remove erDiagram keyword and clean content
+    const cleanedContent = mermaidContent.replace(/^\s*erDiagram\s*/i, '');
+
+    // Parse Mermaid tables - match table_name { ... }
     const tableRegex = /(\w+)\s*\{([^}]+)\}/g;
     let tableMatch;
 
-    while ((tableMatch = tableRegex.exec(mermaidContent)) !== null) {
+    while ((tableMatch = tableRegex.exec(cleanedContent)) !== null) {
         const tableName = tableMatch[1];
+        
+        // Skip if tableName is a keyword
+        if (tableName.toLowerCase() === 'erdiagram') continue;
+        
         const fieldsBlock = tableMatch[2];
 
         const fields = fieldsBlock
             .split('\n')
             .map((line) => line.trim())
-            .filter((line) => line && !line.startsWith('//'))
+            .filter((line) => line && !line.startsWith('//') && !line.startsWith('--'))
             .map((line) => {
-                // Parse Mermaid field: type name "attributes"
-                // Can have multiple quoted sections: type name "PK, FK" "ref:table.field"
-                const fieldMatch = line.match(/(\w+)\s+(\w+)(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?/);
+                // Remove inline comments
+                const lineWithoutComment = line.split('--')[0].trim();
+                if (!lineWithoutComment) return null;
+                
+                // Parse Mermaid field: type name "constraints"
+                // Handles: bigint user_id "FK, NOT NULL, ref:users.id"
+                const fieldMatch = lineWithoutComment.match(/^(\w+)\s+(\w+)(?:\s+"([^"]*)")?$/);
                 if (!fieldMatch) return null;
 
-                const [, type, name, attributes1] = fieldMatch;
-                const attrs = (attributes1 || '').toLowerCase();
+                const [, type, name, constraints] = fieldMatch;
+                const constraintsStr = (constraints || '').toUpperCase();
 
-                // Check for FK reference in line
-                const refMatch = line.match(/ref:(\w+)\.(\w+)/);
-                const isForeignKey = attrs.includes('fk') || !!refMatch;
+                // Check for FK reference in constraints (ref:table.field)
+                const refMatch = (constraints || '').match(/ref:(\w+)\.(\w+)/i);
+                
+                // Parse constraints
+                const isPrimaryKey = constraintsStr.includes('PK');
+                const isForeignKey = constraintsStr.includes('FK') || !!refMatch;
+                const isUnique = constraintsStr.includes('UNIQUE');
+                const isNotNull = constraintsStr.includes('NOT NULL') || isPrimaryKey;
 
                 const field: ParsedTable['fields'][0] = {
                     name,
                     type,
-                    isPrimaryKey: attrs.includes('pk'),
+                    isPrimaryKey,
                     isForeignKey,
-                    isUnique: attrs.includes('uk') || attrs.includes('unique'),
-                    isNotNull: attrs.includes('not null') || attrs.includes('pk'),
+                    isUnique,
+                    isNotNull,
                 };
 
                 // Add FK reference if present
@@ -192,21 +208,40 @@ export const mermaidToDbml = (mermaidContent: string): string => {
             })
             .filter(Boolean) as ParsedTable['fields'];
 
-        tables.push({ name: tableName, fields });
+        if (fields.length > 0) {
+            tables.push({ name: tableName, fields });
+        }
     }
 
-    // Parse Mermaid relationships
-    const relationRegex = /(\w+)\s+(\|\|--\|\||\|\|--o\{|\}o--o\{)\s+(\w+)\s*:\s*"([^"]+)"/g;
+    // Parse Mermaid relationships - support all cardinalities
+    // Patterns: ||--||, ||--o|, ||--o{, }o--||, }o--o{, }|--|{, etc.
+    const relationRegex = /(\w+)\s+([|}][|o]--[|o][{|}])\s+(\w+)\s*:\s*"([^"]+)"/g;
     let relationMatch;
 
     while ((relationMatch = relationRegex.exec(mermaidContent)) !== null) {
         const [, fromTable, relationSymbol, toTable, description] = relationMatch;
 
+        // Determine relationship type based on symbol
+        // ||--|| : one-to-one (mandatory both)
+        // ||--o| : one-to-one (optional right)
+        // ||--o{ : one-to-many
+        // }o--|| : many-to-one
+        // }o--o{ : many-to-many
+        // }|--|{ : many-to-many (mandatory)
         let type: ParsedRelation['type'] = 'one-to-many';
-        if (relationSymbol === '||--||') type = 'one-to-one';
-        else if (relationSymbol === '}o--o{') type = 'many-to-many';
+        
+        if (relationSymbol.includes('||--||') || relationSymbol.includes('||--o|')) {
+            type = 'one-to-one';
+        } else if (relationSymbol.includes('}o--o{') || relationSymbol.includes('}|--|{')) {
+            type = 'many-to-many';
+        } else if (relationSymbol.includes('}o--||') || relationSymbol.includes('}|--||')) {
+            // many-to-one is actually one-to-many from the other perspective
+            type = 'one-to-many';
+        } else if (relationSymbol.includes('||--o{') || relationSymbol.includes('||--|{')) {
+            type = 'one-to-many';
+        }
 
-        // Extract field names from description
+        // Extract field names from description (e.g., "user_id to id")
         const fieldMatch = description.match(/(\w+)\s+to\s+(\w+)/);
         const fromField = fieldMatch?.[1] || 'id';
         const toField = fieldMatch?.[2] || 'id';
@@ -274,16 +309,32 @@ export const mermaidToDbml = (mermaidContent: string): string => {
 
 // Auto-detect format based on content
 export const detectFormat = (content: string): DiagramFormat => {
-    const trimmed = content.trim().toLowerCase();
+    const trimmed = content.trim();
+    const lowerTrimmed = trimmed.toLowerCase();
 
-    // Check for Mermaid ERD keywords
-    if (trimmed.startsWith('erdiagram') || trimmed.includes('erdiagram')) {
+    // Check for Mermaid ERD keywords - must start with erDiagram
+    if (lowerTrimmed.startsWith('erdiagram')) {
+        return 'mermaid';
+    }
+    
+    // Also check for Mermaid relationship patterns (}o--||, ||--o{, etc.)
+    if (/[|}][|o]--[|o][{|}]/.test(trimmed)) {
         return 'mermaid';
     }
 
-    // Check for DBML keywords
-    if (trimmed.includes('table ') || trimmed.includes('ref:')) {
+    // Check for DBML keywords (Table keyword with capital T)
+    if (/\bTable\s+\w+\s*\{/i.test(trimmed)) {
         return 'dbml';
+    }
+    
+    // Check for DBML Ref: syntax
+    if (/\bRef:\s*\w+\.\w+/.test(trimmed)) {
+        return 'dbml';
+    }
+
+    // Default to mermaid if it looks like ERD structure
+    if (/\w+\s*\{[\s\S]*\}/.test(trimmed)) {
+        return 'mermaid';
     }
 
     // Default to DBML

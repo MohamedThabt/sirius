@@ -39,6 +39,7 @@ export interface FlashMessages {
     error?: string;
     warning?: string;
     info?: string;
+    erd?: string;
 }
 
 export interface SharedData {

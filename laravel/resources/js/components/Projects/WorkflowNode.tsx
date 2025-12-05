@@ -3,7 +3,7 @@ import { BaseNode, BaseNodeContent, BaseNodeFooter, BaseNodeHeader, BaseNodeHead
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Handle, NodeProps, Position } from '@xyflow/react';
-import { AlertCircleIcon, CheckCircleIcon, ChevronDown, ChevronUp, Lock as LockIcon, List } from 'lucide-react';
+import { AlertCircleIcon, CheckCircleIcon, ChevronDown, ChevronUp, Loader2, Lock as LockIcon, List } from 'lucide-react';
 import { memo, useState } from 'react';
 
 interface FeatureItem {
@@ -15,6 +15,16 @@ interface FeatureItem {
     order_of_implementation: number;
 }
 
+interface ModuleItem {
+    id: number;
+    name: string;
+    description: string;
+    status: 'planned' | 'in_progress' | 'completed';
+    order_of_implementation: number;
+    metrics?: string | null;
+    erd?: string | null;
+}
+
 interface WorkflowNodeData {
     title: string;
     description: string;
@@ -23,9 +33,11 @@ interface WorkflowNodeData {
     isCurrent: boolean;
     isLocked: boolean;
     isHardLocked: boolean;
+    isLoading?: boolean;
     onClick: () => void;
     prerequisiteMessage?: string;
     features?: FeatureItem[];
+    modules?: ModuleItem[];
     isExpandable?: boolean;
     isExpanded?: boolean;
     onToggleExpand?: () => void;
@@ -51,9 +63,11 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
         isCurrent,
         isLocked,
         isHardLocked,
+        isLoading = false,
         onClick,
         prerequisiteMessage,
         features,
+        modules,
         isExpandable,
         isExpanded = false,
         onToggleExpand,
@@ -110,7 +124,13 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                                 styles.iconColor,
                             )}
                         >
-                            {isHardLocked || isLocked ? <LockIcon className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                            {isLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : isHardLocked || isLocked ? (
+                                <LockIcon className="h-4 w-4" />
+                            ) : (
+                                <Icon className="h-4 w-4" />
+                            )}
                         </div>
                         <BaseNodeHeaderTitle className="text-xs">{title}</BaseNodeHeaderTitle>
                     </div>
@@ -139,7 +159,15 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
 
                     {/* Status Badge - Always show a badge for every status */}
                     <div className="flex justify-center">
-                        {isCurrent ? (
+                        {isLoading ? (
+                            <Badge
+                                variant="outline"
+                                className="border-blue-500/50 bg-blue-500/10 text-[10px] font-semibold text-blue-600 dark:text-blue-400"
+                            >
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Generating...
+                            </Badge>
+                        ) : isCurrent ? (
                             <Badge variant="default" className="text-[10px] font-semibold">
                                 Current
                             </Badge>
@@ -190,6 +218,28 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                         >
                             <List className="h-3 w-3" />
                             <span className="hidden sm:inline">{features.length}</span>
+                            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                        </Button>
+                    </BaseNodeFooter>
+                )}
+
+                {/* Footer with Expandable Modules */}
+                {isExpandable && modules && modules.length > 0 && (
+                    <BaseNodeFooter className="justify-center gap-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onToggleExpand) {
+                                    onToggleExpand();
+                                }
+                            }}
+                            className="nodrag h-7 text-[10px] font-medium"
+                            title={isExpanded ? `Hide ${modules.length} modules` : `Show ${modules.length} modules`}
+                        >
+                            <List className="h-3 w-3" />
+                            <span className="hidden sm:inline">{modules.length} modules</span>
                             {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                         </Button>
                     </BaseNodeFooter>

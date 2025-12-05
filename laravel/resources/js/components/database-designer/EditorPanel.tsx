@@ -105,7 +105,7 @@ const EditorPanel = React.memo(({ value, onChange, onMount, readOnly = false, is
     }, [isResizing]);
 
     return (
-        <div ref={containerRef} className="editor-panel h-full flex-1">
+        <div ref={containerRef} className="editor-panel h-full flex-1 overflow-hidden">
             <div className="h-full w-full">
                 <Editor
                     height="100%"
@@ -116,8 +116,8 @@ const EditorPanel = React.memo(({ value, onChange, onMount, readOnly = false, is
                     onMount={handleEditorDidMount}
                     theme="vs-dark"
                     options={{
-                        minimap: { enabled: true },
-                        fontSize: 14,
+                        minimap: { enabled: false },
+                        fontSize: 13,
                         fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
                         lineNumbers: 'on',
                         renderWhitespace: 'selection',
@@ -131,11 +131,16 @@ const EditorPanel = React.memo(({ value, onChange, onMount, readOnly = false, is
                         snippetSuggestions: readOnly ? 'none' : 'inline',
                         quickSuggestions: !readOnly,
                         readOnly: readOnly,
+                        padding: { top: 12, bottom: 12 },
+                        smoothScrolling: true,
+                        cursorSmoothCaretAnimation: 'on',
                     }}
                 />
             </div>
         </div>
     );
 });
+
+EditorPanel.displayName = 'EditorPanel';
 
 export default EditorPanel;

@@ -157,13 +157,13 @@ class SystemOverviewController extends Controller
                 ],
             ]);
 
-            // Load features for the response
-            $project->load('features');
+            // Load modules for the response
+            $project->load('modules');
 
             return Inertia::render('Projects/SystemOverview', [
                 'project' => $project,
                 'overviewVersions' => [],
-                'hasFeatures' => $project->features()->exists(),
+                'hasModules' => $project->modules()->exists(),
                 'isGenerating' => true,
             ]);
         } catch (\Throwable $e) {
@@ -296,7 +296,7 @@ class SystemOverviewController extends Controller
                     'success' => true,
                     'message' => 'Overview generated successfully',
                     'overviewVersions' => $project->overviewVersions()->get(),
-                    'hasFeatures' => $project->features()->exists(),
+                    'hasModules' => $project->modules()->exists(),
                 ]);
             } else {
                 throw new \Exception('FastAPI overview generation failed: ' . $response->body());
@@ -324,13 +324,13 @@ class SystemOverviewController extends Controller
                 return back()->with('error', 'You do not have permission to access this project.');
             }
 
-            // Load project with overview versions and features
-            $project->load(['overviewVersions', 'features']);
+            // Load project with overview versions and modules
+            $project->load(['overviewVersions', 'modules']);
 
             return Inertia::render('Projects/SystemOverview', [
                 'project' => $project,
                 'overviewVersions' => $project->overviewVersions()->get(),
-                'hasFeatures' => $project->features()->exists(),
+                'hasModules' => $project->modules()->exists(),
             ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'show', 'project_id' => $project->id]);
@@ -446,12 +446,12 @@ class SystemOverviewController extends Controller
                     ->update(['is_base_version' => false]);
 
                 // Return an Inertia response (or redirect) so Inertia visit succeeds
-                $project->load(['overviewVersions', 'features']);
+                $project->load(['overviewVersions', 'modules']);
 
                 return Inertia::render('Projects/SystemOverview', [
                     'project' => $project,
                     'overviewVersions' => $project->overviewVersions()->get(),
-                    'hasFeatures' => $project->features()->exists(),
+                    'hasModules' => $project->modules()->exists(),
                 ])->with('success', 'Overview regenerated successfully');
             } else {
                 throw new \Exception('FastAPI overview regeneration failed: ' . $response->body());
@@ -518,7 +518,7 @@ class SystemOverviewController extends Controller
                     'success' => true,
                     'message' => 'Overview updated successfully',
                     'overviewVersions' => $project->overviewVersions()->get(),
-                    'hasFeatures' => $project->features()->exists(),
+                    'hasModules' => $project->modules()->exists(),
                 ]);
             } else {
                 throw new \Exception('FastAPI overview edit failed: ' . $response->body());
@@ -595,7 +595,7 @@ class SystemOverviewController extends Controller
                 'success' => true,
                 'message' => 'Version marked as base successfully',
                 'overviewVersions' => $project->overviewVersions()->get(),
-                'hasFeatures' => $project->features()->exists(),
+                'hasModules' => $project->modules()->exists(),
             ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'markAsBase', 'project_id' => $project->id, 'version_id' => $overviewVersion->id]);

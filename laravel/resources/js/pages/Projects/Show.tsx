@@ -40,17 +40,14 @@ interface Sections {
     non_functional_requirements: string | null;
 }
 
-interface FeatureItem {
+interface ModuleItem {
     id: number;
     name: string;
-    summary: string;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
+    description: string;
+    status: 'planned' | 'in_progress' | 'completed';
     order_of_implementation: number;
-    acceptance_criteria?: string | null;
-    user_flows?: string | null;
     metrics?: string | null;
-    description?: string | null;
+    erd?: string | null;
 }
 
 interface Repository {
@@ -77,7 +74,7 @@ interface TeamMember {
 interface Props {
     project: Project;
     sections: Sections;
-    features?: FeatureItem[];
+    modules?: ModuleItem[];
     brainstormingCompleted?: boolean;
     repository?: Repository | null;
     teamMembers?: TeamMember[];
@@ -87,7 +84,7 @@ interface Props {
 export default function ProjectShow({
     project,
     sections,
-    features = [],
+    modules = [],
     brainstormingCompleted = false,
     repository = null,
     teamMembers = [],
@@ -107,7 +104,7 @@ export default function ProjectShow({
     const [isCreateFeatureModalOpen, setIsCreateFeatureModalOpen] = useState(false);
     const [isFloatingChatOpen, setIsFloatingChatOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const [isCreatingFeatures, setIsCreatingFeatures] = useState(false);
+    const [isGeneratingModules, setIsGeneratingModules] = useState(false);
     const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
 
     const getPriorityColor = (priority: string) => {
@@ -139,11 +136,12 @@ export default function ProjectShow({
         actionHandler?: () => void;
         prerequisites: string[];
         prerequisiteMessage?: string;
+        isLoading?: boolean;
     }
 
     const getRoadmapSteps = (): RoadmapStep[] => {
         const overviewExists = !!sections.overview;
-        const featuresExist = features.length > 0;
+        const modulesExist = modules.length > 0;
         const prdExists = !!sections.prd;
         const erdExists = !!sections.data_modeling;
         const c4Exists = !!project.c4;
@@ -192,18 +190,19 @@ export default function ProjectShow({
                 prerequisiteMessage: 'Complete System Overview to generate PRD',
             },
             {
-                id: 'features',
-                title: 'Features',
-                description: 'Break down the project into manageable features',
-                icon: ZapIcon,
-                isCompleted: featuresExist,
-                isCurrent: overviewExists && prdExists && !featuresExist,
-                isLocked: !overviewExists || !prdExists,
-                isHardLocked: !overviewExists || !prdExists,
-                actionType: featuresExist ? 'navigate' : 'create',
-                actionPath: featuresExist ? `/projects/${project.id}/features` : `/features/create/${project.id}`,
-                prerequisites: ['overview', 'prd'],
-                prerequisiteMessage: 'Complete PRD to create features',
+                id: 'modules',
+                title: 'System Modules',
+                description: 'Define DDD bounded contexts and system modules',
+                icon: LayersIcon,
+                isCompleted: modulesExist,
+                isCurrent: overviewExists && !modulesExist,
+                isLocked: !overviewExists,
+                isHardLocked: !overviewExists,
+                actionType: modulesExist ? 'navigate' : 'generate',
+                actionPath: modulesExist ? `/projects/${project.id}/modules` : null,
+                prerequisites: ['overview'],
+                prerequisiteMessage: 'Complete System Overview to generate modules',
+                isLoading: isGeneratingModules,
             },
             {
                 id: 'erd',
@@ -211,13 +210,13 @@ export default function ProjectShow({
                 description: 'Design the database schema and relationships',
                 icon: DatabaseIcon,
                 isCompleted: erdExists,
-                isCurrent: overviewExists && prdExists && featuresExist && !erdExists,
-                isLocked: !overviewExists || !prdExists || !featuresExist,
-                isHardLocked: !prdExists || !featuresExist,
+                isCurrent: overviewExists && modulesExist && !erdExists,
+                isLocked: !overviewExists || !modulesExist,
+                isHardLocked: !modulesExist,
                 actionType: 'navigate',
                 actionPath: `/projects/${project.id}/erd`,
-                prerequisites: ['overview', 'prd', 'features'],
-                prerequisiteMessage: prdExists && featuresExist ? undefined : 'Complete PRD and Features to unlock Database Design',
+                prerequisites: ['overview', 'modules'],
+                prerequisiteMessage: modulesExist ? undefined : 'Complete System Modules to unlock Database Design',
             },
             {
                 id: 'architecture',
@@ -225,20 +224,20 @@ export default function ProjectShow({
                 description: 'Visualize the system architecture using C4 model',
                 icon: LayersIcon,
                 isCompleted: c4Exists,
-                isCurrent: overviewExists && prdExists && featuresExist && erdExists && !c4Exists,
-                isLocked: !overviewExists || !prdExists || !featuresExist,
-                isHardLocked: !prdExists || !featuresExist,
+                isCurrent: overviewExists && modulesExist && erdExists && !c4Exists,
+                isLocked: !overviewExists || !modulesExist,
+                isHardLocked: !modulesExist,
                 actionType: c4Exists ? 'navigate' : 'generate',
                 actionPath: c4Exists ? `/projects/${project.id}/c4` : null,
-                prerequisites: ['overview', 'prd', 'features'],
-                prerequisiteMessage: prdExists && featuresExist ? undefined : 'Complete PRD and Features to unlock System Architecture',
+                prerequisites: ['overview', 'modules'],
+                prerequisiteMessage: modulesExist ? undefined : 'Complete System Modules to unlock System Architecture',
             },
         ];
 
         return steps;
     };
 
-    const roadmapSteps = useMemo(() => getRoadmapSteps(), [sections, features.length, project.c4, project.technical_details]);
+    const roadmapSteps = useMemo(() => getRoadmapSteps(), [sections, modules.length, project.c4, project.technical_details, isGeneratingModules]);
     const currentStep = roadmapSteps.find((step) => step.isCurrent);
     const completedStepsCount = roadmapSteps.filter((step) => step.isCompleted).length;
     const totalStepsCount = roadmapSteps.length;
@@ -338,17 +337,16 @@ export default function ProjectShow({
                 router.post(`/projects/${project.id}/prd/generate`);
             } else if (step.id === 'architecture') {
                 router.post(`/projects/${project.id}/c4/generate`);
+            } else if (step.id === 'modules') {
+                setIsGeneratingModules(true);
+                router.get(
+                    `/modules/create/${project.id}`,
+                    {},
+                    {
+                        onFinish: () => setIsGeneratingModules(false),
+                    },
+                );
             }
-        } else if (step.actionType === 'create' && step.actionPath) {
-            if (step.isLocked) return;
-            setIsCreatingFeatures(true);
-            router.get(
-                step.actionPath,
-                {},
-                {
-                    onFinish: () => setIsCreatingFeatures(false),
-                },
-            );
         }
     };
 
@@ -393,7 +391,7 @@ export default function ProjectShow({
                                     teamMembers={[]}
                                     teamMembersCount={0}
                                     projectId={project.id}
-                                    features={features}
+                                    modules={modules}
                                 />
 
                                 {/* Collapse Toggle Button */}
@@ -430,7 +428,7 @@ export default function ProjectShow({
                                         teamMembers={teamMembers}
                                         teamMembersCount={teamMembersCount}
                                         repository={repository}
-                                        featuresCount={features.length}
+                                        modulesCount={modules.length}
                                         className="h-auto max-h-[50vh]"
                                     />
                                 </div>

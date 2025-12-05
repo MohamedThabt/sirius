@@ -1,40 +1,34 @@
 from pydantic import BaseModel
-from typing import List , Optional
-from models.prd import SystemPRD
+from typing import List, Optional
 from models.usage import UsageMetrics
-# from models.features import  DetailedFeature 
-    
-class Feature(BaseModel):
-    name: str  # varchar
-    acceptance_criteria: Optional[str] = None  # longtext
-    user_flows: Optional[str] = None  # varchar
-    metrics: Optional[str] = None  # longtext
-    description: Optional[str] = None  # longtext
-    
 
-class FeatureERD(BaseModel):
+
+# ============================================================
+# Module ERD Models
+# ============================================================
+
+class ExistingModuleContext(BaseModel):
+    """Basic info about existing modules for cross-reference"""
+    name: str
+    description: str
+
+
+class ModuleERDRequest(BaseModel):
+    """Request model for generating module ERD"""
+    project_overview: str
+    module_name: str
+    module_description: str
+    module_metrics: Optional[str] = None
+    existing_modules: List[ExistingModuleContext] = []
+
+
+class ModuleERD(BaseModel):
+    """Response model for module ERD"""
     ERD: str
     usage: Optional[UsageMetrics] = None
-    
-class ERDrequest(BaseModel):
-    prd: SystemPRD
-    feature: Feature
-    
-class EditERDRequest(BaseModel):
-    FeatureERD: str
+
+
+class EditModuleERDRequest(BaseModel):
+    """Request model for editing module ERD with AI"""
+    ModuleERD: str
     engineer_notes: str
-    
-# class MergeERDRequest(BaseModel):
-#     features: List[Feature]
-#     erds: List[FeatureERD]
-    
-class MergeERD(BaseModel):
-    feature_name: str
-    erd: str   
-
-class MergeERDRequest(BaseModel):
-    merge: list[MergeERD]
-    
-class ProjectERD(BaseModel):
-    ERD: str
-    usage: Optional[UsageMetrics] = None

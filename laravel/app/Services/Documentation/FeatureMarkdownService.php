@@ -8,7 +8,7 @@ class FeatureMarkdownService
 {
     public function formatProjectFeaturesToMarkdown(Project $project): string
     {
-        $project->loadMissing(['features']);
+        $project->loadMissing(['modules.features']);
 
         if ($project->features->isEmpty()) {
             return '';
@@ -19,23 +19,14 @@ class FeatureMarkdownService
 
         foreach ($project->features as $feature) {
             $title = trim((string) $feature->name);
-            $summary = trim((string) ($feature->summary ?? ''));
             $priority = ucfirst((string) ($feature->priority ?? ''));
-            $order = (int) ($feature->order_of_implementation ?? 0);
             $acceptance = trim((string) ($feature->acceptance_criteria ?? ''));
             $userFlows = trim((string) ($feature->user_flows ?? ''));
-            $metrics = trim((string) ($feature->metrics ?? ''));
             $description = trim((string) ($feature->description ?? ''));
 
             $lines[] = sprintf('### FR-%d %s', $counter, $title);
-            if ($summary !== '') {
-                $lines[] = sprintf('**Summary:** %s', $summary);
-            }
             if ($priority !== '') {
                 $lines[] = sprintf('**Priority:** %s', $priority);
-            }
-            if ($order > 0) {
-                $lines[] = sprintf('**Order of Implementation:** %d', $order);
             }
 
             if ($acceptance !== '') {
@@ -55,19 +46,6 @@ class FeatureMarkdownService
             if ($userFlows !== '') {
                 $normalized = preg_replace('/[\r\n]+/', ' ', $userFlows);
                 $lines[] = sprintf('**User Flows:** %s', $normalized);
-            }
-
-            if ($metrics !== '') {
-                $lines[] = '**Metrics:**';
-                $metricItems = preg_split('/\r?\n|[\x{2022}\*]/u', $metrics);
-                $metricItems = array_filter(array_map('trim', $metricItems));
-                if (!empty($metricItems)) {
-                    foreach ($metricItems as $m) {
-                        $lines[] = sprintf('* %s', rtrim($m, '.')) . '.';
-                    }
-                } else {
-                    $lines[] = sprintf('* %s', $metrics);
-                }
             }
 
             if ($description !== '') {

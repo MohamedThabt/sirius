@@ -16,7 +16,7 @@ class ProjectSpecsExportService
     {
         $files = [];
 
-        $project->loadMissing(['features']);
+        $project->loadMissing(['modules.features']);
 
         // Build PRD.md
         $files[] = [
@@ -31,9 +31,9 @@ class ProjectSpecsExportService
         ];
 
         // Build feature specs
-        $features = $project->features()->orderBy('order_of_implementation')->orderBy('name')->get();
+        $features = $project->features;
         foreach ($features as $index => $feature) {
-            $order = $feature->order_of_implementation > 0 ? $feature->order_of_implementation : ($index + 1);
+            $order = $index + 1;
             $slug = Str::slug($feature->name);
             $filename = sprintf('FR-%d-%s.md', $order, $slug);
 

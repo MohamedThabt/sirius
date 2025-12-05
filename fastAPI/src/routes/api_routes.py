@@ -9,10 +9,10 @@ from typing import Optional
 # Import all controller functions directly
 from controllers.overview_controller import generate_system_overview as ov_generate, edit_system_overview as ov_edit
 from controllers.features_controller import generate_features, generate_detailed_features, generate_single_feature_details
-from controllers.modules_controller import generate_suggestion_modules
+from controllers.modules_controller import generate_suggestion_modules, regenerate_suggestion_modules, generate_module_details, generate_single_module
 from controllers.brd_controller import generate_brd, edit_brd
 from controllers.prd_controller import generate_prd_with_flow, edit_prd
-from controllers.erd_controller import generate_feature_erd, edit_feature_erd, merge_feature_erds
+from controllers.erd_controller import generate_module_erd, edit_module_erd
 from controllers.wireframe_controller import generate_feature_wireframe, edit_feature_wireframe
 from controllers.sequence_controller import generate_feature_sequence, edit_feature_sequence
 from controllers.c4_controller import generate_c4, edit_c4
@@ -27,11 +27,11 @@ from controllers.logs_controller import (
 
 # Import all models
 from models.overview import RequirementsRequest, SystemOverview, EditOverviewRequest
-from models.features import FeatureList, DetailedFeatureList, DetailedFeatureRequest, Feature,DetailedFeature,SingleDetailedFeatureRequest,DetailedSingleFeature
-from models.modules import ModuleList, ModuleGenerationRequest
+from models.features import FeatureList, DetailedFeatureList, DetailedFeatureRequest, SingleDetailedFeatureRequest, DetailedSingleFeature
+from models.modules import ModuleList, ModuleGenerationRequest, ModuleRegenerationRequest, RegeneratedModuleList, ModuleDetailsRequest, ModuleDetailsResponse, SingleModuleRequest, SingleModuleResponse
 from models.BRD import BRDRequest, SystemBRD, EditBRDRequest
 from models.prd import SystemPRD, EditPRDRequest, PRDWithFlowRequest, PRDWithFlowResponse
-from models.ERD import ERDrequest, FeatureERD, EditERDRequest, MergeERDRequest, ProjectERD
+from models.ERD import ModuleERDRequest, ModuleERD, EditModuleERDRequest
 from models.wireframe import WireframeRequest, FeatureWireframe, EditWireframeRequest
 from models.Sequence import SequenceRequest, FeatureSequence, EditSequenceRequest
 from models.C4 import C4Request, SystemC4, EditC4Request
@@ -113,6 +113,30 @@ async def generate_suggestion_modules_endpoint(request: ModuleGenerationRequest)
     return result
 
 
+@modules_router.post("/suggestion/regenerate", response_model=RegeneratedModuleList)
+async def regenerate_suggestion_modules_endpoint(request: ModuleRegenerationRequest):
+    """Regenerate system modules based on user feedback and notes"""
+    result, usage = await regenerate_suggestion_modules(request)
+    result.usage = usage
+    return result
+
+
+@modules_router.post("/details/generate", response_model=ModuleDetailsResponse)
+async def generate_module_details_endpoint(request: ModuleDetailsRequest):
+    """Generate detailed module information including enhanced descriptions, metrics, and implementation order"""
+    result, usage = await generate_module_details(request)
+    result.usage = usage
+    return result
+
+
+@modules_router.post("/single/generate", response_model=SingleModuleResponse)
+async def generate_single_module_endpoint(request: SingleModuleRequest):
+    """Generate a single enriched module with context of existing modules in the system"""
+    result, usage = await generate_single_module(request)
+    result.usage = usage
+    return result
+
+
 # ============================================================================
 # BRD ROUTES (v1/BRD)
 # ============================================================================
@@ -156,31 +180,24 @@ async def edit_prd_endpoint(request: EditPRDRequest):
 
 
 # ============================================================================
-# ERD ROUTES (v1/ERD)
+# ERD ROUTES (v1/ERD) - Module-level ERD generation
 # ============================================================================
 
 erd_router = APIRouter(prefix="/v1/ERD", tags=["ERD"])
 
 
-@erd_router.post("/generate", response_model=FeatureERD)
-async def generate_feature_erd_endpoint(request: ERDrequest):
-    """Generate ERD for a specific feature"""
-    clean_mermaid, usage = await generate_feature_erd(request)
-    return FeatureERD(ERD=clean_mermaid, usage=usage)
+@erd_router.post("/generate", response_model=ModuleERD)
+async def generate_module_erd_endpoint(request: ModuleERDRequest):
+    """Generate ERD for a module (bounded context)"""
+    clean_mermaid, usage = await generate_module_erd(request)
+    return ModuleERD(ERD=clean_mermaid, usage=usage)
 
 
-@erd_router.post("/edit", response_model=FeatureERD)
-async def edit_feature_erd_endpoint(request: EditERDRequest):
-    """Edit existing ERD based on engineer notes"""
-    clean_mermaid, usage = await edit_feature_erd(request)
-    return FeatureERD(ERD=clean_mermaid, usage=usage)
-
-
-@erd_router.post("/merge", response_model=ProjectERD)
-async def merge_feature_erds_endpoint(request: MergeERDRequest):
-    """Merge multiple feature ERDs into a project ERD"""
-    clean_mermaid, usage = await merge_feature_erds(request)
-    return ProjectERD(ERD=clean_mermaid, usage=usage)
+@erd_router.post("/edit", response_model=ModuleERD)
+async def edit_module_erd_endpoint(request: EditModuleERDRequest):
+    """Edit existing module ERD based on engineer notes"""
+    clean_mermaid, usage = await edit_module_erd(request)
+    return ModuleERD(ERD=clean_mermaid, usage=usage)
 
 
 # ============================================================================

@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\ERDUpdated;
-use App\Models\Feature;
+use App\Models\Module;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Http;
@@ -14,28 +14,28 @@ class MergeERDs implements ShouldQueue
     use InteractsWithQueue;
     
     public function handle(ERDUpdated $event){
-        $feature = $event->feature;
-        $project = $feature->project;
+        $module = $event->module;
+        $project = $module->project;
 
-        // Get all features for this project that have ERDs
-        $featuresWithERDs = $project->features()
+        // Get all modules for this project that have ERDs
+        $modulesWithERDs = $project->modules()
             ->whereNotNull('erd')
             ->where('erd', '!=', '')
             ->get();
 
-        if ($featuresWithERDs->isEmpty()) {
-            Log::info('No features with ERDs found for project merge', [
+        if ($modulesWithERDs->isEmpty()) {
+            Log::info('No modules with ERDs found for project merge', [
                 'project_id' => $project->id,
-                'feature_id' => $feature->id
+                'module_id' => $module->id
             ]);
             return;
         }
 
         // Prepare the merge data
-        $mergeData = $featuresWithERDs->map(function (Feature $feature) {
+        $mergeData = $modulesWithERDs->map(function (Module $module) {
             return [
-                'feature_name' => $feature->name,
-                'erd' => $feature->erd
+                'module_name' => $module->name,
+                'erd' => $module->erd
             ];
         })->toArray();
 
@@ -46,7 +46,7 @@ class MergeERDs implements ShouldQueue
         try {
             Log::info('Attempting to merge ERDs for project', [
                 'project_id' => $project->id,
-                'features_count' => count($mergeData)
+                'modules_count' => count($mergeData)
             ]);
 
             $response = Http::timeout(60)->post('http://127.0.0.1:8005/v1/ERD/merge', $payload);

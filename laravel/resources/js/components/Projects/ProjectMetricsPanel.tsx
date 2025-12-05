@@ -40,7 +40,7 @@ interface ProjectMetricsPanelProps {
     teamMembers?: TeamMember[];
     teamMembersCount?: number;
     repository?: Repository | null;
-    featuresCount?: number;
+    modulesCount?: number;
     className?: string;
 }
 
@@ -53,7 +53,7 @@ export default function ProjectMetricsPanel({
     teamMembers = [],
     teamMembersCount = 0,
     repository,
-    featuresCount = 0,
+    modulesCount = 0,
     className,
 }: ProjectMetricsPanelProps) {
     const getInitials = (name: string) => {
@@ -129,20 +129,20 @@ export default function ProjectMetricsPanel({
                         </div>
                     </button>
 
-                    {/* Features Card */}
-                    {featuresCount > 0 && (
+                    {/* Modules Card */}
+                    {modulesCount > 0 && (
                         <button
-                            onClick={() => router.visit(`/projects/${projectId}/features`)}
+                            onClick={() => router.visit(`/projects/${projectId}/modules`)}
                             className="group relative overflow-hidden rounded-lg border border-border/50 bg-card p-6 text-left transition-all hover:border-primary/50 hover:shadow-sm"
                         >
                             <div className="flex items-start justify-between">
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                         <Zap className="h-5 w-5 text-amber-500" />
-                                        <h4 className="text-base font-medium text-foreground">Features</h4>
+                                        <h4 className="text-base font-medium text-foreground">Modules</h4>
                                     </div>
                                     <p className="text-sm leading-relaxed text-muted-foreground">
-                                        View and manage {featuresCount} project features
+                                        View and manage {modulesCount} project modules
                                     </p>
                                 </div>
                                 <svg

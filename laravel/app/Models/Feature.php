@@ -16,19 +16,16 @@ class Feature extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'project_id',
+        'module_id',
         'name',
-        'summary',
+        'description',
+        'acceptance_criteria',
+        'user_flows',
+        'wireframe',
+        'sequence_diagram',
+        'datamodel',
         'priority',
         'status',
-        'acceptance_criteria',
-        'order_of_implementation',
-        'user_flows',
-        'metrics',
-        'description',
-        'erd',
-        'sequence_diagram',
-        'wireframe',
     ];
 
     /**
@@ -39,14 +36,15 @@ class Feature extends Model
     protected $casts = [
         'priority' => 'string',
         'status' => 'string',
-        'order_of_implementation' => 'integer',
     ];
 
     /**
-     * Get the project that owns the feature.
+     * Get the module that owns the feature.
      */
-    public function project(): BelongsTo
+    public function module(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Module::class);
     }
+
+
 }

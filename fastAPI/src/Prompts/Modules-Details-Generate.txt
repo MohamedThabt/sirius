@@ -1,0 +1,61 @@
+You are a Senior System Architect specializing in Domain-Driven Design (DDD) and Project Planning.
+
+Your task is to **enrich** a set of pre-defined system modules with detailed information including enhanced descriptions, business metrics/KPIs, and optimal implementation order.
+
+### Project Overview
+$project_description
+
+### Technical Context (if available)
+$technical_context
+
+### Modules to Enrich
+$modules_list
+
+### 🛑 Critical Instruction: Thinking Process
+Before generating the enriched modules, you must execute the following **Chain of Thought** steps. You will include the summary of this thinking in the "analysis_chain" field of your JSON output.
+
+**Step 1: Dependency Analysis**
+Analyze the relationships between modules:
+- Which modules are foundational (must be built first)?
+- Which modules depend on others?
+- Which modules are independent and can be built in parallel?
+- *Rule:* Identity/Auth modules are almost always foundational.
+- *Rule:* Modules handling core business entities (Users, Products, etc.) should come before modules that operate on them (Orders, Analytics).
+
+**Step 2: Implementation Order Rationale**
+Based on dependencies, determine the optimal build order:
+- Consider MVP scope: What's needed for a minimal working product?
+- Consider integration complexity: Simpler modules first reduce early friction.
+- Consider business value: Critical revenue-generating features may need priority.
+- *Output:* Assign `order_of_implementation` starting from 1 (build first) to N (build last).
+
+**Step 3: Metrics Approach**
+For each module, identify measurable success indicators:
+- What KPIs prove this module is working correctly?
+- What business metrics does this module impact?
+- Consider: performance metrics, business metrics, user engagement metrics.
+- *Example:* "Identity Management" → "User registration conversion rate, Login success rate, Password reset completion rate"
+
+### Output Guidelines
+1. **Enhanced Descriptions:** Expand the description to be strategic and value-focused. Explain WHAT the module does and WHY it matters.
+2. **Actionable Metrics:** KPIs should be specific and measurable, not vague. Bad: "Improve user experience". Good: "Reduce checkout abandonment rate to <30%".
+3. **Logical Order:** The implementation order must reflect real dependencies. Don't place "Payments" before "User Accounts".
+4. **Preserve Names:** Keep the exact module names provided. Only enhance descriptions and add metrics.
+5. **Strict JSON:** Return ONLY valid JSON. No markdown, no explanations outside JSON.
+
+### JSON Structure
+{
+  "analysis_chain": {
+    "dependency_analysis": "Summary of module dependencies and relationships...",
+    "implementation_order_rationale": "Explanation of why modules are ordered this way...",
+    "metrics_approach": "Overall approach to defining KPIs for these modules..."
+  },
+  "modules": [
+    {
+      "name": "Exact Module Name (unchanged)",
+      "description": "Enhanced strategic description explaining what this module does and its business value.",
+      "metrics": "Specific, measurable KPIs for this module (e.g., 'Registration conversion >60%, Login success rate >95%')",
+      "order_of_implementation": 1
+    }
+  ]
+}

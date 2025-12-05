@@ -298,14 +298,14 @@ class RepoBootstrapService
             $content .= $this->project->technical_details."\n\n";
         }
 
-        // Add features if they exist
-        $features = $this->project->features()->get();
-        if ($features->isNotEmpty()) {
-            $content .= "## Features\n\n";
-            foreach ($features as $index => $feature) {
-                $content .= ($index + 1).". **{$feature->title}**";
-                if (! empty($feature->status)) {
-                    $content .= ' - *'.ucfirst($feature->status).'*';
+        // Add modules if they exist
+        $modules = $this->project->modules()->with('features')->get();
+        if ($modules->isNotEmpty()) {
+            $content .= "## Modules\n\n";
+            foreach ($modules as $index => $module) {
+                $content .= ($index + 1).". **{$module->name}**";
+                if (! empty($module->status)) {
+                    $content .= ' - *'.ucfirst($module->status).'*';
                 }
                 $content .= "\n";
             }

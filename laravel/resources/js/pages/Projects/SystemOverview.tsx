@@ -46,7 +46,7 @@ interface OverviewVersion {
 interface Props {
     project?: Project;
     overviewVersions: OverviewVersion[];
-    hasFeatures: boolean;
+    hasModules: boolean;
     isGenerating?: boolean;
     sections?: {
         overview: string | null;
@@ -210,7 +210,7 @@ const convertEscapedMermaid = (escapedString: string): string => {
 export default function SystemOverview({
     project,
     overviewVersions: initialOverviewVersions,
-    hasFeatures,
+    hasModules,
     isGenerating: initialIsGenerating = false,
     sections = { overview: null, prd: null, data_modeling: null, non_functional_requirements: null },
     features = [],
@@ -224,10 +224,10 @@ export default function SystemOverview({
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState('');
-    const [projectHasFeatures, setProjectHasFeatures] = useState(hasFeatures);
+    const [projectHasModules, setProjectHasModules] = useState(hasModules);
     const [leftPaneWidth, setLeftPaneWidth] = useState<number>(40); // percentage
     const [isResizing, setIsResizing] = useState(false);
-    const [isOpeningFeatureSuggestions, setIsOpeningFeatureSuggestions] = useState(false);
+    const [isOpeningModuleSuggestions, setIsOpeningModuleSuggestions] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const animationFrameRef = useRef<number | null>(null);
@@ -570,9 +570,9 @@ export default function SystemOverview({
                     setCurrentVersion(newestVersion);
                     setEditedContent(newestVersion.overview);
 
-                    // Update hasFeatures state if provided
-                    if (typeof data.hasFeatures === 'boolean') {
-                        setProjectHasFeatures(data.hasFeatures);
+                    // Update hasModules state if provided
+                    if (typeof data.hasModules === 'boolean') {
+                        setProjectHasModules(data.hasModules);
                     }
 
                     // Mark initial generation as complete
@@ -654,9 +654,9 @@ export default function SystemOverview({
                     setCurrentVersion(newestVersion);
                 }
 
-                // Update hasFeatures state if provided
-                if (typeof data.hasFeatures === 'boolean') {
-                    setProjectHasFeatures(data.hasFeatures);
+                // Update hasModules state if provided
+                if (typeof data.hasModules === 'boolean') {
+                    setProjectHasModules(data.hasModules);
                 }
             } else {
                 const errorData = await response.json().catch(() => ({}));
@@ -969,21 +969,21 @@ export default function SystemOverview({
                                                 </div>
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                {!projectHasFeatures && (
+                                                {!projectHasModules && (
                                                     <Button
                                                         onClick={() => {
-                                                            setIsOpeningFeatureSuggestions(true);
-                                                            router.visit(`/features/create/${project?.id}`);
+                                                            setIsOpeningModuleSuggestions(true);
+                                                            router.visit(`/modules/create/${project?.id}`);
                                                         }}
                                                         className="rounded-lg border border-primary/20 bg-primary/5 text-primary backdrop-blur-sm transition-all duration-200 hover:border-primary/30 hover:bg-primary/10"
                                                         disabled={
                                                             !currentVersion ||
                                                             !(currentVersion.overview && currentVersion.overview.trim().length > 0) ||
-                                                            isOpeningFeatureSuggestions
+                                                            isOpeningModuleSuggestions
                                                         }
                                                     >
                                                         <SparklesIcon className="mr-2 h-4 w-4" />
-                                                        Generate Features
+                                                        Generate Modules
                                                     </Button>
                                                 )}
                                                 <Button
@@ -1149,8 +1149,8 @@ export default function SystemOverview({
                 )}
             </div>
 
-            {/* Overlay Loading when opening Feature Suggestions */}
-            {isOpeningFeatureSuggestions && (
+            {/* Overlay Loading when opening Module Suggestions */}
+            {isOpeningModuleSuggestions && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
                     <div className="flex flex-col items-center space-y-4 rounded-lg border bg-card p-8 shadow-lg">
                         <div className="relative">
@@ -1160,7 +1160,7 @@ export default function SystemOverview({
                             </div>
                         </div>
                         <div className="space-y-1 text-center">
-                            <TextShimmer className="text-lg font-semibold">Generating Features</TextShimmer>
+                            <TextShimmer className="text-lg font-semibold">Generating Modules</TextShimmer>
                             <p className="text-sm text-muted-foreground">Preparing AI suggestions for {project?.name || 'project'}...</p>
                         </div>
                     </div>

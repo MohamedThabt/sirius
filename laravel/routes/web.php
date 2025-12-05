@@ -7,6 +7,8 @@ use App\Http\Controllers\Feature\ERDController;
 use App\Http\Controllers\Feature\FeaturesController;
 use App\Http\Controllers\Feature\SequenceDiagramController;
 use App\Http\Controllers\Feature\WireframeController;
+use App\Http\Controllers\Module\ModuleController;
+use App\Http\Controllers\Module\ModuleERDController;
 use App\Http\Controllers\Project\GithubController;
 use App\Http\Controllers\Project\InvitationController;
 use App\Http\Controllers\Project\ProjectController;
@@ -110,6 +112,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/features/{feature}', [FeaturesController::class, 'show'])->name('features.show');
     Route::get('/features/{feature}/specs', [FeaturesController::class, 'specs'])->name('features.specs.show');
     Route::put('/features/{feature}/update', [FeaturesController::class, 'update'])->name('features.update');
+
+    // Modules Controller routes
+    Route::get('/projects/{project}/modules', [ModuleController::class, 'index'])->name('modules.index');
+    Route::get('/modules/create/{project}', [ModuleController::class, 'generateSuggestionModules'])->name('modules.create');
+    Route::post('/modules/create/{project}', [ModuleController::class, 'createSystemModules'])->name('modules.store');
+    Route::post('/modules/single/{project}', [ModuleController::class, 'createSingleModule'])->name('modules.single.store');
+    Route::post('/modules/regenerate/{project}', [ModuleController::class, 'regenerateSuggestionModules'])->name('modules.regenerate');
+    Route::get('/projects/{project}/modules/{module}', [ModuleController::class, 'show'])->name('modules.show');
+    Route::put('/projects/{project}/modules/{module}/update', [ModuleController::class, 'update'])->name('modules.update');
+
+    // Module ERD routes
+    Route::get('/projects/{project}/modules/{module}/erd', [ModuleERDController::class, 'show'])->name('modules.erd.show');
+    Route::post('/projects/{project}/modules/{module}/erd/generate', [ModuleERDController::class, 'generate'])->name('modules.erd.generate');
+    Route::post('/projects/{project}/modules/{module}/erd/generate-async', [ModuleERDController::class, 'generateAsync'])->name('modules.erd.generate-async');
+    Route::post('/projects/{project}/modules/{module}/erd/ai-edit', [ModuleERDController::class, 'aiEdit'])->name('modules.erd.ai-edit');
+    Route::post('/projects/{project}/modules/{module}/erd/edit', [ModuleERDController::class, 'edit'])->name('modules.erd.edit');
 
     // ERD by feature id (UI only output)
     Route::get('/features/{feature}/erd', [ERDController::class, 'show'])->name('features.erd.show');

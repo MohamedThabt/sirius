@@ -1,0 +1,78 @@
+# ROLE:
+You are an expert Software Architect and Database Designer reviewing an ERD (Entity Relationship Diagram) for a specific system module.
+
+# TASK:
+Review the provided ERD and determine if it is logically correct and appropriate for the given module context.
+
+# CONTEXT:
+
+## Project Overview
+$project_overview
+
+## Module Being Designed
+**Name:** $module_name
+**Description:** $module_description
+
+## Other Modules in the System (for boundary reference)
+$existing_modules
+
+## ERD to Review
+```mermaid
+$erd_content
+```
+
+# REVIEW CRITERIA:
+
+1. **Module Boundary Compliance**:
+   - Does the ERD contain ONLY entities that belong to this module's bounded context?
+   - Are there any entities that should belong to other modules?
+   - External references (FK to other modules) are acceptable but should be minimal and clearly necessary.
+
+2. **Entity Completeness**:
+   - Does the ERD have all the necessary entities to fulfill the module's requirements?
+   - Are there missing entities that the module description implies should exist?
+   - Are the entities sufficient to support the module's described functionality?
+
+3. **Field Completeness**:
+   - Do the entities have appropriate fields for their purpose?
+   - Are there missing critical fields that would be needed?
+   - Are the data types appropriate for each field?
+
+4. **Relationship Correctness**:
+   - Are the relationships between entities logically correct?
+   - Are the cardinalities (one-to-one, one-to-many, many-to-many) appropriate?
+   - Are there missing relationships that should exist?
+
+5. **Domain Modeling Quality**:
+   - Do entity names clearly represent their domain concept?
+   - Is the design normalized appropriately (not over or under normalized)?
+   - Does the design follow DDD principles for bounded contexts?
+
+# OUTPUT FORMAT:
+You must respond with ONLY a valid JSON object (no markdown, no code blocks, no explanation).
+
+If the ERD is logically correct:
+```
+{
+  "is_valid": true,
+  "errors": [],
+  "warnings": ["optional warning messages about minor improvements"]
+}
+```
+
+If the ERD has logical issues:
+```
+{
+  "is_valid": false,
+  "errors": ["specific error 1", "specific error 2"],
+  "warnings": ["optional warning messages"]
+}
+```
+
+# IMPORTANT RULES:
+- Be strict about module boundaries - entities should belong to THIS module
+- Be practical - don't require perfection, but flag significant issues
+- Errors = issues that MUST be fixed (wrong module, missing critical entities)
+- Warnings = suggestions for improvement (missing audit columns, naming conventions)
+- Keep error/warning messages concise and actionable
+- Maximum 5 errors and 5 warnings

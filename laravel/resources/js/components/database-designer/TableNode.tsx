@@ -33,15 +33,15 @@ const TableNode = ({ data }: NodeProps<any>) => {
 
     return (
         <TooltipProvider delayDuration={300}>
-            <Card className="w-64 border-2 border-border bg-background shadow-lg group overflow-hidden">
-                <Handle type="target" position={Position.Top} className="h-3 w-3 !bg-primary" />
+            <Card className="w-72 border-2 border-border/80 bg-background/95 shadow-xl backdrop-blur-sm group overflow-hidden hover:shadow-2xl hover:border-primary/30 transition-all duration-200">
+                <Handle type="target" position={Position.Top} className="h-3 w-3 !bg-primary !border-2 !border-background" />
 
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-2 bg-muted/30">
                     <div className="flex items-center justify-between gap-2">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <CardTitle 
-                                    className="text-lg font-bold text-foreground truncate flex-1 min-w-0 cursor-help" 
+                                    className="text-base font-bold text-foreground truncate flex-1 min-w-0 cursor-help" 
                                 >
                                     {tableName}
                                 </CardTitle>
@@ -59,48 +59,48 @@ const TableNode = ({ data }: NodeProps<any>) => {
                                 </div>
                             </TooltipContent>
                         </Tooltip>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                             {onEdit && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-6 w-6 p-0"
+                                    className="h-7 w-7 p-0 hover:bg-primary/10"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onEdit();
                                     }}
                                 >
-                                    <Edit2 className="h-3 w-3" />
+                                    <Edit2 className="h-3.5 w-3.5" />
                                 </Button>
                             )}
                             {onDelete && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                    className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onDelete();
                                     }}
                                 >
-                                    <Trash2 className="h-3 w-3" />
+                                    <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                             )}
                         </div>
                     </div>
                 </CardHeader>
 
-                <CardContent className="pt-0 overflow-hidden">
-                    <div className="space-y-1">
+                <CardContent className="pt-2 pb-3 overflow-hidden">
+                    <div className="space-y-0.5">
                         {fields.map((field: TableField, index: number) => (
                             <Tooltip key={index}>
                                 <TooltipTrigger asChild>
                                     <div 
-                                        className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted/50 min-w-0 cursor-help"
+                                        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60 min-w-0 cursor-help transition-colors"
                                     >
-                                        <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
+                                        <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
                                             <span 
-                                                className="font-medium truncate max-w-[100px]"
+                                                className="font-medium truncate max-w-[110px]"
                                             >
                                                 {field.name}
                                             </span>
@@ -188,7 +188,7 @@ const TableNode = ({ data }: NodeProps<any>) => {
                     </div>
                 </CardContent>
 
-                <Handle type="source" position={Position.Bottom} className="h-3 w-3 !bg-primary" />
+                <Handle type="source" position={Position.Bottom} className="h-3 w-3 !bg-primary !border-2 !border-background" />
             </Card>
         </TooltipProvider>
     );

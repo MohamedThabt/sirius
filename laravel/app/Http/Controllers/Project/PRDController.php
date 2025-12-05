@@ -87,18 +87,15 @@ class PRDController extends Controller
                 ], 400);
             }
 
-            $project->loadMissing(['features', 'baseOverviewVersion']);
+            $project->loadMissing(['modules.features', 'baseOverviewVersion']);
 
             $features = $project->features->map(function ($feature) {
                 return [
                     'name' => $feature->name,
-                    'summary' => $feature->summary,
+                    'description' => $feature->description,
                     'priority' => ucfirst((string) $feature->priority),
                     'acceptance_criteria' => $feature->acceptance_criteria,
-                    'order_of_implementation' => (int) $feature->order_of_implementation,
                     'user_flows' => $feature->user_flows,
-                    'metrics' => $feature->metrics,
-                    'description' => $feature->description,
                 ];
             })->values()->all();
 

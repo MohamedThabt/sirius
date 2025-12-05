@@ -326,7 +326,7 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
         );
 
         return (
-            <div ref={ref} className="diagram-canvas-cursor h-full w-full">
+            <div ref={ref} className="diagram-canvas-cursor h-full w-full bg-gradient-to-br from-background via-background to-muted/20">
                 <ReactFlow
                     nodes={enhancedNodes}
                     edges={filteredEdges}
@@ -335,20 +335,26 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
                     onEdgesChange={handleEdgesChange}
                     onConnect={onConnect}
                     fitView
+                    fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
                     attributionPosition="bottom-left"
                     nodesDraggable={true}
                     nodesConnectable={true}
                     elementsSelectable={true}
                     colorMode={isDarkMode ? 'dark' : 'light'}
+                    defaultEdgeOptions={{
+                        type: 'smoothstep',
+                        animated: true,
+                        style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
+                    }}
                 >
                     <Background
                         variant={backgroundVariant}
                         gap={backgroundOptions.gap}
                         size={backgroundOptions.size}
-                        color={isDarkMode ? '#6b7280' : '#9ca3af'}
+                        color={isDarkMode ? '#4b5563' : '#d1d5db'}
                         style={{
                             backgroundColor: 'transparent',
-                            opacity: 0.4,
+                            opacity: 0.5,
                         }}
                     />
                     <ReactFlowControls position="bottom-left" className="diagram-canvas-controls" />
@@ -356,17 +362,38 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
                 <style>{`
                     .diagram-canvas-cursor,
                     .diagram-canvas-cursor .react-flow__pane {
-                        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12 Z" fill="none" stroke="%23a855f7" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="%23a855f7"/></svg>') 12 12, auto !important;
+                        cursor: grab !important;
+                    }
+                    .diagram-canvas-cursor .react-flow__pane:active {
+                        cursor: grabbing !important;
                     }
                     .diagram-canvas-cursor .react-flow__node {
-                        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 12 L12 3 L21 12 L12 21 Z" fill="none" stroke="%2306b6d4" stroke-width="2"/><path d="M8 12 L12 8 L16 12 L12 16 Z" fill="%2306b6d4"/></svg>') 12 12, move !important;
+                        cursor: move !important;
                     }
-                    .dark .diagram-canvas-cursor,
-                    .dark .diagram-canvas-cursor .react-flow__pane {
-                        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12 Z" fill="none" stroke="%23c084fc" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="%23c084fc"/></svg>') 12 12, auto !important;
+                    .diagram-canvas-cursor .react-flow__node:active {
+                        cursor: grabbing !important;
                     }
-                    .dark .diagram-canvas-cursor .react-flow__node {
-                        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M3 12 L12 3 L21 12 L12 21 Z" fill="none" stroke="%2322d3ee" stroke-width="2"/><path d="M8 12 L12 8 L16 12 L12 16 Z" fill="%2322d3ee"/></svg>') 12 12, move !important;
+                    .diagram-canvas-controls {
+                        background: hsl(var(--background) / 0.95) !important;
+                        border: 1px solid hsl(var(--border)) !important;
+                        border-radius: 0.5rem !important;
+                        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+                        backdrop-filter: blur(8px) !important;
+                    }
+                    .diagram-canvas-controls button {
+                        background: transparent !important;
+                        border: none !important;
+                        color: hsl(var(--foreground)) !important;
+                    }
+                    .diagram-canvas-controls button:hover {
+                        background: hsl(var(--muted)) !important;
+                    }
+                    .react-flow__edge-path {
+                        stroke-width: 2 !important;
+                    }
+                    .react-flow__edge.selected .react-flow__edge-path {
+                        stroke: hsl(var(--primary)) !important;
+                        stroke-width: 3 !important;
                     }
                 `}</style>
             </div>

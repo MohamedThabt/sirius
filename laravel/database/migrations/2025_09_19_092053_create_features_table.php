@@ -13,22 +13,20 @@ return new class extends Migration
     {
         Schema::create('features', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->constrained()->onDelete('cascade');
+            $table->foreignId('module_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->longText('summary');
-            $table->enum('priority', ['low', 'medium', 'high', 'critical'])->default('medium');
-            $table->enum('status', ['draft', 'in_progress', 'completed', 'archived'])->default('in_progress');
-            $table->longText('acceptance_criteria')->nullable();
-            $table->integer('order_of_implementation')->default(0);
-            $table->string('user_flows')->nullable();
-            $table->longText('metrics')->nullable();
             $table->longText('description')->nullable();
-            $table->longText('erd')->nullable();
-            $table->longText('sequence_diagram')->nullable();
+            $table->longText('acceptance_criteria')->nullable();
+            $table->string('user_flows')->nullable();
             $table->longText('wireframe')->nullable();
+            $table->longText('sequence_diagram')->nullable();
+            $table->longText('datamodel')->nullable();
+            $table->enum('priority', ['low', 'medium', 'high', 'critical'])->default('medium');
+            $table->enum('status', ['draft', 'todo', 'in_progress', 'review', 'done'])->default('draft');
             $table->timestamps();
 
-            $table->index(['project_id', 'order_of_implementation']);
+            $table->index(['module_id', 'status']);
+            $table->index('priority');
         });
     }
 

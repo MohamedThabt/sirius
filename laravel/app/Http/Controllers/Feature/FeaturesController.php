@@ -31,9 +31,8 @@ class FeaturesController extends Controller
                 return back()->with('error', 'You do not have permission to access this project.');
             }
 
-            $features = $project->features()
-                ->orderBy('order_of_implementation')
-                ->get();
+            $project->load('modules.features');
+            $features = $project->features;
 
             return Inertia::render('features/Index', [
                 'project' => $project,

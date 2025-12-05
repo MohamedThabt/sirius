@@ -108,7 +108,8 @@ class ProjectController extends Controller
                 'invitations.user:id,name,email',
                 'invitations.inviter:id,name',
                 'pendingInvitations',
-                'projectUsers'
+                'projectUsers',
+                'modules.features'
             ]);
 
             // Load user's total projects count
@@ -163,7 +164,7 @@ class ProjectController extends Controller
             !empty($project->erd),
             !empty($project->c4),
             !empty($project->technical_details),
-            $project->features->isNotEmpty(),
+            $project->modules->isNotEmpty(),
         ];
 
         $completed = count(array_filter($sections));

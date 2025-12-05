@@ -20,6 +20,7 @@ type NavPage =
     | 'technical_details'
     | 'prd'
     | 'features'
+    | 'modules'
     | 'erd'
     | 'c4';
 

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Project extends Model
@@ -75,11 +76,27 @@ class Project extends Model
     }
 
     /**
-     * Get the features for the project.
+     * Get the modules for the project.
      */
-    public function features(): HasMany
+    public function modules(): HasMany
     {
-        return $this->hasMany(Feature::class)->orderBy('order_of_implementation');
+        return $this->hasMany(Module::class)->orderBy('order_of_implementation');
+    }
+
+    /**
+     * Get all features for the project through modules.
+     */
+    public function features(): HasManyThrough
+    {
+        return $this->hasManyThrough(Feature::class, Module::class);
+    }
+
+    /**
+     * Get the suggested modules for the project (AI-generated cache).
+     */
+    public function suggestedModules(): HasMany
+    {
+        return $this->hasMany(SuggestedModule::class)->orderBy('order_of_implementation');
     }
 
     /**

@@ -78,6 +78,7 @@ export const nodesToDBML = (nodes: Node[], edges: Edge[]): string => {
 
 /**
  * Generate Mermaid ERD from nodes and edges
+ * Output format compatible with FastAPI ERD generator
  */
 export const nodesToMermaid = (nodes: Node[], edges: Edge[]): string => {
     let mermaid = 'erDiagram\n';
@@ -90,30 +91,34 @@ export const nodesToMermaid = (nodes: Node[], edges: Edge[]): string => {
         mermaid += `    ${tableName} {\n`;
 
         fields.forEach((field) => {
-            let fieldLine = `        ${field.type} ${field.name}`;
-
-            const attributes = [];
-            if (field.isPrimaryKey) attributes.push('PK');
-            if (field.isForeignKey) attributes.push('FK');
-            if (field.isUnique && !field.isPrimaryKey) attributes.push('UK');
-            if (field.isNotNull && !field.isPrimaryKey) attributes.push('NOT NULL');
-
-            if (attributes.length > 0) {
-                fieldLine += ` "${attributes.join(', ')}"`;
+            // Format: type column_name "constraints"
+            // Example: bigint user_id "FK, NOT NULL, ref:users.id"
+            const constraints: string[] = [];
+            
+            if (field.isPrimaryKey) constraints.push('PK');
+            if (field.isForeignKey) constraints.push('FK');
+            if (field.isUnique && !field.isPrimaryKey) constraints.push('UNIQUE');
+            if (field.isNotNull && !field.isPrimaryKey) constraints.push('NOT NULL');
+            
+            // Add ref: for foreign key references
+            if (field.isForeignKey && field.foreignKeyReference) {
+                constraints.push(`ref:${field.foreignKeyReference.referencedTable}.${field.foreignKeyReference.referencedField}`);
             }
 
-            // Add FK reference information as inline comment if exists
-            if (field.isForeignKey && field.foreignKeyReference) {
-                fieldLine += ` "ref:${field.foreignKeyReference.referencedTable}.${field.foreignKeyReference.referencedField}"`;
+            let fieldLine = `        ${field.type} ${field.name}`;
+            
+            if (constraints.length > 0) {
+                fieldLine += ` "${constraints.join(', ')}"`;
             }
 
             mermaid += fieldLine + '\n';
         });
 
-        mermaid += '    }\n';
+        mermaid += '    }\n\n';
     });
 
     // Generate relationships
+    // Format: ChildTable }o--|| ParentTable : "fk_column to pk_column"
     edges.forEach((edge) => {
         const sourceNode = nodes.find((n) => n.id === edge.source);
         const targetNode = nodes.find((n) => n.id === edge.target);
@@ -126,15 +131,21 @@ export const nodesToMermaid = (nodes: Node[], edges: Edge[]): string => {
         const sourceField = sourceForeignKeys[0]?.name || 'id';
         const targetField = targetPrimaryKeys[0]?.name || 'id';
 
-        // Determine relationship symbol
-        let relationshipSymbol = '||--o{';
-        if (typeof edge.label === 'string' && edge.label.includes('1:1')) {
-            relationshipSymbol = '||--||';
-        } else if (typeof edge.label === 'string' && edge.label.includes('N:M')) {
-            relationshipSymbol = '}o--o{';
+        // Determine relationship symbol based on edge label or default to many-to-one
+        // FastAPI outputs: }o--|| for many-to-one (child }o--|| parent)
+        let relationshipSymbol = '}o--||';  // Default: many-to-one (most common for FK relationships)
+        
+        if (typeof edge.label === 'string') {
+            if (edge.label.includes('1:1')) {
+                relationshipSymbol = '||--||';
+            } else if (edge.label.includes('N:M') || edge.label.includes('M:N')) {
+                relationshipSymbol = '}o--o{';
+            } else if (edge.label.includes('1:N')) {
+                relationshipSymbol = '||--o{';
+            }
         }
 
-        mermaid += `    ${edge.source} ${relationshipSymbol} ${edge.target} : "${sourceField} to ${targetField}"\n`;
+        mermaid += `${edge.source} ${relationshipSymbol} ${edge.target} : "${sourceField} to ${targetField}"\n`;
     });
 
     return mermaid;

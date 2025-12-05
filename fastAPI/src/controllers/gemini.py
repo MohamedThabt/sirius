@@ -21,6 +21,9 @@ async def ask_gemini(prompt: str) -> tuple[str, UsageMetrics]:
         
     Returns:
         Tuple of (response_text, usage_metrics)
+        
+    Raises:
+        ValueError: If the response is blocked or empty
     """
     model = ai.GenerativeModel(MODEL_NAME)
     
@@ -37,6 +40,16 @@ async def ask_gemini(prompt: str) -> tuple[str, UsageMetrics]:
             prompt,
             generation_config=generation_config
         )
+        
+        # Check if response has valid parts (finish_reason=2 means blocked/empty)
+        if not response.parts:
+            finish_reason = response.candidates[0].finish_reason if response.candidates else "UNKNOWN"
+            # finish_reason 2 = MAX_TOKENS, 3 = SAFETY, 4 = RECITATION, 5 = OTHER
+            reason_map = {1: "STOP", 2: "MAX_TOKENS", 3: "SAFETY", 4: "RECITATION", 5: "OTHER"}
+            reason_name = reason_map.get(finish_reason, str(finish_reason))
+            error_msg = f"Gemini returned empty response (finish_reason={reason_name}). Try simplifying the prompt or retry."
+            logger.warning(error_msg)
+            raise ValueError(error_msg)
         
         # Get response text
         response_text = response.text
@@ -64,3 +77,4 @@ async def ask_gemini(prompt: str) -> tuple[str, UsageMetrics]:
     except Exception as e:
         logger.error(f"Error calling Gemini API: {str(e)}")
         raise
+

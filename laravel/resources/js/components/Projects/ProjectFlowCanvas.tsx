@@ -14,7 +14,7 @@ import {
     useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Zap as ZapIcon } from 'lucide-react';
+import { Box as BoxIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 interface WorkflowStep {
@@ -29,6 +29,7 @@ interface WorkflowStep {
     actionType: 'navigate' | 'generate' | 'view' | 'create';
     actionPath: string | null;
     prerequisiteMessage?: string;
+    isLoading?: boolean;
     onClick: () => void;
 }
 
@@ -38,13 +39,14 @@ interface Health {
     color: string;
 }
 
-interface FeatureItem {
+interface ModuleItem {
     id: number;
     name: string;
-    summary: string;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
+    description: string;
+    status: 'planned' | 'in_progress' | 'completed';
     order_of_implementation: number;
+    metrics?: string | null;
+    erd?: string | null;
 }
 
 interface ProjectFlowCanvasProps {
@@ -57,7 +59,7 @@ interface ProjectFlowCanvasProps {
     teamMembers?: any[];
     teamMembersCount?: number;
     projectId?: number;
-    features?: FeatureItem[];
+    modules?: ModuleItem[];
 }
 
 const nodeTypes = {
@@ -71,17 +73,19 @@ const FlowCanvas = ({
     completedStepsCount,
     totalStepsCount,
     health,
-    features,
+    modules,
+    projectId,
 }: {
     steps: WorkflowStep[];
     completionPercentage?: number;
     completedStepsCount?: number;
     totalStepsCount?: number;
     health?: Health;
-    features?: FeatureItem[];
+    modules?: ModuleItem[];
+    projectId?: number;
 }) => {
     const { fitView } = useReactFlow();
-    const [isFeaturesExpanded, setIsFeaturesExpanded] = useState(false);
+    const [isModulesExpanded, setIsModulesExpanded] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(() => {
         if (typeof document === 'undefined') return false;
         return document.documentElement.classList.contains('dark');
@@ -99,14 +103,14 @@ const FlowCanvas = ({
             overview: { col: 0, row: 0 },
             technical_details: { col: 0, row: 1 },
             prd: { col: 1, row: 0 },
-            features: { col: 1, row: 1 },
+            modules: { col: 1, row: 1 },
             erd: { col: 2, row: 0 },
             architecture: { col: 2, row: 1 },
         };
 
         const nodes: Node[] = steps.map((step) => {
             const layout = columnLayout[step.id] || { col: 0, row: 0 };
-            const isFeaturesNode = step.id === 'features';
+            const isModulesNode = step.id === 'modules';
             return {
                 id: step.id,
                 type: 'workflowNode',
@@ -122,20 +126,21 @@ const FlowCanvas = ({
                     isCurrent: step.isCurrent,
                     isLocked: step.isLocked,
                     isHardLocked: step.isHardLocked,
+                    isLoading: step.isLoading,
                     onClick: step.onClick,
                     prerequisiteMessage: step.prerequisiteMessage,
                     inputHandlePosition: Position.Left,
-                    outputHandlePosition: isFeaturesNode ? Position.Bottom : Position.Right,
-                    outputHandleId: isFeaturesNode ? 'features-bottom' : undefined,
-                    secondaryOutputHandlePosition: isFeaturesNode ? Position.Right : Position.Right,
-                    secondaryOutputHandleId: isFeaturesNode ? 'features-right' : undefined,
-                    showSecondaryOutputHandle: isFeaturesNode,
-                    ...(isFeaturesNode && features
+                    outputHandlePosition: isModulesNode ? Position.Bottom : Position.Right,
+                    outputHandleId: isModulesNode ? 'modules-bottom' : undefined,
+                    secondaryOutputHandlePosition: isModulesNode ? Position.Right : Position.Right,
+                    secondaryOutputHandleId: isModulesNode ? 'modules-right' : undefined,
+                    showSecondaryOutputHandle: isModulesNode,
+                    ...(isModulesNode && modules && modules.length > 0
                         ? {
-                              features,
+                              modules,
                               isExpandable: true,
-                              isExpanded: isFeaturesExpanded,
-                              onToggleExpand: () => setIsFeaturesExpanded((prev) => !prev),
+                              isExpanded: isModulesExpanded,
+                              onToggleExpand: () => setIsModulesExpanded((prev) => !prev),
                           }
                         : {}),
                 },
@@ -144,38 +149,38 @@ const FlowCanvas = ({
             };
         });
 
-        // Generate feature child nodes when expanded
-        if (isFeaturesExpanded && features && features.length > 0) {
-            const featureNodeWidth = 220;
-            const featureSpacing = 64;
-            const featureStride = featureNodeWidth + featureSpacing;
-            const featuresNodeLayout = columnLayout['features'] || { col: 0, row: 0 };
-            const featuresNodeX = startX + featuresNodeLayout.col * columnSpacing;
-            const featuresNodeY = startY + featuresNodeLayout.row * rowSpacing;
-            const featureRowY = featuresNodeY + 220;
-            const totalWidth = features.length * featureNodeWidth + (features.length - 1) * featureSpacing;
-            const startFeatureX = featuresNodeX - totalWidth / 2 + featureNodeWidth / 2;
+        // Generate module child nodes when expanded
+        if (isModulesExpanded && modules && modules.length > 0) {
+            const moduleNodeWidth = 220;
+            const moduleSpacing = 64;
+            const moduleStride = moduleNodeWidth + moduleSpacing;
+            const modulesNodeLayout = columnLayout['modules'] || { col: 0, row: 0 };
+            const modulesNodeX = startX + modulesNodeLayout.col * columnSpacing;
+            const modulesNodeY = startY + modulesNodeLayout.row * rowSpacing;
+            const moduleRowY = modulesNodeY + 220;
+            const totalWidth = modules.length * moduleNodeWidth + (modules.length - 1) * moduleSpacing;
+            const startModuleX = modulesNodeX - totalWidth / 2 + moduleNodeWidth / 2;
 
-            features.forEach((feature, index) => {
+            modules.forEach((module, index) => {
                 nodes.push({
-                    id: `feature-${feature.id}`,
+                    id: `module-${module.id}`,
                     type: 'workflowNode',
                     position: {
-                        x: startFeatureX + index * featureStride,
-                        y: featureRowY,
+                        x: startModuleX + index * moduleStride,
+                        y: moduleRowY,
                     },
                     data: {
-                        title: feature.name,
-                        description: feature.summary || 'Feature details',
-                        icon: ZapIcon,
-                        isCompleted: feature.status === 'completed',
-                        isCurrent: feature.status === 'in_progress',
+                        title: module.name,
+                        description: module.description || 'Module details',
+                        icon: BoxIcon,
+                        isCompleted: module.status === 'completed',
+                        isCurrent: module.status === 'in_progress',
                         isLocked: false,
                         isHardLocked: false,
-                        onClick: () => router.visit(`/features/${feature.id}`),
+                        onClick: () => router.visit(`/projects/${projectId}/modules/${module.id}`),
                         prerequisiteMessage: undefined,
                         inputHandlePosition: Position.Top,
-                        inputHandleId: `feature-${feature.id}-input`,
+                        inputHandleId: `module-${module.id}-input`,
                         showOutputHandle: false,
                     },
                     draggable: false,
@@ -187,10 +192,10 @@ const FlowCanvas = ({
         // Define edges
         const edgeConnections = [
             { from: 'overview', to: 'prd' },
-            { from: 'overview', to: 'features' },
+            { from: 'overview', to: 'modules' },
             { from: 'technical_details', to: 'prd' },
-            { from: 'features', to: 'erd', sourceHandle: 'features-right' },
-            { from: 'features', to: 'architecture', sourceHandle: 'features-right' },
+            { from: 'modules', to: 'erd', sourceHandle: 'modules-right' },
+            { from: 'modules', to: 'architecture', sourceHandle: 'modules-right' },
         ];
 
         const edges: Edge[] = edgeConnections
@@ -223,16 +228,16 @@ const FlowCanvas = ({
             })
             .filter((edge): edge is Edge => edge !== null);
 
-        // Add feature edges
-        if (isFeaturesExpanded && features && features.length > 0) {
-            features.forEach((feature) => {
-                const isCompleted = feature.status === 'completed';
+        // Add module edges
+        if (isModulesExpanded && modules && modules.length > 0) {
+            modules.forEach((module) => {
+                const isCompleted = module.status === 'completed';
                 edges.push({
-                    id: `edge-features-feature-${feature.id}`,
-                    source: 'features',
-                    target: `feature-${feature.id}`,
-                    sourceHandle: 'features-bottom',
-                    targetHandle: `feature-${feature.id}-input`,
+                    id: `edge-modules-module-${module.id}`,
+                    source: 'modules',
+                    target: `module-${module.id}`,
+                    sourceHandle: 'modules-bottom',
+                    targetHandle: `module-${module.id}-input`,
                     type: 'smoothstep',
                     animated: isCompleted,
                     markerEnd: {
@@ -250,7 +255,7 @@ const FlowCanvas = ({
         }
 
         return { nodes, edges };
-    }, [steps, features, isFeaturesExpanded]);
+    }, [steps, modules, isModulesExpanded]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -259,7 +264,7 @@ const FlowCanvas = ({
         setNodes(initialNodes);
         setEdges(initialEdges);
         setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 50);
-    }, [initialNodes, initialEdges, setNodes, setEdges, fitView, isFeaturesExpanded]);
+    }, [initialNodes, initialEdges, setNodes, setEdges, fitView, isModulesExpanded]);
 
     useEffect(() => {
         const checkTheme = () => {
@@ -279,7 +284,7 @@ const FlowCanvas = ({
 
     return (
         <>
-            <div className="relative h-full w-full">
+            <div className="relative h-full min-h-[500px] w-full">
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -333,7 +338,8 @@ const ProjectFlowCanvas: React.FC<ProjectFlowCanvasProps> = ({
     completedStepsCount,
     totalStepsCount,
     health,
-    features,
+    modules,
+    projectId,
 }) => {
     if (!steps || steps.length === 0) {
         return (
@@ -344,7 +350,7 @@ const ProjectFlowCanvas: React.FC<ProjectFlowCanvasProps> = ({
     }
 
     return (
-        <div className={`h-full w-full ${className}`}>
+        <div className={`h-full min-h-[500px] w-full ${className}`}>
             <ReactFlowProvider>
                 <FlowCanvas
                     steps={steps}
@@ -352,7 +358,8 @@ const ProjectFlowCanvas: React.FC<ProjectFlowCanvasProps> = ({
                     completedStepsCount={completedStepsCount}
                     totalStepsCount={totalStepsCount}
                     health={health}
-                    features={features}
+                    modules={modules}
+                    projectId={projectId}
                 />
             </ReactFlowProvider>
         </div>
