@@ -40,6 +40,10 @@ interface FeatureItem {
     erd?: string | null;
     sequence_diagram?: string | null;
     wireframe?: string | null;
+    module?: {
+        id: number;
+        name: string;
+    };
 }
 
 interface Props {
@@ -66,7 +70,7 @@ const sampleMermaidSequence = `sequenceDiagram
 
 export default function SequenceDiagram({ project, feature, featureId, initialContent, isGenerating: initialIsGenerating = false }: Props) {
     useFlashToasts();
-    const { auth } = usePage().props as any;
+    const { auth, flash } = usePage().props as any;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [content, setContent] = useState(initialContent ?? sampleMermaidSequence);
     const [lastSavedContent, setLastSavedContent] = useState(initialContent ?? sampleMermaidSequence);
@@ -129,6 +133,15 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
         }
          
     }, [initialContent]);
+
+    // Handle new sequence from flash messages (AI edit or manual save)
+    useEffect(() => {
+        if (flash?.newSequence && typeof flash.newSequence === 'string') {
+            setContent(flash.newSequence);
+            setLastSavedContent(flash.newSequence);
+            setIsDirty(false);
+        }
+    }, [flash?.newSequence]);
 
     // Handle initial generation trigger
     useEffect(() => {
@@ -288,8 +301,10 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
 
     const breadcrumbs = [
         { title: project.name, href: `/projects/${project.id}` },
-        { title: feature?.name || 'Feature', href: `/features/${feature?.id}` },
-        { title: 'Sequence Diagram', href: `/features/${feature?.id}/sequence-diagram` },
+        { title: 'Modules', href: `/projects/${project.id}/modules` },
+        { title: feature?.module?.name || 'Module', href: `/projects/${project.id}/modules/${feature?.module?.id}` },
+        { title: feature?.name || 'Feature', href: `/projects/${project.id}/modules/${feature?.module?.id}/features/${feature?.id}` },
+        { title: 'Sequence Diagram' },
     ];
 
     if (!feature) {

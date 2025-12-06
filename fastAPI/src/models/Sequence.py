@@ -1,21 +1,26 @@
 from pydantic import BaseModel
-from typing import Optional, List
-from models.prd import SystemPRD
+from typing import Optional
 from models.usage import UsageMetrics
 
 class Feature(BaseModel):
-    name: str  # varchar
-    acceptance_criteria: Optional[str] = None  # longtext
-    user_flows: Optional[str] = None  # varchar
-    metrics: Optional[str] = None  # longtext
-    description: Optional[str] = None  # longtext
+    name: str
+    description: Optional[str] = None
+    acceptance_criteria: Optional[str] = None
+    user_flows: Optional[str] = None
+    metrics: Optional[str] = None
+    datamodel: Optional[str] = None  # Feature-specific ERD subset
+
+class Module(BaseModel):
+    name: str
+    description: Optional[str] = None
+    erd: Optional[str] = None  # Module-level ERD
 
 class FeatureSequence(BaseModel):
     sequence: str
     usage: Optional[UsageMetrics] = None
 
 class SequenceRequest(BaseModel):
-    prd: SystemPRD
+    module: Module  # Changed from prd to module
     feature: Feature
 
 class EditSequenceRequest(BaseModel):

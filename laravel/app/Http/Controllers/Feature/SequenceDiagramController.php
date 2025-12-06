@@ -22,7 +22,12 @@ class SequenceDiagramController extends Controller
     public function show(Feature $feature)
     {
         try {
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return back()->with('error', 'Feature must belong to a module with a project.');
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'You are not authorized to view this project.');
@@ -53,15 +58,20 @@ class SequenceDiagramController extends Controller
     public function generate(Feature $feature)
     {
         try {
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return back()->with('error', 'Feature must belong to a module with a project.');
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'You are not authorized to perform this action.');
             }
 
-            $prdContent = (string) ($project->prd ?? '');
-            if ($prdContent === '') {
-                return back()->with('error', 'Project PRD is missing.');
+            // Validate module exists
+            if (!$feature->module) {
+                return back()->with('error', 'Feature must belong to a module.');
             }
 
             // Store feature data in session for async generation
@@ -96,7 +106,12 @@ class SequenceDiagramController extends Controller
             // Increase execution time for FastAPI calls
             set_time_limit(180);
 
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return response()->json(['success' => false, 'message' => 'Feature must belong to a module with a project'], 422);
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -111,24 +126,29 @@ class SequenceDiagramController extends Controller
                 ], 400);
             }
 
-            $prdContent = (string) ($project->prd ?? '');
-            if ($prdContent === '') {
+            // Validate module exists
+            $module = $feature->module;
+            if (!$module) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Project PRD is missing'
+                    'message' => 'Feature must belong to a module'
                 ], 422);
             }
 
+            // Build payload with module context instead of PRD
             $payload = [
-                'prd' => [
-                    'PRD' => $prdContent,
+                'module' => [
+                    'name' => $module->name,
+                    'description' => $module->description ?? '',
+                    'erd' => $module->erd ?? '',
                 ],
                 'feature' => [
                     'name' => $feature->name,
-                    'acceptance_criteria' => $feature->acceptance_criteria,
-                    'user_flows' => $feature->user_flows,
-                    'metrics' => $feature->metrics,
-                    'description' => $feature->description,
+                    'description' => $feature->description ?? '',
+                    'acceptance_criteria' => $feature->acceptance_criteria ?? '',
+                    'user_flows' => $feature->user_flows ?? '',
+                    'metrics' => $feature->metrics ?? '',
+                    'datamodel' => $feature->datamodel ?? '',
                 ],
             ];
 
@@ -183,7 +203,12 @@ class SequenceDiagramController extends Controller
             // Increase execution time for FastAPI calls
             set_time_limit(180);
 
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return back()->with('error', 'Feature must belong to a module with a project.');
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'Unauthorized access.');
@@ -213,7 +238,10 @@ class SequenceDiagramController extends Controller
             $feature->sequence_diagram = $sequence;
             $feature->save();
 
-            return back()->with('success', 'Sequence diagram updated successfully.');
+            return back()->with([
+                'success' => 'Sequence diagram updated successfully.',
+                'newSequence' => $sequence
+            ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'aiEdit', 'feature_id' => $feature->id]);
             return back()->with('error', 'Failed to update sequence diagram with AI.');
@@ -234,7 +262,12 @@ class SequenceDiagramController extends Controller
         ]);
 
         try {
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return back()->with('error', 'Feature must belong to a module with a project.');
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'Unauthorized access.');
@@ -245,7 +278,10 @@ class SequenceDiagramController extends Controller
             $feature->sequence_diagram = $sequence;
             $feature->save();
 
-            return back()->with('success', 'Sequence diagram saved successfully.');
+            return back()->with([
+                'success' => 'Sequence diagram saved successfully.',
+                'newSequence' => $sequence
+            ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'edit', 'feature_id' => $feature->id]);
             return back()->with('error', 'Failed to save sequence diagram.');
