@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from pydantic import BaseModel, Field, field_validator
+from typing import List, Optional, Union, Any
 from models.usage import UsageMetrics
 
 class OverviewRequest(BaseModel):
@@ -27,7 +27,17 @@ class PRDWithFlowRequest(BaseModel):
     author: str
     date: str
     version: str
-    features: List[Feature]
+    features: Union[List[Feature], Any]
+    
+    @field_validator('features', mode='before')
+    @classmethod
+    def validate_features(cls, v):
+        """Handle both direct list and nested object formats"""
+        # If it's a dict with 'features' key (nested format from client)
+        if isinstance(v, dict) and 'features' in v:
+            return v['features']
+        # If it's already a list, return as is
+        return v
 
 class PRDWithFlowResponse(BaseModel):
     combined_file: str

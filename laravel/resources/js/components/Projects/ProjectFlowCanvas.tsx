@@ -30,6 +30,7 @@ interface WorkflowStep {
     actionPath: string | null;
     prerequisiteMessage?: string;
     isLoading?: boolean;
+    isOutOfSync?: boolean;
     onClick: () => void;
 }
 
@@ -145,6 +146,7 @@ const FlowCanvas = ({
                     isLocked: step.isLocked,
                     isHardLocked: step.isHardLocked,
                     isLoading: step.isLoading,
+                    isOutOfSync: step.isOutOfSync,
                     onClick: step.onClick,
                     prerequisiteMessage: step.prerequisiteMessage,
                     inputHandlePosition: Position.Left,
@@ -292,6 +294,7 @@ const FlowCanvas = ({
             { from: 'overview', to: 'prd' },
             { from: 'overview', to: 'modules' },
             { from: 'technical_details', to: 'prd' },
+            { from: 'modules', to: 'prd', sourceHandle: 'modules-right' },
             { from: 'modules', to: 'erd', sourceHandle: 'modules-right' },
             { from: 'modules', to: 'architecture', sourceHandle: 'modules-right' },
         ];

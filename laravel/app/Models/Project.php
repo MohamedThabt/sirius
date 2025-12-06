@@ -25,6 +25,8 @@ class Project extends Model
         'name',
         'brief',
         'prd',
+        'prd_is_synced',
+        'prd_last_synced_at',
         'non_functional_requirements',
         'technical_details',
         'erd',
@@ -41,6 +43,8 @@ class Project extends Model
     protected $casts = [
         'status' => 'string',
         'brainstorming_scene' => 'array',
+        'prd_is_synced' => 'boolean',
+        'prd_last_synced_at' => 'datetime',
     ];
 
     /**

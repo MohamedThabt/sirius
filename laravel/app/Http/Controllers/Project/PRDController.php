@@ -55,7 +55,7 @@ class PRDController extends Controller
             ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'generate', 'project_id' => $project->id]);
-            return back()->with('error', 'Failed to load PRD generation page.');
+            return redirect()->route('projects.show', $project)->with('error', 'Failed to load PRD generation page.');
         }
     }
 
@@ -119,7 +119,11 @@ class PRDController extends Controller
             if ($response->successful()) {
                 $combined = $response->json('combined_file');
                 if (is_string($combined) && $combined !== '') {
-                    $project->update(['prd' => $combined]);
+                    $project->update([
+                        'prd' => $combined,
+                        'prd_is_synced' => true,
+                        'prd_last_synced_at' => now(),
+                    ]);
                 }
 
                 // Clear pending session data
@@ -222,7 +226,12 @@ class PRDController extends Controller
                 return back()->with('error', 'You do not have permission to edit this PRD.');
             }
 
-            $project->update(['prd' => $validated['prd_content']]);
+            // Manual edits keep sync status true since user intentionally modified it
+            $project->update([
+                'prd' => $validated['prd_content'],
+                'prd_is_synced' => true,
+                'prd_last_synced_at' => now(),
+            ]);
 
             return back()->with('success', 'PRD saved successfully.');
         } catch (\Throwable $e) {
@@ -272,7 +281,11 @@ class PRDController extends Controller
 
             $updatedPrd = $response->json('PRD');
             if (is_string($updatedPrd) && $updatedPrd !== '') {
-                $project->update(['prd' => $updatedPrd]);
+                $project->update([
+                    'prd' => $updatedPrd,
+                    'prd_is_synced' => true,
+                    'prd_last_synced_at' => now(),
+                ]);
             }
 
             return back()->with('success', 'PRD updated successfully.');
@@ -310,6 +323,72 @@ class PRDController extends Controller
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'previewMermaid', 'project_id' => $project->id]);
             return back()->with('error', 'Failed to preview Mermaid diagram.');
+        }
+    }
+
+    /**
+     * Synchronize PRD with current modules and features.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @param FeatureMarkdownService $featureMarkdownService
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sync(Request $request, Project $project, FeatureMarkdownService $featureMarkdownService)
+    {
+        try {
+            // Increase execution time for FastAPI calls
+            set_time_limit(180);
+
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to sync this PRD.');
+            }
+
+            $currentPrd = (string) ($project->prd ?? '');
+            if ($currentPrd === '') {
+                return redirect()->route('prd.generate', $project)->with('error', 'No existing PRD found. Please generate a PRD first.');
+            }
+
+            $project->loadMissing(['modules.features', 'baseOverviewVersion']);
+
+            // Build enriched features with module context using the service
+            $features = $featureMarkdownService->getEnrichedFeaturesForAPI($project);
+
+            $overviewText = (string) ($project->baseOverviewVersion?->overview ?? '');
+
+            $payload = [
+                'project_name' => $project->name,
+                'author' => auth()->user()->name ?? 'Unknown',
+                'date' => now()->toDateString(),
+                'version' => '2',
+                'overview' => $overviewText,
+                'features' => [
+                    'features' => $features,
+                ],
+                'previous_prd' => $currentPrd,
+            ];
+
+            $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
+            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+                ->post($fastApiBaseUrl.'/v1/PRD/sync', $payload);
+
+            if (! $response->successful()) {
+                throw new \Exception('FastAPI PRD sync failed: ' . $response->body());
+            }
+
+            $combined = $response->json('combined_file');
+            if (is_string($combined) && $combined !== '') {
+                $project->update([
+                    'prd' => $combined,
+                    'prd_is_synced' => true,
+                    'prd_last_synced_at' => now(),
+                ]);
+            }
+
+            return back()->with('success', 'PRD synchronized successfully with current modules and features.');
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'sync', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to synchronize PRD. Please try again.');
         }
     }
 }

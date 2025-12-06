@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('name');
             $table->text('brief')->nullable();
             $table->longText('prd')->nullable();
+            $table->boolean('prd_is_synced')->default(true);
+            $table->timestamp('prd_last_synced_at')->nullable();
             $table->longText('non_functional_requirements')->nullable();
             $table->longText('technical_details')->nullable();
             $table->longText('erd')->nullable();

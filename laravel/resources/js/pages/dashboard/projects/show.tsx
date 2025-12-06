@@ -88,6 +88,8 @@ interface Project {
     name: string;
     brief: string;
     prd?: string;
+    prd_is_synced?: boolean;
+    prd_last_synced_at?: string;
     overview?: string;
     non_functional_requirements?: string;
     technical_details?: string;
@@ -608,17 +610,33 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                                                         <FileTextIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                                                     </div>
                                                     <div>
-                                                        <div className="font-medium">PRD</div>
-                                                        <div className="text-xs text-muted-foreground font-normal">Product requirements</div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-medium">PRD</span>
+                                                            {project.prd_is_synced === false && (
+                                                                <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">
+                                                                    Out of Sync
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-xs text-muted-foreground font-normal">
+                                                            Depends on: Overview + Modules
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <ExternalLink className="h-4 w-4 text-muted-foreground" />
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
-                                                Available
-                                            </Badge>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
+                                                    Available
+                                                </Badge>
+                                                {project.prd_is_synced === false && (
+                                                    <Badge variant="outline" className="bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20 text-xs">
+                                                        ⚠ Needs Sync
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </CardContent>
                                     </Card>
                                 </Link>

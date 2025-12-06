@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeftIcon, FileTextIcon, Download, Maximize2, Minimize2, Copy, ExternalLink } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { ArrowLeftIcon, FileTextIcon, Download, Maximize2, Minimize2, Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
@@ -30,6 +30,8 @@ interface Project {
     id: number;
     name: string;
     prd: string;
+    prd_is_synced: boolean;
+    prd_last_synced_at: string | null;
     status: string;
     user: User;
 }
@@ -356,10 +358,37 @@ export default function ProjectPRD({ project, featuresMarkdown = '' }: Props) {
                         )}
                         <div className="min-w-0">
                             <h1 className="text-2xl font-bold">Product Requirements Document</h1>
-                            <p className="text-sm text-muted-foreground truncate">{project.name}</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm text-muted-foreground truncate">{project.name}</p>
+                                {!project.prd_is_synced && (
+                                    <Badge variant="destructive" className="text-xs">
+                                        Out of Sync
+                                    </Badge>
+                                )}
+                            </div>
+                            {project.prd_last_synced_at && (
+                                <p className="text-xs text-muted-foreground">
+                                    Last synced: {new Date(project.prd_last_synced_at).toLocaleDateString()}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
+                        {!project.prd_is_synced && (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => {
+                                    if (confirm('Synchronize PRD with current modules and features? This will update the PRD to reflect all recent changes.')) {
+                                        router.post(`/admin/projects/${project.id}/prd/sync`);
+                                    }
+                                }}
+                                className="whitespace-nowrap"
+                            >
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Sync PRD
+                            </Button>
+                        )}
                         <Badge className={getStatusColor(project.status)}>{project.status.replace('_', ' ')}</Badge>
                         <Separator orientation="vertical" className="h-6" />
                         <Button variant="outline" size="sm" onClick={openInNewTab} className="whitespace-nowrap">

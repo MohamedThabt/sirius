@@ -307,6 +307,11 @@ class ModuleController extends Controller
                             'order_of_implementation' => $moduleData['order_of_implementation'] ?? ($index + 1),
                         ]);
                     }
+
+                    // Mark PRD as unsynced since modules changed
+                    if ($project->prd !== null) {
+                        $project->update(['prd_is_synced' => false]);
+                    }
                 });
 
                 return redirect()->route('modules.index', $project)
@@ -452,6 +457,11 @@ class ModuleController extends Controller
                         'order_of_implementation' => $finalOrder,
                     ]);
 
+                    // Mark PRD as unsynced since a new module was added
+                    if ($project->prd !== null) {
+                        $project->update(['prd_is_synced' => false]);
+                    }
+
                     return redirect()->route('modules.show', $module)
                         ->with('success', 'Module created and enriched successfully!');
                 }
@@ -470,6 +480,11 @@ class ModuleController extends Controller
                 'status' => 'planned',
                 'order_of_implementation' => $maxOrder + 1,
             ]);
+
+            // Mark PRD as unsynced since a new module was added
+            if ($project->prd !== null) {
+                $project->update(['prd_is_synced' => false]);
+            }
 
             return redirect()->route('modules.show', $module)
                 ->with('success', 'Module created successfully! (AI enrichment unavailable)');

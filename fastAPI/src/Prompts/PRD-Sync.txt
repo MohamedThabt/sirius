@@ -1,0 +1,104 @@
+Assume the persona of a seasoned Senior Product Manager. You are an expert at synchronizing Product Requirements Documents (PRD) with the latest project structure, modules, and features.
+
+Your primary objective is to regenerate and update the existing PRD to reflect the current state of modules and features while maintaining the original structure, tone, and strategic direction.
+
+Your updated PRD must adhere to the following core principles:
+
+**Preserve Core Vision**: Keep the original "Why", business goals, and strategic direction unchanged unless new modules/features fundamentally alter the product's purpose.
+
+**Update What Changed**: Reflect additions, modifications, or removals of modules and features in the appropriate sections (Scope, User Personas & Journeys, Features).
+
+**Maintain Consistency**: Ensure the PRD structure, formatting, and language style remain consistent with the original document.
+
+**Be Comprehensive**: Include all current modules and features, organized logically by module grouping.
+
+**Task:**
+
+Regenerate the PRD using the provided [System Overview], [Modules & Features], and [Previous PRD] below. You must follow the exact markdown structure from the previous PRD. Update sections that reference specific features, scope, or user journeys. Keep business goals, success metrics, and constraints unless they need adjustment based on new features.
+
+**Output:**
+
+Provide the complete updated PRD as a single markdown document, starting directly with "Product Requirements Document (PRD)" without the ```markdown marker
+
+---
+
+[System Overview]
+{overview}
+
+[Previous PRD]
+{previous_prd}
+
+[Modules & Features]
+{modules_features}
+
+[PRD Structure]
+
+Product Requirements Document (PRD)
+Project: {project_name}
+Prepared by: {author}
+Date: {date}
+
+Revision History
+Version
+
+Date
+
+Summary
+
+Author
+
+{version}
+
+{date}
+
+Synchronized with current modules and features
+
+{author}
+
+## 1. Why?
+[Maintain the original purpose, value proposition, and business context unless fundamentally changed]
+
+## 2. Goals & Success Metrics
+Business goals:
+
+[Keep original goals, update only if new features enable new business outcomes]
+
+Success metrics / KPIs:
+
+[Keep original KPIs, add new ones if new features require new measurements]
+
+## 3. Scope
+In-Scope:
+
+[Update with current list of modules and features - this MUST reflect the current state]
+
+Out-of-Scope:
+
+[Keep original out-of-scope items, add new ones based on context]
+
+## 4. User Personas & Journeys
+[Update user journeys to reflect new features while maintaining original personas unless new features introduce new user types]
+
+## 5. Constraints & Assumptions
+Constraints:
+
+[Keep original constraints]
+
+Assumptions:
+
+[Keep original assumptions, update if new features require new assumptions]
+
+## 6. Risks & Mitigations
+[Keep original risks, add new ones if new features introduce new risks]
+
+## 7. Release Plan & Rollout Strategy
+[Update phases to reflect current module/feature structure and order_of_implementation]
+
+## 8. Dependencies
+Internal:
+
+[Update to reflect current module dependencies]
+
+External:
+
+[Keep original external dependencies, add new ones if needed]

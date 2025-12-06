@@ -34,6 +34,7 @@ interface WorkflowNodeData {
     isLocked: boolean;
     isHardLocked: boolean;
     isLoading?: boolean;
+    isOutOfSync?: boolean;
     onClick: () => void;
     prerequisiteMessage?: string;
     features?: FeatureItem[];
@@ -64,6 +65,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
         isLocked,
         isHardLocked,
         isLoading = false,
+        isOutOfSync = false,
         onClick,
         prerequisiteMessage,
         features,
@@ -191,6 +193,14 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                             </Badge>
                         )}
                     </div>
+
+                    {/* Out of Sync Warning */}
+                    {isOutOfSync && (
+                        <div className="flex items-start gap-1.5 rounded-md bg-orange-500/10 p-2 border border-orange-500/30">
+                            <AlertCircleIcon className="mt-0.5 h-3 w-3 shrink-0 text-orange-600 dark:text-orange-400" />
+                            <p className="text-[10px] leading-tight text-orange-700 dark:text-orange-300">Out of sync with modules/features</p>
+                        </div>
+                    )}
 
                     {/* Prerequisite Message */}
                     {(isHardLocked || isLocked) && prerequisiteMessage && (

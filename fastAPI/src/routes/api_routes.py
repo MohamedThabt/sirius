@@ -11,7 +11,7 @@ from controllers.overview_controller import generate_system_overview as ov_gener
 from controllers.features_controller import generate_suggestion_features_for_module, regenerate_suggestion_features, generate_feature_details, generate_single_feature
 from controllers.modules_controller import generate_suggestion_modules, regenerate_suggestion_modules, generate_module_details, generate_single_module
 from controllers.brd_controller import generate_brd, edit_brd
-from controllers.prd_controller import generate_prd_with_flow, edit_prd
+from controllers.prd_controller import generate_prd_with_flow, edit_prd, sync_prd
 from controllers.erd_controller import generate_module_erd, edit_module_erd, sync_module_erd
 from controllers.wireframe_controller import generate_feature_wireframe, edit_feature_wireframe
 from controllers.sequence_controller import generate_feature_sequence, edit_feature_sequence
@@ -183,6 +183,13 @@ async def edit_prd_endpoint(request: EditPRDRequest):
     """Edit existing PRD based on engineer notes"""
     cleaned, usage = await edit_prd(request)
     return SystemPRD(PRD=cleaned, usage=usage)
+
+
+@prd_router.post("/sync", response_model=PRDWithFlowResponse)
+async def sync_prd_endpoint(request: PRDWithFlowRequest, previous_prd: str):
+    """Synchronize PRD with current modules and features"""
+    result, usage = await sync_prd(request, previous_prd)
+    return PRDWithFlowResponse(combined_file=result["combined_file"], usage=usage)
 
 
 # ============================================================================

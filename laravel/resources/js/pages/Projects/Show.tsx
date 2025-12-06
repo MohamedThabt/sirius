@@ -28,6 +28,7 @@ interface Project {
     status: string;
     created_at: string;
     updated_at: string;
+    prd_is_synced?: boolean;
 }
 
 interface Sections {
@@ -148,6 +149,7 @@ export default function ProjectShow({
         prerequisites: string[];
         prerequisiteMessage?: string;
         isLoading?: boolean;
+        isOutOfSync?: boolean;
     }
 
     const getRoadmapSteps = (): RoadmapStep[] => {
@@ -193,12 +195,13 @@ export default function ProjectShow({
                 icon: FileTextIcon,
                 isCompleted: prdExists,
                 isCurrent: overviewExists && !prdExists,
-                isLocked: !overviewExists,
-                isHardLocked: !overviewExists,
+                isLocked: !overviewExists && !modulesExist,
+                isHardLocked: !overviewExists && !modulesExist,
                 actionType: prdExists ? 'navigate' : 'generate',
                 actionPath: prdExists ? `/projects/${project.id}/prd` : null,
-                prerequisites: ['overview'],
-                prerequisiteMessage: 'Complete System Overview to generate PRD',
+                prerequisites: ['overview', 'modules'],
+                prerequisiteMessage: 'Complete System Overview and Modules to generate PRD',
+                isOutOfSync: prdExists && project.prd_is_synced === false,
             },
             {
                 id: 'modules',

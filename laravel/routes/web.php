@@ -104,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/projects/{project}/prd', [PRDController::class, 'show'])->name('projects.prd');
     Route::post('/projects/{project}/prd/edit', [PRDController::class, 'edit'])->name('prd.edit');
     Route::post('/projects/{project}/prd/ai-edit', [PRDController::class, 'aiEdit'])->name('prd.ai-edit');
+    Route::post('/projects/{project}/prd/sync', [PRDController::class, 'sync'])->name('prd.sync');
     Route::post('/projects/{project}/prd/preview-mermaid', [PRDController::class, 'previewMermaid'])->name('prd.preview-mermaid');
 
     // Features routes (module-based)
