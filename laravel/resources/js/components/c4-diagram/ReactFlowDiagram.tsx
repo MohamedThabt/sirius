@@ -108,6 +108,7 @@ const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
                 </div>
             ),
             type: 'smoothstep',
+            animated: true,
             markerEnd: { type: MarkerType.ArrowClosed, width: 15, height: 15, color: '#6b7280' },
             style: { strokeWidth: 2, stroke: '#6b7280' },
             labelBgPadding: [8, 4] as [number, number],

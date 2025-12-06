@@ -30,9 +30,12 @@ class ArchitectureController extends Controller
                 return redirect()->route('projects.c4', $project);
             }
 
-            // If no PRD exists, redirect back with error
-            if (! $project->prd) {
-                return back()->with('error', 'Please generate a PRD first before creating the C4 diagram.');
+            // Load base overview version for context
+            $project->loadMissing('baseOverviewVersion');
+            
+            // If no base overview exists, redirect back with error
+            if (! $project->baseOverviewVersion?->overview) {
+                return back()->with('error', 'Please complete the system overview first before creating the C4 diagram.');
             }
 
             // Store project data in session for async generation
@@ -77,13 +80,52 @@ class ArchitectureController extends Controller
                 ], 400);
             }
 
+            // Load required relationships
+            $project->loadMissing(['baseOverviewVersion', 'technicalIntake', 'modules']);
+            
+            // Get overview text (base version or fallback to brief)
+            $overviewText = $project->baseOverviewVersion?->overview ?? $project->brief;
+            
+            if (empty($overviewText)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No project overview available for C4 generation',
+                ], 400);
+            }
+            
+            // Build technical intake payload
+            $technicalIntake = null;
+            if ($project->technicalIntake) {
+                $technicalIntake = [
+                    'platform_targets' => $project->technicalIntake->platform_targets,
+                    'frontend_tech' => $project->technicalIntake->frontend_tech,
+                    'backend_tech' => $project->technicalIntake->backend_tech,
+                    'database_tech' => $project->technicalIntake->database_tech,
+                    'ai_usage' => $project->technicalIntake->ai_usage,
+                    'external_services' => $project->technicalIntake->external_services,
+                ];
+            }
+            
+            // Build modules payload (optional)
+            $modules = null;
+            if ($project->modules->isNotEmpty()) {
+                $modules = $project->modules->map(function ($module) {
+                    return [
+                        'name' => $module->name,
+                        'description' => $module->description,
+                    ];
+                })->values()->all();
+            }
+            
+            $payload = [
+                'project_overview' => $overviewText,
+                'technical_intake' => $technicalIntake,
+                'modules' => $modules,
+            ];
+
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
             $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
-                ->post($fastApiBaseUrl.'/v1/C4/generate', [
-                    'SystemPRD' => [
-                        'PRD' => $project->prd,
-                    ],
-                ]);
+                ->post($fastApiBaseUrl.'/v1/C4/generate', $payload);
 
             if ($response->successful()) {
                 $data = $response->json();

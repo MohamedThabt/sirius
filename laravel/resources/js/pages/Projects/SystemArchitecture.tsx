@@ -555,7 +555,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                     className="absolute top-4 right-4 z-10 h-8 w-8 rounded border"
                                     title="Exit Full Screen"
                                 >
-                                    <Maximize className="h-4 w-4" />
+                                    <Minimize2 className="h-4 w-4" />
                                     <span className="sr-only">Exit Full Screen</span>
                                 </Button>
 
