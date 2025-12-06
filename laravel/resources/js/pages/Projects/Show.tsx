@@ -57,6 +57,7 @@ interface ModuleItem {
     order_of_implementation: number;
     metrics?: string | null;
     erd?: string | null;
+    erd_is_synced?: boolean;
     features?: FeatureItem[];
 }
 

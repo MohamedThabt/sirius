@@ -22,6 +22,7 @@ $existing_features_section
 4. **Write detailed specs**: Comprehensive acceptance criteria, user flows, and metrics
 5. **Ensure consistency**: Match the level of detail present in existing features
 6. **Consider data integrity**: Reference ERD constraints and relationships
+7. **Generate datamodel**: If this feature interacts with database entities, extract a Mermaid ERD subset from the module ERD showing ONLY the tables and relationships this feature uses. For features that don't require database operations (UI-only, integrations, notifications), set datamodel to null.
 
 ### Output Requirements:
 Return **ONLY valid JSON** with this structure:
@@ -39,6 +40,7 @@ Return **ONLY valid JSON** with this structure:
   - **metrics**: Success metrics and KPIs (2-4 metrics)
   - **priority**: "low" | "medium" | "high" | "critical" (based on business value)
   - **order_of_implementation**: Integer representing position in sequence (consider existing features)
+  - **datamodel**: Mermaid erDiagram code block containing ONLY the entities and relationships this feature interacts with (subset of module ERD), OR null if the feature doesn't require database operations
 
 ### Example Output Format:
 {
@@ -56,8 +58,10 @@ Return **ONLY valid JSON** with this structure:
     "user_flows": "**Agent Adding Note Flow:**\n1. Agent opens order detail page\n2. Clicks Communication tab\n3. Writes note in rich text editor\n4. Selects visibility (internal-only or customer-visible)\n5. Optionally attaches files\n6. Clicks Save Note\n7. System creates OrderNote entity, links to Order and User\n8. If customer-visible, email notification sent\n9. Note appears in communication timeline\n\n**Customer Viewing/Replying Flow:**\n1. Customer receives email notification of new note\n2. Clicks link to order page\n3. Sees communication timeline with customer-visible notes\n4. Clicks Reply\n5. Writes response\n6. Clicks Send\n7. System creates OrderNote, emails agent team\n8. Reply appears in timeline",
     "metrics": "- Average response time to customer notes (target: <2 hours)\n- % of orders with communication notes (engagement indicator)\n- Customer satisfaction score for orders with notes vs. without\n- Agent efficiency (notes per order, time spent on communication)",
     "priority": "medium",
-    "order_of_implementation": 4
+    "order_of_implementation": 4,
+    "datamodel": "erDiagram\n    orders {\n        bigint id \"PK\"\n        bigint customer_id \"FK, ref:customers.id\"\n        varchar status \"NOT NULL\"\n        timestamp created_at\n    }\n\n    order_notes {\n        bigint id \"PK\"\n        bigint order_id \"FK, NOT NULL, ref:orders.id\"\n        bigint user_id \"FK, NOT NULL, ref:users.id\"\n        text content \"NOT NULL\"\n        boolean is_internal\n        timestamp created_at\n    }\n\n    users {\n        bigint id \"PK\"\n        varchar name \"NOT NULL\"\n        varchar role\n    }\n\norder_notes }o--|| orders : \"order_id to id\"\norder_notes }o--|| users : \"user_id to id\""
   }
 }
 
 ### Your Response (JSON only):
+

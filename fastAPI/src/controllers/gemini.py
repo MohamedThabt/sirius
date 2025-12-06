@@ -23,13 +23,14 @@ async def ask_gemini(prompt: str) -> tuple[str, UsageMetrics]:
         Tuple of (response_text, usage_metrics)
         
     Raises:
-        ValueError: If the response is blocked or empty
+        ValueError: If the response is blocked or truly empty
     """
     model = ai.GenerativeModel(MODEL_NAME)
     
     # Configure generation parameters to handle longer responses
+    # Gemini 2.5 Flash supports up to 65,536 output tokens
     generation_config = ai.types.GenerationConfig(
-        max_output_tokens=8192,  # Increase from default to handle longer responses
+        max_output_tokens=32768,  # Increased for complex feature details responses
         temperature=0.7,
         top_p=0.8,
         top_k=40
@@ -41,18 +42,31 @@ async def ask_gemini(prompt: str) -> tuple[str, UsageMetrics]:
             generation_config=generation_config
         )
         
-        # Check if response has valid parts (finish_reason=2 means blocked/empty)
+        # Get finish reason for diagnostics
+        finish_reason = None
+        if response.candidates:
+            finish_reason = response.candidates[0].finish_reason
+        
+        # finish_reason mapping: 1 = STOP, 2 = MAX_TOKENS, 3 = SAFETY, 4 = RECITATION, 5 = OTHER
+        reason_map = {1: "STOP", 2: "MAX_TOKENS", 3: "SAFETY", 4: "RECITATION", 5: "OTHER"}
+        reason_name = reason_map.get(finish_reason, str(finish_reason))
+        
+        # Check if response has valid parts
         if not response.parts:
-            finish_reason = response.candidates[0].finish_reason if response.candidates else "UNKNOWN"
-            # finish_reason 2 = MAX_TOKENS, 3 = SAFETY, 4 = RECITATION, 5 = OTHER
-            reason_map = {1: "STOP", 2: "MAX_TOKENS", 3: "SAFETY", 4: "RECITATION", 5: "OTHER"}
-            reason_name = reason_map.get(finish_reason, str(finish_reason))
             error_msg = f"Gemini returned empty response (finish_reason={reason_name}). Try simplifying the prompt or retry."
             logger.warning(error_msg)
             raise ValueError(error_msg)
         
         # Get response text
         response_text = response.text
+        
+        # Log warning if response was truncated due to MAX_TOKENS
+        if finish_reason == 2:  # MAX_TOKENS
+            logger.warning(
+                f"Response was truncated due to MAX_TOKENS limit. "
+                f"Response length: {len(response_text)} chars. "
+                f"The JSON repair utility will attempt to fix the truncated response."
+            )
         
         # Extract token usage from response
         usage_metadata = response.usage_metadata
@@ -68,7 +82,7 @@ async def ask_gemini(prompt: str) -> tuple[str, UsageMetrics]:
         
         # Log usage
         logger.info(
-            f"{MODEL_NAME} response length: {len(response_text)} chars, "
+            f"{MODEL_NAME} response (finish_reason={reason_name}): {len(response_text)} chars, "
             f"Tokens: {input_tokens + output_tokens} (input: {input_tokens}, output: {output_tokens})"
         )
         

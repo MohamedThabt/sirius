@@ -22,6 +22,7 @@ class Module extends Model
         'description',
         'metrics',
         'erd',
+        'erd_is_synced',
         'status',
         'order_of_implementation',
     ];
@@ -34,6 +35,7 @@ class Module extends Model
     protected $casts = [
         'status' => 'string',
         'order_of_implementation' => 'integer',
+        'erd_is_synced' => 'boolean',
     ];
 
     /**

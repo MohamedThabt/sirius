@@ -53,7 +53,7 @@ interface FeatureItem {
     user_flows?: string | null;
     metrics?: string | null;
     description?: string | null;
-    erd?: string | null;
+    datamodel?: string | null;
     sequence_diagram?: string | null;
     wireframe?: string | null;
 }
@@ -173,7 +173,7 @@ export default function Show({ project, module, feature }: Props) {
     const calculateProgress = useMemo(() => {
         const artifacts = [
             !!(feature.description && feature.acceptance_criteria),
-            !!feature.erd,
+            !!feature.datamodel,
             !!feature.sequence_diagram,
             !!feature.wireframe,
         ];
@@ -207,16 +207,8 @@ export default function Show({ project, module, feature }: Props) {
                 priority: 'high',
             });
         }
-        if (!feature.erd && (feature.description || feature.acceptance_criteria)) {
-            steps.push({
-                title: 'Design Schema',
-                description: 'Create ER diagram',
-                action: () => feature.erd ? router.visit(`/features/${feature.id}/erd`) : router.post(`/features/${feature.id}/erd/generate`),
-                icon: DatabaseIcon,
-                priority: 'medium',
-            });
-        }
-        if (!feature.sequence_diagram && feature.erd) {
+        // Note: Database Schema (datamodel) is auto-generated during feature creation, not a manual step
+        if (!feature.sequence_diagram && feature.datamodel) {
             steps.push({
                 title: 'Sequence Diagram',
                 description: 'Visualize interactions',
@@ -247,10 +239,10 @@ export default function Show({ project, module, feature }: Props) {
     };
 
     const artifacts = [
-        { name: 'Feature Overview', completed: !!(feature.description && feature.acceptance_criteria), icon: MessageSquareIcon, action: () => handleEdit(feature.description ? 'acceptance_criteria' : 'description') },
-        { name: 'Database Schema', completed: !!feature.erd, icon: DatabaseIcon, action: () => feature.erd ? router.visit(`/features/${feature.id}/erd`) : router.post(`/features/${feature.id}/erd/generate`) },
-        { name: 'Sequence Diagram', completed: !!feature.sequence_diagram, icon: WorkflowIcon, action: () => feature.sequence_diagram ? router.visit(`/features/${feature.id}/sequence-diagram`) : router.post(`/features/${feature.id}/sequence-diagram/generate`) },
-        { name: 'Wireframe', completed: !!feature.wireframe, icon: LayoutIcon, action: () => feature.wireframe ? router.visit(`/features/${feature.id}/wireframe`) : router.post(`/features/${feature.id}/wireframe/generate`) },
+        { name: 'Feature Overview', completed: !!(feature.description && feature.acceptance_criteria), icon: MessageSquareIcon, action: () => handleEdit(feature.description ? 'acceptance_criteria' : 'description'), disabled: false },
+        { name: 'Database Schema', completed: !!feature.datamodel, icon: DatabaseIcon, action: () => feature.datamodel ? router.visit(`/features/${feature.id}/datamodel`) : undefined, disabled: !feature.datamodel },
+        { name: 'Sequence Diagram', completed: !!feature.sequence_diagram, icon: WorkflowIcon, action: () => feature.sequence_diagram ? router.visit(`/features/${feature.id}/sequence-diagram`) : router.post(`/features/${feature.id}/sequence-diagram/generate`), disabled: false },
+        { name: 'Wireframe', completed: !!feature.wireframe, icon: LayoutIcon, action: () => feature.wireframe ? router.visit(`/features/${feature.id}/wireframe`) : router.post(`/features/${feature.id}/wireframe/generate`), disabled: false },
     ];
 
     const ContentCard = ({ title, field, icon: Icon, placeholder, className = '' }: { title: string, field: string, icon: any, placeholder: string, className?: string }) => (
@@ -442,30 +434,36 @@ export default function Show({ project, module, feature }: Props) {
                                 {artifacts.map((item, index) => (
                                     <div
                                         key={index}
-                                        className="group cursor-pointer rounded-xl border border-border/40 bg-card/50 p-4 transition-all hover:border-border/80 hover:bg-card hover:shadow-sm"
-                                        onClick={item.action}
+                                        className={`group rounded-xl border border-border/40 bg-card/50 p-4 transition-all ${item.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-border/80 hover:bg-card hover:shadow-sm'}`}
+                                        onClick={item.disabled ? undefined : item.action}
                                     >
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${item.completed ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
+                                                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${item.disabled ? 'bg-muted/50 text-muted-foreground/50' : item.completed ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
                                                     {item.completed ? <CheckCircle2 className="h-5 w-5" /> : <item.icon className="h-5 w-5" />}
                                                 </div>
-                                                <div className="font-medium text-foreground">{item.name}</div>
+                                                <div className={`font-medium ${item.disabled ? 'text-muted-foreground/50' : 'text-foreground'}`}>{item.name}</div>
                                             </div>
                                         </div>
                                         <div className="mt-4">
-                                            <Button
-                                                size="sm"
-                                                variant={item.completed ? 'ghost' : 'outline'}
-                                                className="w-full justify-between text-xs"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    item.action();
-                                                }}
-                                            >
-                                                {item.completed ? 'View Artifact' : 'Generate'}
-                                                <ArrowRightIcon className="h-3 w-3 opacity-50 group-hover:opacity-100" />
-                                            </Button>
+                                            {item.disabled ? (
+                                                <div className="text-xs text-muted-foreground/60 text-center py-1.5">
+                                                    Not Available
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    size="sm"
+                                                    variant={item.completed ? 'ghost' : 'outline'}
+                                                    className="w-full justify-between text-xs"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        item.action();
+                                                    }}
+                                                >
+                                                    {item.completed ? 'View Artifact' : 'Generate'}
+                                                    <ArrowRightIcon className="h-3 w-3 opacity-50 group-hover:opacity-100" />
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

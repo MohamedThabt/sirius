@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type SharedData } from '@/types';
 
 import AddTableDialog from '@/components/database-designer/AddTableDialog';
 import DiagramCanvas from '@/components/database-designer/DiagramCanvas';
@@ -35,6 +36,13 @@ interface Project {
     updated_at: string;
 }
 
+interface Module {
+    id: number;
+    name: string;
+    description: string;
+    status: 'planned' | 'in_progress' | 'completed';
+}
+
 interface FeatureItem {
     id: number;
     name: string;
@@ -47,9 +55,10 @@ interface FeatureItem {
     acceptance_criteria?: string | null;
     user_flows?: string | null;
     metrics?: string | null;
-    erd?: string | null;
+    datamodel?: string | null;
     sequence_diagram?: string | null;
     wireframe?: string | null;
+    module?: Module;
 }
 
 interface Props {
@@ -131,7 +140,8 @@ Ref: reviews.product_id > products.id
 
 export default function DatabaseDesigner({ project, feature, initialContent, featureId, isGenerating: initialIsGenerating = false }: Props) {
     useFlashToasts();
-    const { auth } = usePage().props as any;
+    const shared = usePage<SharedData>().props;
+    const { auth } = shared;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [content, setContent] = useState(initialContent ?? sampleDBML);
     const [searchQuery, setSearchQuery] = useState('');
@@ -188,52 +198,20 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
     useEffect(() => {
         if (typeof initialContent === 'string' && initialContent.trim()) {
             setContent(initialContent);
+            // If initial content is different from current content, don't mark as dirty
+            // This handles the case when the page first loads with saved content
             setIsDirty(false);
         }
-         
     }, [initialContent]);
 
-    // Handle initial generation trigger
+    // Sync editor content when AI edit returns new ERD via flash
     useEffect(() => {
-        if (initialIsGenerating && featureId) {
-            triggerAsyncGeneration();
+        if (shared.flash?.erd && typeof shared.flash.erd === 'string') {
+            setContent(shared.flash.erd);
+            setIsDirty(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialIsGenerating, featureId]);
+    }, [shared.flash?.erd]);
 
-    // Handle initial async generation
-    const triggerAsyncGeneration = async () => {
-        setIsGenerating(true);
-        try {
-            const response = await fetch(`/features/${featureId}/erd/generate-async`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                
-                if (data.success && data.erd) {
-                    setContent(data.erd);
-                    setIsDirty(false);
-                    toast.success('ERD generated successfully!');
-                } else {
-                    toast.error(data.message || 'Failed to generate ERD');
-                }
-            } else {
-                const errorData = await response.json();
-                toast.error(errorData.message || 'Failed to generate ERD. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error generating ERD:', error);
-            toast.error('An error occurred while generating the ERD.');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
 
     // Theme toggle removed - use navbar theme toggle instead
 
@@ -254,7 +232,7 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
             return;
         }
         router.post(
-            `/features/${featureId}/erd/ai-edit`,
+            `/features/${featureId}/datamodel/ai-edit`,
             { engineer_notes: prompt },
             {
                 onStart: () => setIsGenerating(true),
@@ -552,9 +530,16 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
     }, [isResizing, handleMouseMove, handleMouseUp]);
 
     const breadcrumbs = [
+        { title: 'Projects', href: '/projects' },
         { title: project.name, href: `/projects/${project.id}` },
-        { title: feature?.name || 'Feature', href: `/features/${feature?.id}` },
-        { title: 'Database Designer', href: `/features/${feature?.id}/erd` },
+        ...(feature?.module ? [
+            { title: 'Modules', href: `/projects/${project.id}/modules` },
+            { title: feature.module.name, href: `/projects/${project.id}/modules/${feature.module.id}` },
+            { title: feature.name, href: `/projects/${project.id}/modules/${feature.module.id}/features/${feature.id}` },
+        ] : [
+            { title: feature?.name || 'Feature', href: '#' },
+        ]),
+        { title: 'Database Designer', href: `/features/${feature?.id}/datamodel` },
     ];
 
     if (!feature) {
@@ -609,14 +594,17 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                         )}
 
                 <div id="resizable-container" className={`relative flex min-h-0 flex-1 overflow-hidden ${isResizing ? 'select-none cursor-col-resize' : ''}`}>
-                    {/* Toggle Editor Button - Vertical Center Between Sections */}
+                    {/* Toggle Editor Button - Positioned dynamically based on editor state */}
                     {!isFullScreen && (
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
-                            className={`absolute top-1/2 z-20 h-12 w-6 -translate-y-1/2 rounded-l-none rounded-r-md border border-border bg-background/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-muted ${isEditorCollapsed ? 'left-0' : 'left-[calc(var(--left-width)-12px)]'}`}
-                            style={{ '--left-width': `${leftWidth}%` } as React.CSSProperties}
+                            className="absolute top-1/2 z-30 h-12 w-6 -translate-y-1/2 rounded-l-none rounded-r-md border border-border bg-background/95 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-muted hover:shadow-lg"
+                            style={{ 
+                                left: isEditorCollapsed ? '0px' : `calc(${leftWidth}% + 4px)`,
+                                pointerEvents: isResizing ? 'none' : 'auto'
+                            }}
                             title={isEditorCollapsed ? 'Show Editor Panel' : 'Hide Editor Panel'}
                         >
                             {isEditorCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -624,114 +612,117 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                         </Button>
                     )}
 
-                    {/* Collapsible Left Panel - Editor - Hidden in full screen */}
+                    {/* Collapsible Left Panel - Editor */}
                     {!isFullScreen && (
                         <div
-                            className={`flex min-h-0 min-w-0 flex-col transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0' : 'opacity-100'}`}
+                            className={`flex min-h-0 min-w-0 flex-col bg-card/30 transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0 overflow-hidden' : 'opacity-100'}`}
                             style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
                         >
-                            <div className="flex items-center justify-between">
+                            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 py-2">
                                 <FormatSelector content={content} onConvert={handleConvert} isConverting={isConverting} />
-                                {isDirty && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={isSaving}
-                                        onClick={() => {
-                                            if (!featureId) {
-                                                toast.error('Feature not found for save route.');
-                                                return;
-                                            }
-                                            setIsSaving(true);
-                                            router.post(
-                                                `/features/${featureId}/erd/edit`,
-                                                { erd: content },
-                                                {
-                                                    onSuccess: () => {
-                                                        setIsDirty(false);
-                                                        toast.success('ERD saved successfully!');
-                                                    },
-                                                    onError: () => {
-                                                        toast.error('Failed to save ERD. Please try again.');
-                                                    },
-                                                    onFinish: () => setIsSaving(false),
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    disabled={isSaving || !isDirty}
+                                    className="mr-3 shrink-0"
+                                    onClick={() => {
+                                        if (!featureId) {
+                                            toast.error('Feature not found for save route.');
+                                            return;
+                                        }
+                                        setIsSaving(true);
+                                        router.post(
+                                            `/features/${featureId}/datamodel/edit`,
+                                            { datamodel: content },
+                                            {
+                                                onSuccess: () => {
+                                                    setIsDirty(false);
+                                                    toast.success('Datamodel saved successfully!');
                                                 },
-                                            );
-                                        }}
-                                    >
-                                        {isSaving ? <TextShimmer>Saving...</TextShimmer> : 'Save'}
-                                    </Button>
-                                )}
+                                                onError: () => {
+                                                    toast.error('Failed to save datamodel. Please try again.');
+                                                },
+                                                onFinish: () => setIsSaving(false),
+                                            },
+                                        );
+                                    }}
+                                >
+                                    {isSaving ? <TextShimmer>Saving...</TextShimmer> : 'Save'}
+                                </Button>
                             </div>
 
-                            <div className="relative flex-1 overflow-hidden">
-                                <div className="h-full overflow-auto pb-24">
+                            {/* Error Panel - Placed at top for visibility */}
+                            {error && (
+                                <div className="shrink-0 mx-3 mt-3 rounded-lg border-l-4 border-destructive bg-destructive/10 p-3">
+                                    <p className="text-sm text-destructive-foreground">
+                                        <strong>Parse Error:</strong> {error}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Editor Content Area */}
+                            <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden">
+                                <div className="flex-1 min-h-0 overflow-hidden pb-28">
                                     <EditorPanel
                                         value={content}
                                         onChange={(val) => {
                                             setContent(val);
                                             setIsDirty(true);
                                         }}
+                                        isResizing={isResizing}
                                     />
                                 </div>
 
-                                <div className="absolute right-2 bottom-4 left-2 z-50 rounded-lg border border-border bg-background/95 p-3 shadow-xl backdrop-blur-md transition-all duration-200 hover:bg-background/98 hover:shadow-2xl">
-                                    <div className="flex gap-2">
-                                        <Input
-                                            type="text"
-                                            placeholder="Describe your database..."
-                                            value={prompt}
-                                            onChange={(e) => setPrompt(e.target.value)}
-                                            className="flex-1"
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    handleGenerate();
-                                                }
-                                            }}
-                                        />
+                                {/* AI Prompt Panel - Fixed at bottom */}
+                                <div className="absolute right-3 bottom-3 left-3 z-50 rounded-xl border border-border/80 bg-background/98 p-4 shadow-2xl backdrop-blur-lg transition-all duration-200">
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative flex-1">
+                                            <Sparkles className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                            <Input
+                                                type="text"
+                                                placeholder="Describe changes to your schema..."
+                                                value={prompt}
+                                                onChange={(e) => setPrompt(e.target.value)}
+                                                className="pl-10 pr-4"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleGenerate();
+                                                    }
+                                                }}
+                                            />
+                                        </div>
                                         <Button
                                             onClick={handleGenerate}
                                             disabled={!prompt.trim() || isGenerating}
-                                            className="bg-primary px-4 text-primary-foreground"
+                                            size="sm"
+                                            className="bg-primary px-4 text-primary-foreground shadow-sm hover:shadow-md transition-shadow"
                                         >
                                             {isGenerating ? (
                                                 <TextShimmer className="text-white">Generating...</TextShimmer>
                                             ) : (
-                                                <>
-                                                    <Sparkles className="mr-2 h-4 w-4" />
-                                                    Generate
-                                                </>
+                                                'Generate'
                                             )}
                                         </Button>
                                     </div>
-                                    <p className="mt-2 text-xs text-muted-foreground">Describe your schema and click Generate to create DBML.</p>
+                                    <p className="mt-2 text-xs text-muted-foreground/80">Press Enter to generate • AI will update your schema based on your description</p>
                                 </div>
                             </div>
-
-                            {error && (
-                                <div className="m-4 border-l-4 border-destructive bg-destructive/10 p-4">
-                                    <div className="flex">
-                                        <div className="ml-3">
-                                            <p className="text-sm text-destructive-foreground">
-                                                <strong>Parse Error:</strong> {error}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
 
                     {/* Resize Handle */}
                     {!isFullScreen && !isEditorCollapsed && (
                         <div 
-                            className="group relative w-1 cursor-col-resize bg-border hover:bg-primary/50 transition-colors"
+                            className="group relative w-1.5 cursor-col-resize bg-border/50 hover:bg-primary/60 active:bg-primary transition-colors"
                             onMouseDown={handleMouseDown}
                         >
-                            <div className="absolute inset-y-0 -left-1 -right-1" />
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="flex h-12 w-1 items-center justify-center rounded-full bg-primary/20">
-                                    <div className="h-8 w-0.5 bg-primary"></div>
+                            {/* Larger hit area for easier grabbing */}
+                            <div className="absolute inset-y-0 -left-2 -right-2 z-10" />
+                            {/* Visual indicator */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                <div className="flex h-16 w-2 items-center justify-center rounded-full bg-primary/30 backdrop-blur-sm">
+                                    <div className="h-10 w-1 rounded-full bg-primary shadow-sm"></div>
                                 </div>
                             </div>
                         </div>

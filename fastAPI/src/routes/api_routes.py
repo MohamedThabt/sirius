@@ -12,7 +12,7 @@ from controllers.features_controller import generate_suggestion_features_for_mod
 from controllers.modules_controller import generate_suggestion_modules, regenerate_suggestion_modules, generate_module_details, generate_single_module
 from controllers.brd_controller import generate_brd, edit_brd
 from controllers.prd_controller import generate_prd_with_flow, edit_prd
-from controllers.erd_controller import generate_module_erd, edit_module_erd
+from controllers.erd_controller import generate_module_erd, edit_module_erd, sync_module_erd
 from controllers.wireframe_controller import generate_feature_wireframe, edit_feature_wireframe
 from controllers.sequence_controller import generate_feature_sequence, edit_feature_sequence
 from controllers.c4_controller import generate_c4, edit_c4
@@ -31,7 +31,7 @@ from models.features import FeatureList, FeatureDetailsRequest, FeatureDetailsRe
 from models.modules import ModuleList, ModuleGenerationRequest, ModuleRegenerationRequest, RegeneratedModuleList, ModuleDetailsRequest, ModuleDetailsResponse, SingleModuleRequest, SingleModuleResponse
 from models.BRD import BRDRequest, SystemBRD, EditBRDRequest
 from models.prd import SystemPRD, EditPRDRequest, PRDWithFlowRequest, PRDWithFlowResponse
-from models.ERD import ModuleERDRequest, ModuleERD, EditModuleERDRequest
+from models.ERD import ModuleERDRequest, ModuleERD, EditModuleERDRequest, SyncModuleERDRequest
 from models.wireframe import WireframeRequest, FeatureWireframe, EditWireframeRequest
 from models.Sequence import SequenceRequest, FeatureSequence, EditSequenceRequest
 from models.C4 import C4Request, SystemC4, EditC4Request
@@ -203,6 +203,13 @@ async def generate_module_erd_endpoint(request: ModuleERDRequest):
 async def edit_module_erd_endpoint(request: EditModuleERDRequest):
     """Edit existing module ERD based on engineer notes"""
     clean_mermaid, usage = await edit_module_erd(request)
+    return ModuleERD(ERD=clean_mermaid, usage=usage)
+
+
+@erd_router.post("/sync", response_model=ModuleERD)
+async def sync_module_erd_endpoint(request: SyncModuleERDRequest):
+    """Sync module ERD by merging feature ERDs"""
+    clean_mermaid, usage = await sync_module_erd(request)
     return ModuleERD(ERD=clean_mermaid, usage=usage)
 
 

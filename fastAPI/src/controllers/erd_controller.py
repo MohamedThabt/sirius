@@ -3,7 +3,8 @@ from fastapi import HTTPException
 from controllers.gemini import ask_gemini
 from models.ERD import (
     ModuleERDRequest,
-    EditModuleERDRequest
+    EditModuleERDRequest,
+    SyncModuleERDRequest
 )
 from models.usage import UsageMetrics
 from utils.mermaid_utils import extract_mermaid_from_response
@@ -226,4 +227,54 @@ async def edit_module_erd(request: EditModuleERDRequest) -> tuple[str, UsageMetr
         raise HTTPException(status_code=500, detail="Internal server error")
 
     logger.info("Module ERD edited successfully")
+    return clean_mermaid, usage
+
+
+async def sync_module_erd(request: SyncModuleERDRequest) -> tuple[str, UsageMetrics]:
+    """Sync module ERD by merging feature ERDs with current module ERD"""
+    logger.info(f"Starting module ERD sync (module: {request.module_name}, features: {len(request.feature_erds)}, current_erd: {len(request.current_module_erd)} chars)")
+
+    # Validate input
+    if not request.feature_erds:
+        logger.warning("Module ERD sync rejected: no feature ERDs provided")
+        raise HTTPException(status_code=400, detail="At least one feature ERD is required")
+    
+    if not request.module_name.strip():
+        logger.warning("Module ERD sync rejected: empty module name")
+        raise HTTPException(status_code=400, detail="Module name cannot be empty")
+
+    # Build prompt
+    template = load_prompt("ERD-Sync-From-Features.txt")
+    
+    # Format feature ERDs for prompt
+    feature_erds_text = "\n\n---\n\n".join([
+        f"Feature ERD {i+1}:\n```mermaid\n{erd}\n```"
+        for i, erd in enumerate(request.feature_erds)
+    ])
+    
+    # Format current module ERD
+    current_erd_text = f"```mermaid\n{request.current_module_erd}\n```" if request.current_module_erd.strip() else "No existing module ERD"
+    
+    prompt = template.format(
+        module_name=request.module_name,
+        module_description=request.module_description,
+        current_module_erd=current_erd_text,
+        feature_erds=feature_erds_text
+    )
+    
+    try:
+        logger.info("Calling Gemini API for module ERD sync...")
+        raw_response, usage = await ask_gemini(prompt)
+        clean_mermaid = extract_mermaid_from_response(raw_response)
+        if not clean_mermaid:
+            raise HTTPException(status_code=500, detail="Invalid Mermaid response from AI")
+
+    except HTTPException as e:
+        logger.error(f"HTTP error during module ERD sync: {e.status_code} - {e.detail}")
+        raise e
+    except Exception as e:
+        logger.error(f"Unexpected error during module ERD sync: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    logger.info("Module ERD synced successfully")
     return clean_mermaid, usage

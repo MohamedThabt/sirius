@@ -3,8 +3,8 @@
 use App\Http\Controllers\Dashboard\BetaController;
 use App\Http\Controllers\Project\BrainstormingController;
 use App\Http\Controllers\Project\PRDController;
-use App\Http\Controllers\Feature\ERDController;
 use App\Http\Controllers\Feature\FeaturesController;
+use App\Http\Controllers\Feature\ERDController;
 use App\Http\Controllers\Feature\SequenceDiagramController;
 use App\Http\Controllers\Feature\WireframeController;
 use App\Http\Controllers\Module\ModuleController;
@@ -133,13 +133,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/projects/{project}/modules/{module}/erd/generate-async', [ModuleERDController::class, 'generateAsync'])->name('modules.erd.generate-async');
     Route::post('/projects/{project}/modules/{module}/erd/ai-edit', [ModuleERDController::class, 'aiEdit'])->name('modules.erd.ai-edit');
     Route::post('/projects/{project}/modules/{module}/erd/edit', [ModuleERDController::class, 'edit'])->name('modules.erd.edit');
+    Route::post('/projects/{project}/modules/{module}/erd/sync', [ModuleERDController::class, 'syncFromFeatures'])->name('modules.erd.sync');
 
-    // ERD by feature id (UI only output)
-    Route::get('/features/{feature}/erd', [ERDController::class, 'show'])->name('features.erd.show');
-    Route::post('/features/{feature}/erd/generate', [ERDController::class, 'generate'])->name('features.erd.generate');
-    Route::post('/features/{feature}/erd/generate-async', [ERDController::class, 'generateAsync'])->name('features.erd.generate-async');
-    Route::post('/features/{feature}/erd/ai-edit', [ERDController::class, 'aiEdit'])->name('features.erd.ai-edit');
-    Route::post('/features/{feature}/erd/edit', [ERDController::class, 'edit'])->name('features.erd.edit');
+    // Feature datamodel routes (ERD extracted from module during feature creation)
+    Route::get('/features/{feature}/datamodel', [ERDController::class, 'show'])->name('features.datamodel.show');
+    Route::post('/features/{feature}/datamodel/ai-edit', [ERDController::class, 'aiEdit'])->name('features.datamodel.ai-edit');
+    Route::post('/features/{feature}/datamodel/edit', [ERDController::class, 'edit'])->name('features.datamodel.edit');
 
     // Sequence Diagram by feature id
     Route::get('/features/{feature}/sequence-diagram', [SequenceDiagramController::class, 'show'])->name('features.sequence.show');

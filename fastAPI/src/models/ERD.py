@@ -32,3 +32,11 @@ class EditModuleERDRequest(BaseModel):
     """Request model for editing module ERD with AI"""
     ModuleERD: str
     engineer_notes: str
+
+
+class SyncModuleERDRequest(BaseModel):
+    """Request model for syncing module ERD from feature ERDs"""
+    current_module_erd: str  # Existing module ERD (empty if first time)
+    feature_erds: List[str]  # Array of feature ERDs to merge
+    module_name: str
+    module_description: str

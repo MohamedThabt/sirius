@@ -80,8 +80,8 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
 
         const applyHierarchicalLayout = (nodes: Node[]) => {
             // Simple hierarchical layout - primary key tables at top
-            const pkTables = nodes.filter((node) => node.data?.fields?.some((field: any) => field.isPrimaryKey && !field.isForeignKey));
-            const fkTables = nodes.filter((node) => node.data?.fields?.some((field: any) => field.isForeignKey) && !pkTables.includes(node));
+            const pkTables = nodes.filter((node) => (node.data?.fields as any[] | undefined)?.some((field: any) => field.isPrimaryKey && !field.isForeignKey));
+            const fkTables = nodes.filter((node) => (node.data?.fields as any[] | undefined)?.some((field: any) => field.isForeignKey) && !pkTables.includes(node));
             const otherTables = nodes.filter((node) => !pkTables.includes(node) && !fkTables.includes(node));
 
             const nodeWidth = 300;
@@ -222,8 +222,9 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
 
             const query = searchQuery.toLowerCase();
             const matchingNodes = nodes.filter((node) => {
-                const tableName = node.data?.tableName?.toLowerCase() || '';
-                const fields = node.data?.fields || [];
+                const nodeData = node.data as { tableName?: string; fields?: any[] };
+                const tableName = nodeData?.tableName?.toLowerCase() || '';
+                const fields = nodeData?.fields || [];
 
                 // Check table name
                 if (tableName.includes(query)) return true;
@@ -304,11 +305,15 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
         const handleNodesChange = useCallback(
             (changes: any) => {
                 onNodesChangeInternal(changes);
-                // Notify parent of node changes
-                setNodes((currentNodes) => {
-                    onNodesChange?.(currentNodes);
-                    return currentNodes;
-                });
+                // Defer parent notification to avoid setState during render
+                if (onNodesChange) {
+                    queueMicrotask(() => {
+                        setNodes((currentNodes) => {
+                            onNodesChange(currentNodes);
+                            return currentNodes;
+                        });
+                    });
+                }
             },
             [onNodesChangeInternal, onNodesChange, setNodes],
         );
@@ -316,11 +321,15 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
         const handleEdgesChange = useCallback(
             (changes: any) => {
                 onEdgesChangeInternal(changes);
-                // Notify parent of edge changes
-                setEdges((currentEdges) => {
-                    onEdgesChange?.(currentEdges);
-                    return currentEdges;
-                });
+                // Defer parent notification to avoid setState during render
+                if (onEdgesChange) {
+                    queueMicrotask(() => {
+                        setEdges((currentEdges) => {
+                            onEdgesChange(currentEdges);
+                            return currentEdges;
+                        });
+                    });
+                }
             },
             [onEdgesChangeInternal, onEdgesChange, setEdges],
         );

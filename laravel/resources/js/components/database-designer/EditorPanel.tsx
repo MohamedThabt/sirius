@@ -72,6 +72,15 @@ const EditorPanel = React.memo(({ value, onChange, onMount, readOnly = false, is
         editorRef.current = editor;
         monacoRef.current = monaco;
 
+        // Force multiple layout calls to ensure content is visible on initial load
+        requestAnimationFrame(() => {
+            editor.layout();
+            // Force a second layout after a short delay to handle async rendering
+            setTimeout(() => {
+                editor.layout();
+            }, 100);
+        });
+
         if (onMount) {
             onMount(editor, monaco);
         }
@@ -103,6 +112,15 @@ const EditorPanel = React.memo(({ value, onChange, onMount, readOnly = false, is
             });
         }
     }, [isResizing]);
+
+    // Force layout update when value changes (especially from empty to filled)
+    useEffect(() => {
+        if (editorRef.current && value) {
+            requestAnimationFrame(() => {
+                editorRef.current.layout();
+            });
+        }
+    }, [value]);
 
     return (
         <div ref={containerRef} className="editor-panel h-full flex-1 overflow-hidden">

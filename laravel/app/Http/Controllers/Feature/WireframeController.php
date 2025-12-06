@@ -68,9 +68,9 @@ class WireframeController extends Controller
                 return back()->with('error', 'You are not authorized to perform this action.');
             }
 
-            // Check if feature has ERD
-            if (!is_string($feature->erd) || $feature->erd === '') {
-                return back()->with('error', 'Feature ERD is missing. Please generate ERD first.');
+            // Check if feature has datamodel
+            if (!is_string($feature->datamodel) || $feature->datamodel === '') {
+                return back()->with('error', 'Feature database schema is missing. Please ensure the feature has a data model.');
             }
 
             // Store feature data in session for async generation
@@ -119,17 +119,17 @@ class WireframeController extends Controller
                 ], 400);
             }
 
-            // Check if feature has ERD
-            if (!is_string($feature->erd) || $feature->erd === '') {
+            // Check if feature has datamodel
+            if (!is_string($feature->datamodel) || $feature->datamodel === '') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Feature ERD is missing. Please generate ERD first.'
+                    'message' => 'Feature database schema is missing. Please ensure the feature has a data model.'
                 ], 422);
             }
 
             $payload = [
                 'erd' => [
-                    'ERD' => $feature->erd,
+                    'ERD' => $feature->datamodel,
                 ],
                 'feature' => [
                     'name' => $feature->name,

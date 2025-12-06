@@ -21,6 +21,7 @@ import {
     DatabaseIcon,
     FileTextIcon,
     Layers,
+    Loader2,
     PencilIcon,
     Plus,
     Sparkles,
@@ -53,6 +54,7 @@ interface ModuleItem {
     description: string;
     metrics: string | null;
     erd: string | null;
+    erd_is_synced?: boolean;
     status: 'planned' | 'in_progress' | 'completed';
     order_of_implementation: number;
     features?: FeatureItem[];
@@ -70,6 +72,7 @@ export default function ModuleShow({ project, module }: Props) {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [editingField, setEditingField] = useState<string | null>(null);
     const [isGeneratingFeatures, setIsGeneratingFeatures] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const { data, setData, put, processing } = useForm({
         name: module.name,
@@ -393,6 +396,62 @@ export default function ModuleShow({ project, module }: Props) {
                                 {/* ERD Section */}
                                 <div className="mb-8">
                                     <h2 className="mb-4 text-lg font-semibold text-foreground">Entity Relationship Diagram</h2>
+                                    
+                                    {/* Warning Banner for Out of Sync */}
+                                    {module.erd_is_synced === false && (
+                                        <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+                                            <div className="flex items-start gap-3">
+                                                <AlertCircleIcon className="h-5 w-5 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                                                        Feature data models have been updated
+                                                    </p>
+                                                    <p className="mt-1 text-sm text-amber-800 dark:text-amber-200">
+                                                        Your module ERD may be out of sync with the latest feature changes. Click the sync button below to merge all feature ERDs into the module ERD.
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="border-amber-500 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300 flex-shrink-0"
+                                                    disabled={isSyncing}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsSyncing(true);
+                                                        router.post(
+                                                            `/projects/${project.id}/modules/${module.id}/erd/sync`,
+                                                            {},
+                                                            {
+                                                                preserveScroll: true,
+                                                                onSuccess: () => {
+                                                                    toast.success('Module ERD synced successfully from features!');
+                                                                },
+                                                                onError: () => {
+                                                                    toast.error('Failed to sync ERD. Please try again.');
+                                                                },
+                                                                onFinish: () => {
+                                                                    setIsSyncing(false);
+                                                                }
+                                                            }
+                                                        );
+                                                    }}
+                                                >
+                                                    {isSyncing ? (
+                                                        <>
+                                                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                                            Syncing...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <ZapIcon className="mr-1 h-3 w-3" />
+                                                            Sync ERD
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div
                                         className="group cursor-pointer rounded-xl border border-border/40 bg-card/50 p-6 transition-all hover:border-border/80 hover:bg-card hover:shadow-sm"
                                         onClick={() => {
@@ -407,13 +466,25 @@ export default function ModuleShow({ project, module }: Props) {
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div
-                                                    className={`flex h-10 w-10 items-center justify-center rounded-lg ${module.erd ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}
-                                                >
-                                                    {module.erd ? <CheckCircle2 className="h-5 w-5" /> : <DatabaseIcon className="h-5 w-5" />}
+                                                <div className="relative">
+                                                    <div
+                                                        className={`flex h-10 w-10 items-center justify-center rounded-lg ${module.erd ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}
+                                                    >
+                                                        {module.erd ? <CheckCircle2 className="h-5 w-5" /> : <DatabaseIcon className="h-5 w-5" />}
+                                                    </div>
+                                                    {module.erd_is_synced === false && (
+                                                        <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 ring-2 ring-card" />
+                                                    )}
                                                 </div>
                                                 <div>
-                                                    <div className="font-medium text-foreground">Database Schema</div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-foreground">Database Schema</span>
+                                                        {module.erd_is_synced === false && (
+                                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs">
+                                                                Out of sync
+                                                            </Badge>
+                                                        )}
+                                                    </div>
                                                     <div className="text-xs text-muted-foreground">
                                                         {module.erd ? 'Click to view and edit ERD diagram' : 'Generate database schema with AI'}
                                                     </div>

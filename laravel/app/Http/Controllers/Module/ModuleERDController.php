@@ -9,6 +9,7 @@ use App\Traits\StructuredLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -194,9 +195,12 @@ class ModuleERDController extends Controller
                 ], 500);
             }
 
-            // Persist ERD to module
-            $module->erd = $erd;
-            $module->save();
+            // Persist ERD to module and mark as synced
+            DB::transaction(function () use ($module, $erd) {
+                $module->erd = $erd;
+                $module->erd_is_synced = true;
+                $module->save();
+            });
 
             // Clear pending session data
             session()->forget('pending_module_erd_generation');
@@ -289,9 +293,12 @@ class ModuleERDController extends Controller
                 return back()->with('error', 'Received an invalid ERD response from AI service. Please try again.');
             }
 
-            // Persist updated ERD
-            $module->erd = $erd;
-            $module->save();
+            // Persist updated ERD and mark as synced
+            DB::transaction(function () use ($module, $erd) {
+                $module->erd = $erd;
+                $module->erd_is_synced = true;
+                $module->save();
+            });
 
             return back()->with([
                 'success' => 'ERD updated successfully using AI suggestions.',
@@ -332,9 +339,12 @@ class ModuleERDController extends Controller
 
             $erd = trim((string) $validated['erd']);
 
-            // Persist ERD
-            $module->erd = $erd;
-            $module->save();
+            // Persist ERD and mark as synced
+            DB::transaction(function () use ($module, $erd) {
+                $module->erd = $erd;
+                $module->erd_is_synced = true;
+                $module->save();
+            });
 
             return back()->with([
                 'success' => 'ERD saved successfully.',
@@ -344,6 +354,107 @@ class ModuleERDController extends Controller
             $this->logException($e, ['action' => 'edit', 'module_id' => $module->id]);
             
             return back()->with('error', 'Failed to save ERD. Please try again.');
+        }
+    }
+
+    /**
+     * Sync module ERD from all feature datamodels.
+     *
+     * Collects all feature ERDs from the module and sends them to FastAPI
+     * for AI-powered intelligent merging into a cohesive module-level ERD.
+     * Preserves manual customizations while incorporating feature changes.
+     *
+     * @param Project $project The project the module belongs to
+     * @param Module $module The module whose ERD will be synced
+     * @return RedirectResponse Redirect with success or error flash message
+     */
+    public function syncFromFeatures(Project $project, Module $module): RedirectResponse
+    {
+        try {
+            // Increase execution time for FastAPI calls
+            $timeout = config('services.fastapi.timeout', 180);
+            set_time_limit($timeout);
+
+            // Authorization check
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You are not authorized to access this module.');
+            }
+
+            // Load features with datamodels
+            $features = $module->features()
+                ->whereNotNull('datamodel')
+                ->where('datamodel', '!=', '')
+                ->get();
+
+            // Validate that there are features to sync
+            if ($features->isEmpty()) {
+                return back()->with('error', 'No features with datamodels found. Please add feature datamodels before syncing.');
+            }
+
+            // Collect feature ERDs
+            $featureErds = $features->pluck('datamodel')->toArray();
+
+            // Prepare payload for FastAPI
+            $payload = [
+                'current_module_erd' => $module->erd ?? '',
+                'feature_erds' => $featureErds,
+                'module_name' => $module->name,
+                'module_description' => $module->description ?? '',
+            ];
+
+            // Call FastAPI service
+            $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
+            $httpTimeout = config('services.fastapi.http_timeout', 120);
+            $retryTimes = config('services.fastapi.retry_times', 2);
+            $retryDelay = config('services.fastapi.retry_delay', 2000);
+
+            $attemptCount = 0;
+            $response = Http::asJson()
+                ->acceptJson()
+                ->timeout($httpTimeout)
+                ->retry($retryTimes, $retryDelay, function ($exception, $request) use (&$attemptCount, $module) {
+                    $attemptCount++;
+                    $this->logWarning('FastAPI ERD sync retry attempt', [
+                        'attempt' => $attemptCount,
+                        'module_id' => $module->id,
+                        'module_name' => $module->name,
+                        'error' => $exception->getMessage(),
+                    ]);
+                    return true; // Always retry
+                })
+                ->post($fastApiBaseUrl . '/v1/ERD/sync', $payload);
+
+            // Check response status
+            if (!$response->ok()) {
+                return back()->with('error', 'Failed to sync ERD. The AI service is currently unavailable. Please try again later.');
+            }
+
+            // Extract and validate ERD
+            $erd = data_get($response->json(), 'ERD');
+
+            if (!is_string($erd) || $erd === '') {
+                return back()->with('error', 'Received an invalid ERD response from AI service. Please try again.');
+            }
+
+            // Persist synced ERD and mark as synced
+            DB::transaction(function () use ($module, $erd) {
+                $module->erd = $erd;
+                $module->erd_is_synced = true;
+                $module->save();
+            });
+
+            return back()->with([
+                'success' => 'Module ERD synced successfully from feature datamodels.',
+                'erd' => $erd
+            ]);
+        } catch (Throwable $e) {
+            $this->logException($e, [
+                'action' => 'syncFromFeatures',
+                'module_id' => $module->id,
+                'fastapi_endpoint' => '/v1/ERD/sync'
+            ]);
+
+            return back()->with('error', 'Failed to sync ERD from features. Please try again.');
         }
     }
 }

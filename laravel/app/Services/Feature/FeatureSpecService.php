@@ -74,14 +74,14 @@ class FeatureSpecService
             $lines[] = $userFlows;
         }
 
-        // ERD (wrapped in mermaid code block)
-        $erd = trim((string) ($feature->erd ?? ''));
-        if ($erd !== '') {
+        // Data Model (wrapped in mermaid code block)
+        $datamodel = trim((string) ($feature->datamodel ?? ''));
+        if ($datamodel !== '') {
             $lines[] = '';
-            $lines[] = '## Entity-Relationship Diagram';
+            $lines[] = '## Database Schema';
             $lines[] = '';
             $lines[] = '```mermaid';
-            $lines[] = $erd;
+            $lines[] = $datamodel;
             $lines[] = '```';
         }
 

@@ -22,6 +22,7 @@ $existing_features_section
 5. **Prioritize correctly**: Critical features before nice-to-haves
 6. **Order by dependencies**: Features with no dependencies come first
 7. **Use ERD context**: Reference specific entities and relationships in descriptions
+8. **Generate datamodel**: For features that interact with database entities, extract a Mermaid ERD subset from the module ERD showing ONLY the tables and relationships this feature uses. For features that don't require database operations (UI-only, integrations, notifications), set datamodel to null.
 
 ### Output Requirements:
 Return **ONLY valid JSON** with this structure:
@@ -38,6 +39,7 @@ Return **ONLY valid JSON** with this structure:
   - **metrics**: Success metrics and KPIs (2-4 metrics)
   - **priority**: "low" | "medium" | "high" | "critical" (based on business value and dependencies)
   - **order_of_implementation**: Integer (1, 2, 3, ...) representing implementation sequence
+  - **datamodel**: Mermaid erDiagram code block containing ONLY the entities and relationships this feature interacts with (subset of module ERD), OR null if the feature doesn't require database operations
 
 ### Example Output Format:
 {
@@ -55,9 +57,22 @@ Return **ONLY valid JSON** with this structure:
       "user_flows": "**Create Product Flow:**\n1. Admin navigates to Products > Add New\n2. Fills in product details form (name, SKU, price, description, category)\n3. Uploads product images (drag-and-drop or file picker)\n4. Sets initial inventory quantity and minimum stock threshold\n5. Clicks Save - system validates and creates Product entity\n6. Confirmation shown with link to view/edit product\n\n**Bulk Import Flow:**\n1. Admin clicks Products > Import CSV\n2. Downloads CSV template\n3. Fills template with product data\n4. Uploads completed CSV\n5. System validates each row, shows preview with errors highlighted\n6. Admin confirms import\n7. Products created in batch, summary report shown",
       "metrics": "- Product creation time (target: <2 minutes per product)\n- Bulk import success rate (target: >95% valid rows)\n- Catalog completeness (% products with images and full descriptions)\n- Time to update pricing (target: <30 seconds for bulk price changes)",
       "priority": "critical",
-      "order_of_implementation": 1
+      "order_of_implementation": 1,
+      "datamodel": "erDiagram\n    products {\n        bigint id \"PK\"\n        varchar name \"NOT NULL\"\n        text description\n        decimal price \"NOT NULL\"\n        integer stock_quantity \"NOT NULL\"\n        integer min_stock_level\n        bigint category_id \"FK, ref:categories.id\"\n        timestamp created_at\n        timestamp updated_at\n    }\n\n    categories {\n        bigint id \"PK\"\n        varchar name \"NOT NULL\"\n        bigint parent_id \"FK, ref:categories.id\"\n    }\n\nproducts }o--|| categories : \"category_id to id\"\ncategories }o--o| categories : \"parent_id to id\""
+    },
+    {
+      "name": "Email Notification Settings",
+      "summary": "Users can configure their email notification preferences for various system events.",
+      "description": "Allows users to manage which email notifications they receive. This is a UI-only feature that configures notification preferences without directly interacting with core business entities.",
+      "acceptance_criteria": "- Users can toggle email notifications on/off\n- Users can select notification frequency (immediate, daily digest, weekly)\n- Settings persist across sessions\n- Preview of notification types available",
+      "user_flows": "**Configure Notifications:**\n1. User navigates to Settings > Notifications\n2. Views list of notification categories\n3. Toggles desired notifications on/off\n4. Selects preferred frequency\n5. Clicks Save\n6. Confirmation message shown",
+      "metrics": "- Settings page load time (target: <1 second)\n- User satisfaction with notification controls",
+      "priority": "low",
+      "order_of_implementation": 5,
+      "datamodel": null
     }
   ]
 }
 
 ### Your Response (JSON only):
+

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->longText('description')->nullable();
             $table->longText('metrics')->nullable();
             $table->longText('erd')->nullable();
+            $table->boolean('erd_is_synced')->default(true);
             $table->enum('status', ['planned', 'in_progress', 'completed'])->default('planned');
             $table->integer('order_of_implementation')->default(0);
             $table->timestamps();

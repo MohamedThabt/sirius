@@ -38,7 +38,7 @@ class FeatureController extends Controller
 
             // Feature statistics
             $featureStats = [
-                'has_erd' => !empty($feature->erd),
+                'has_datamodel' => !empty($feature->datamodel),
                 'has_sequence_diagram' => !empty($feature->sequence_diagram),
                 'has_wireframe' => !empty($feature->wireframe),
                 'has_user_flows' => !empty($feature->user_flows),
@@ -100,9 +100,9 @@ class FeatureController extends Controller
     }
 
     /**
-     * Display the ERD (Entity Relationship Diagram) for a feature.
+     * Display the data model (ERD) for a feature.
      *
-     * @param Feature $feature The feature to display ERD for
+     * @param Feature $feature The feature to display data model for
      * @return Response Inertia response rendering the database designer page
      */
     public function erd(Feature $feature): Response
@@ -112,12 +112,12 @@ class FeatureController extends Controller
 
             return Inertia::render('dashboard/features/database-designer', [
                 'project' => $feature->project,
-                'feature' => $feature->only(['id', 'name', 'project_id', 'erd']),
-                'initialContent' => $feature->erd ?? '',
+                'feature' => $feature->only(['id', 'name', 'project_id', 'datamodel']),
+                'initialContent' => $feature->datamodel ?? '',
             ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'erd', 'feature_id' => $feature->id]);
-            return back()->with('error', 'Failed to load ERD. Please try again.');
+            return back()->with('error', 'Failed to load database schema. Please try again.');
         }
     }
 
@@ -200,7 +200,7 @@ class FeatureController extends Controller
             'acceptance_criteria',
             'user_flows',
             'metrics',
-            'erd',
+            'datamodel',
             'sequence_diagram',
             'wireframe',
         ];

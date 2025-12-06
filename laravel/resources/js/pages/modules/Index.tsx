@@ -45,6 +45,7 @@ interface ModuleItem {
     name: string;
     description: string;
     metrics: string | null;
+    erd_is_synced?: boolean;
     status: 'planned' | 'in_progress' | 'completed';
     order_of_implementation: number;
 }
@@ -286,31 +287,41 @@ export default function ModulesIndex({ project, modules }: Props) {
                                     {modules.map((module) => (
                                         <div
                                             key={module.id}
-                                            className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md"
-                                            onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}`)}
+                                            className="relative"
                                         >
-                                            <div className="mb-4 flex items-start justify-between gap-3">
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        {getStatusIcon(module.status)}
-                                                        <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
-                                                            {module.name}
-                                                        </h3>
+                                            {module.erd_is_synced === false && (
+                                                <div 
+                                                    className="absolute -top-2 -right-2 z-10 h-3 w-3 rounded-full bg-amber-500 ring-2 ring-background" 
+                                                    title="Feature data models updated - ERD may need syncing"
+                                                />
+                                            )}
+                                            <div
+                                                className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md"
+                                                onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}`)}
+                                            >
+                                                <div className="mb-4 flex items-start justify-between gap-3">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            {getStatusIcon(module.status)}
+                                                            <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
+                                                                {module.name}
+                                                            </h3>
+                                                        </div>
+                                                        {module.description && (
+                                                            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{module.description}</p>
+                                                        )}
                                                     </div>
-                                                    {module.description && (
-                                                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{module.description}</p>
-                                                    )}
                                                 </div>
-                                            </div>
 
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <Badge className={`border text-xs font-medium ${getStatusColor(module.status)}`}>
-                                                    {getStatusIcon(module.status)}
-                                                    <span className="ml-1">{formatStatus(module.status)}</span>
-                                                </Badge>
-                                                <Badge variant="outline" className="text-xs">
-                                                    #{module.order_of_implementation}
-                                                </Badge>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <Badge className={`border text-xs font-medium ${getStatusColor(module.status)}`}>
+                                                        {getStatusIcon(module.status)}
+                                                        <span className="ml-1">{formatStatus(module.status)}</span>
+                                                    </Badge>
+                                                    <Badge variant="outline" className="text-xs">
+                                                        #{module.order_of_implementation}
+                                                    </Badge>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

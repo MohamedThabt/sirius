@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant, Edge, Node } from '@xyflow/react';
-import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
@@ -39,6 +39,7 @@ interface ModuleItem {
     description: string;
     metrics: string | null;
     erd: string | null;
+    erd_is_synced?: boolean;
     status: 'planned' | 'in_progress' | 'completed';
     order_of_implementation: number;
 }
@@ -85,6 +86,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
     const [isSaving, setIsSaving] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
     const canvasRef = useRef<HTMLDivElement>(null);
     const { nodes, edges, error, isLoading } = useDBMLParser(content);
     const [layoutTrigger, setLayoutTrigger] = useState<{ algorithm: string; timestamp: number } | null>(null);
@@ -507,6 +509,45 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                                     </div>
                                     <div className="flex items-center gap-2">
+                                        {module.erd_is_synced === false && (
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="border-amber-500 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
+                                                disabled={isSyncing}
+                                                onClick={() => {
+                                                    setIsSyncing(true);
+                                                    router.post(
+                                                        `/projects/${project.id}/modules/${moduleId}/erd/sync`,
+                                                        {},
+                                                        {
+                                                            preserveScroll: true,
+                                                            onSuccess: () => {
+                                                                toast.success('Module ERD synced successfully from features!');
+                                                            },
+                                                            onError: () => {
+                                                                toast.error('Failed to sync ERD. Please try again.');
+                                                            },
+                                                            onFinish: () => {
+                                                                setIsSyncing(false);
+                                                            }
+                                                        }
+                                                    );
+                                                }}
+                                            >
+                                                {isSyncing ? (
+                                                    <>
+                                                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                                        Syncing...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Sparkles className="mr-1 h-3 w-3" />
+                                                        Sync from Features
+                                                    </>
+                                                )}
+                                            </Button>
+                                        )}
                                         <Button variant="outline" size="sm" onClick={handleExportMermaid}>
                                             Export Mermaid
                                         </Button>
@@ -543,39 +584,37 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                     className={`flex min-h-0 min-w-0 flex-col bg-card/30 transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0 overflow-hidden' : 'opacity-100'}`}
                                     style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
                                 >
-                                    <div className="flex items-center justify-between gap-2 border-b border-border">
+                                    <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 py-2">
                                         <FormatSelector content={content} />
-                                        {isDirty && (
-                                            <Button
-                                                variant="default"
-                                                size="sm"
-                                                disabled={isSaving}
-                                                className="mr-3"
-                                                onClick={() => {
-                                                    if (!moduleId) {
-                                                        toast.error('Module not found for save route.');
-                                                        return;
-                                                    }
-                                                    setIsSaving(true);
-                                                    router.post(
-                                                        `/projects/${project.id}/modules/${moduleId}/erd/edit`,
-                                                        { erd: content },
-                                                        {
-                                                            onSuccess: () => {
-                                                                setIsDirty(false);
-                                                                toast.success('ERD saved successfully!');
-                                                            },
-                                                            onError: () => {
-                                                                toast.error('Failed to save ERD. Please try again.');
-                                                            },
-                                                            onFinish: () => setIsSaving(false),
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            disabled={isSaving || !isDirty}
+                                            className="mr-3 shrink-0"
+                                            onClick={() => {
+                                                if (!moduleId) {
+                                                    toast.error('Module not found for save route.');
+                                                    return;
+                                                }
+                                                setIsSaving(true);
+                                                router.post(
+                                                    `/projects/${project.id}/modules/${moduleId}/erd/edit`,
+                                                    { erd: content },
+                                                    {
+                                                        onSuccess: () => {
+                                                            setIsDirty(false);
+                                                            toast.success('ERD saved successfully!');
                                                         },
-                                                    );
-                                                }}
-                                            >
-                                                {isSaving ? <TextShimmer>Saving...</TextShimmer> : 'Save'}
-                                            </Button>
-                                        )}
+                                                        onError: () => {
+                                                            toast.error('Failed to save ERD. Please try again.');
+                                                        },
+                                                        onFinish: () => setIsSaving(false),
+                                                    },
+                                                );
+                                            }}
+                                        >
+                                            {isSaving ? <TextShimmer>Saving...</TextShimmer> : 'Save'}
+                                        </Button>
                                     </div>
 
                                     {/* Error Panel - Placed at top for visibility */}

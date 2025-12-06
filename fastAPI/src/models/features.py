@@ -101,6 +101,7 @@ class EnrichedFeature(BaseModel):
     metrics: Optional[str] = None
     priority: str
     order_of_implementation: int
+    datamodel: Optional[str] = None  # Mermaid ERD subset for features requiring DB entities
 
 
 class FeatureDetailsResponse(BaseModel):
