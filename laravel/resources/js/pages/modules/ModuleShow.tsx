@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
@@ -73,6 +74,9 @@ export default function ModuleShow({ project, module }: Props) {
     const [editingField, setEditingField] = useState<string | null>(null);
     const [isGeneratingFeatures, setIsGeneratingFeatures] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [isAddFeatureModalOpen, setIsAddFeatureModalOpen] = useState(false);
+    const [isCreatingFeature, setIsCreatingFeature] = useState(false);
+    const [newFeature, setNewFeature] = useState({ name: '', description: '' });
 
     const { data, setData, put, processing } = useForm({
         name: module.name,
@@ -537,7 +541,7 @@ export default function ModuleShow({ project, module }: Props) {
                                                     variant="outline" 
                                                     size="sm" 
                                                     className="gap-2" 
-                                                    onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}/features/single`)}
+                                                    onClick={() => setIsAddFeatureModalOpen(true)}
                                                 >
                                                     <Plus className="h-4 w-4" />
                                                     Add Feature
@@ -666,6 +670,99 @@ export default function ModuleShow({ project, module }: Props) {
                         </Button>
                         <Button onClick={handleSave} disabled={processing}>
                             Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add Feature Modal */}
+            <Dialog open={isAddFeatureModalOpen} onOpenChange={(open) => {
+                if (!open && !isCreatingFeature) {
+                    setIsAddFeatureModalOpen(false);
+                    setNewFeature({ name: '', description: '' });
+                }
+            }}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Add New Feature</DialogTitle>
+                        <DialogDescription>
+                            Create a new feature for this module. AI will generate detailed specifications based on your input.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="feature-name">Feature Name</Label>
+                            <Input
+                                id="feature-name"
+                                placeholder="e.g., User Authentication"
+                                value={newFeature.name}
+                                onChange={(e) => setNewFeature(prev => ({ ...prev, name: e.target.value }))}
+                                disabled={isCreatingFeature}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="feature-description">Description</Label>
+                            <Textarea
+                                id="feature-description"
+                                placeholder="Describe the feature's purpose and key functionality..."
+                                value={newFeature.description}
+                                onChange={(e) => setNewFeature(prev => ({ ...prev, description: e.target.value }))}
+                                rows={5}
+                                disabled={isCreatingFeature}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setIsAddFeatureModalOpen(false);
+                                setNewFeature({ name: '', description: '' });
+                            }}
+                            disabled={isCreatingFeature}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                if (!newFeature.name.trim() || !newFeature.description.trim()) {
+                                    toast.error('Please fill in both name and description.');
+                                    return;
+                                }
+                                setIsCreatingFeature(true);
+                                router.post(
+                                    `/projects/${project.id}/modules/${module.id}/features/single`,
+                                    {
+                                        name: newFeature.name.trim(),
+                                        description: newFeature.description.trim(),
+                                    },
+                                    {
+                                        preserveScroll: true,
+                                        onSuccess: () => {
+                                            setIsAddFeatureModalOpen(false);
+                                            setNewFeature({ name: '', description: '' });
+                                            toast.success('Feature created successfully!');
+                                        },
+                                        onError: (errors) => {
+                                            const errorMessage = Object.values(errors).flat().join(' ') || 'Failed to create feature.';
+                                            toast.error(errorMessage);
+                                        },
+                                        onFinish: () => {
+                                            setIsCreatingFeature(false);
+                                        },
+                                    }
+                                );
+                            }}
+                            disabled={isCreatingFeature || !newFeature.name.trim() || !newFeature.description.trim()}
+                        >
+                            {isCreatingFeature ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                'Create Feature'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
