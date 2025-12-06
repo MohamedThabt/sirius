@@ -162,52 +162,77 @@ class ArchitectureController extends Controller
      * @param Project $project
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function editC4(Request $request, Project $project)
+    /**
+     * Edit C4 diagram with AI and return the updated diagram.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function aiEditC4(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'engineer_notes' => 'sometimes|string|max:2000',
-            'c4_content' => 'sometimes|string',
+            'engineer_notes' => 'required|string|max:2000',
+        ]);
+
+        try {
+            // Only owner or admin can edit C4
+            $this->ensureModify($project);
+
+            $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
+            $response = Http::timeout(120)->post($fastApiBaseUrl . '/v1/C4/edit', [
+                'SystemC4' => $project->c4 ?? '',
+                'engineer_notes' => $validated['engineer_notes'],
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $updatedC4 = $data['C4'] ?? null;
+
+                if (!$updatedC4) {
+                    return back()->with('error', 'No C4 diagram returned from AI');
+                }
+
+                // Return the updated C4 without saving to database
+                // Pass it via flash data so frontend can update local state
+                return back()->with([
+                    'success' => 'C4 diagram updated by AI! Review and click Save to persist changes.',
+                    'updatedC4' => $updatedC4,
+                ]);
+            } else {
+                throw new \Exception('FastAPI returned status: ' . $response->status());
+            }
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'aiEditC4', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to update C4 diagram with AI. Please try again.');
+        }
+    }
+
+    /**
+     * Save C4 diagram manually edited by user.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function saveC4(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'c4_content' => 'required|string',
         ]);
 
         try {
             // Only owner or admin can save C4
             $this->ensureModify($project);
 
-            // If c4_content is provided, just save it directly (manual edit)
-            if (isset($validated['c4_content'])) {
-                $project->update([
-                    'c4' => $validated['c4_content'],
-                ]);
+            $project->update([
+                'c4' => $validated['c4_content'],
+            ]);
 
-                return back()->with('success', 'C4 diagram saved successfully!');
-            }
-
-            // If engineer_notes is provided, use AI to edit the diagram
-            if (isset($validated['engineer_notes'])) {
-                $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-                $response = Http::timeout(60)->post($fastApiBaseUrl . '/v1/C4/edit', [
-                    'SystemC4' => $project->c4 ?? '',
-                    'engineer_notes' => $validated['engineer_notes'],
-                ]);
-
-                if ($response->successful()) {
-                    $data = $response->json();
-
-                    // Update project with edited C4 diagram
-                    $project->update([
-                        'c4' => $data['C4'] ?? $project->c4,
-                    ]);
-
-                    return back()->with('success', 'C4 diagram updated successfully!');
-                } else {
-                    throw new \Exception('FastAPI returned status: ' . $response->status());
-                }
-            }
-
-            return back()->with('error', 'No valid data provided for C4 diagram update.');
+            return back()->with('success', 'C4 diagram saved successfully!');
         } catch (\Throwable $e) {
-            $this->logException($e, ['action' => 'editC4', 'project_id' => $project->id]);
-            return back()->with('error', 'Failed to update C4 diagram.');
+            $this->logException($e, ['action' => 'saveC4', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to save C4 diagram.');
         }
     }
 

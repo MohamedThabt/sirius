@@ -16,14 +16,14 @@ import '@xyflow/react/dist/style.css';
 import { useEffect, useMemo, useState } from 'react';
 import C4Node from './C4Node';
 
-// Helper function to calculate boundary size
+// Helper function to calculate boundary size with enhanced padding
 const calculateBoundarySize = (elements: C4Element[]) => {
     if (elements.length === 0) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
     let minX = Infinity,
         minY = Infinity,
         maxX = -Infinity,
         maxY = -Infinity;
-    const padding = 50;
+    const padding = 100; // Reasonable padding for system boundary
     elements.forEach((el) => {
         minX = Math.min(minX, el.position?.x ?? 0);
         minY = Math.min(minY, el.position?.y ?? 0);
@@ -56,16 +56,56 @@ const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
     });
 
     const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-        // This logic remains the same
-        let nodes: Node[] = c4Diagram.elements.map((element, index) => ({
-            id: element.id,
-            type: 'c4Node',
-            position: element.position || {
-                x: 150 + (index % 4) * 320,
-                y: 100 + Math.floor(index / 4) * 220,
-            },
-            data: element as unknown as Record<string, unknown>,
-        }));
+        // First, calculate boundary to determine center point
+        let boundaryInfo = null;
+        if (c4Diagram.groups && c4Diagram.groups.length > 0) {
+            const group = c4Diagram.groups[0];
+            const groupElements = c4Diagram.elements.filter((el) => group.elements.includes(el.id));
+            boundaryInfo = calculateBoundarySize(groupElements);
+        }
+
+        // Enhanced spacing for nodes with special handling for external nodes
+        let nodes: Node[] = c4Diagram.elements.map((element, index) => {
+            let position = element.position;
+            
+            // If element has position and is external, push it away from boundary
+            if (position && (element.type === 'external-person' || element.type === 'external-system' || element.isExternal)) {
+                if (boundaryInfo) {
+                    const boundaryCenterX = boundaryInfo.x + boundaryInfo.width / 2;
+                    const boundaryCenterY = boundaryInfo.y + boundaryInfo.height / 2;
+                    
+                    const offsetMultiplier = 1.15; // Push external elements 15% further from center
+                    
+                    // Calculate direction from boundary center to element
+                    const deltaX = position.x - boundaryCenterX;
+                    const deltaY = position.y - boundaryCenterY;
+                    
+                    // Push element further in that direction
+                    position = {
+                        x: boundaryCenterX + deltaX * offsetMultiplier,
+                        y: boundaryCenterY + deltaY * offsetMultiplier,
+                    };
+                }
+            }
+            
+            // Fallback for elements without position
+            if (!position) {
+                const isExternal = element.type === 'external-person' || element.type === 'external-system';
+                const horizontalGap = isExternal ? 400 : 340;
+                const verticalGap = isExternal ? 280 : 240;
+                position = {
+                    x: 150 + (index % 4) * horizontalGap,
+                    y: 100 + Math.floor(index / 4) * verticalGap,
+                };
+            }
+            
+            return {
+                id: element.id,
+                type: 'c4Node',
+                position,
+                data: element as unknown as Record<string, unknown>,
+            };
+        });
 
         if (c4Diagram.groups) {
             c4Diagram.groups.forEach((group) => {

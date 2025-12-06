@@ -83,11 +83,28 @@ const emptyC4Template = `{
 
 export default function SystemArchitecture({ project, errorMessage, isGenerating: initialIsGenerating = false, sections }: Props) {
     useFlashToasts();
-    const { auth } = usePage<{ auth: { user: User } }>().props;
+    const { auth, flash } = usePage<{ auth: { user: User }; flash: { updatedC4?: string } }>().props;
     const [content, setContent] = useState(project.c4 || emptyC4Template);
+    const [lastSavedContent, setLastSavedContent] = useState(project.c4 || emptyC4Template);
     const [prompt, setPrompt] = useState('');
     const [isConverting, setIsConverting] = useState(false);
     const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
+    const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
+    
+    // Handle flash data from AI edit
+    useEffect(() => {
+        if (flash?.updatedC4) {
+            setContent(flash.updatedC4);
+            setIsDirty(true);
+            toast.success('C4 diagram updated successfully! Click Save to persist changes.');
+        }
+    }, [flash?.updatedC4]);
+    
+    // Track content changes for isDirty state
+    useEffect(() => {
+        setIsDirty(content !== lastSavedContent);
+    }, [content, lastSavedContent]);
     const canvasRef = useRef<HTMLDivElement>(null);
     const { c4Diagram, error, isLoading, warnings } = useC4Parser(content);
     const [isDarkMode, setIsDarkMode] = useState(true);
@@ -259,62 +276,47 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
     const handleGenerate = async () => {
         if (!prompt.trim()) return;
 
-        try {
-            setIsConverting(true);
-
-            // Call the Laravel backend to edit C4 diagram with AI
-            const response = await fetch(`/projects/${project.id}/c4/edit`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        setIsConverting(true);
+        
+        router.post(
+            `/projects/${project.id}/c4/ai-edit`,
+            { engineer_notes: prompt },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setShowGenerationMode(false);
+                    setPrompt('');
                 },
-                body: JSON.stringify({
-                    engineer_notes: prompt,
-                }),
-            });
-
-            if (response.ok) {
-                // Reload the page to get the updated C4 data
-                router.reload();
-                setShowGenerationMode(false);
-                toast.success('C4 diagram generated successfully!');
-            } else {
-                toast.error('Failed to generate diagram. Please try again.');
+                onError: () => {
+                    toast.error('Failed to generate diagram. Please try again.');
+                },
+                onFinish: () => {
+                    setIsConverting(false);
+                },
             }
-        } catch (error) {
-            toast.error('Failed to generate diagram. Please try again.');
-        } finally {
-            setIsConverting(false);
-            setPrompt(''); // Clear the prompt after generation
-        }
+        );
     };
 
     const handleSave = async () => {
-        try {
-            setIsConverting(true);
-
-            const response = await fetch(`/projects/${project.id}/c4/edit`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        setIsConverting(true);
+        
+        router.post(
+            `/projects/${project.id}/c4/save`,
+            { c4_content: content },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setLastSavedContent(content);
+                    setIsDirty(false);
                 },
-                body: JSON.stringify({
-                    c4_content: content,
-                }),
-            });
-
-            if (response.ok) {
-                toast.success('C4 diagram saved successfully!');
-            } else {
-                toast.error('Failed to save diagram. Please try again.');
+                onError: () => {
+                    toast.error('Failed to save diagram. Please try again.');
+                },
+                onFinish: () => {
+                    setIsConverting(false);
+                },
             }
-        } catch (error) {
-            toast.error('Failed to save diagram. Please try again.');
-        } finally {
-            setIsConverting(false);
-        }
+        );
     };
 
     return (
@@ -413,16 +415,51 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                         </div>
                                     ) : (
                                         <div className="relative flex min-h-0 flex-1 overflow-hidden" ref={containerRef}>
+                                            {/* Toggle Editor Button - Vertical Center Between Sections */}
+                                            {!isFullScreen && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
+                                                    className={`absolute top-1/2 z-20 h-12 w-6 -translate-y-1/2 rounded-l-none rounded-r-md border border-border bg-background/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-muted ${isEditorCollapsed ? 'left-0' : ''}`}
+                                                    style={!isEditorCollapsed ? { left: `${leftWidth}%`, transform: 'translate(-50%, -50%)' } : {}}
+                                                    title={isEditorCollapsed ? 'Show Editor Panel' : 'Hide Editor Panel'}
+                                                >
+                                                    {isEditorCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                                                    <span className="sr-only">{isEditorCollapsed ? 'Show Editor' : 'Hide Editor'}</span>
+                                                </Button>
+                                            )}
+
                                             {/* Left Panel - Editor - Hidden in full screen */}
                                             {!isFullScreen && (
-                                                <div className="flex min-h-0 min-w-0 flex-col overflow-hidden" style={{ width: `${leftWidth}%` }}>
+                                                <div 
+                                                    className={`flex min-h-0 min-w-0 flex-col overflow-hidden transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0' : 'opacity-100'} ${isResizing ? 'pointer-events-none' : ''}`}
+                                                    style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
+                                                >
                                                     <div className="relative flex-1 overflow-hidden">
+                                                        {/* Editor Header with Save Button */}
+                                                        {isDirty && (
+                                                            <div className="absolute top-2 right-2 z-50">
+                                                                <Button 
+                                                                    onClick={handleSave} 
+                                                                    disabled={isConverting || !!error}
+                                                                    className="bg-primary px-4 text-primary-foreground shadow-md transition-colors hover:bg-primary/90"
+                                                                >
+                                                                    {isConverting ? (
+                                                                        <TextShimmer className="text-primary-foreground">Saving...</TextShimmer>
+                                                                    ) : (
+                                                                        'Save'
+                                                                    )}
+                                                                </Button>
+                                                            </div>
+                                                        )}
+
                                                         <div className="h-full overflow-auto pb-24">
                                                             <JsonEditor value={content} onChange={setContent} error={error ?? undefined} />
                                                         </div>
 
                                                         {/* AI Prompt Section - Floating Bottom */}
-                                                        <div className="absolute right-2 bottom-4 left-2 z-50 rounded border bg-background p-3">
+                                                        <div className="absolute right-2 bottom-4 left-2 z-50 rounded-lg border border-border bg-background/95 p-3 shadow-xl backdrop-blur-md transition-all duration-200 hover:bg-background/98 hover:shadow-2xl">
                                                             <div className="flex gap-2">
                                                                 <Input
                                                                     type="text"
@@ -455,21 +492,24 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                                 </div>
                                             )}
 
-                                            {/* Resize Handle - Hidden in full screen */}
-                                            {!isFullScreen && (
+                                            {/* Resize Handle - Hidden in full screen and when editor is collapsed */}
+                                            {!isFullScreen && !isEditorCollapsed && (
                                                 <div
-                                                    className="group relative w-1 cursor-col-resize bg-border transition-colors duration-200 hover:bg-primary/50"
+                                                    className="group relative z-10 w-1 cursor-col-resize bg-border transition-colors hover:bg-primary/50"
                                                     onMouseDown={handleMouseDown}
                                                 >
-                                                    <div className="absolute inset-y-0 -right-1 -left-1 transition-colors duration-200 group-hover:bg-primary/20" />
+                                                    <div className="absolute inset-y-0 -left-1 -right-1" />
+                                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                                        <div className="h-8 w-1 rounded-full bg-primary" />
+                                                    </div>
                                                 </div>
                                             )}
 
                                             {/* Right Panel - Diagram */}
                                             <div
-                                                className="relative flex min-h-0 min-w-0 flex-col"
+                                                className={`relative flex min-h-0 min-w-0 flex-col transition-all duration-300 ease-in-out ${isFullScreen ? 'w-full border-l-0' : isEditorCollapsed ? 'w-full border-l-0' : 'border-l border-border'} ${isResizing ? 'pointer-events-none' : ''}`}
                                                 style={{
-                                                    width: isFullScreen ? '100%' : `${100 - leftWidth}%`,
+                                                    width: isFullScreen || isEditorCollapsed ? '100%' : `${100 - leftWidth}%`,
                                                 }}
                                             >
                                                 {/* Full Screen Button - Top Right */}

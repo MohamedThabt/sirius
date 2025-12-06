@@ -78,6 +78,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/projects/{project}/c4', [ArchitectureController::class, 'getC4'])->name('projects.c4');
     Route::post('/projects/{project}/c4/generate', [ArchitectureController::class, 'generateC4'])->name('projects.c4.generate');
     Route::post('/projects/{project}/c4/generate-async', [ArchitectureController::class, 'generateC4Async'])->name('projects.c4.generate-async');
+    Route::post('/projects/{project}/c4/ai-edit', [ArchitectureController::class, 'aiEditC4'])->name('projects.c4.ai-edit');
+    Route::post('/projects/{project}/c4/save', [ArchitectureController::class, 'saveC4'])->name('projects.c4.save');
     Route::post('/projects/{project}/c4/edit', [ArchitectureController::class, 'editC4'])->name('projects.c4.edit');
 
     // Brainstorming routes
