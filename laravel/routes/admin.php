@@ -6,6 +6,7 @@ use App\Http\Controllers\Dashboard\BetaController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\FeatureController;
 use App\Http\Controllers\Dashboard\LogsController;
+use App\Http\Controllers\Dashboard\ModuleController;
 use App\Http\Controllers\Dashboard\ProjectController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Hash;
@@ -63,6 +64,11 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('features/{feature}/sequence-diagram', [FeatureController::class, 'sequenceDiagram'])->name('admin.features.sequence-diagram');
     Route::get('features/{feature}/wireframe', [FeatureController::class, 'wireframe'])->name('admin.features.wireframe');
     Route::get('features/{feature}/user-journey', [FeatureController::class, 'userJourney'])->name('admin.features.user-journey');
+    
+    // Module Management
+    Route::get('modules', [ModuleController::class, 'index'])->name('admin.modules.index');
+    Route::get('modules/{module}', [ModuleController::class, 'show'])->name('admin.modules.show');
+    Route::get('modules/{module}/erd', [ModuleController::class, 'erd'])->name('admin.modules.erd');
     
     // FastAPI Logs Management
     Route::prefix('logs')->name('admin.logs.')->group(function () {

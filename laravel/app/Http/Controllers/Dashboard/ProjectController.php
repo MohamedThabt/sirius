@@ -118,12 +118,17 @@ class ProjectController extends Controller
             // Calculate project metrics
             $projectMetrics = [
                 'total_features' => $project->features->count(),
+                'total_modules' => $project->modules->count(),
                 'features_by_status' => $project->features
                     ->groupBy('status')
                     ->map->count()
                     ->toArray(),
                 'features_by_priority' => $project->features
                     ->groupBy('priority')
+                    ->map->count()
+                    ->toArray(),
+                'modules_by_status' => $project->modules
+                    ->groupBy('status')
                     ->map->count()
                     ->toArray(),
                 'total_members' => $project->members->count(),

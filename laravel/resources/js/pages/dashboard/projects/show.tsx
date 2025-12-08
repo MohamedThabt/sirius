@@ -27,6 +27,17 @@ interface Feature {
     order_of_implementation: number;
     priority?: 'low' | 'medium' | 'high' | 'critical';
     status?: 'draft' | 'in_progress' | 'completed' | 'archived';
+    module_id?: number;
+}
+
+interface Module {
+    id: number;
+    name: string;
+    description?: string;
+    status: string;
+    order_of_implementation: number;
+    erd_is_synced: boolean;
+    features: Feature[];
 }
 
 interface OverviewVersion {
@@ -104,6 +115,7 @@ interface Project {
     baseOverviewVersion?: OverviewVersion;
     latestOverviewVersion?: OverviewVersion;
     features?: Feature[];
+    modules?: Module[];
     technicalIntake?: TechnicalIntake;
     repository?: Repository;
     members?: User[];
@@ -114,6 +126,7 @@ interface Project {
 
 interface ProjectMetrics {
     total_features: number;
+    total_modules: number;
     features_by_status: {
         draft: number;
         in_progress: number;
@@ -126,6 +139,7 @@ interface ProjectMetrics {
         high: number;
         critical: number;
     };
+    modules_by_status: Record<string, number>;
     completion_percentage: number;
     team_members_count: number;
     pending_invitations_count: number;
@@ -270,11 +284,20 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                     <Card>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Features
+                                Modules & Features
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <div className="text-3xl font-semibold">{project.features?.length || 0}</div>
+                            <div className="flex items-baseline gap-2">
+                                <div className="text-3xl font-semibold">{project.modules?.length || 0}</div>
+                                <span className="text-sm text-muted-foreground">modules</span>
+                            </div>
+                            <div className="flex gap-3 text-sm">
+                                <div className="flex items-center gap-1.5">
+                                    <ZapIcon className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-muted-foreground">{project.features?.length || 0} features</span>
+                                </div>
+                            </div>
                             {project.features && project.features.length > 0 ? (
                                 <div className="flex gap-3 text-sm">
                                     <div className="flex items-center gap-1.5">
@@ -351,8 +374,8 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                             <span className="hidden sm:inline">Overview</span>
                         </TabsTrigger>
                         <TabsTrigger value="features" className="gap-2">
-                            <ZapIcon className="h-4 w-4" />
-                            <span className="hidden sm:inline">Features</span>
+                            <LayersIcon className="h-4 w-4" />
+                            <span className="hidden sm:inline">Modules</span>
                         </TabsTrigger>
                         <TabsTrigger value="technical" className="gap-2">
                             <Code2Icon className="h-4 w-4" />
@@ -522,9 +545,92 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                         )}
                     </TabsContent>
 
-                    {/* Features Tab */}
-                    <TabsContent value="features" className="space-y-4 mt-4">
-                        {project.features && project.features.length > 0 ? (
+                    {/* Features Tab - Now organized by Modules */}
+                    <TabsContent value="features" className="space-y-6 mt-4">
+                        {/* Modules with their Features */}
+                        {project.modules && project.modules.length > 0 ? (
+                            <div className="space-y-6">
+                                {project.modules
+                                    .sort((a, b) => a.order_of_implementation - b.order_of_implementation)
+                                    .map((module) => (
+                                    <Card key={module.id}>
+                                        <CardHeader className="pb-3">
+                                            <div className="flex items-center justify-between">
+                                                <Link href={`/admin/modules/${module.id}`} className="hover:text-primary transition-colors">
+                                                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                                        <BoxIcon className="h-4 w-4 text-muted-foreground" />
+                                                        {module.name}
+                                                        <Badge variant="outline" className={`${getStatusColor(module.status)} text-xs ml-2`}>
+                                                            {module.status?.replace('_', ' ') || 'N/A'}
+                                                        </Badge>
+                                                    </CardTitle>
+                                                </Link>
+                                                <div className="flex items-center gap-2">
+                                                    {module.erd_is_synced ? (
+                                                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 text-xs">
+                                                            <CheckCircleIcon className="h-3 w-3 mr-1" />
+                                                            ERD Synced
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 text-xs">
+                                                            <ClockIcon className="h-3 w-3 mr-1" />
+                                                            ERD Pending
+                                                        </Badge>
+                                                    )}
+                                                    <span className="text-xs text-muted-foreground">#{module.order_of_implementation}</span>
+                                                </div>
+                                            </div>
+                                            {module.description && (
+                                                <CardDescription className="line-clamp-2 mt-1">{module.description}</CardDescription>
+                                            )}
+                                        </CardHeader>
+                                        <CardContent>
+                                            {module.features && module.features.length > 0 ? (
+                                                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                                                    {module.features
+                                                        .sort((a, b) => a.order_of_implementation - b.order_of_implementation)
+                                                        .map((feature) => (
+                                                        <Link key={feature.id} href={`/admin/features/${feature.id}`}>
+                                                            <Card className="h-full cursor-pointer transition-colors hover:bg-muted/50 border-dashed">
+                                                                <CardContent className="p-3 space-y-2">
+                                                                    <div className="flex items-start justify-between gap-2">
+                                                                        <span className="text-sm font-medium line-clamp-1">{feature.name}</span>
+                                                                        {feature.priority && (
+                                                                            <Badge variant="outline" className={`${getPriorityColor(feature.priority)} text-[10px] flex-shrink-0`}>
+                                                                                {feature.priority.charAt(0).toUpperCase()}
+                                                                            </Badge>
+                                                                        )}
+                                                                    </div>
+                                                                    {feature.description && (
+                                                                        <p className="line-clamp-1 text-xs text-muted-foreground">
+                                                                            {feature.description}
+                                                                        </p>
+                                                                    )}
+                                                                    <div className="flex items-center justify-between pt-1.5 border-t">
+                                                                        {feature.status && (
+                                                                            <Badge variant="outline" className={`${getStatusColor(feature.status)} text-[10px]`}>
+                                                                                {feature.status.replace('_', ' ')}
+                                                                            </Badge>
+                                                                        )}
+                                                                        <span className="text-[10px] text-muted-foreground">#{feature.order_of_implementation}</span>
+                                                                    </div>
+                                                                </CardContent>
+                                                            </Card>
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-6 text-muted-foreground">
+                                                    <ZapIcon className="h-6 w-6 mx-auto mb-2 opacity-30" />
+                                                    <p className="text-xs">No features in this module</p>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : project.features && project.features.length > 0 ? (
+                            /* Fallback: Display flat features if no modules exist (legacy projects) */
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {project.features.map((feature) => (
                                     <Link key={feature.id} href={`/admin/features/${feature.id}`}>
@@ -563,9 +669,9 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                         ) : (
                             <Card className="border-dashed">
                                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                                    <ZapIcon className="h-10 w-10 text-muted-foreground/20 mb-3" />
-                                    <h3 className="text-sm font-medium">No features</h3>
-                                    <p className="text-xs text-muted-foreground mt-1">Create features to track implementation</p>
+                                    <BoxIcon className="h-10 w-10 text-muted-foreground/20 mb-3" />
+                                    <h3 className="text-sm font-medium">No modules or features</h3>
+                                    <p className="text-xs text-muted-foreground mt-1">Create modules and features to track implementation</p>
                                 </CardContent>
                             </Card>
                         )}

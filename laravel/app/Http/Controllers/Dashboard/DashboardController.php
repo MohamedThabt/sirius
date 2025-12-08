@@ -7,6 +7,7 @@ use App\Models\Admin;
 use App\Models\BetaInvitation;
 use App\Models\Feature;
 use App\Models\GithubToken;
+use App\Models\Module;
 use App\Models\Project;
 use App\Models\User;
 use App\Traits\StructuredLogger;
@@ -62,6 +63,18 @@ class DashboardController extends Controller
                 ->groupBy('priority')
                 ->pluck('count', 'priority')
                 ->toArray();
+
+            // Module stats
+            $totalModules = Module::count();
+            $modulesByStatus = Module::selectRaw('status, COUNT(*) as count')
+                ->groupBy('status')
+                ->pluck('count', 'status')
+                ->toArray();
+            $modulesWithErd = Module::whereNotNull('erd')
+                ->where('erd', '!=', '')
+                ->count();
+            $modulesWithSyncedErd = Module::where('erd_is_synced', true)->count();
+            $modulesThisMonth = Module::where('created_at', '>=', now()->startOfMonth())->count();
 
             // Admin stats
             $totalAdmins = Admin::count();
@@ -120,6 +133,13 @@ class DashboardController extends Controller
                 'total_features' => $totalFeatures,
                 'features_by_status' => $featuresByStatus,
                 'features_by_priority' => $featuresByPriority,
+
+                // Module metrics
+                'total_modules' => $totalModules,
+                'modules_by_status' => $modulesByStatus,
+                'modules_with_erd' => $modulesWithErd,
+                'modules_with_synced_erd' => $modulesWithSyncedErd,
+                'modules_this_month' => $modulesThisMonth,
 
                 // Admin metrics
                 'total_admins' => $totalAdmins,

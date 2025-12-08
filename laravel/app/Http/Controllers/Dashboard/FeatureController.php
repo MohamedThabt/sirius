@@ -26,13 +26,17 @@ class FeatureController extends Controller
      * @param Feature $feature The feature to display
      * @return Response Inertia response rendering the feature show page
      */
-    public function show(Feature $feature): Response
+    public function show(Feature $feature)
     {
         try {
-            $feature->load('project.user:id,name,email,avatar');
+            $feature->load([
+                'module:id,name,project_id,status,order_of_implementation',
+                'module.project:id,name',
+                'module.project.user:id,name,email,avatar'
+            ]);
 
-            // Get sibling features for context (include current feature for navigation)
-            $siblingFeatures = Feature::where('project_id', $feature->project_id)
+            // Get sibling features from the same module for context
+            $siblingFeatures = Feature::where('module_id', $feature->module_id)
                 ->orderBy('order_of_implementation')
                 ->get(['id', 'name', 'status', 'priority', 'order_of_implementation']);
 
@@ -46,14 +50,15 @@ class FeatureController extends Controller
                 'has_acceptance_criteria' => !empty($feature->acceptance_criteria),
                 'has_description' => !empty($feature->description),
                 'has_summary' => !empty($feature->summary),
-                'position_in_project' => $feature->order_of_implementation,
-                'total_features_in_project' => $siblingFeatures->count(),
+                'position_in_module' => $feature->order_of_implementation,
+                'total_features_in_module' => $siblingFeatures->count(),
                 'completion_score' => $this->calculateCompletionScore($feature),
             ];
 
             return Inertia::render('dashboard/features/show', [
                 'feature' => $feature,
-                'project' => $feature->project,
+                'module' => $feature->module,
+                'project' => $feature->module->project,
                 'siblingFeatures' => $siblingFeatures,
                 'featureStats' => $featureStats,
             ]);
@@ -69,7 +74,7 @@ class FeatureController extends Controller
      * @param Feature $feature The feature to display specs for
      * @return Response Inertia response rendering the specs page
      */
-    public function specs(Feature $feature): Response
+    public function specs(Feature $feature)
     {
         try {
             $feature->load('project:id,name');
@@ -105,14 +110,16 @@ class FeatureController extends Controller
      * @param Feature $feature The feature to display data model for
      * @return Response Inertia response rendering the database designer page
      */
-    public function erd(Feature $feature): Response
+    public function erd(Feature $feature)
     {
         try {
-            $feature->load('project:id,name');
+            $feature->load('module.project:id,name');
 
             return Inertia::render('dashboard/features/database-designer', [
-                'project' => $feature->project,
-                'feature' => $feature->only(['id', 'name', 'project_id', 'datamodel']),
+                'project' => $feature->module->project,
+                'feature' => array_merge($feature->only(['id', 'name', 'module_id', 'datamodel']), [
+                    'project_id' => $feature->module->project_id,
+                ]),
                 'initialContent' => $feature->datamodel ?? '',
             ]);
         } catch (Throwable $e) {
@@ -127,14 +134,16 @@ class FeatureController extends Controller
      * @param Feature $feature The feature to display sequence diagram for
      * @return Response Inertia response rendering the sequence diagram page
      */
-    public function sequenceDiagram(Feature $feature): Response
+    public function sequenceDiagram(Feature $feature)
     {
         try {
-            $feature->load('project:id,name');
+            $feature->load('module.project:id,name');
 
             return Inertia::render('dashboard/features/sequence-diagram', [
-                'project' => $feature->project,
-                'feature' => $feature->only(['id', 'name', 'project_id', 'sequence_diagram']),
+                'project' => $feature->module->project,
+                'feature' => array_merge($feature->only(['id', 'name', 'module_id', 'sequence_diagram']), [
+                    'project_id' => $feature->module->project_id,
+                ]),
                 'initialContent' => $feature->sequence_diagram ?? '',
             ]);
         } catch (Throwable $e) {
@@ -149,7 +158,7 @@ class FeatureController extends Controller
      * @param Feature $feature The feature to display wireframe for
      * @return Response Inertia response rendering the wireframe page
      */
-    public function wireframe(Feature $feature): Response
+    public function wireframe(Feature $feature)
     {
         try {
             $feature->load('project:id,name');
@@ -170,7 +179,7 @@ class FeatureController extends Controller
      * @param Feature $feature The feature to display user journey for
      * @return Response Inertia response rendering the user journey page
      */
-    public function userJourney(Feature $feature): Response
+    public function userJourney(Feature $feature)
     {
         try {
             $feature->load('project:id,name');

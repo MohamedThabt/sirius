@@ -209,14 +209,14 @@ export default function DatabaseDesigner({ project, feature, initialContent }: P
                             <FormatSelector content={content} onConvert={handleConvert} isConverting={isConverting} />
 
                             {/* Info Note */}
-                            <div className="mx-4 mb-4 rounded border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4">
+                            <div className="mx-4 mb-2 rounded border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-3">
                                 <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">Read-Only View</h3>
-                                <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
+                                <p className="mt-0.5 text-xs text-blue-700 dark:text-blue-300">
                                     This is a read-only view of the database schema. Schema editing is only available to feature owners.
                                 </p>
                             </div>
 
-                            <div className="flex-1 overflow-hidden">
+                            <div className="min-h-0 flex-1 overflow-hidden">
                                 {content ? (
                                     <EditorPanel value={content} onChange={() => {}} readOnly={true} />
                                 ) : (

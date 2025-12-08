@@ -25,10 +25,11 @@ import {
     DatabaseIcon,
     ExternalLinkIcon,
     FileTextIcon,
+    FolderIcon,
     GitBranchIcon,
     LayoutIcon,
+    LayersIcon,
     ListIcon,
-    RouteIcon,
     SparklesIcon,
     TrendingUpIcon,
     UserIcon,
@@ -49,9 +50,17 @@ interface Project {
     };
 }
 
+interface Module {
+    id: number;
+    name: string;
+    project_id: number;
+    status: string;
+    order_of_implementation: number;
+}
+
 interface Feature {
     id: number;
-    project_id: number;
+    module_id: number;
     name: string;
     summary?: string;
     description?: string;
@@ -77,7 +86,7 @@ interface SiblingFeature {
 }
 
 interface FeatureStats {
-    has_erd: boolean;
+    has_datamodel: boolean;
     has_sequence_diagram: boolean;
     has_wireframe: boolean;
     has_user_flows: boolean;
@@ -85,19 +94,20 @@ interface FeatureStats {
     has_acceptance_criteria: boolean;
     has_description: boolean;
     has_summary: boolean;
-    position_in_project: number;
-    total_features_in_project: number;
+    position_in_module: number;
+    total_features_in_module: number;
     completion_score: number;
 }
 
 interface Props {
     feature: Feature;
+    module: Module;
     project: Project;
     siblingFeatures: SiblingFeature[];
     featureStats: FeatureStats;
 }
 
-export default function FeatureShow({ feature, project, siblingFeatures, featureStats }: Props) {
+export default function FeatureShow({ feature, module, project, siblingFeatures, featureStats }: Props) {
     const [activeTab, setActiveTab] = useState('overview');
     const [selectedContent, setSelectedContent] = useState<{ title: string; content: string } | null>(null);
 
@@ -105,7 +115,7 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
         { title: 'Dashboard', href: '/admin/dashboard' },
         { title: 'Projects', href: '/admin/projects' },
         { title: project.name, href: `/admin/projects/${project.id}` },
-        { title: 'Features', href: `/admin/projects/${project.id}?tab=features` },
+        { title: module.name, href: `/admin/modules/${module.id}` },
         { title: feature.name, href: '#' },
     ];
 
@@ -220,9 +230,9 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
         available: boolean;
         colorClass: string;
         bgClass: string;
-    }) => (
-        <Link href={href}>
-            <Card className="h-full transition-all hover:bg-muted/50 hover:shadow-sm cursor-pointer group">
+    }) => {
+        const cardContent = (
+            <Card className={`h-full transition-all ${available ? 'hover:bg-muted/50 hover:shadow-sm cursor-pointer group' : 'opacity-50 cursor-not-allowed'}`}>
                 <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                         <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${bgClass}`}>
@@ -230,7 +240,7 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-sm group-hover:text-primary transition-colors">
+                                <h3 className={`font-medium text-sm ${available ? 'group-hover:text-primary' : ''} transition-colors`}>
                                     {title}
                                 </h3>
                                 {available ? (
@@ -241,12 +251,18 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                             </div>
                             <p className="text-xs text-muted-foreground truncate">{description}</p>
                         </div>
-                        <ExternalLinkIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <ExternalLinkIcon className={`h-4 w-4 text-muted-foreground ${available ? 'group-hover:text-primary' : ''} transition-colors`} />
                     </div>
                 </CardContent>
             </Card>
-        </Link>
-    );
+        );
+
+        if (!available) {
+            return cardContent;
+        }
+
+        return <Link href={href}>{cardContent}</Link>;
+    };
 
     // Stat Item Component
     const StatItem = ({
@@ -279,7 +295,7 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
-                        <Link href={`/admin/projects/${project.id}?tab=features`}>
+                        <Link href={`/admin/modules/${module.id}`}>
                             <Button variant="ghost" size="icon" className="h-9 w-9">
                                 <ArrowLeftIcon className="h-4 w-4" />
                             </Button>
@@ -329,14 +345,35 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                     <Card>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Order
+                                Order in Module
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="text-3xl font-semibold">#{feature.order_of_implementation}</div>
                             <p className="text-sm text-muted-foreground">
-                                of {featureStats.total_features_in_project} features
+                                of {featureStats.total_features_in_module} features
                             </p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Module Card */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Module
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <Link 
+                                href={`/admin/modules/${module.id}`}
+                                className="flex items-center gap-2 hover:text-primary transition-colors"
+                            >
+                                <BoxIcon className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-medium truncate">{module.name}</span>
+                            </Link>
+                            <Badge variant="outline" className={`${getStatusColor(module.status)} text-xs`}>
+                                {module.status?.replace('_', ' ') || 'N/A'}
+                            </Badge>
                         </CardContent>
                     </Card>
 
@@ -349,7 +386,7 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex items-center gap-2">
-                                {project.user.avatar ? (
+                                {project.user?.avatar ? (
                                     <img 
                                         src={project.user.avatar} 
                                         alt={project.user.name}
@@ -361,8 +398,8 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                                     </div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium truncate">{project.user.name}</div>
-                                    <div className="text-xs text-muted-foreground truncate">{project.user.email}</div>
+                                    <div className="text-sm font-medium truncate">{project.user?.name ?? 'Unknown'}</div>
+                                    <div className="text-xs text-muted-foreground truncate">{project.user?.email ?? '-'}</div>
                                 </div>
                             </div>
                         </CardContent>
@@ -506,16 +543,6 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                             />
 
                             <ContentItem
-                                title="User Flows"
-                                description="Step-by-step interactions"
-                                content={feature.user_flows}
-                                icon={RouteIcon}
-                                iconColor="text-cyan-600 dark:text-cyan-400"
-                                iconBg="bg-cyan-500/10"
-                                available={featureStats.has_user_flows}
-                            />
-
-                            <ContentItem
                                 title="Success Metrics"
                                 description="KPIs and indicators"
                                 content={feature.metrics}
@@ -540,7 +567,7 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                                 description="Schema & relationships"
                                 icon={DatabaseIcon}
                                 href={`/admin/features/${feature.id}/erd`}
-                                available={featureStats.has_erd}
+                                available={featureStats.has_datamodel}
                                 colorClass="text-purple-600 dark:text-purple-400"
                                 bgClass="bg-purple-500/10"
                             />
@@ -552,15 +579,6 @@ export default function FeatureShow({ feature, project, siblingFeatures, feature
                                 available={featureStats.has_sequence_diagram}
                                 colorClass="text-amber-600 dark:text-amber-400"
                                 bgClass="bg-amber-500/10"
-                            />
-                            <ResourceCard
-                                title="User Journey"
-                                description="User flows visualization"
-                                icon={RouteIcon}
-                                href={`/admin/features/${feature.id}/user-journey`}
-                                available={featureStats.has_user_flows}
-                                colorClass="text-teal-600 dark:text-teal-400"
-                                bgClass="bg-teal-500/10"
                             />
                             <ResourceCard
                                 title="Wireframe"

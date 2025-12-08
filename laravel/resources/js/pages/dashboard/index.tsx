@@ -69,6 +69,13 @@ interface Stats {
     projects_with_erd: number;
     projects_with_c4: number;
 
+    // Module metrics
+    total_modules: number;
+    modules_by_status: Record<string, number>;
+    modules_with_erd: number;
+    modules_with_synced_erd: number;
+    modules_this_month: number;
+
     // Feature metrics
     total_features: number;
     features_by_status: Record<string, number>;
@@ -261,6 +268,7 @@ export default function AdminDashboard({ stats }: Props) {
                 <div className="flex flex-wrap gap-2">
                     <QuickLink href="/admin/users" icon={UsersIcon} label="Users" />
                     <QuickLink href="/admin/projects" icon={FolderIcon} label="Projects" />
+                    <QuickLink href="/admin/modules" icon={BoxIcon} label="Modules" />
                     <QuickLink href="/admin/admins" icon={ShieldIcon} label="Admins" />
                     <QuickLink 
                         href="/admin/beta" 
@@ -392,7 +400,7 @@ export default function AdminDashboard({ stats }: Props) {
                 </Card>
 
                 {/* Primary Stats Grid */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     <StatCard
                         title="Total Users"
                         value={stats.total_users}
@@ -406,10 +414,16 @@ export default function AdminDashboard({ stats }: Props) {
                         trend={{ value: stats.projects_this_month, label: "this month" }}
                     />
                     <StatCard
+                        title="Total Modules"
+                        value={stats.total_modules}
+                        icon={BoxIcon}
+                        trend={{ value: stats.modules_this_month, label: "this month" }}
+                    />
+                    <StatCard
                         title="Total Features"
                         value={stats.total_features}
                         icon={ZapIcon}
-                        subtitle={`${Object.values(stats.features_by_status).reduce((a, b) => a + b, 0)} tracked`}
+                        subtitle={`${Object.values(stats.features_by_status || {}).reduce((a, b) => a + b, 0)} tracked`}
                     />
                     <StatCard
                         title="Platform Admins"
