@@ -49,15 +49,17 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
             });
         }
 
-        if (props.flash?.success && props.flash?.message) {
+        if (props.flash?.success) {
             const filesCount = props.flash?.files_count;
-            if (props.flash.message === 'Repository deleted successfully') {
-                toast.success('Repository deleted successfully', {
-                    description: 'The GitHub repository has been deleted and disconnected from this project.',
+            const message = props.flash.success;
+            
+            if (message === 'Repository unlinked successfully.') {
+                toast.success('Repository unlinked successfully', {
+                    description: 'The GitHub repository has been disconnected from this project.',
                 });
                 setShowDeleteConfirm(false);
                 onOpenChange(false);
-            } else if (props.flash.message === 'Specifications synced successfully') {
+            } else if (message.includes('synced successfully')) {
                 toast.success('Specs synced successfully', {
                     description: filesCount
                         ? `Successfully updated ${filesCount} specification file(s) in the repository.`

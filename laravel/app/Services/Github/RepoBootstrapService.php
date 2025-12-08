@@ -51,12 +51,11 @@ class RepoBootstrapService
             $isRepoEmpty = $this->client->isRepoEmpty($this->repository->full_name);
 
             if (! $isRepoEmpty) {
-                Log::info('Repository is not empty, will only push specs', [
+                Log::info('Repository is not empty, will push specs', [
                     'project_id' => $this->project->id,
                     'repo_full_name' => $this->repository->full_name,
                 ]);
 
-                // Even if repo is not empty, push specs commit
                 return $this->pushSpecsCommit();
             }
 
@@ -65,27 +64,8 @@ class RepoBootstrapService
                 'repo_full_name' => $this->repository->full_name,
             ]);
 
-            // Get list of files to push
-            $files = $this->getProjectFiles();
-
-            if (empty($files)) {
-                Log::warning('No files to push for bootstrap', [
-                    'project_id' => $this->project->id,
-                    'project_name' => $this->project->name,
-                    'repo_full_name' => $this->repository->full_name,
-                ]);
-
-                return false;
-            }
-
-            Log::info('Project files prepared for push', [
-                'project_id' => $this->project->id,
-                'files_count' => count($files),
-                'file_paths' => array_column($files, 'path'),
-            ]);
-
-            // For empty repositories, use Contents API to create the initial commit
-            return $this->pushFilesToEmptyRepo($files);
+            // For empty repositories, push specs as initial commit
+            return $this->pushFilesToEmptyRepo();
         } catch (\Exception $e) {
             Log::error('Bootstrap process failed with exception', [
                 'project_id' => $this->project->id,
@@ -103,86 +83,107 @@ class RepoBootstrapService
     }
 
     /**
-     * Get list of project files to push.
-     */
-    protected function getProjectFiles(): array
-    {
-        $files = [];
-
-        // Generate README.md only
-        $files[] = [
-            'path' => 'README.md',
-            'content' => $this->generateReadme(),
-        ];
-
-        return $files;
-    }
-
-    /**
      * Push files to an empty repository using Contents API.
      */
-    protected function pushFilesToEmptyRepo(array $files): bool
+    protected function pushFilesToEmptyRepo(): bool
     {
         try {
-        Log::info('Using Contents API for empty repository', [
-            'project_id' => $this->project->id,
-            'repo_full_name' => $this->repository->full_name,
-            'files_count' => count($files),
-        ]);
+            // Generate specs files
+            $specFiles = $this->specsExportService->build($this->project);
 
-        // For empty repositories, we can only create one file at a time
-        // We'll create the first file (usually README.md) which will initialize the repository
-        $firstFile = $files[0];
+            if (empty($specFiles)) {
+                Log::warning('No specs files to push for empty repository', [
+                    'project_id' => $this->project->id,
+                    'repo_full_name' => $this->repository->full_name,
+                ]);
 
-        $commitMessage = "Initial commit: {$this->project->name}";
+                return false;
+            }
 
-        Log::info('Creating initial file in empty repository', [
-            'project_id' => $this->project->id,
-            'repo_full_name' => $this->repository->full_name,
-            'file_path' => $firstFile['path'],
-            'commit_message' => $commitMessage,
-        ]);
+            Log::info('Using Contents API for empty repository', [
+                'project_id' => $this->project->id,
+                'repo_full_name' => $this->repository->full_name,
+                'files_count' => count($specFiles),
+                'file_paths' => array_column($specFiles, 'path'),
+            ]);
 
-        $result = $this->client->createFileInEmptyRepo(
-            $this->repository->full_name,
-            $firstFile['path'],
-            $firstFile['content'],
-            $commitMessage
-        );
+            // For empty repositories, we need to create the first file to initialize the repo
+            // Then we can use commitFiles for the remaining files
+            $firstFile = $specFiles[0];
+            $remainingFiles = array_slice($specFiles, 1);
 
-        if (! $result) {
-            Log::error('Failed to create initial file in empty repository', [
+            $commitMessage = "Initial commit: {$this->project->name}";
+
+            Log::info('Creating initial file in empty repository', [
                 'project_id' => $this->project->id,
                 'repo_full_name' => $this->repository->full_name,
                 'file_path' => $firstFile['path'],
+                'commit_message' => $commitMessage,
             ]);
 
-            return false;
-        }
+            $result = $this->client->createFileInEmptyRepo(
+                $this->repository->full_name,
+                $firstFile['path'],
+                $firstFile['content'],
+                $commitMessage
+            );
 
-        Log::info('Initial file created successfully in empty repository', [
-            'project_id' => $this->project->id,
-            'repo_full_name' => $this->repository->full_name,
-            'file_path' => $firstFile['path'],
-            'commit_sha' => $result['commit']['sha'] ?? 'unknown',
-        ]);
+            if (! $result) {
+                Log::error('Failed to create initial file in empty repository', [
+                    'project_id' => $this->project->id,
+                    'repo_full_name' => $this->repository->full_name,
+                    'file_path' => $firstFile['path'],
+                ]);
 
-            // Wait a moment for GitHub to process the initial commit
-            Log::info('Waiting for GitHub to process initial commit', [
+                return false;
+            }
+
+            Log::info('Initial file created successfully in empty repository', [
                 'project_id' => $this->project->id,
                 'repo_full_name' => $this->repository->full_name,
-                'wait_seconds' => 2,
+                'file_path' => $firstFile['path'],
+                'commit_sha' => $result['commit']['sha'] ?? 'unknown',
             ]);
 
-            sleep(2);
+            // If there are remaining files, commit them
+            if (! empty($remainingFiles)) {
+                // Wait a moment for GitHub to process the initial commit
+                Log::info('Waiting for GitHub to process initial commit', [
+                    'project_id' => $this->project->id,
+                    'repo_full_name' => $this->repository->full_name,
+                    'wait_seconds' => 2,
+                ]);
 
-            Log::info('Proceeding to push specs commit', [
-                'project_id' => $this->project->id,
-                'repo_full_name' => $this->repository->full_name,
-            ]);
+                sleep(2);
 
-            // After creating README, push specs commit
-            return $this->pushSpecsCommit();
+                $branch = $this->repository->default_branch ?? 'main';
+
+                Log::info('Committing remaining specs files', [
+                    'project_id' => $this->project->id,
+                    'repo_full_name' => $this->repository->full_name,
+                    'branch' => $branch,
+                    'files_count' => count($remainingFiles),
+                ]);
+
+                $success = $this->client->commitFiles(
+                    $this->repository->full_name,
+                    $branch,
+                    'docs(specs): add project specs (PRD, modules, features)',
+                    $remainingFiles
+                );
+
+                if (! $success) {
+                    Log::warning('Failed to commit remaining specs files', [
+                        'project_id' => $this->project->id,
+                        'repo_full_name' => $this->repository->full_name,
+                        'branch' => $branch,
+                    ]);
+                }
+
+                return $success;
+            }
+
+            return true;
         } catch (\Exception $e) {
             Log::error('Exception during pushFilesToEmptyRepo', [
                 'project_id' => $this->project->id,
@@ -240,7 +241,7 @@ class RepoBootstrapService
             $success = $this->client->commitFiles(
                 $this->repository->full_name,
                 $branch,
-                'docs(specs): add project specs (PRD, ERD, features)',
+                'docs(specs): add project specs (PRD, modules, features)',
                 $specFiles
             );
 
@@ -276,48 +277,4 @@ class RepoBootstrapService
         }
     }
 
-    /**
-     * Generate README.md content
-     */
-    protected function generateReadme(): string
-    {
-        $content = "# {$this->project->name}\n\n";
-
-        if (! empty($this->project->brief)) {
-            $content .= "## Overview\n\n";
-            $content .= $this->project->brief."\n\n";
-        }
-
-        if (! empty($this->project->prd)) {
-            $content .= "## Product Requirements\n\n";
-            $content .= $this->project->prd."\n\n";
-        }
-
-        if (! empty($this->project->technical_details)) {
-            $content .= "## Technical Details\n\n";
-            $content .= $this->project->technical_details."\n\n";
-        }
-
-        // Add modules if they exist
-        $modules = $this->project->modules()->with('features')->get();
-        if ($modules->isNotEmpty()) {
-            $content .= "## Modules\n\n";
-            foreach ($modules as $index => $module) {
-                $content .= ($index + 1).". **{$module->name}**";
-                if (! empty($module->status)) {
-                    $content .= ' - *'.ucfirst($module->status).'*';
-                }
-                $content .= "\n";
-            }
-            $content .= "\n";
-        }
-
-        $content .= "## Project Status\n\n";
-        $content .= 'Status: **'.ucfirst($this->project->status ?? 'active')."**\n\n";
-
-        $content .= "---\n\n";
-        $content .= "*This repository was initialized by DevMind*\n";
-
-        return $content;
-    }
 }

@@ -99,6 +99,10 @@ export function RepoConnectDialog({ open, onOpenChange, projectId, projectName }
                 loadRepos();
             } else {
                 setAuthenticated(false);
+                // Store redirect URL for when user clicks connect button
+                if (data.redirect_url) {
+                    sessionStorage.setItem('github_redirect_url', data.redirect_url);
+                }
             }
         } catch (error) {
             console.error('Auth check failed:', error);
@@ -122,7 +126,9 @@ export function RepoConnectDialog({ open, onOpenChange, projectId, projectName }
     }, [activeTab, projectName, repoName]);
 
     const connectGithub = () => {
-        window.location.href = `/projects/${projectId}/github/connect`;
+        // Use stored redirect URL or fallback to the OAuth redirect endpoint
+        const redirectUrl = sessionStorage.getItem('github_redirect_url') || '/integrations/github/redirect';
+        window.location.href = redirectUrl;
     };
 
     const loadRepos = async () => {

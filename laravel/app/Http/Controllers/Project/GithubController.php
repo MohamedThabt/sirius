@@ -88,7 +88,19 @@ class GithubController extends Controller
     public function callback(Request $request)
     {
         try {
+            \Log::info('GitHub callback started', [
+                'has_code' => $request->has('code'),
+                'has_state' => $request->has('state'),
+                'user_authenticated' => auth()->check(),
+                'user_id' => auth()->id(),
+            ]);
+
             $githubUser = Socialite::driver('github')->user();
+
+            \Log::info('GitHub user retrieved', [
+                'github_id' => $githubUser->id,
+                'github_nickname' => $githubUser->nickname,
+            ]);
 
             $token = GithubToken::updateOrCreate(
                 ['user_id' => auth()->id()],
@@ -104,8 +116,15 @@ class GithubController extends Controller
                 ]
             );
 
+            \Log::info('GitHub token saved', ['token_id' => $token->id]);
+
             // Redirect back to the project if stored in session
             $projectId = session()->get('github_oauth_return_project');
+
+            \Log::info('Session check', [
+                'project_id_in_session' => $projectId,
+                'all_session_keys' => array_keys(session()->all()),
+            ]);
 
             if ($projectId) {
                 session()->forget('github_oauth_return_project');
@@ -120,6 +139,12 @@ class GithubController extends Controller
             return redirect()->route('projects.index')
                 ->with('success', 'GitHub connected successfully!');
         } catch (Throwable $e) {
+            \Log::error('GitHub callback FAILED', [
+                'error_class' => get_class($e),
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+            ]);
             $this->logException($e, ['action' => 'callback']);
             return redirect()->route('projects.index')
                 ->with('error', 'Failed to connect GitHub. Please try again.');
@@ -228,7 +253,7 @@ class GithubController extends Controller
                 return back()->with('error', $errorMessage);
             }
 
-            ProjectRepository::updateOrCreate(
+            $repository = ProjectRepository::updateOrCreate(
                 ['project_id' => $project->id],
                 [
                     'provider' => 'github',
@@ -244,7 +269,16 @@ class GithubController extends Controller
                 ]
             );
 
-            return back()->with('success', 'Repository created and linked successfully.');
+            // Push initial specs to the new repository
+            $specsExportService = app(ProjectSpecsExportService::class);
+            $bootstrapService = new RepoBootstrapService($client, $repository, $specsExportService);
+            $pushSuccess = $bootstrapService->pushInitialCommit();
+
+            if ($pushSuccess) {
+                return back()->with('success', 'Repository created and specs pushed successfully.');
+            } else {
+                return back()->with('warning', 'Repository created but failed to push specs. You can sync manually.');
+            }
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'createRepo', 'project_id' => $project->id]);
             return back()->with('error', 'An error occurred while creating the repository.');
@@ -338,7 +372,8 @@ class GithubController extends Controller
             }
 
             $client = new GithubClient($token);
-            $bootstrapService = new RepoBootstrapService($client, $repository);
+            $specsExportService = app(ProjectSpecsExportService::class);
+            $bootstrapService = new RepoBootstrapService($client, $repository, $specsExportService);
 
             $success = $bootstrapService->pushInitialCommit();
 
