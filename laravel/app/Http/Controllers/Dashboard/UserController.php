@@ -26,7 +26,7 @@ class UserController extends Controller
      * @param Request $request The incoming HTTP request
      * @return Response Inertia response rendering the users index page
      */
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         try {
             $query = User::query();
@@ -71,7 +71,7 @@ class UserController extends Controller
      * @param User $user The user to display
      * @return Response Inertia response rendering the user show page
      */
-    public function show(User $user): Response
+    public function show(User $user)
     {
         try {
             // Load owned projects with feature counts
@@ -94,7 +94,7 @@ class UserController extends Controller
             $userStats = [
                 'total_owned_projects' => $user->projects()->count(),
                 'total_team_projects' => $user->teamProjects()->count(),
-                'total_features_created' => Feature::whereHas('project', function ($q) use ($user) {
+                'total_features_created' => Feature::whereHas('module.project', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                 })->count(),
                 'projects_by_status' => $user->projects()

@@ -28,6 +28,7 @@ import {
     ActivityIcon,
     WifiOffIcon,
     ScrollTextIcon,
+    TelescopeIcon,
 } from 'lucide-react';
 
 // FastAPI Health Status Interface
@@ -164,7 +165,9 @@ function StatCard({
     subtitle, 
     icon: Icon, 
     trend,
-    className 
+    className,
+    iconClassName,
+    iconBgClassName
 }: { 
     title: string; 
     value: number | string; 
@@ -172,20 +175,24 @@ function StatCard({
     icon: React.ElementType;
     trend?: { value: number; label: string };
     className?: string;
+    iconClassName?: string;
+    iconBgClassName?: string;
 }) {
     return (
         <Card className={cn(
-            "group relative overflow-hidden border border-border/30 bg-card/50 transition-all duration-300 hover:border-border/50 hover:bg-card/80",
+            "group relative overflow-hidden border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-border/60 hover:shadow-md hover:shadow-primary/5",
             className
         )}>
+            {/* Subtle gradient overlay */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground/80">{title}</CardTitle>
-                <div className="rounded-lg bg-muted/50 p-2 transition-colors duration-300 group-hover:bg-muted/80">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
+                <div className={cn("rounded-xl p-2.5 shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:shadow-md", iconBgClassName || "bg-muted/50 group-hover:bg-muted/80")}>
+                    <Icon className={cn("h-4 w-4", iconClassName || "text-muted-foreground")} />
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="text-3xl font-semibold tracking-tight text-foreground/90">{value}</div>
+                <div className="text-3xl font-bold tracking-tight text-foreground">{value}</div>
                 {trend && (
                     <p className="mt-1 flex items-center gap-1 text-xs">
                         <span className="inline-flex items-center gap-0.5 text-emerald-600/80 dark:text-emerald-400/80">
@@ -208,26 +215,28 @@ function QuickLink({
     href, 
     icon: Icon, 
     label, 
-    badge 
+    badge,
+    iconClassName
 }: { 
     href: string; 
     icon: React.ElementType; 
     label: string; 
     badge?: number;
+    iconClassName?: string;
 }) {
     return (
         <Link href={href}>
             <Button 
                 variant="outline" 
                 size="sm" 
-                className="group relative border-border/30 bg-card/30 text-muted-foreground transition-all duration-300 hover:border-border/50 hover:bg-card/60 hover:text-foreground"
+                className="group relative overflow-hidden border-border/40 bg-gradient-to-r from-card/60 to-card/30 text-muted-foreground shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-border/60 hover:bg-card/80 hover:text-foreground hover:shadow-md"
             >
-                <Icon className="mr-2 h-4 w-4 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+                <Icon className={cn("mr-2 h-4 w-4 transition-all duration-300 group-hover:scale-110", iconClassName || "opacity-70 group-hover:opacity-100")} />
                 {label}
                 {badge !== undefined && badge > 0 && (
                     <Badge 
                         variant="secondary" 
-                        className="ml-2 h-5 min-w-5 bg-destructive/10 px-1.5 text-xs text-destructive/80"
+                        className="ml-2 h-5 min-w-5 animate-pulse bg-destructive/15 px-1.5 text-xs font-semibold text-destructive"
                     >
                         {badge}
                     </Badge>
@@ -255,10 +264,10 @@ export default function AdminDashboard({ stats }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-8 p-6">
+            <div className="scrollbar-styled flex h-full flex-1 flex-col gap-8 overflow-y-auto p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-2xl font-semibold tracking-tight text-foreground/90">Dashboard</h1>
+                    <h1 className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-2xl font-bold tracking-tight text-transparent">Dashboard</h1>
                     <p className="text-sm text-muted-foreground/60">
                         Overview of your platform's key metrics and recent activity
                     </p>
@@ -266,17 +275,19 @@ export default function AdminDashboard({ stats }: Props) {
 
                 {/* Quick Links */}
                 <div className="flex flex-wrap gap-2">
-                    <QuickLink href="/admin/users" icon={UsersIcon} label="Users" />
-                    <QuickLink href="/admin/projects" icon={FolderIcon} label="Projects" />
-                    <QuickLink href="/admin/modules" icon={BoxIcon} label="Modules" />
-                    <QuickLink href="/admin/admins" icon={ShieldIcon} label="Admins" />
+                    <QuickLink href="/admin/users" icon={UsersIcon} label="Users" iconClassName="text-blue-500" />
+                    <QuickLink href="/admin/projects" icon={FolderIcon} label="Projects" iconClassName="text-amber-500" />
+                    <QuickLink href="/admin/modules" icon={BoxIcon} label="Modules" iconClassName="text-cyan-500" />
+                    <QuickLink href="/admin/admins" icon={ShieldIcon} label="Admins" iconClassName="text-violet-500" />
                     <QuickLink 
                         href="/admin/beta" 
                         icon={MailIcon} 
                         label="Beta Invitations" 
                         badge={stats.beta_pending}
+                        iconClassName="text-pink-500"
                     />
-                    <QuickLink href="/admin/logs" icon={ScrollTextIcon} label="FastAPI Logs" />
+                    <QuickLink href="/admin/logs" icon={ScrollTextIcon} label="FastAPI Logs" iconClassName="text-slate-500" />
+                    <QuickLink href="/telescope" icon={TelescopeIcon} label="Telescope" iconClassName="text-indigo-500" />
                 </div>
 
                 {/* FastAPI Health Status */}
@@ -405,30 +416,40 @@ export default function AdminDashboard({ stats }: Props) {
                         title="Total Users"
                         value={stats.total_users}
                         icon={UsersIcon}
+                        iconClassName="text-blue-600 dark:text-blue-400"
+                        iconBgClassName="bg-blue-500/10 group-hover:bg-blue-500/20"
                         trend={{ value: stats.users_this_month, label: "this month" }}
                     />
                     <StatCard
                         title="Total Projects"
                         value={stats.total_projects}
                         icon={FolderIcon}
+                        iconClassName="text-amber-600 dark:text-amber-400"
+                        iconBgClassName="bg-amber-500/10 group-hover:bg-amber-500/20"
                         trend={{ value: stats.projects_this_month, label: "this month" }}
                     />
                     <StatCard
                         title="Total Modules"
                         value={stats.total_modules}
                         icon={BoxIcon}
+                        iconClassName="text-cyan-600 dark:text-cyan-400"
+                        iconBgClassName="bg-cyan-500/10 group-hover:bg-cyan-500/20"
                         trend={{ value: stats.modules_this_month, label: "this month" }}
                     />
                     <StatCard
                         title="Total Features"
                         value={stats.total_features}
                         icon={ZapIcon}
+                        iconClassName="text-yellow-600 dark:text-yellow-400"
+                        iconBgClassName="bg-yellow-500/10 group-hover:bg-yellow-500/20"
                         subtitle={`${Object.values(stats.features_by_status || {}).reduce((a, b) => a + b, 0)} tracked`}
                     />
                     <StatCard
                         title="Platform Admins"
                         value={stats.total_admins}
                         icon={ShieldIcon}
+                        iconClassName="text-violet-600 dark:text-violet-400"
+                        iconBgClassName="bg-violet-500/10 group-hover:bg-violet-500/20"
                         subtitle={`${stats.super_admins} super • ${stats.regular_admins} regular`}
                     />
                 </div>
@@ -436,48 +457,56 @@ export default function AdminDashboard({ stats }: Props) {
                 {/* Secondary Stats */}
                 <div className="grid gap-4 md:grid-cols-3">
                     {/* Documentation Stats */}
-                    <Card className="border border-border/30 bg-card/50">
+                    <Card className="group border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-border/60 hover:shadow-md">
                         <CardHeader className="pb-3">
                             <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground/80">
-                                <FileTextIcon className="h-4 w-4 text-muted-foreground/70" />
+                                <div className="rounded-lg bg-indigo-500/10 p-1.5">
+                                    <FileTextIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                                </div>
                                 Documentation Coverage
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {[
-                                { label: 'With PRD', value: stats.projects_with_prd, icon: FileTextIcon },
-                                { label: 'With ERD', value: stats.projects_with_erd, icon: DatabaseIcon },
-                                { label: 'With C4', value: stats.projects_with_c4, icon: BoxIcon },
-                                { label: 'With Repository', value: stats.projects_with_repo, icon: GitBranchIcon },
+                                { label: 'With PRD', value: stats.projects_with_prd, icon: FileTextIcon, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-500/10' },
+                                { label: 'With ERD', value: stats.projects_with_erd, icon: DatabaseIcon, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10' },
+                                { label: 'With C4', value: stats.projects_with_c4, icon: BoxIcon, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-500/10' },
+                                { label: 'With Repository', value: stats.projects_with_repo, icon: GitBranchIcon, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-500/10' },
                             ].map((item) => (
-                                <div key={item.label} className="flex items-center justify-between">
-                                    <span className="flex items-center gap-2 text-sm text-muted-foreground/70">
-                                        <item.icon className="h-3.5 w-3.5" />
+                                <div key={item.label} className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/30">
+                                    <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <div className={cn("rounded-md p-1", item.bg)}>
+                                            <item.icon className={cn("h-3.5 w-3.5", item.color)} />
+                                        </div>
                                         {item.label}
                                     </span>
-                                    <span className="font-medium tabular-nums text-foreground/70">{item.value}</span>
+                                    <span className="font-semibold tabular-nums text-foreground">{item.value}</span>
                                 </div>
                             ))}
                         </CardContent>
                     </Card>
 
                     {/* Beta Invitations */}
-                    <Card className="border border-border/30 bg-card/50">
+                    <Card className="group border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-border/60 hover:shadow-md">
                         <CardHeader className="pb-3">
                             <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground/80">
-                                <MailIcon className="h-4 w-4 text-muted-foreground/70" />
+                                <div className="rounded-lg bg-pink-500/10 p-1.5">
+                                    <MailIcon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
+                                </div>
                                 Beta Invitations
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {[
-                                { label: 'Pending', value: stats.beta_pending, icon: ClockIcon, highlight: stats.beta_pending > 0 },
-                                { label: 'Approved', value: stats.beta_approved, icon: CheckCircleIcon },
-                                { label: 'Denied', value: stats.beta_denied, icon: AlertCircleIcon },
+                                { label: 'Pending', value: stats.beta_pending, icon: ClockIcon, highlight: stats.beta_pending > 0, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10' },
+                                { label: 'Approved', value: stats.beta_approved, icon: CheckCircleIcon, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10' },
+                                { label: 'Denied', value: stats.beta_denied, icon: AlertCircleIcon, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-500/10' },
                             ].map((item) => (
-                                <div key={item.label} className="flex items-center justify-between">
-                                    <span className="flex items-center gap-2 text-sm text-muted-foreground/70">
-                                        <item.icon className="h-3.5 w-3.5" />
+                                <div key={item.label} className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/30">
+                                    <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <div className={cn("rounded-md p-1", item.bg)}>
+                                            <item.icon className={cn("h-3.5 w-3.5", item.color)} />
+                                        </div>
                                         {item.label}
                                     </span>
                                     <Badge 
@@ -495,10 +524,12 @@ export default function AdminDashboard({ stats }: Props) {
                     </Card>
 
                     {/* Feature Priority */}
-                    <Card className="border border-border/30 bg-card/50">
+                    <Card className="group border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-border/60 hover:shadow-md">
                         <CardHeader className="pb-3">
                             <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground/80">
-                                <ZapIcon className="h-4 w-4 text-muted-foreground/70" />
+                                <div className="rounded-lg bg-yellow-500/10 p-1.5">
+                                    <ZapIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                                </div>
                                 Feature Priority
                             </CardTitle>
                         </CardHeader>
@@ -519,7 +550,7 @@ export default function AdminDashboard({ stats }: Props) {
 
                 {/* Project Status Overview */}
                 {Object.keys(stats.projects_by_status).length > 0 && (
-                    <Card className="border border-border/30 bg-card/50">
+                    <Card className="border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-foreground/80">Project Status Distribution</CardTitle>
                         </CardHeader>
@@ -542,9 +573,14 @@ export default function AdminDashboard({ stats }: Props) {
                 {/* Recent Activity Grid */}
                 <div className="grid gap-6 lg:grid-cols-2">
                     {/* Recent Users */}
-                    <Card className="border border-border/30 bg-card/50">
+                    <Card className="border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm">
                         <CardHeader className="flex flex-row items-center justify-between pb-4">
-                            <CardTitle className="text-base font-medium text-foreground/80">Recent Users</CardTitle>
+                            <CardTitle className="flex items-center gap-2 text-base font-medium text-foreground/80">
+                                <div className="rounded-lg bg-blue-500/10 p-1.5">
+                                    <UsersIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                Recent Users
+                            </CardTitle>
                             <Link href="/admin/users">
                                 <Button variant="ghost" size="sm" className="group h-8 text-xs text-muted-foreground/70 hover:text-foreground/80">
                                     View All
@@ -552,7 +588,7 @@ export default function AdminDashboard({ stats }: Props) {
                                 </Button>
                             </Link>
                         </CardHeader>
-                        <CardContent className="space-y-1">
+                        <CardContent className="scrollbar-thin max-h-[280px] space-y-1 overflow-y-auto">
                             {stats.recent_users.map((user) => (
                                 <Link key={user.id} href={`/admin/users/${user.id}`} className="block">
                                     <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
@@ -582,9 +618,14 @@ export default function AdminDashboard({ stats }: Props) {
                     </Card>
 
                     {/* Recent Projects */}
-                    <Card className="border border-border/30 bg-card/50">
+                    <Card className="border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm">
                         <CardHeader className="flex flex-row items-center justify-between pb-4">
-                            <CardTitle className="text-base font-medium text-foreground/80">Recent Projects</CardTitle>
+                            <CardTitle className="flex items-center gap-2 text-base font-medium text-foreground/80">
+                                <div className="rounded-lg bg-amber-500/10 p-1.5">
+                                    <FolderIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                Recent Projects
+                            </CardTitle>
                             <Link href="/admin/projects">
                                 <Button variant="ghost" size="sm" className="group h-8 text-xs text-muted-foreground/70 hover:text-foreground/80">
                                     View All
@@ -592,7 +633,7 @@ export default function AdminDashboard({ stats }: Props) {
                                 </Button>
                             </Link>
                         </CardHeader>
-                        <CardContent className="space-y-1">
+                        <CardContent className="scrollbar-thin max-h-[280px] space-y-1 overflow-y-auto">
                             {stats.recent_projects.map((project) => (
                                 <Link key={project.id} href={`/admin/projects/${project.id}`} className="block">
                                     <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
@@ -616,9 +657,14 @@ export default function AdminDashboard({ stats }: Props) {
                     </Card>
 
                     {/* Recent Admins */}
-                    <Card className="border border-border/30 bg-card/50">
+                    <Card className="border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm">
                         <CardHeader className="flex flex-row items-center justify-between pb-4">
-                            <CardTitle className="text-base font-medium text-foreground/80">Recent Admins</CardTitle>
+                            <CardTitle className="flex items-center gap-2 text-base font-medium text-foreground/80">
+                                <div className="rounded-lg bg-violet-500/10 p-1.5">
+                                    <ShieldIcon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                                </div>
+                                Recent Admins
+                            </CardTitle>
                             <Link href="/admin/admins">
                                 <Button variant="ghost" size="sm" className="group h-8 text-xs text-muted-foreground/70 hover:text-foreground/80">
                                     View All
@@ -626,7 +672,7 @@ export default function AdminDashboard({ stats }: Props) {
                                 </Button>
                             </Link>
                         </CardHeader>
-                        <CardContent className="space-y-1">
+                        <CardContent className="scrollbar-thin max-h-[280px] space-y-1 overflow-y-auto">
                             {stats.recent_admins.map((admin) => (
                                 <div key={admin.id} className="flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
                                     <div className="flex items-center gap-3">
@@ -657,9 +703,14 @@ export default function AdminDashboard({ stats }: Props) {
                     </Card>
 
                     {/* Recent Beta Invitations */}
-                    <Card className="border border-border/30 bg-card/50">
+                    <Card className="border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm">
                         <CardHeader className="flex flex-row items-center justify-between pb-4">
-                            <CardTitle className="text-base font-medium text-foreground/80">Recent Beta Invitations</CardTitle>
+                            <CardTitle className="flex items-center gap-2 text-base font-medium text-foreground/80">
+                                <div className="rounded-lg bg-pink-500/10 p-1.5">
+                                    <MailIcon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
+                                </div>
+                                Recent Beta Invitations
+                            </CardTitle>
                             <Link href="/admin/beta">
                                 <Button variant="ghost" size="sm" className="group h-8 text-xs text-muted-foreground/70 hover:text-foreground/80">
                                     View All
@@ -667,7 +718,7 @@ export default function AdminDashboard({ stats }: Props) {
                                 </Button>
                             </Link>
                         </CardHeader>
-                        <CardContent className="space-y-1">
+                        <CardContent className="scrollbar-thin max-h-[280px] space-y-1 overflow-y-auto">
                             {stats.recent_beta_invitations.map((invitation) => (
                                 <div key={invitation.id} className="flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
                                     <div className="flex items-center gap-3">

@@ -179,7 +179,8 @@ class ProjectController extends Controller
     /**
      * Display the project overview page.
      *
-     * Shows the project overview with basic user information.
+     * Shows the project overview with version history.
+     * Loads overview versions and provides the latest/base version content.
      *
      * @param Project $project The project to display
      * @return Response Inertia response rendering the project overview page
@@ -187,9 +188,27 @@ class ProjectController extends Controller
     public function overview(Project $project): Response
     {
         try {
-            $project->load('user:id,name,email');
+            $project->load([
+                'user:id,name,email',
+                'overviewVersions' => function ($query) {
+                    $query->orderBy('version_number', 'desc');
+                },
+                'latestOverviewVersion',
+                'baseOverviewVersion',
+            ]);
 
-            return Inertia::render('dashboard/projects/overview', compact('project'));
+            // Get the current overview content from the latest version
+            $latestVersion = $project->latestOverviewVersion;
+            $overviewContent = $latestVersion?->overview ?? '';
+
+            // Prepare project data with overview content
+            $projectData = $project->toArray();
+            $projectData['overview'] = $overviewContent;
+
+            return Inertia::render('dashboard/projects/overview', [
+                'project' => $projectData,
+                'overviewVersions' => $project->overviewVersions->toArray(),
+            ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'overview', 'project_id' => $project->id]);
             return back()->with('error', 'Failed to load project overview. Please try again.');

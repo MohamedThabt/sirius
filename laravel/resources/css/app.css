@@ -391,6 +391,63 @@
     display: none; /* Chrome, Safari and Opera */
 }
 
+/* Custom styled scrollbar */
+.scrollbar-styled {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+}
+
+.scrollbar-styled::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.scrollbar-styled::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+.scrollbar-styled::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: background 0.2s ease;
+}
+
+.scrollbar-styled::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+    background-clip: content-box;
+}
+
+.scrollbar-styled::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Thin scrollbar variant */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.15);
+    border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
+}
+
 /* Enhanced table styles for System Overview */
 .prose-table-bordered table {
     @apply w-full border-collapse border border-slate-300 dark:border-slate-600;

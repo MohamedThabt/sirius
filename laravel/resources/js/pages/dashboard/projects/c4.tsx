@@ -10,6 +10,8 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import {
+    ChevronLeft,
+    ChevronRight,
     Maximize2,
     Sparkles,
 } from 'lucide-react';
@@ -73,6 +75,7 @@ export default function ProjectC4({ project, errorMessage, isGenerating: initial
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [showGenerationMode, setShowGenerationMode] = useState(!project.c4 && !initialIsGenerating);
+    const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/admin/dashboard' },
@@ -354,9 +357,29 @@ export default function ProjectC4({ project, errorMessage, isGenerating: initial
                                 )}
                             </div>
                         ) : (
-                            <div className="relative flex min-h-0 flex-1 overflow-hidden" ref={containerRef}>
-                                {/* Left Panel - Editor */}
-                                <div className="flex min-h-0 min-w-0 flex-col overflow-hidden" style={{ width: `${leftWidth}%` }}>
+                            <div
+                                className={`relative flex min-h-0 flex-1 overflow-hidden ${isResizing ? 'cursor-col-resize select-none' : ''}`}
+                                ref={containerRef}
+                                style={{ '--left-width': `${leftWidth}%` } as React.CSSProperties}
+                            >
+                                {/* Toggle Editor Button - Vertical Center Between Sections */}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
+                                    className={`absolute top-1/2 z-20 h-12 w-6 -translate-y-1/2 rounded-l-none rounded-r-md border border-border bg-background/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-muted ${isEditorCollapsed ? 'left-0' : 'left-[calc(var(--left-width)-12px)]'}`}
+                                    style={{ '--left-width': `${leftWidth}%` } as React.CSSProperties}
+                                    title={isEditorCollapsed ? 'Show Editor Panel' : 'Hide Editor Panel'}
+                                >
+                                    {isEditorCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                                    <span className="sr-only">{isEditorCollapsed ? 'Show Editor' : 'Hide Editor'}</span>
+                                </Button>
+
+                                {/* Collapsible Left Panel - Editor */}
+                                <div
+                                    className={`flex min-h-0 min-w-0 flex-col overflow-hidden transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0' : 'opacity-100'}`}
+                                    style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
+                                >
                                     <div className="relative flex-1 overflow-hidden">
                                         <div className="h-full overflow-auto pb-24">
                                             <JsonEditor value={content} onChange={setContent} error={error ?? undefined} />
@@ -396,18 +419,20 @@ export default function ProjectC4({ project, errorMessage, isGenerating: initial
                                 </div>
 
                                 {/* Resize Handle */}
-                                <div
-                                    className="group relative w-1 cursor-col-resize bg-border transition-colors duration-200 hover:bg-primary/50"
-                                    onMouseDown={handleMouseDown}
-                                >
-                                    <div className="absolute inset-y-0 -right-1 -left-1 transition-colors duration-200 group-hover:bg-primary/20" />
-                                </div>
+                                {!isEditorCollapsed && (
+                                    <div
+                                        className="group relative w-1 cursor-col-resize bg-border transition-colors duration-200 hover:bg-primary/50"
+                                        onMouseDown={handleMouseDown}
+                                    >
+                                        <div className="absolute inset-y-0 -right-1 -left-1 transition-colors duration-200 group-hover:bg-primary/20" />
+                                    </div>
+                                )}
 
                                 {/* Right Panel - Diagram */}
                                 <div
-                                    className="relative flex min-h-0 min-w-0 flex-col"
+                                    className={`relative flex min-h-0 min-w-0 flex-col transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'w-full' : ''}`}
                                     style={{
-                                        width: `${100 - leftWidth}%`,
+                                        width: isEditorCollapsed ? '100%' : `${100 - leftWidth}%`,
                                     }}
                                 >
                                     {/* Full Screen Button - Top Right */}
