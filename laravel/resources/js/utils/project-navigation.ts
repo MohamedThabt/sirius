@@ -54,9 +54,10 @@ export function getStatusIcon(status: string) {
 }
 
 export function generateProjectNavigation(project: ProjectData): NavigationSection[] {
+    // New Flow: Brief → Overview + Technical Details → System Modules → PRD, System Arch, Database
     const sections: NavigationSection[] = [
         {
-            title: 'Plan',
+            title: 'Overview',
             items: [
                 {
                     title: 'Project Home',
@@ -65,16 +66,33 @@ export function generateProjectNavigation(project: ProjectData): NavigationSecti
                     status: project.status as 'draft' | 'in_progress' | 'completed',
                 },
                 {
+                    title: 'Project Brief',
+                    href: `/projects/${project.id}/prepare`,
+                    icon: FileIcon,
+                    status: 'in_progress' as const,
+                },
+                {
                     title: project.sections?.overview ? 'System Overview' : 'Generate Overview',
-                    href: project.sections?.overview ? `/projects/${project.id}/system-overview` : `/projects/${project.id}/system-overview`,
+                    href: `/projects/${project.id}/system-overview`,
                     icon: FileIcon,
                     status: project.sections?.overview ? 'completed' : 'draft',
                 },
                 {
-                    title: project.sections?.prd ? 'PRD' : 'Generate PRD',
-                    href: project.sections?.prd ? `/projects/${project.id}/prd` : `/projects/${project.id}/prd`,
-                    icon: FileIcon,
-                    status: project.sections?.prd ? 'completed' : 'draft',
+                    title: 'Technical Details',
+                    href: `/projects/${project.id}/technology`,
+                    icon: CodeIcon,
+                    status: 'in_progress' as const,
+                },
+            ],
+        },
+        {
+            title: 'Modules',
+            items: [
+                {
+                    title: 'System Modules',
+                    href: `/projects/${project.id}/modules`,
+                    icon: LayersIcon,
+                    status: 'in_progress' as const,
                 },
                 {
                     title: 'Features',
@@ -82,16 +100,33 @@ export function generateProjectNavigation(project: ProjectData): NavigationSecti
                     icon: ZapIcon,
                     status: 'in_progress' as const,
                 },
+            ],
+        },
+        {
+            title: 'Documentation',
+            items: [
                 {
-                    title: 'Team Collaboration',
-                    href: `/projects/${project.id}/team`,
-                    icon: UsersIcon,
-                    status: 'in_progress' as const,
+                    title: project.sections?.prd ? 'PRD' : 'Generate PRD',
+                    href: `/projects/${project.id}/prd`,
+                    icon: FileIcon,
+                    status: project.sections?.prd ? 'completed' : 'draft',
+                },
+                {
+                    title: project.c4 ? 'System Architecture' : 'Generate C4',
+                    href: `/projects/${project.id}/c4`,
+                    icon: LayersIcon,
+                    status: project.c4 ? 'completed' : 'draft',
+                },
+                {
+                    title: project.sections?.data_modeling ? 'Database Design' : 'Generate Database',
+                    href: `/projects/${project.id}/erd`,
+                    icon: DatabaseIcon,
+                    status: project.sections?.data_modeling ? 'completed' : 'draft',
                 },
             ],
         },
         {
-            title: 'Design',
+            title: 'Collaboration',
             items: [
                 {
                     title: 'Brainstorming',
@@ -99,27 +134,10 @@ export function generateProjectNavigation(project: ProjectData): NavigationSecti
                     icon: LightbulbIcon,
                     status: 'in_progress' as const,
                 },
-            ],
-        },
-        {
-            title: 'Technical',
-            items: [
                 {
-                    title: project.sections?.data_modeling ? 'Database Designer' : 'Generate Database',
-                    href: project.sections?.data_modeling ? `/projects/${project.id}/erd` : `/projects/${project.id}/erd`,
-                    icon: DatabaseIcon,
-                    status: project.sections?.data_modeling ? 'completed' : 'draft',
-                },
-                {
-                    title: project.c4 ? 'System Architecture' : 'Generate C4',
-                    href: project.c4 ? `/projects/${project.id}/c4` : `/projects/${project.id}/c4`,
-                    icon: LayersIcon,
-                    status: project.c4 ? 'completed' : 'draft',
-                },
-                {
-                    title: 'Technology Stack',
-                    href: `/projects/${project.id}/technology`,
-                    icon: CodeIcon,
+                    title: 'Team',
+                    href: `/projects/${project.id}/team`,
+                    icon: UsersIcon,
                     status: 'in_progress' as const,
                 },
             ],

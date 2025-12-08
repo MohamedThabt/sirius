@@ -22,7 +22,8 @@ type NavPage =
     | 'features'
     | 'modules'
     | 'erd'
-    | 'c4';
+    | 'c4'
+    | 'brief';
 
 interface BuildNavOptions {
     project: ProjectSidebarProject;
@@ -33,6 +34,7 @@ interface BuildNavOptions {
         data_modeling?: string | null;
     };
     hasFeatures?: boolean;
+    hasModules?: boolean;
     mode?: 'basic' | 'full';
     extraGroups?: ProjectNavGroup[];
 }
@@ -42,9 +44,11 @@ export function buildProjectNavGroups({
     currentPage,
     sections,
     hasFeatures = false,
+    hasModules = false,
     mode = 'basic',
     extraGroups = [],
 }: BuildNavOptions): ProjectNavGroup[] {
+    // New Flow: Brief → Overview + Technical Details → System Modules → PRD, System Arch, Database
     const groups: ProjectNavGroup[] = [
         {
             label: 'Project',
@@ -76,27 +80,47 @@ export function buildProjectNavGroups({
 
     if (mode === 'full') {
         groups.push(
+            // Stage 1 & 2: Overview (Brief, System Overview, Technical Details)
             {
-                label: 'Plan',
+                label: 'Overview',
                 items: [
+                    {
+                        key: 'brief',
+                        icon: FileIcon,
+                        label: 'Project Brief',
+                        active: currentPage === 'brief',
+                        onClick: () => router.visit(`/projects/${project.id}/prepare`),
+                    },
                     {
                         key: 'overview',
                         icon: FileIcon,
                         label: 'System Overview',
                         active: currentPage === 'overview',
                         muted: !sections?.overview,
-                        disabled: !sections?.overview,
-                        onClick: () => sections?.overview && router.visit(`/projects/${project.id}/system-overview`),
+                        disabled: !sections?.overview && !project.brief,
+                        onClick: () => router.visit(`/projects/${project.id}/system-overview`),
                     },
                     {
-                        key: 'prd',
-                        icon: FileIcon,
-                        label: sections?.prd ? 'PRD' : 'Generate PRD',
-                        active: currentPage === 'prd',
-                        emphasize: !sections?.prd,
-                        disabled: !sections?.prd,
-                        onClick: () =>
-                            sections?.prd ? router.visit(`/projects/${project.id}/prd`) : router.post(`/projects/${project.id}/prd/generate`),
+                        key: 'technology',
+                        icon: CodeIcon,
+                        label: 'Technical Details',
+                        active: currentPage === 'technology',
+                        disabled: !project.brief,
+                        onClick: () => router.visit(`/projects/${project.id}/technology`),
+                    },
+                ],
+            },
+            // Stage 3: Modules
+            {
+                label: 'Modules',
+                items: [
+                    {
+                        key: 'modules',
+                        icon: LayersIcon,
+                        label: 'System Modules',
+                        active: currentPage === 'modules',
+                        muted: !hasModules,
+                        onClick: () => router.visit(`/projects/${project.id}/modules`),
                     },
                     {
                         key: 'features',
@@ -108,46 +132,38 @@ export function buildProjectNavGroups({
                     },
                 ],
             },
+            // Stage 4: Documentation (PRD, Architecture, Database)
             {
-                label: 'Design',
+                label: 'Documentation',
                 items: [
                     {
-                        key: 'brainstorming-full',
-                        icon: LightbulbIcon,
-                        label: 'Brainstorming',
-                        active: currentPage === 'brainstorming',
-                        onClick: () => router.visit(`/projects/${project.id}/brainstorming`),
-                    },
-                ],
-            },
-            {
-                label: 'Technical',
-                items: [
-                    {
-                        key: 'erd',
-                        icon: DatabaseIcon,
-                        label: 'Database Designer',
-                        active: currentPage === 'erd',
-                        muted: !sections?.data_modeling,
-                        disabled: !sections?.data_modeling,
-                        onClick: () => sections?.data_modeling && router.visit(`/projects/${project.id}/erd`),
+                        key: 'prd',
+                        icon: FileIcon,
+                        label: sections?.prd ? 'PRD' : 'Generate PRD',
+                        active: currentPage === 'prd',
+                        emphasize: !sections?.prd && hasModules,
+                        disabled: !hasModules,
+                        onClick: () =>
+                            sections?.prd ? router.visit(`/projects/${project.id}/prd`) : hasModules && router.post(`/projects/${project.id}/prd/generate`),
                     },
                     {
                         key: 'c4',
                         icon: LayersIcon,
                         label: project.c4 ? 'System Architecture' : 'Generate C4',
                         active: currentPage === 'c4',
-                        emphasize: !project.c4,
-                        disabled: !project.c4,
+                        emphasize: !project.c4 && hasModules,
+                        disabled: !hasModules,
                         onClick: () =>
-                            project.c4 ? router.visit(`/projects/${project.id}/c4`) : router.post(`/projects/${project.id}/c4/generate`),
+                            project.c4 ? router.visit(`/projects/${project.id}/c4`) : hasModules && router.post(`/projects/${project.id}/c4/generate`),
                     },
                     {
-                        key: 'technology',
-                        icon: CodeIcon,
-                        label: 'Technology Stack',
-                        active: currentPage === 'technology',
-                        onClick: () => router.visit(`/projects/${project.id}/technology`),
+                        key: 'erd',
+                        icon: DatabaseIcon,
+                        label: 'Database Design',
+                        active: currentPage === 'erd',
+                        muted: !sections?.data_modeling,
+                        disabled: !hasModules,
+                        onClick: () => router.visit(`/projects/${project.id}/erd`),
                     },
                 ],
             },

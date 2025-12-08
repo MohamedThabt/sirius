@@ -1,4 +1,5 @@
 import WorkflowNode from '@/components/Projects/WorkflowNode';
+import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import {
     Background,
@@ -22,6 +23,8 @@ interface WorkflowStep {
     title: string;
     description: string;
     icon: React.ComponentType<{ className?: string }>;
+    iconColorClass?: string;
+    iconBgClass?: string;
     isCompleted: boolean;
     isCurrent: boolean;
     isLocked: boolean;
@@ -112,19 +115,24 @@ const FlowCanvas = ({
 
     const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
         const nodeWidth = 240;
-        const columnSpacing = 450;
-        const rowSpacing = 320;
+        const columnSpacing = 350;
+        const rowSpacing = 200;
         const startX = 100;
         const startY = 100;
 
-        // Column layout for workflow
+        // New Column layout for workflow:
+        // Col 0: Brief
+        // Col 1: Overview (row 0), Technical Details (row 1)
+        // Col 2: Modules
+        // Col 3: PRD (row 0), Architecture (row 1), ERD (row 2)
         const columnLayout: { [key: string]: { col: number; row: number } } = {
-            overview: { col: 0, row: 0 },
-            technical_details: { col: 0, row: 1 },
-            prd: { col: 1, row: 0 },
-            modules: { col: 1, row: 1 },
-            erd: { col: 2, row: 0 },
-            architecture: { col: 2, row: 1 },
+            brief: { col: 0, row: 0.5 },
+            overview: { col: 1, row: 0 },
+            technical_details: { col: 1, row: 1 },
+            modules: { col: 2, row: 0.5 },
+            prd: { col: 3, row: 0 },
+            architecture: { col: 3, row: 1 },
+            erd: { col: 3, row: 2 },
         };
 
         const nodes: Node[] = steps.map((step) => {
@@ -141,6 +149,8 @@ const FlowCanvas = ({
                     title: step.title,
                     description: step.description,
                     icon: step.icon,
+                    iconColorClass: step.iconColorClass,
+                    iconBgClass: step.iconBgClass,
                     isCompleted: step.isCompleted,
                     isCurrent: step.isCurrent,
                     isLocked: step.isLocked,
@@ -177,7 +187,8 @@ const FlowCanvas = ({
             const modulesNodeLayout = columnLayout['modules'] || { col: 0, row: 0 };
             const modulesNodeX = startX + modulesNodeLayout.col * columnSpacing;
             const modulesNodeY = startY + modulesNodeLayout.row * rowSpacing;
-            const moduleRowY = modulesNodeY + 220;
+            // Position module nodes below all main flow nodes (shifted down)
+            const moduleRowY = startY + 3 * rowSpacing; // Below the ERD node (row 2)
             const totalWidth = modules.length * moduleNodeWidth + (modules.length - 1) * moduleSpacing;
             const startModuleX = modulesNodeX - totalWidth / 2 + moduleNodeWidth / 2;
 
@@ -289,14 +300,18 @@ const FlowCanvas = ({
             });
         }
 
-        // Define edges
+        // Define edges - New Flow: Brief → Overview/Technical → Modules → PRD/Architecture/ERD
         const edgeConnections = [
-            { from: 'overview', to: 'prd' },
+            // Stage 1 → Stage 2: Brief feeds into Overview and Technical Details
+            { from: 'brief', to: 'overview' },
+            { from: 'brief', to: 'technical_details' },
+            // Stage 2 → Stage 3: Overview and Technical Details feed into Modules
             { from: 'overview', to: 'modules' },
-            { from: 'technical_details', to: 'prd' },
+            { from: 'technical_details', to: 'modules' },
+            // Stage 3 → Stage 4: Modules feeds into PRD, Architecture, and ERD
             { from: 'modules', to: 'prd', sourceHandle: 'modules-right' },
-            { from: 'modules', to: 'erd', sourceHandle: 'modules-right' },
             { from: 'modules', to: 'architecture', sourceHandle: 'modules-right' },
+            { from: 'modules', to: 'erd', sourceHandle: 'modules-right' },
         ];
 
         const edges: Edge[] = edgeConnections
@@ -413,7 +428,7 @@ const FlowCanvas = ({
 
     return (
         <>
-            <div className="relative h-full min-h-[500px] w-full">
+            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg bg-gradient-to-br from-slate-50/50 via-background to-slate-100/30 dark:from-slate-950/50 dark:via-background dark:to-slate-900/30">
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -428,28 +443,85 @@ const FlowCanvas = ({
                     colorMode={isDarkMode ? 'dark' : 'light'}
                 >
                     <Background
-                        gap={16}
-                        size={1}
+                        gap={24}
+                        size={1.5}
                         variant={BackgroundVariant.Dots}
-                        color={isDarkMode ? '#6b7280' : '#9ca3af'}
+                        color={isDarkMode ? '#374151' : '#cbd5e1'}
                     />
 
                 </ReactFlow>
 
-                {/* Progress Badge */}
+                {/* Enhanced Progress Badge with PROJECT STATUS */}
                 {completionPercentage !== undefined && completedStepsCount !== undefined && totalStepsCount !== undefined && health && (
                     <div className="pointer-events-none absolute top-4 left-4 z-10">
-                        <div className="pointer-events-auto flex h-[42px] items-center gap-4 rounded-lg border border-border bg-card px-4 shadow-sm">
-                            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                <span>
-                                    {completedStepsCount}/{totalStepsCount} Steps
-                                </span>
-                                <span className="text-muted-foreground">•</span>
-                                <span>{completionPercentage}% Complete</span>
-                                <span className="text-muted-foreground">•</span>
-                                <div className="flex items-center gap-1.5">
-                                    <health.Icon className={`h-4 w-4 ${health.color}`} />
-                                    <span className="capitalize">{health.label}</span>
+                        <div className="pointer-events-auto flex flex-col gap-2 rounded-xl border border-border/50 bg-background/95 p-4 shadow-lg backdrop-blur-md">
+                            {/* Header */}
+                            <div className="flex items-center gap-2 border-b border-border/30 pb-2">
+                                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10">
+                                    <svg className="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Project Status</span>
+                            </div>
+                            
+                            {/* Content */}
+                            <div className="flex items-center gap-4">
+                                {/* Progress Ring */}
+                                <div className="relative h-12 w-12">
+                                    <svg className="h-12 w-12 -rotate-90 transform">
+                                        <circle
+                                            cx="24"
+                                            cy="24"
+                                            r="20"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                            className="text-muted/20"
+                                        />
+                                        <circle
+                                            cx="24"
+                                            cy="24"
+                                            r="20"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                            strokeLinecap="round"
+                                            strokeDasharray={`${(completionPercentage / 100) * 125.6} 125.6`}
+                                            className={cn(
+                                                'transition-all duration-700 ease-out',
+                                                completionPercentage >= 80 ? 'text-emerald-500' :
+                                                completionPercentage >= 50 ? 'text-blue-500' :
+                                                completionPercentage >= 25 ? 'text-amber-500' : 'text-primary'
+                                            )}
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-sm font-bold text-foreground">{completionPercentage}%</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Stats */}
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex h-5 w-5 items-center justify-center rounded bg-muted/50">
+                                            <svg className="h-3 w-3 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            </svg>
+                                        </div>
+                                        <span className="text-sm font-medium text-foreground">{completedStepsCount} of {totalStepsCount} steps</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className={cn(
+                                            'flex h-5 w-5 items-center justify-center rounded',
+                                            completionPercentage >= 80 ? 'bg-emerald-500/10' :
+                                            completionPercentage >= 50 ? 'bg-blue-500/10' :
+                                            completionPercentage >= 25 ? 'bg-amber-500/10' : 'bg-primary/10'
+                                        )}>
+                                            <health.Icon className={cn('h-3 w-3', health.color)} />
+                                        </div>
+                                        <span className={cn('text-sm font-medium capitalize', health.color)}>{health.label}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

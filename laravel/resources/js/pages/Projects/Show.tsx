@@ -13,7 +13,19 @@ import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
-import { ChevronDown, ChevronUp, CodeIcon, DatabaseIcon, FileIcon, FileText as FileTextIcon, Layers as LayersIcon, MessageCircleIcon, ZapIcon } from 'lucide-react';
+import { 
+    ChevronDown, 
+    ChevronUp, 
+    ClipboardList,
+    Code2,
+    Database,
+    FileText,
+    LayoutGrid,
+    MessageCircleIcon, 
+    Network,
+    ScrollText,
+    Target
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface Project {
@@ -139,6 +151,8 @@ export default function ProjectShow({
         title: string;
         description: string;
         icon: React.ComponentType<{ className?: string }>;
+        iconColorClass?: string;
+        iconBgClass?: string;
         isCompleted: boolean;
         isCurrent: boolean;
         isLocked: boolean;
@@ -153,6 +167,7 @@ export default function ProjectShow({
     }
 
     const getRoadmapSteps = (): RoadmapStep[] => {
+        const briefExists = !!project.brief;
         const overviewExists = !!sections.overview;
         const modulesExist = modules.length > 0;
         const prdExists = !!sections.prd;
@@ -160,91 +175,125 @@ export default function ProjectShow({
         const c4Exists = !!project.c4;
         const technicalDetailsExist = !!(sections.technical_details || project.technical_details);
 
-        // Exclude Brainstorming from flow - it's only in sidebar
+        // New Flow: Brief → Overview + Technical Details → System Modules → PRD, System Arch, Database
         const steps: RoadmapStep[] = [
+            // Stage 1: Brief
+            {
+                id: 'brief',
+                title: 'Project Brief',
+                description: 'Define project purpose, audience, and core value',
+                icon: Target,
+                iconColorClass: 'text-rose-500',
+                iconBgClass: 'bg-rose-100 dark:bg-rose-500/20',
+                isCompleted: briefExists,
+                isCurrent: !briefExists,
+                isLocked: false,
+                isHardLocked: false,
+                actionType: briefExists ? 'view' : 'navigate',
+                actionPath: briefExists ? null : `/projects/${project.id}/prepare`,
+                actionHandler: briefExists ? () => setIsBriefModalOpen(true) : undefined,
+                prerequisites: [],
+            },
+            // Stage 2: Overview & Technical Details (parallel, unlocked after Brief)
             {
                 id: 'overview',
                 title: 'System Overview',
                 description: 'Define the high-level system overview and requirements',
-                icon: FileIcon,
+                icon: ScrollText,
+                iconColorClass: 'text-blue-500',
+                iconBgClass: 'bg-blue-100 dark:bg-blue-500/20',
                 isCompleted: overviewExists,
-                isCurrent: !overviewExists,
-                isLocked: false,
-                isHardLocked: false,
+                isCurrent: briefExists && !overviewExists,
+                isLocked: !briefExists,
+                isHardLocked: !briefExists,
                 actionType: 'navigate',
                 actionPath: `/projects/${project.id}/system-overview`,
-                prerequisites: [],
+                prerequisites: ['brief'],
+                prerequisiteMessage: 'Complete Project Brief first',
             },
             {
                 id: 'technical_details',
                 title: 'Technical Details',
                 description: 'Specify technical requirements and constraints',
-                icon: CodeIcon,
+                icon: Code2,
+                iconColorClass: 'text-cyan-500',
+                iconBgClass: 'bg-cyan-100 dark:bg-cyan-500/20',
                 isCompleted: technicalDetailsExist,
-                isCurrent: !technicalDetailsExist && overviewExists,
-                isLocked: false,
-                isHardLocked: false,
+                isCurrent: briefExists && !technicalDetailsExist,
+                isLocked: !briefExists,
+                isHardLocked: !briefExists,
                 actionType: 'navigate',
                 actionPath: `/projects/${project.id}/technology`,
-                prerequisites: [],
+                prerequisites: ['brief'],
+                prerequisiteMessage: 'Complete Project Brief first',
             },
-            {
-                id: 'prd',
-                title: 'Product Requirements',
-                description: 'Create a detailed Product Requirements Document',
-                icon: FileTextIcon,
-                isCompleted: prdExists,
-                isCurrent: overviewExists && !prdExists,
-                isLocked: !overviewExists && !modulesExist,
-                isHardLocked: !overviewExists && !modulesExist,
-                actionType: prdExists ? 'navigate' : 'generate',
-                actionPath: prdExists ? `/projects/${project.id}/prd` : null,
-                prerequisites: ['overview', 'modules'],
-                prerequisiteMessage: 'Complete System Overview and Modules to generate PRD',
-                isOutOfSync: prdExists && project.prd_is_synced === false,
-            },
+            // Stage 3: System Modules (unlocked after Overview + Technical Details)
             {
                 id: 'modules',
                 title: 'System Modules',
                 description: 'Define DDD bounded contexts and system modules',
-                icon: LayersIcon,
+                icon: LayoutGrid,
+                iconColorClass: 'text-violet-500',
+                iconBgClass: 'bg-violet-100 dark:bg-violet-500/20',
                 isCompleted: modulesExist,
-                isCurrent: overviewExists && !modulesExist,
-                isLocked: !overviewExists,
-                isHardLocked: !overviewExists,
+                isCurrent: overviewExists && technicalDetailsExist && !modulesExist,
+                isLocked: !overviewExists || !technicalDetailsExist,
+                isHardLocked: !overviewExists || !technicalDetailsExist,
                 actionType: modulesExist ? 'navigate' : 'generate',
                 actionPath: modulesExist ? `/projects/${project.id}/modules` : null,
-                prerequisites: ['overview'],
-                prerequisiteMessage: 'Complete System Overview to generate modules',
+                prerequisites: ['overview', 'technical_details'],
+                prerequisiteMessage: 'Complete System Overview and Technical Details to generate modules',
                 isLoading: isGeneratingModules,
             },
+            // Stage 4: PRD, System Architecture, Database (parallel, unlocked after Modules)
             {
-                id: 'erd',
-                title: 'Database Design',
-                description: 'Design the database schema and relationships',
-                icon: DatabaseIcon,
-                isCompleted: erdExists,
-                isCurrent: overviewExists && modulesExist && !erdExists,
-                isLocked: !overviewExists || !modulesExist,
+                id: 'prd',
+                title: 'Product Requirements',
+                description: 'Create a detailed Product Requirements Document',
+                icon: ClipboardList,
+                iconColorClass: 'text-amber-500',
+                iconBgClass: 'bg-amber-100 dark:bg-amber-500/20',
+                isCompleted: prdExists,
+                isCurrent: modulesExist && !prdExists,
+                isLocked: !modulesExist,
                 isHardLocked: !modulesExist,
-                actionType: 'navigate',
-                actionPath: `/projects/${project.id}/erd`,
-                prerequisites: ['overview', 'modules'],
-                prerequisiteMessage: modulesExist ? undefined : 'Complete System Modules to unlock Database Design',
+                actionType: prdExists ? 'navigate' : 'generate',
+                actionPath: prdExists ? `/projects/${project.id}/prd` : null,
+                prerequisites: ['modules'],
+                prerequisiteMessage: 'Complete System Modules to generate PRD',
+                isOutOfSync: prdExists && project.prd_is_synced === false,
             },
             {
                 id: 'architecture',
                 title: 'System Architecture',
                 description: 'Visualize the system architecture using C4 model',
-                icon: LayersIcon,
+                icon: Network,
+                iconColorClass: 'text-green-500',
+                iconBgClass: 'bg-green-100 dark:bg-green-500/20',
                 isCompleted: c4Exists,
-                isCurrent: overviewExists && modulesExist && erdExists && !c4Exists,
-                isLocked: !overviewExists || !modulesExist,
+                isCurrent: modulesExist && !c4Exists,
+                isLocked: !modulesExist,
                 isHardLocked: !modulesExist,
                 actionType: c4Exists ? 'navigate' : 'generate',
                 actionPath: c4Exists ? `/projects/${project.id}/c4` : null,
-                prerequisites: ['overview', 'modules'],
-                prerequisiteMessage: modulesExist ? undefined : 'Complete System Modules to unlock System Architecture',
+                prerequisites: ['modules'],
+                prerequisiteMessage: 'Complete System Modules to unlock System Architecture',
+            },
+            {
+                id: 'erd',
+                title: 'Database Design',
+                description: 'Design the database schema and relationships',
+                icon: Database,
+                iconColorClass: 'text-orange-500',
+                iconBgClass: 'bg-orange-100 dark:bg-orange-500/20',
+                isCompleted: erdExists,
+                isCurrent: modulesExist && !erdExists,
+                isLocked: !modulesExist,
+                isHardLocked: !modulesExist,
+                actionType: 'navigate',
+                actionPath: `/projects/${project.id}/erd`,
+                prerequisites: ['modules'],
+                prerequisiteMessage: 'Complete System Modules to unlock Database Design',
             },
         ];
 
@@ -343,7 +392,9 @@ export default function ProjectShow({
 
         if (step.actionType === 'generate' && step.isLocked) return;
 
-        if (step.actionType === 'navigate' && step.actionPath) {
+        if (step.actionType === 'view' && step.actionHandler) {
+            step.actionHandler();
+        } else if (step.actionType === 'navigate' && step.actionPath) {
             router.get(step.actionPath);
         } else if (step.actionType === 'generate') {
             if (step.isLocked) return;
@@ -500,7 +551,7 @@ export default function ProjectShow({
                     <DialogContent className="max-h-[80vh] max-w-3xl overflow-hidden">
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2">
-                                <FileIcon className="h-4 w-4" />
+                                <Target className="h-4 w-4" />
                                 Project Brief
                             </DialogTitle>
                             <DialogDescription>Overview and context for this project</DialogDescription>

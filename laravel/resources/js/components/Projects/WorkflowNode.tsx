@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { AlertCircleIcon, CheckCircleIcon, ChevronDown, ChevronUp, Loader2, Lock as LockIcon, List } from 'lucide-react';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 
 interface FeatureItem {
     id: number;
@@ -29,6 +29,8 @@ interface WorkflowNodeData {
     title: string;
     description: string;
     icon: React.ComponentType<{ className?: string }>;
+    iconColorClass?: string;
+    iconBgClass?: string;
     isCompleted: boolean;
     isCurrent: boolean;
     isLocked: boolean;
@@ -60,6 +62,8 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
         title,
         description,
         icon: Icon,
+        iconColorClass,
+        iconBgClass,
         isCompleted,
         isCurrent,
         isLocked,
@@ -86,12 +90,11 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
 
     const isClickable = !isHardLocked;
 
-    // All nodes use the ready/default style
+    // Simple unified style
     const styles = {
         border: 'border-border',
         background: 'bg-background',
         iconBg: 'bg-muted',
-        iconColor: 'text-muted-foreground',
     };
 
     return (
@@ -122,16 +125,15 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                         <div
                             className={cn(
                                 'flex h-8 w-8 items-center justify-center rounded-lg transition-all',
-                                styles.iconBg,
-                                styles.iconColor,
+                                iconBgClass || styles.iconBg,
                             )}
                         >
                             {isLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             ) : isHardLocked || isLocked ? (
-                                <LockIcon className="h-4 w-4" />
+                                <LockIcon className="h-4 w-4 text-muted-foreground" />
                             ) : (
-                                <Icon className="h-4 w-4" />
+                                <Icon className={cn('h-4 w-4', iconColorClass || 'text-muted-foreground')} />
                             )}
                         </div>
                         <BaseNodeHeaderTitle className="text-xs">{title}</BaseNodeHeaderTitle>
@@ -142,7 +144,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                                 <CheckCircleIcon className="h-3 w-3" />
                             </div>
                         )}
-                        {isCurrent && (
+                        {isCurrent && !isCompleted && (
                             <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white">
                                 <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                             </div>
@@ -159,7 +161,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                 <BaseNodeContent className="space-y-3">
                     <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">{description}</p>
 
-                    {/* Status Badge - Always show a badge for every status */}
+                    {/* Status Badge */}
                     <div className="flex justify-center">
                         {isLoading ? (
                             <Badge
@@ -169,7 +171,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                                 <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                                 Generating...
                             </Badge>
-                        ) : isCurrent ? (
+                        ) : isCurrent && !isCompleted ? (
                             <Badge variant="default" className="text-[10px] font-semibold">
                                 Current
                             </Badge>
@@ -196,7 +198,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
 
                     {/* Out of Sync Warning */}
                     {isOutOfSync && (
-                        <div className="flex items-start gap-1.5 rounded-md bg-orange-500/10 p-2 border border-orange-500/30">
+                        <div className="flex items-start gap-1.5 rounded-md bg-orange-500/10 p-2">
                             <AlertCircleIcon className="mt-0.5 h-3 w-3 shrink-0 text-orange-600 dark:text-orange-400" />
                             <p className="text-[10px] leading-tight text-orange-700 dark:text-orange-300">Out of sync with modules/features</p>
                         </div>

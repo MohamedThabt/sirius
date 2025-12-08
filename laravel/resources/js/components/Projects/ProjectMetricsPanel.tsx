@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import {
-    Activity,
+    ArrowUpRight,
     GitBranch,
     Lightbulb,
     Users as UsersIcon,
@@ -66,180 +66,100 @@ export default function ProjectMetricsPanel({
     };
 
     return (
-        <div className={cn('h-full overflow-y-auto bg-background', className)}>
-            <div className="space-y-8 p-8">
-                {/* Ultra-Minimal Project Status */}
-                <div className="space-y-6">
-                    <div className="flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                        <h3 className="text-sm font-medium tracking-wide text-muted-foreground">PROJECT STATUS</h3>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="space-y-3">
-                        <div className="flex items-end justify-between">
-                            <div className="flex items-center gap-3">
-                                <span className="text-4xl font-light tracking-tight text-foreground">{completionPercentage}%</span>
-                                <div className="mb-1 flex items-center gap-1.5 rounded-full bg-muted/50 px-2.5 py-0.5">
-                                    <health.Icon className={cn('h-3.5 w-3.5', health.color)} />
-                                    <span className="text-sm font-medium capitalize text-foreground">{health.label}</span>
-                                </div>
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                                {completedStepsCount} of {totalStepsCount} steps
-                            </span>
-                        </div>
-                        <div className="h-1 overflow-hidden rounded-full bg-muted/50">
-                            <div
-                                className="h-full bg-foreground transition-all duration-700 ease-out"
-                                style={{ width: `${completionPercentage}%` }}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Divider */}
-                <div className="border-t border-border/30" />
-
-                {/* Quick Actions Grid */}
-                <div className="grid gap-6 lg:grid-cols-2">
+        <div className={cn('h-full overflow-y-auto bg-gradient-to-b from-background to-muted/10', className)}>
+            <div className="px-6 py-5">
+                {/* Quick Actions - Horizontal Cards */}
+                <div className="flex flex-wrap gap-3">
                     {/* Brainstorming Card */}
                     <button
                         onClick={() => router.visit(`/projects/${projectId}/brainstorming`)}
-                        className="group relative overflow-hidden rounded-lg border border-border/50 bg-card p-6 text-left transition-all hover:border-primary/50 hover:shadow-sm"
+                        className="group flex items-center gap-3 rounded-xl border border-amber-200/50 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 transition-all hover:border-amber-300 hover:shadow-md dark:border-amber-500/20 dark:from-amber-500/10 dark:to-orange-500/10 dark:hover:border-amber-500/40"
                     >
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                    <Lightbulb className="h-5 w-5 text-amber-500" />
-                                    <h4 className="text-base font-medium text-foreground">Brainstorming</h4>
-                                </div>
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                    Explore ideas and refine your project vision
-                                </p>
-                            </div>
-                            <svg
-                                className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-500/20">
+                            <Lightbulb className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400" />
                         </div>
+                        <div className="text-left">
+                            <div className="text-sm font-medium text-amber-900 dark:text-amber-100">Brainstorming</div>
+                            <div className="text-xs text-amber-700/70 dark:text-amber-300/60">Explore ideas</div>
+                        </div>
+                        <ArrowUpRight className="ml-2 h-4 w-4 text-amber-500/50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </button>
 
                     {/* Modules Card */}
                     {modulesCount > 0 && (
                         <button
                             onClick={() => router.visit(`/projects/${projectId}/modules`)}
-                            className="group relative overflow-hidden rounded-lg border border-border/50 bg-card p-6 text-left transition-all hover:border-primary/50 hover:shadow-sm"
+                            className="group flex items-center gap-3 rounded-xl border border-violet-200/50 bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-3 transition-all hover:border-violet-300 hover:shadow-md dark:border-violet-500/20 dark:from-violet-500/10 dark:to-purple-500/10 dark:hover:border-violet-500/40"
                         >
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-2">
-                                        <Zap className="h-5 w-5 text-amber-500" />
-                                        <h4 className="text-base font-medium text-foreground">Modules</h4>
-                                    </div>
-                                    <p className="text-sm leading-relaxed text-muted-foreground">
-                                        View and manage {modulesCount} project modules
-                                    </p>
-                                </div>
-                                <svg
-                                    className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-500/20">
+                                <Zap className="h-4.5 w-4.5 text-violet-600 dark:text-violet-400" />
                             </div>
+                            <div className="text-left">
+                                <div className="text-sm font-medium text-violet-900 dark:text-violet-100">Modules</div>
+                                <div className="text-xs text-violet-700/70 dark:text-violet-300/60">{modulesCount} modules</div>
+                            </div>
+                            <ArrowUpRight className="ml-2 h-4 w-4 text-violet-500/50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </button>
+                    )}
+
+                    {/* Team Card */}
+                    {teamMembers.length > 0 && (
+                        <button
+                            onClick={() => router.visit(`/projects/${projectId}/team`)}
+                            className="group flex items-center gap-3 rounded-xl border border-blue-200/50 bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-3 transition-all hover:border-blue-300 hover:shadow-md dark:border-blue-500/20 dark:from-blue-500/10 dark:to-cyan-500/10 dark:hover:border-blue-500/40"
+                        >
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                                <UsersIcon className="h-4.5 w-4.5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div className="text-left">
+                                <div className="text-sm font-medium text-blue-900 dark:text-blue-100">Team</div>
+                                <div className="text-xs text-blue-700/70 dark:text-blue-300/60">{teamMembersCount} members</div>
+                            </div>
+                            {/* Mini avatars */}
+                            <div className="ml-1 flex -space-x-2">
+                                {teamMembers.slice(0, 3).map((member) => (
+                                    <div
+                                        key={member.id}
+                                        className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-blue-50 bg-blue-100 text-[10px] font-medium text-blue-700 dark:border-blue-900 dark:bg-blue-800 dark:text-blue-200"
+                                    >
+                                        {member.avatar ? (
+                                            <img src={member.avatar} alt={member.name} className="h-full w-full rounded-full object-cover" />
+                                        ) : (
+                                            getInitials(member.name)
+                                        )}
+                                    </div>
+                                ))}
+                                {teamMembersCount > 3 && (
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-blue-50 bg-blue-200 text-[10px] font-medium text-blue-700 dark:border-blue-900 dark:bg-blue-700 dark:text-blue-100">
+                                        +{teamMembersCount - 3}
+                                    </div>
+                                )}
+                            </div>
+                            <ArrowUpRight className="ml-1 h-4 w-4 text-blue-500/50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </button>
+                    )}
+
+                    {/* Repository Card */}
+                    {repository && (
+                        <button
+                            onClick={() => window.open(repository.html_url, '_blank')}
+                            className="group flex items-center gap-3 rounded-xl border border-slate-200/50 bg-gradient-to-r from-slate-50 to-gray-50 px-4 py-3 transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-500/20 dark:from-slate-500/10 dark:to-gray-500/10 dark:hover:border-slate-500/40"
+                        >
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-500/20">
+                                <GitBranch className="h-4.5 w-4.5 text-slate-600 dark:text-slate-400" />
+                            </div>
+                            <div className="text-left">
+                                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{repository.name}</div>
+                                <div className="flex items-center gap-1.5 text-xs text-slate-600/70 dark:text-slate-400/60">
+                                    <span className="capitalize">{repository.provider}</span>
+                                    <span>•</span>
+                                    <span className="capitalize">{repository.visibility}</span>
+                                </div>
+                            </div>
+                            <ArrowUpRight className="ml-2 h-4 w-4 text-slate-500/50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </button>
                     )}
                 </div>
-
-                {/* Team & Repository - Only if they exist */}
-                {(teamMembers.length > 0 || repository) && (
-                    <>
-                        <div className="border-t border-border/30" />
-
-                        <div className="grid gap-8 lg:grid-cols-2">
-                            {/* Team Members - Minimal */}
-                            {teamMembers.length > 0 && (
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <UsersIcon className="h-4 w-4 text-muted-foreground" />
-                                            <h4 className="text-sm font-medium tracking-wide text-muted-foreground">TEAM</h4>
-                                        </div>
-                                        {teamMembersCount > 4 && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => router.visit(`/projects/${projectId}/team`)}
-                                                className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                                            >
-                                                View all →
-                                            </Button>
-                                        )}
-                                    </div>
-                                    <div className="space-y-3">
-                                        {teamMembers.slice(0, 3).map((member) => (
-                                            <div key={member.id} className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
-                                                    {member.avatar ? (
-                                                        <img
-                                                            src={member.avatar}
-                                                            alt={member.name}
-                                                            className="h-full w-full rounded-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        getInitials(member.name)
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="truncate text-sm font-medium text-foreground">{member.name}</div>
-                                                    <div className="truncate text-xs text-muted-foreground">{member.email}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Repository - Minimal */}
-                            {repository && (
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2">
-                                        <GitBranch className="h-4 w-4 text-muted-foreground" />
-                                        <h4 className="text-sm font-medium tracking-wide text-muted-foreground">REPOSITORY</h4>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <p className="truncate text-sm font-medium text-foreground">{repository.name}</p>
-                                            <div className="mt-2 flex items-center gap-2">
-                                                <Badge variant="outline" className="text-xs capitalize">
-                                                    {repository.provider}
-                                                </Badge>
-                                                <Badge variant="outline" className="text-xs capitalize">
-                                                    {repository.visibility}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => window.open(repository.html_url, '_blank')}
-                                            className="h-auto p-0 text-sm text-muted-foreground hover:text-foreground"
-                                        >
-                                            Open repository →
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                )}
             </div>
         </div>
     );
