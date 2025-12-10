@@ -1,0 +1,26 @@
+#!/bin/sh
+set -e
+
+# Run Laravel setup commands
+echo "Running Laravel setup..."
+
+# Create storage directories if they don't exist
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p storage/framework/cache
+
+# Set proper permissions
+chmod -R 775 storage bootstrap/cache
+
+# Run migrations (optional - comment out if not needed on every startup)
+# php artisan migrate --force
+
+# Cache configuration for better performance
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+echo "Laravel setup complete!"
+
+# Execute the main container command
+exec "$@"
