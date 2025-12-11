@@ -1,16 +1,30 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TextShimmer } from '@/components/ui/text-shimmer';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeftIcon, FileTextIcon, Download, Maximize2, Minimize2, Copy, EyeIcon, CodeIcon, HistoryIcon, UserIcon, CalendarIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
+import {
+    ArrowLeftIcon,
+    CalendarIcon,
+    CodeIcon,
+    Copy,
+    Download,
+    EyeIcon,
+    FileTextIcon,
+    HistoryIcon,
+    Loader2,
+    Maximize2,
+    Minimize2,
+    UserIcon,
+} from 'lucide-react';
 import mermaid from 'mermaid';
+import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
+import { toast } from 'sonner';
 
 mermaid.initialize({
     startOnLoad: true,
@@ -47,13 +61,21 @@ interface Project {
 interface Props {
     project: Project;
     overviewVersions?: OverviewVersion[];
+    isGenerating?: boolean;
 }
 
-export default function ProjectOverview({ project, overviewVersions = [] }: Props) {
+export default function ProjectOverview({
+    project: initialProject,
+    overviewVersions: initialOverviewVersions = [],
+    isGenerating: initialIsGenerating = false,
+}: Props) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [viewMode, setViewMode] = useState<'preview' | 'source'>('preview');
     const [selectedVersion, setSelectedVersion] = useState<OverviewVersion | null>(null);
-    
+    const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
+    const [project, setProject] = useState(initialProject);
+    const [overviewVersions, setOverviewVersions] = useState(initialOverviewVersions);
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/admin/dashboard' },
         { title: 'Projects', href: '/admin/projects' },
@@ -104,11 +126,77 @@ export default function ProjectOverview({ project, overviewVersions = [] }: Prop
         }
     }, [viewMode, currentContent]);
 
+    // Handle initial async generation
+    const triggerAsyncGeneration = async () => {
+        setIsGenerating(true);
+        try {
+            // Get CSRF token
+            const csrfToken =
+                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
+                document.cookie
+                    .split('; ')
+                    .find((row) => row.startsWith('XSRF-TOKEN='))
+                    ?.split('=')[1];
+
+            const response = await fetch(`/projects/${project.id}/system-overview/generate-async`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update the versions list with the new data
+                    const newVersions = data.overviewVersions || [];
+                    setOverviewVersions(newVersions);
+
+                    // Update project overview with the latest version
+                    if (newVersions.length > 0) {
+                        const newestVersion = newVersions.sort((a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number)[0];
+                        setProject((prev) => ({
+                            ...prev,
+                            overview: newestVersion.overview,
+                            updated_at: newestVersion.created_at,
+                        }));
+                    }
+
+                    toast.success('Overview generated successfully!');
+                } else {
+                    throw new Error(data.message || 'Failed to generate overview');
+                }
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to generate overview');
+            }
+        } catch (error) {
+            console.error('Error generating overview:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to generate overview. Please try again.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    // Trigger async generation on mount if isGenerating is true
+    useEffect(() => {
+        if (initialIsGenerating) {
+            triggerAsyncGeneration();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Overview - ${project.name}`} />
 
-            <div className={`flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : 'h-full flex-1 gap-6 overflow-x-auto rounded-xl p-4'}`}>
+            <div
+                className={`flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : 'h-full flex-1 gap-6 overflow-x-auto rounded-xl p-4'}`}
+            >
                 {/* Header */}
                 <div className={`flex items-center justify-between ${isFullscreen ? 'border-b p-4' : ''}`}>
                     <div className="flex items-center gap-4">
@@ -151,23 +239,23 @@ export default function ProjectOverview({ project, overviewVersions = [] }: Prop
                                     <FileTextIcon className="h-5 w-5" />
                                     {selectedVersion ? `Version ${selectedVersion.version_number}` : 'Current Overview'}
                                     {selectedVersion?.is_base_version && (
-                                        <Badge variant="outline" className="ml-2">Base</Badge>
+                                        <Badge variant="outline" className="ml-2">
+                                            Base
+                                        </Badge>
+                                    )}
+                                    {isGenerating && (
+                                        <Badge variant="outline" className="ml-2">
+                                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                            Generating...
+                                        </Badge>
                                     )}
                                 </CardTitle>
                                 <div className="flex items-center gap-2">
-                                    <Button
-                                        variant={viewMode === 'preview' ? 'default' : 'outline'}
-                                        size="sm"
-                                        onClick={() => setViewMode('preview')}
-                                    >
+                                    <Button variant={viewMode === 'preview' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('preview')}>
                                         <EyeIcon className="mr-2 h-4 w-4" />
                                         Preview
                                     </Button>
-                                    <Button
-                                        variant={viewMode === 'source' ? 'default' : 'outline'}
-                                        size="sm"
-                                        onClick={() => setViewMode('source')}
-                                    >
+                                    <Button variant={viewMode === 'source' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('source')}>
                                         <CodeIcon className="mr-2 h-4 w-4" />
                                         Source
                                     </Button>
@@ -175,13 +263,28 @@ export default function ProjectOverview({ project, overviewVersions = [] }: Prop
                             </div>
                         </CardHeader>
                         <CardContent className={isFullscreen ? 'h-[calc(100%-5rem)] overflow-auto' : ''}>
-                            {viewMode === 'preview' ? (
+                            {isGenerating ? (
+                                <div className="flex min-h-[400px] flex-col items-center justify-center p-8">
+                                    <div className="flex flex-col items-center space-y-4">
+                                        <div className="relative">
+                                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="h-6 w-6 animate-pulse rounded-full bg-primary/20"></div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1 text-center">
+                                            <TextShimmer className="text-lg font-semibold">Generating Overview</TextShimmer>
+                                            <p className="text-sm text-muted-foreground">AI is creating your system overview...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : viewMode === 'preview' ? (
                                 <div className="prose prose-slate dark:prose-invert max-w-none">
                                     <ReactMarkdown
                                         remarkPlugins={[remarkGfm]}
                                         rehypePlugins={[rehypeRaw]}
                                         components={{
-                                            code({ node, className, children, ...props }) {
+                                            code({ className, children, ...props }) {
                                                 const match = /language-(\w+)/.exec(className || '');
                                                 const language = match ? match[1] : '';
                                                 if (language === 'mermaid') {
@@ -199,7 +302,7 @@ export default function ProjectOverview({ project, overviewVersions = [] }: Prop
                                     </ReactMarkdown>
                                 </div>
                             ) : (
-                                <pre className="whitespace-pre-wrap rounded-lg bg-muted p-4 text-sm leading-relaxed font-mono overflow-auto">
+                                <pre className="overflow-auto rounded-lg bg-muted p-4 font-mono text-sm leading-relaxed whitespace-pre-wrap">
                                     {currentContent}
                                 </pre>
                             )}
@@ -215,10 +318,10 @@ export default function ProjectOverview({ project, overviewVersions = [] }: Prop
                                     Version History ({overviewVersions.length})
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-2 max-h-[500px] overflow-auto">
+                            <CardContent className="max-h-[500px] space-y-2 overflow-auto">
                                 <Button
                                     variant={selectedVersion === null ? 'default' : 'ghost'}
-                                    className="w-full justify-start text-left h-auto py-2"
+                                    className="h-auto w-full justify-start py-2 text-left"
                                     onClick={() => setSelectedVersion(null)}
                                 >
                                     <div className="flex flex-col items-start">
@@ -232,23 +335,21 @@ export default function ProjectOverview({ project, overviewVersions = [] }: Prop
                                     <Button
                                         key={version.id}
                                         variant={selectedVersion?.id === version.id ? 'default' : 'ghost'}
-                                        className="w-full justify-start text-left h-auto py-2"
+                                        className="h-auto w-full justify-start py-2 text-left"
                                         onClick={() => setSelectedVersion(version)}
                                     >
                                         <div className="flex flex-col items-start">
                                             <div className="flex items-center gap-2">
                                                 <span className="font-medium">Version {version.version_number}</span>
                                                 {version.is_base_version && (
-                                                    <Badge variant="outline" className="text-xs">Base</Badge>
+                                                    <Badge variant="outline" className="text-xs">
+                                                        Base
+                                                    </Badge>
                                                 )}
                                             </div>
-                                            <span className="text-xs text-muted-foreground">
-                                                {new Date(version.created_at).toLocaleDateString()}
-                                            </span>
+                                            <span className="text-xs text-muted-foreground">{new Date(version.created_at).toLocaleDateString()}</span>
                                             {version.user_prompt && (
-                                                <span className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                                                    "{version.user_prompt}"
-                                                </span>
+                                                <span className="mt-1 line-clamp-1 text-xs text-muted-foreground">"{version.user_prompt}"</span>
                                             )}
                                         </div>
                                     </Button>
@@ -278,7 +379,9 @@ export default function ProjectOverview({ project, overviewVersions = [] }: Prop
                                     </div>
                                 </div>
                                 {overviewVersions.length > 0 && (
-                                    <span>{overviewVersions.length} version{overviewVersions.length !== 1 ? 's' : ''}</span>
+                                    <span>
+                                        {overviewVersions.length} version{overviewVersions.length !== 1 ? 's' : ''}
+                                    </span>
                                 )}
                             </div>
                         </CardContent>

@@ -76,17 +76,19 @@ export default function Technology({ project, technicalIntake, sections }: Props
         title,
         description,
         icon: Icon,
+        iconColorClass,
         content,
     }: {
         title: string;
         description: string;
         icon: React.ComponentType<{ className?: string }>;
+        iconColorClass?: string;
         content: string | null;
     }) => (
         <div className="rounded border">
             <div className="border-b p-4">
                 <div className="flex items-start gap-3">
-                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                    <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${iconColorClass || 'text-muted-foreground'}`} />
                     <div className="min-w-0 flex-1">
                         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
                         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
@@ -153,6 +155,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
                                                     title="Platform Targets"
                                                     description="Target platforms and deployment environments"
                                                     icon={MonitorSmartphoneIcon}
+                                                    iconColorClass="text-violet-500"
                                                     content={technicalIntake.platform_targets}
                                                 />
 
@@ -160,6 +163,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
                                                     title="Frontend Technology"
                                                     description="Frontend frameworks, libraries, and tools"
                                                     icon={CodeIcon}
+                                                    iconColorClass="text-blue-500"
                                                     content={technicalIntake.frontend_tech}
                                                 />
 
@@ -167,6 +171,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
                                                     title="Backend Technology"
                                                     description="Backend runtime, frameworks, and databases"
                                                     icon={CodeIcon}
+                                                    iconColorClass="text-cyan-500"
                                                     content={technicalIntake.backend_tech}
                                                 />
 
@@ -174,6 +179,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
                                                     title="Database Technology"
                                                     description="Database systems and design patterns"
                                                     icon={DatabaseIcon}
+                                                    iconColorClass="text-orange-500"
                                                     content={technicalIntake.database_tech}
                                                 />
 
@@ -181,6 +187,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
                                                     title="AI Usage"
                                                     description="AI/ML models and use cases"
                                                     icon={LightbulbIcon}
+                                                    iconColorClass="text-amber-500"
                                                     content={technicalIntake.ai_usage}
                                                 />
                                             </div>
@@ -189,6 +196,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
                                                 title="External Services"
                                                 description="Third-party integrations and services"
                                                 icon={PlugIcon}
+                                                iconColorClass="text-green-500"
                                                 content={technicalIntake.external_services}
                                             />
                                         </div>

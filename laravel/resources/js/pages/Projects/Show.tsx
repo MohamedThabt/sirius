@@ -103,6 +103,7 @@ interface Props {
     repository?: Repository | null;
     teamMembers?: TeamMember[];
     teamMembersCount?: number;
+    hasTechnicalIntake?: boolean;
 }
 
 export default function ProjectShow({
@@ -113,6 +114,7 @@ export default function ProjectShow({
     repository = null,
     teamMembers = [],
     teamMembersCount = 0,
+    hasTechnicalIntake = false,
 }: Props) {
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
@@ -173,7 +175,7 @@ export default function ProjectShow({
         const prdExists = !!sections.prd;
         const erdExists = !!sections.data_modeling;
         const c4Exists = !!project.c4;
-        const technicalDetailsExist = !!(sections.technical_details || project.technical_details);
+        const technicalDetailsExist = hasTechnicalIntake;
 
         // New Flow: Brief → Overview + Technical Details → System Modules → PRD, System Arch, Database
         const steps: RoadmapStep[] = [
@@ -300,7 +302,7 @@ export default function ProjectShow({
         return steps;
     };
 
-    const roadmapSteps = useMemo(() => getRoadmapSteps(), [sections, modules.length, project.c4, project.technical_details, isGeneratingModules]);
+    const roadmapSteps = useMemo(() => getRoadmapSteps(), [sections, modules.length, project.c4, hasTechnicalIntake, isGeneratingModules]);
     const currentStep = roadmapSteps.find((step) => step.isCurrent);
     const completedStepsCount = roadmapSteps.filter((step) => step.isCompleted).length;
     const totalStepsCount = roadmapSteps.length;

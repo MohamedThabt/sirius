@@ -205,9 +205,14 @@ class ProjectController extends Controller
             $projectData = $project->toArray();
             $projectData['overview'] = $overviewContent;
 
+            // Check for pending generation
+            $pendingGeneration = session('pending_overview_generation');
+            $isGenerating = $pendingGeneration && $pendingGeneration['project_id'] === $project->id;
+
             return Inertia::render('dashboard/projects/overview', [
                 'project' => $projectData,
                 'overviewVersions' => $project->overviewVersions->toArray(),
+                'isGenerating' => $isGenerating,
             ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'overview', 'project_id' => $project->id]);

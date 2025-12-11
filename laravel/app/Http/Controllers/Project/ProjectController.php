@@ -154,7 +154,7 @@ class ProjectController extends Controller
                 return redirect()->route('projects.prepare', $project);
             }
 
-            $project->load(['features', 'repository', 'user']);
+            $project->load(['features', 'repository', 'user', 'technicalIntake']);
 
             // Get team members including owner (first 5 for preview)
             $owner = $project->user;
@@ -192,6 +192,7 @@ class ProjectController extends Controller
                 'project' => $project,
                 'repository' => $project->repository,
                 'userRole' => $userRole, // Add user's role for permission checks in frontend
+                'hasTechnicalIntake' => $project->technicalIntake !== null,
                 'sections' => [
                     'overview' => $project->baseOverviewVersion,
                     'prd' => $project->prd,
