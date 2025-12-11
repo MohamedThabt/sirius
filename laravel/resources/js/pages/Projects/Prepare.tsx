@@ -362,56 +362,94 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
         return Math.min(answered * perField, max);
     }, [formData]);
 
+    // TTL duration: 7 days in milliseconds
+    const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+    // Helper to restore state from cached data
+    const restoreFromCache = useCallback((cachedData: Record<string, unknown>) => {
+        const {
+            formData: f,
+            activeTab: a,
+            currentBusinessStep: bs,
+            currentTechnicalStep: ts,
+            selectedPlatforms: sp,
+            selectedMobileApproach: sma,
+            selectedFrontend: sf,
+            selectedBackend: sb,
+            selectedDatabase: sd,
+            selectedAiUseCases: sac,
+            selectedExternalServices: ses,
+            platformAdditional: pa,
+            frontendAdditional: fa,
+            backendAdditional: ba,
+            databaseAdditional: da,
+            aiAdditional: aa,
+            servicesAdditional: sa,
+            expectedUserScale: eus,
+        } = cachedData as {
+            formData?: Partial<ProjectFormData>;
+            activeTab?: 'business' | 'technical';
+            currentBusinessStep?: number;
+            currentTechnicalStep?: number;
+            selectedPlatforms?: string[];
+            selectedMobileApproach?: string[];
+            selectedFrontend?: string[];
+            selectedBackend?: string[];
+            selectedDatabase?: string[];
+            selectedAiUseCases?: string[];
+            selectedExternalServices?: string[];
+            platformAdditional?: string;
+            frontendAdditional?: string;
+            backendAdditional?: string;
+            databaseAdditional?: string;
+            aiAdditional?: string;
+            servicesAdditional?: string;
+            expectedUserScale?: number;
+        };
+        if (f) setFormData((prev) => ({ ...prev, ...f }));
+        if (a) setActiveTab(a);
+        if (bs) setCurrentBusinessStep(bs);
+        if (ts) setCurrentTechnicalStep(ts);
+        if (sp) setSelectedPlatforms(sp);
+        if (sma) setSelectedMobileApproach(sma);
+        if (sf) setSelectedFrontend(sf);
+        if (sb) setSelectedBackend(sb);
+        if (sd) setSelectedDatabase(sd);
+        if (sac) setSelectedAiUseCases(sac);
+        if (ses) setSelectedExternalServices(ses);
+        if (pa) setPlatformAdditional(pa);
+        if (fa) setFrontendAdditional(fa);
+        if (ba) setBackendAdditional(ba);
+        if (da) setDatabaseAdditional(da);
+        if (aa) setAiAdditional(aa);
+        if (sa) setServicesAdditional(sa);
+        if (eus !== undefined) setExpectedUserScale(eus);
+    }, []);
+
+    // Restore from localStorage on mount (with TTL check)
     useEffect(() => {
         const key = `prepare:${projectId}`;
         const saved = localStorage.getItem(key);
         if (saved) {
             try {
-                const {
-                    formData: f,
-                    activeTab: a,
-                    currentBusinessStep: bs,
-                    currentTechnicalStep: ts,
-                    selectedPlatforms: sp,
-                    selectedMobileApproach: sma,
-                    selectedFrontend: sf,
-                    selectedBackend: sb,
-                    selectedDatabase: sd,
-                    selectedAiUseCases: sac,
-                    selectedExternalServices: ses,
-                    platformAdditional: pa,
-                    frontendAdditional: fa,
-                    backendAdditional: ba,
-                    databaseAdditional: da,
-                    aiAdditional: aa,
-                    servicesAdditional: sa,
-                    expectedUserScale: eus,
-                } = JSON.parse(saved);
-                if (f) setFormData((prev) => ({ ...prev, ...f }));
-                if (a) setActiveTab(a);
-                if (bs) setCurrentBusinessStep(bs);
-                if (ts) setCurrentTechnicalStep(ts);
-                if (sp) setSelectedPlatforms(sp);
-                if (sma) setSelectedMobileApproach(sma);
-                if (sf) setSelectedFrontend(sf);
-                if (sb) setSelectedBackend(sb);
-                if (sd) setSelectedDatabase(sd);
-                if (sac) setSelectedAiUseCases(sac);
-                if (ses) setSelectedExternalServices(ses);
-                if (pa) setPlatformAdditional(pa);
-                if (fa) setFrontendAdditional(fa);
-                if (ba) setBackendAdditional(ba);
-                if (da) setDatabaseAdditional(da);
-                if (aa) setAiAdditional(aa);
-                if (sa) setServicesAdditional(sa);
-                if (eus !== undefined) setExpectedUserScale(eus);
+                const parsed = JSON.parse(saved);
+                const { timestamp } = parsed;
+                
+                // Check if cache has expired (7 days TTL)
+                if (timestamp && Date.now() - timestamp > CACHE_TTL_MS) {
+                    console.info('Cache expired for project', projectId, '- clearing stale data');
+                    localStorage.removeItem(key);
+                    return;
+                }
+                
+                restoreFromCache(parsed);
             } catch (e) {
                 console.warn('Failed to restore form data from localStorage:', e);
             }
         }
-    }, [projectId]);
+    }, [projectId, restoreFromCache, CACHE_TTL_MS]);
 
-    // Debounced autosave indicator
+    // Debounced autosave indicator (with timestamp for TTL)
     useEffect(() => {
         const key = `prepare:${projectId}`;
         const payload = {
@@ -433,6 +471,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
             aiAdditional,
             servicesAdditional,
             expectedUserScale,
+            timestamp: Date.now(), // Add timestamp for TTL expiration
         };
         setSaveStatus('saving');
         if (saveTimeoutRef.current) window.clearTimeout(saveTimeoutRef.current);
@@ -447,6 +486,27 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
             if (savedTimeoutRef.current) window.clearTimeout(savedTimeoutRef.current);
         };
     }, [projectId, formData, activeTab, currentBusinessStep, currentTechnicalStep, selectedPlatforms, selectedMobileApproach, selectedFrontend, selectedBackend, selectedDatabase, selectedAiUseCases, selectedExternalServices, platformAdditional, frontendAdditional, backendAdditional, databaseAdditional, aiAdditional, servicesAdditional, expectedUserScale]);
+
+    // Cross-tab synchronization via storage event
+    useEffect(() => {
+        const key = `prepare:${projectId}`;
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === key && e.newValue) {
+                try {
+                    const parsed = JSON.parse(e.newValue);
+                    restoreFromCache(parsed);
+                    console.info('Synced form data from another tab');
+                } catch (err) {
+                    console.warn('Failed to sync from storage event:', err);
+                }
+            } else if (e.key === key && e.newValue === null) {
+                // Cache was cleared in another tab (e.g., after submit)
+                console.info('Cache cleared in another tab');
+            }
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [projectId, restoreFromCache]);
 
     useEffect(() => {
         const handler = (e: BeforeUnloadEvent) => {
@@ -510,6 +570,8 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
 
     const handleSubmit = useCallback(() => {
         const selectedScale = userScaleOptions[expectedUserScale];
+        const cacheKey = `prepare:${projectId}`;
+        
         router.post(
             `/projects/${projectId}/system-overview/create`,
             {
@@ -528,6 +590,11 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                 expected_users: selectedScale.label,
             },
             {
+                onSuccess: () => {
+                    // Clear localStorage cache on successful submission to prevent stale data
+                    localStorage.removeItem(cacheKey);
+                    console.info('Form submitted successfully - cache cleared for project', projectId);
+                },
                 onError: (errors) => {
                     console.error('System overview creation failed:', errors);
                     router.get(`/projects/${projectId}`);
