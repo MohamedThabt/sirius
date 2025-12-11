@@ -1,4 +1,3 @@
-import { User } from 'lucide-react';
 import React from 'react';
 
 type FieldDef = { name: string; type: 'text' | 'email' | 'password' };
@@ -87,19 +86,23 @@ interface Props {
 export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }: Props) {
     if (!node) return null;
 
-    const isDarkMode = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-    const baseBorder = isDarkMode ? '1px solid rgba(148,163,184,.35)' : '1px solid #cbd5e1';
+    // Low-fidelity styling: grayscale only
+    const baseBorder = '1px solid #d1d5db'; // gray-300
+    const baseBg = '#ffffff'; // white
+    const mutedBg = '#f9fafb'; // gray-50
+    const textColor = '#111827'; // gray-900
+    const textMuted = '#374151'; // gray-700
 
     const layoutStyle: React.CSSProperties = {
         display: 'flex',
         flexDirection: node.layout || 'column',
-        gap: '16px',
-        padding: node.type === 'page' ? '24px' : '16px',
+        gap: '8px',
+        padding: node.type === 'page' ? '16px' : '8px',
         border: baseBorder,
         width: '100%',
-        borderRadius: 10,
-        background: 'hsl(var(--card))',
-        color: 'hsl(var(--foreground))',
+        borderRadius: 4,
+        background: baseBg,
+        color: textColor,
     };
 
     const isSelected = node.id === selectedNodeId;
@@ -120,12 +123,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         onClick={handleSelect}
                         style={{
                             ...layoutStyle,
-                            boxShadow:
-                                node.type === 'page'
-                                    ? '0 1px 0 0 hsl(var(--border)) inset'
-                                    : (node as any).className?.includes('profile-card-wrapper')
-                                      ? '0 10px 30px rgba(0,0,0,0.08)'
-                                      : undefined,
+                            background: (node as any).className?.includes('bg-gray') ? mutedBg : baseBg,
                             maxWidth: node.type === 'page' ? 960 : undefined,
                             margin: node.type === 'page' ? '0 auto' : undefined,
                             ...selectionStyle,
@@ -154,11 +152,11 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         style={{
                             display: 'grid',
                             gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                            gap,
+                            gap: Math.min(gap || 8, 8),
                             padding: 8,
                             border: baseBorder,
-                            borderRadius: 10,
-                            background: 'hsl(var(--card))',
+                            borderRadius: 4,
+                            background: baseBg,
                             ...selectionStyle,
                             cursor: 'pointer',
                         }}
@@ -177,11 +175,11 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         onClick={handleSelect}
                         style={{
                             display: 'flex',
-                            gap: 20,
-                            padding: 10,
-                            border: '1px solid hsl(var(--border))',
-                            background: 'hsl(var(--muted))',
-                            borderRadius: 8,
+                            gap: 12,
+                            padding: 8,
+                            border: baseBorder,
+                            background: mutedBg,
+                            borderRadius: 4,
                             cursor: 'pointer',
                             ...selectionStyle,
                         }}
@@ -202,15 +200,15 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                             ...layoutStyle,
                             alignItems: 'center',
                             textAlign: 'center',
-                            background: 'hsl(var(--muted))',
+                            background: mutedBg,
                             ...selectionStyle,
                             cursor: 'pointer',
                         }}
                         className={node.className}
                     >
-                        <h1 style={{ margin: 0, fontSize: 28, letterSpacing: 0.2 }}>{node.title || 'Hero Title'}</h1>
+                        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, color: textColor }}>{node.title || 'Hero Title'}</h1>
                         {node.button && (
-                            <button disabled style={{ padding: '8px 12px', borderRadius: 6, border: baseBorder }}>
+                            <button disabled style={{ padding: '6px 12px', borderRadius: 4, border: baseBorder, background: 'transparent', color: textColor }}>
                                 {node.button}
                             </button>
                         )}
@@ -235,7 +233,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                     <a
                         onClick={handleSelect}
                         className={(node as any).className}
-                        style={{ color: 'hsl(var(--primary))', textDecoration: 'underline', cursor: 'pointer', ...selectionStyle }}
+                        style={{ color: textColor, textDecoration: 'underline', cursor: 'pointer', ...selectionStyle }}
                     >
                         {node.text || 'Link'}
                     </a>
@@ -255,17 +253,19 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            width: 96,
-                            height: 96,
-                            borderRadius: 9999,
+                            width: 80,
+                            height: 80,
+                            borderRadius: 4,
                             overflow: 'hidden',
                             border: baseBorder,
-                            background: 'hsl(var(--muted))',
+                            background: mutedBg,
+                            color: textMuted,
+                            fontSize: 12,
                             ...selectionStyle,
                             cursor: 'pointer',
                         }}
                     >
-                        <User size={48} color="hsl(var(--foreground))" />
+                        Image
                     </div>
                 );
 
@@ -276,28 +276,29 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 10,
-                            padding: 16,
+                            gap: 8,
+                            padding: 12,
                             border: baseBorder,
-                            borderRadius: 8,
+                            borderRadius: 4,
+                            background: baseBg,
                             cursor: 'pointer',
                             ...selectionStyle,
                         }}
                     >
-                        <h4 style={{ margin: 0 }}>Form</h4>
+                        <h4 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: textColor }}>Form</h4>
                         {(node.fields || []).map((field) => (
                             <div key={field.name}>
-                                <label style={{ display: 'block', marginBottom: 4, fontSize: 12, opacity: 0.8 }}>{field.name}</label>
+                                <label style={{ display: 'block', marginBottom: 4, fontSize: 12, color: textMuted }}>{field.name}</label>
                                 <input
                                     type={field.type}
                                     placeholder={field.name}
                                     disabled
-                                    style={{ width: 240, padding: 8, borderRadius: 6, border: baseBorder }}
+                                    style={{ width: '100%', maxWidth: 240, padding: 6, borderRadius: 4, border: baseBorder, background: baseBg }}
                                 />
                             </div>
                         ))}
                         {node.submit && (
-                            <button disabled style={{ width: 240, padding: 8, borderRadius: 6, border: baseBorder }}>
+                            <button disabled style={{ width: '100%', maxWidth: 240, padding: 6, borderRadius: 4, border: baseBorder, background: 'transparent', color: textColor }}>
                                 {node.submit}
                             </button>
                         )}
@@ -310,13 +311,13 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         onClick={handleSelect}
                         disabled
                         style={{
-                            padding: '8px 12px',
-                            borderRadius: 6,
+                            padding: '6px 12px',
+                            borderRadius: 4,
                             border: baseBorder,
-                            background: (node as any).className?.includes('button-secondary') ? 'transparent' : 'hsl(var(--accent))',
-                            color: (node as any).className?.includes('button-secondary') ? 'hsl(var(--foreground))' : 'hsl(var(--accent-foreground))',
-                            opacity: (node as any).className?.includes('button-secondary') ? 0.9 : 1,
+                            background: 'transparent',
+                            color: textColor,
                             cursor: 'pointer',
+                            fontSize: 14,
                             ...selectionStyle,
                         }}
                         className={(node as any).className}
@@ -378,7 +379,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         placeholder={node.text || 'Input'}
                         disabled
                         className={(node as any).className}
-                        style={{ width: 240, padding: 8, borderRadius: 6, border: baseBorder, ...selectionStyle, cursor: 'pointer' }}
+                        style={{ width: '100%', maxWidth: 240, padding: 6, borderRadius: 4, border: baseBorder, background: baseBg, color: textColor, ...selectionStyle, cursor: 'pointer' }}
                     />
                 );
             }
@@ -390,7 +391,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         placeholder={node.text || 'Textarea'}
                         disabled
                         className={(node as any).className}
-                        style={{ width: 320, height: 96, padding: 8, borderRadius: 6, border: baseBorder, ...selectionStyle, cursor: 'pointer' }}
+                        style={{ width: '100%', maxWidth: 320, height: 80, padding: 6, borderRadius: 4, border: baseBorder, background: baseBg, color: textColor, ...selectionStyle, cursor: 'pointer' }}
                     />
                 );
 
@@ -401,7 +402,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         onClick={handleSelect}
                         disabled
                         className={(node as any).className}
-                        style={{ padding: 8, borderRadius: 6, border: baseBorder, minWidth: 200, ...selectionStyle, cursor: 'pointer' }}
+                        style={{ padding: 6, borderRadius: 4, border: baseBorder, minWidth: 200, background: baseBg, color: textColor, ...selectionStyle, cursor: 'pointer' }}
                         defaultValue=""
                     >
                         <option value="" disabled>
@@ -489,14 +490,14 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                 ];
                 return (
                     <div onClick={handleSelect} style={{ ...selectionStyle, cursor: 'pointer' }}>
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                        <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
                             {items.map((it: any, index: number) => (
-                                <button key={`${it.id}-${index}`} disabled style={{ padding: '6px 10px', borderRadius: 6, border: baseBorder }}>
+                                <button key={`${it.id}-${index}`} disabled style={{ padding: '6px 10px', borderRadius: 4, border: baseBorder, background: 'transparent', color: textColor, fontSize: 14 }}>
                                     {it.label || `Tab ${index + 1}`}
                                 </button>
                             ))}
                         </div>
-                        <div style={{ border: baseBorder, borderRadius: 8, padding: 12, background: 'hsl(var(--card))' }}>
+                        <div style={{ border: baseBorder, borderRadius: 4, padding: 12, background: baseBg }}>
                             {(node.children || []).map((child, index) => (
                                 <WireframeRenderer
                                     key={`${child.id}-${index}`}
@@ -518,11 +519,11 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                 return (
                     <div onClick={handleSelect} style={{ display: 'flex', flexDirection: 'column', gap: 8, ...selectionStyle, cursor: 'pointer' }}>
                         {items.map((it: any, index: number) => (
-                            <div key={`${it.id}-${index}`} style={{ border: baseBorder, borderRadius: 8 }}>
-                                <div style={{ padding: 10, background: 'hsl(var(--muted))', fontWeight: 600 }}>
+                            <div key={`${it.id}-${index}`} style={{ border: baseBorder, borderRadius: 4 }}>
+                                <div style={{ padding: 8, background: mutedBg, fontWeight: 600, color: textColor, fontSize: 14 }}>
                                     {it.label || `Section ${index + 1}`}
                                 </div>
-                                <div style={{ padding: 10 }}>
+                                <div style={{ padding: 8 }}>
                                     {(Array.isArray(it.content) ? it.content : [it.content]).filter(Boolean).map((child: any, childIndex: number) => (
                                         <WireframeRenderer
                                             key={`${child.id || `child-${childIndex}`}-${index}`}
@@ -541,19 +542,19 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
             case 'modal':
                 return (
                     <div onClick={handleSelect} style={{ position: 'relative', ...selectionStyle, cursor: 'pointer' }}>
-                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)', borderRadius: 8 }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.1)', borderRadius: 4 }} />
                         <div
                             style={{
                                 position: 'relative',
                                 margin: '20px auto',
                                 maxWidth: 420,
                                 border: baseBorder,
-                                borderRadius: 8,
-                                background: 'hsl(var(--card))',
-                                padding: 16,
+                                borderRadius: 4,
+                                background: baseBg,
+                                padding: 12,
                             }}
                         >
-                            <div style={{ fontWeight: 600, marginBottom: 8 }}>{node.title || 'Modal Title'}</div>
+                            <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 16, color: textColor }}>{node.title || 'Modal Title'}</div>
                             {(node.children || []).map((child) => (
                                 <WireframeRenderer key={child.id} node={child} selectedNodeId={selectedNodeId} onSelectNode={onSelectNode} />
                             ))}
@@ -566,19 +567,22 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                     <div
                         onClick={handleSelect}
                         style={{
-                            width: 320,
+                            width: '100%',
+                            maxWidth: 320,
                             height: 180,
-                            background: 'hsl(var(--muted))',
+                            background: mutedBg,
                             border: baseBorder,
-                            borderRadius: 8,
+                            borderRadius: 4,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            color: textMuted,
+                            fontSize: 14,
                             ...selectionStyle,
                             cursor: 'pointer',
                         }}
                     >
-                        <span>Video</span>
+                        Video
                     </div>
                 );
 
@@ -587,30 +591,31 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                     <div
                         onClick={handleSelect}
                         style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 9999,
-                            background: 'hsl(var(--muted))',
+                            width: 32,
+                            height: 32,
+                            borderRadius: 4,
+                            background: mutedBg,
                             border: baseBorder,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            color: textMuted,
                             ...selectionStyle,
                             cursor: 'pointer',
                         }}
                     >
-                        <span style={{ fontSize: 12 }}>{(node as any).name || 'Icon'}</span>
+                        <span style={{ fontSize: 11 }}>{(node as any).name || 'Icon'}</span>
                     </div>
                 );
 
             case 'breadcrumb': {
                 const crumbs = (node as any).crumbs || [{ label: 'Home' }, { label: 'Page' }];
                 return (
-                    <div onClick={handleSelect} style={{ display: 'flex', gap: 8, alignItems: 'center', ...selectionStyle, cursor: 'pointer' }}>
+                    <div onClick={handleSelect} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 14, ...selectionStyle, cursor: 'pointer' }}>
                         {crumbs.map((c: any, idx: number) => (
                             <React.Fragment key={c.label + idx}>
-                                <span style={{ color: 'hsl(var(--primary))' }}>{c.label}</span>
-                                {idx < crumbs.length - 1 && <span style={{ opacity: 0.5 }}>/</span>}
+                                <span style={{ color: textColor }}>{c.label}</span>
+                                {idx < crumbs.length - 1 && <span style={{ color: textMuted }}>/</span>}
                             </React.Fragment>
                         ))}
                     </div>
@@ -621,8 +626,8 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                 const total = (node as any).total ?? 5;
                 const page = Math.min(Math.max((node as any).page ?? 1, 1), total);
                 return (
-                    <div onClick={handleSelect} style={{ display: 'flex', gap: 6, alignItems: 'center', ...selectionStyle, cursor: 'pointer' }}>
-                        <button disabled style={{ padding: '4px 8px', borderRadius: 6, border: baseBorder }}>
+                    <div onClick={handleSelect} style={{ display: 'flex', gap: 4, alignItems: 'center', fontSize: 14, ...selectionStyle, cursor: 'pointer' }}>
+                        <button disabled style={{ padding: '4px 8px', borderRadius: 4, border: baseBorder, background: 'transparent', color: textColor }}>
                             Prev
                         </button>
                         {Array.from({ length: total }).map((_, i) => (
@@ -631,15 +636,16 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                                 disabled
                                 style={{
                                     padding: '4px 8px',
-                                    borderRadius: 6,
+                                    borderRadius: 4,
                                     border: baseBorder,
-                                    background: i + 1 === page ? 'hsl(var(--muted))' : 'transparent',
+                                    background: i + 1 === page ? mutedBg : 'transparent',
+                                    color: textColor,
                                 }}
                             >
                                 {i + 1}
                             </button>
                         ))}
-                        <button disabled style={{ padding: '4px 8px', borderRadius: 6, border: baseBorder }}>
+                        <button disabled style={{ padding: '4px 8px', borderRadius: 4, border: baseBorder, background: 'transparent', color: textColor }}>
                             Next
                         </button>
                     </div>
@@ -651,10 +657,12 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                     <div
                         onClick={handleSelect}
                         style={{
-                            width: 240,
-                            height: 10,
-                            borderRadius: 9999,
-                            background: 'hsl(var(--muted))',
+                            width: '100%',
+                            maxWidth: 240,
+                            height: 8,
+                            borderRadius: 4,
+                            background: mutedBg,
+                            border: baseBorder,
                             position: 'relative',
                             overflow: 'hidden',
                             ...selectionStyle,
@@ -668,7 +676,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                                 top: 0,
                                 bottom: 0,
                                 width: `${Math.min(Math.max((node as any).value ?? 40, 0), 100)}%`,
-                                background: 'hsl(var(--accent))',
+                                background: '#6b7280', // gray-500
                             }}
                         />
                     </div>
@@ -681,10 +689,9 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                         style={{
                             width: (node as any).width ?? 240,
                             height: (node as any).height ?? 16,
-                            borderRadius: 8,
-                            background: 'linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted))/80 37%, hsl(var(--muted)) 63%)',
-                            backgroundSize: '400% 100%',
-                            animation: 'pulse 1.4s ease infinite',
+                            borderRadius: 4,
+                            background: mutedBg,
+                            border: baseBorder,
                             ...selectionStyle,
                             cursor: 'pointer',
                         }}
@@ -711,7 +718,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
 
                 return (
                     <div onClick={handleSelect} style={{ ...selectionStyle, cursor: 'pointer', width: '100%' }}>
-                        <div style={{ overflowX: 'auto', border: baseBorder, borderRadius: 8, background: 'hsl(var(--card))' }}>
+                        <div style={{ overflowX: 'auto', border: baseBorder, borderRadius: 4, background: baseBg }}>
                             <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                                 <thead>
                                     <tr>
@@ -720,11 +727,12 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                                                 key={col}
                                                 style={{
                                                     textAlign: 'left',
-                                                    padding: '10px 12px',
+                                                    padding: '8px 10px',
                                                     borderBottom: baseBorder,
-                                                    background: 'hsl(var(--muted))',
+                                                    background: mutedBg,
                                                     fontWeight: 600,
                                                     fontSize: 12,
+                                                    color: textColor,
                                                 }}
                                             >
                                                 {col}
@@ -736,7 +744,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                                     {rows.map((row: any, rIdx: number) => (
                                         <tr key={rIdx}>
                                             {columns.map((col: string, cIdx: number) => (
-                                                <td key={col + cIdx} style={{ padding: '10px 12px', borderBottom: baseBorder, fontSize: 12 }}>
+                                                <td key={col + cIdx} style={{ padding: '8px 10px', borderBottom: baseBorder, fontSize: 12, color: textColor }}>
                                                     {getCell(row, cIdx, col) ?? ''}
                                                 </td>
                                             ))}
@@ -744,7 +752,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
                                     ))}
                                     {rows.length === 0 && (
                                         <tr>
-                                            <td colSpan={Math.max(columns.length, 1)} style={{ padding: 12, fontSize: 12, opacity: 0.7 }}>
+                                            <td colSpan={Math.max(columns.length, 1)} style={{ padding: 12, fontSize: 12, color: textMuted }}>
                                                 Empty table
                                             </td>
                                         </tr>
@@ -757,7 +765,7 @@ export function WireframeRenderer({ node, selectedNodeId = null, onSelectNode }:
             }
 
             case 'footer':
-                return <div style={{ padding: 10, borderTop: baseBorder, opacity: 0.8 }}>{node.text || '© 2025'}</div>;
+                return <div style={{ padding: 8, borderTop: baseBorder, color: textMuted, fontSize: 12 }}>{node.text || '© 2025'}</div>;
 
             default:
                 return <div style={{ border: '1px solid red', padding: 10 }}>Unknown Type: {node.type}</div>;

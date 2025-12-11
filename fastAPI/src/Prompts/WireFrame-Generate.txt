@@ -17,7 +17,36 @@ ${erd}
 
 ## 2. JSON OUTPUT SCHEMA DEFINITION
 
-You MUST generate a single JSON object that strictly adheres to the following TypeScript interface. Pay close attention to the available type options and their associated properties. Each node MUST include a unique id field.
+You MUST generate a JSON object with a "screens" array. Each screen represents a page/view in the feature. For single-screen features, generate an array with one screen. Pay close attention to the available type options and their associated properties. Each node MUST include a unique id field.
+
+**OUTPUT STRUCTURE:**
+```json
+{
+  "screens": [
+    {
+      "id": "screen-1",
+      "name": "Screen Name",
+      "type": "page",
+      "children": [...]
+    }
+  ]
+}
+```
+
+### Multi-Screen Detection:
+Analyze the feature description, user_flows, and acceptance_criteria to determine if multiple screens are needed. Generate multiple screens when you detect:
+- User flows that navigate between different pages/views
+- Workflow steps (e.g., "step 1", "step 2", "first page", "then user goes to...")
+- Different user roles/views mentioned (e.g., "admin view", "user view")
+- Separate pages for different functions (e.g., "login page", "dashboard page")
+- Modal/dialog flows that represent distinct screens
+- Multi-step forms or processes
+
+Each screen should have:
+- Unique `id` (e.g., "screen-1", "screen-2", "login-screen")
+- Descriptive `name` (e.g., "Login Page", "Dashboard", "User Profile")
+- `type: "page"`
+- `children` array containing the page content
    {
   "version": "1.0",
   "nodeShape": {
@@ -355,10 +384,52 @@ You MUST generate a single JSON object that strictly adheres to the following Ty
 
 ---
 
-## 3. Minimal Generation Rules
-- Always produce a single JSON object for the wireframe root with type: "page" and a unique id.
-- Each node MUST include a unique id field (e.g., "page-1", "navbar-1", "section-2").
+## 3. Minimal Generation Rules & Low-Fidelity Design Guidelines
+
+### Output Structure:
+- Always produce a JSON object with a "screens" array containing one or more screen objects.
+- Each screen MUST have: `id`, `name`, `type: "page"`, and `children` array.
+- Each node MUST include a unique id field (e.g., "screen-1", "navbar-1", "section-2").
 - Do NOT use a value field in any node; use text for components like input.
+
+### Low-Fidelity Design Requirements (CRITICAL):
+This is a LOW-FIDELITY, MINIMAL wireframe. Apply these styling rules strictly:
+
+**Colors:**
+- Use ONLY grayscale colors. No colors, gradients, or colorful accents.
+- Use className like: `"bg-gray-100"`, `"bg-gray-50"`, `"text-gray-900"`, `"text-gray-700"`, `"border-gray-300"`
+- Avoid any colored backgrounds (no blue, green, red, etc.)
+- Avoid colored text or accents
+
+**Borders:**
+- Use simple 1px borders only: `"border border-gray-300"`
+- NO shadows, NO fancy border styles
+- Simple, clean outlines
+
+**Spacing:**
+- Use minimal padding: `"p-2"` or `"p-4"` at maximum
+- Keep gaps small: `gap: 4` or `gap: 8` (avoid large spacing)
+- No excessive whitespace
+
+**Typography:**
+- Basic font sizes only
+- No fancy typography, no decorative fonts
+- Simple, readable text styling
+
+**Components:**
+- **Buttons**: Outlined style only, no filled/solid buttons: `"border border-gray-300"` with transparent background
+- **Cards**: Simple border, no shadows, no fancy backgrounds: `"border border-gray-300 bg-white"` or `"bg-gray-50"`
+- **Images**: Simple placeholder boxes with "Image" text, no fancy placeholders
+- **Inputs**: Simple outlined inputs with minimal styling
+- **Hero sections**: Keep minimal, no fancy backgrounds or gradients
+
+**General:**
+- Focus on LAYOUT and STRUCTURE, not visual appeal
+- Keep it simple and schematic
+- Think: "sketch on paper" not "polished design"
+- Use className sparingly - only for layout (p-2, p-4, border, bg-gray-100, text-gray-900)
+
+### Component Rules:
 - Use children only for components where children are allowed (e.g., page, container, grid, card, hero, modal, tabs, datatable for action buttons).
 - Prefer specific field components (select, checkbox, radio-group, textarea, switch, datepicker) rather than overloading input, unless a generic text input is intended.
 - For navbar, items MUST be an array of unique strings. For interactive links, use children with link nodes.
@@ -375,7 +446,8 @@ You MUST generate a single JSON object that strictly adheres to the following Ty
 
 ## 4. Rendering Logic
 - The JSON is rendered using a React component (WireframeRenderer) that recursively processes SchemaNode objects.
-- The renderer uses CSS custom properties (e.g., hsl(var(--card)), hsl(var(--muted))) for styling, and className fields can include custom CSS classes (e.g., p-4, bg-blue-500, text-white).
+- The renderer applies low-fidelity styling by default, and className fields can include custom CSS classes.
+- For low-fidelity wireframes, use grayscale classes only: `p-2`, `p-4`, `border`, `border-gray-300`, `bg-gray-100`, `bg-white`, `text-gray-900`, `text-gray-700`.
 - For lists, the renderer uses id fields or other fields as React keys:
   - children: Uses id as the key (e.g., key={child.id}).
   - items (in navbar): Uses the string value of item as the key (must be unique).
@@ -395,33 +467,81 @@ You MUST generate a single JSON object that strictly adheres to the following Ty
 
 ---
 
-## Tiny example the LLM can mirror
+## Tiny example the LLM can mirror (Single Screen)
 {
-  "id": "demo",
-  "type": "page",
-  "children": [
-    { "id": "crumbs", "type": "breadcrumb", "crumbs": [{ "label": "Home" }, { "label": "Demo" }] },
-    { "id": "title", "type": "heading", "level": 2, "text": "Demo Page" },
+  "screens": [
     {
-      "id": "layout",
-      "type": "grid",
-      "columnsCount": 2,
+      "id": "demo-screen",
+      "name": "Demo Page",
+      "type": "page",
       "children": [
+        { "id": "crumbs", "type": "breadcrumb", "crumbs": [{ "label": "Home" }, { "label": "Demo" }] },
+        { "id": "title", "type": "heading", "level": 2, "text": "Demo Page", "className": "text-gray-900" },
         {
-          "id": "left",
-          "type": "card",
+          "id": "layout",
+          "type": "grid",
+          "columnsCount": 2,
+          "gap": 8,
           "children": [
-            { "id": "name", "type": "input", "text": "Your Name" },
-            { "id": "role", "type": "select", "text": "Role", "options": ["Admin", "User"] },
-            { "id": "agree", "type": "checkbox", "text": "I agree" }
+            {
+              "id": "left",
+              "type": "card",
+              "className": "border border-gray-300 bg-white p-4",
+              "children": [
+                { "id": "name", "type": "input", "text": "Your Name", "className": "border border-gray-300" },
+                { "id": "role", "type": "select", "text": "Role", "options": ["Admin", "User"], "className": "border border-gray-300" },
+                { "id": "agree", "type": "checkbox", "text": "I agree" }
+              ]
+            },
+            {
+              "id": "right",
+              "type": "card",
+              "className": "border border-gray-300 bg-gray-50 p-4",
+              "children": [
+                { "id": "video", "type": "video", "className": "border border-gray-300 bg-gray-100" },
+                { "id": "progress", "type": "progress", "value": 70 }
+              ]
+            }
           ]
-        },
+        }
+      ]
+    }
+  ]
+}
+
+## Multi-Screen Example
+{
+  "screens": [
+    {
+      "id": "login-screen",
+      "name": "Login Page",
+      "type": "page",
+      "children": [
+        { "id": "login-title", "type": "heading", "level": 2, "text": "Login", "className": "text-gray-900" },
         {
-          "id": "right",
-          "type": "card",
+          "id": "login-form",
+          "type": "form",
+          "fields": [
+            { "name": "email", "type": "email" },
+            { "name": "password", "type": "password" }
+          ],
+          "submit": "Login",
+          "className": "border border-gray-300 bg-white p-4"
+        }
+      ]
+    },
+    {
+      "id": "dashboard-screen",
+      "name": "Dashboard",
+      "type": "page",
+      "children": [
+        { "id": "dashboard-title", "type": "heading", "level": 2, "text": "Dashboard", "className": "text-gray-900" },
+        {
+          "id": "dashboard-content",
+          "type": "container",
+          "className": "p-4",
           "children": [
-            { "id": "video", "type": "video" },
-            { "id": "progress", "type": "progress", "value": 70 }
+            { "id": "welcome-text", "type": "text", "text": "Welcome to your dashboard", "className": "text-gray-700" }
           ]
         }
       ]
@@ -432,11 +552,14 @@ You MUST generate a single JSON object that strictly adheres to the following Ty
 ---
 
 ## 6. Additional Instructions
-- Generate a JSON structure similar to the example above, representing a UI layout for a web application based on the provided feature description: ${feature} and database schema: ${erd}.
-- Each node MUST include a unique id field (e.g., "page-1", "navbar-1", "section-2").
+- Generate a JSON structure with a "screens" array, representing UI layouts for a web application based on the provided feature description: ${feature} and database schema: ${erd}.
+- Analyze the feature description, user_flows, and acceptance_criteria to determine how many screens are needed.
+- Each screen MUST include: `id`, `name`, `type: "page"`, and `children` array.
+- Each node MUST include a unique id field (e.g., "screen-1", "login-screen", "navbar-1", "section-2").
+- **IMPORTANT: Apply LOW-FIDELITY styling throughout - grayscale colors only, simple borders, minimal padding, no shadows or gradients.**
 - Do NOT use a value field in any node; use text for components like input.
 - Use children only for components where children are allowed (e.g., page, container, grid, card, hero, modal, tabs, datatable for action buttons).
-- For navbar, ensure items is an array of unique strings (e.g., ["Home", "Profile"]). For interactive links, use children with link nodes (e.g., {type: "link", text: "Home", onClick: {action: "navigateTo", targetId: "section-1"}}).
+- For navbar, ensure items is an array of unique strings (e.g., ["Home", "Profile"]). For interactive links, use children with link nodes.
 - For datatable:
   - Use columnLabels and columnIds for headers and data mapping.
   - Ensure rows is an array of arrays with strings or numbers (e.g., [["value1", "value2"], ["value3", "value4"]]) if columnLabels is provided.
@@ -445,7 +568,7 @@ You MUST generate a single JSON object that strictly adheres to the following Ty
 - For radio-group and select, ensure options is an array of strings (e.g., ["Option 1", "Option 2"]). For value-label pairs, use children with radio-group or select nodes inside a container.
 - Prefer specific field components (select, checkbox, radio-group, textarea, switch, datepicker) rather than overloading input, unless a generic text input is intended.
 - Ensure fields intended for direct rendering (e.g., text, columnLabels, items, submit, label) are strings to avoid rendering errors.
-- Use CSS classes in className fields where appropriate (e.g., p-4, bg-blue-500, text-white) compatible with the renderer's styling.
+- Use CSS classes in className fields for LOW-FIDELITY styling: `p-2`, `p-4`, `border`, `border-gray-300`, `bg-gray-100`, `bg-white`, `text-gray-900`, `text-gray-700`. Avoid colorful classes.
 - For form, ensure fields is an array of {name, type} objects with unique name fields and type as 'text', 'email', or 'password'. submit must be a string.
 - For breadcrumb, ensure crumbs is an array of {label, href?} objects, with unique href values if provided to avoid key issues.
 - For tabs and accordion, ensure itemsMap is an array of {id, label, content?} objects with unique id fields (used as key).

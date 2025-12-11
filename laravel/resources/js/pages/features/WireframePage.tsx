@@ -16,6 +16,11 @@ interface Project {
     name: string;
 }
 
+interface Module {
+    id: number;
+    name: string;
+}
+
 interface FeatureItem {
     id: number;
     name: string;
@@ -31,6 +36,7 @@ interface FeatureItem {
     erd?: string | null;
     sequence_diagram?: string | null;
     wireframe?: string | null;
+    module?: Module;
 }
 
 interface WireframePageProps {
@@ -208,6 +214,14 @@ function getNodeLabel(node: SchemaNode): string {
     }
 }
 
+type WireframeFormat = 'screens' | 'legacy';
+
+interface WireframeData {
+    format: WireframeFormat;
+    screens?: Array<{ id: string; name: string; type: string; children?: any[] }>;
+    legacy?: RendererSchemaNode;
+}
+
 export default function WireframePage({ schema, project, feature, isGenerating: initialIsGenerating = false }: WireframePageProps) {
     useFlashToasts();
     const { auth } = usePage().props as any;
@@ -221,11 +235,14 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
     const [chatInput, setChatInput] = useState<string>('');
     const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; text: string }[]>([]);
     const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
+    const [selectedScreenIndex, setSelectedScreenIndex] = useState<number>(0);
 
     useEffect(() => {
         // Sync editor when server-provided schema changes
         if (schema) {
             setContent(JSON.stringify(schema, null, 2));
+            // Reset screen index when schema changes
+            setSelectedScreenIndex(0);
         }
     }, [schema]);
 
@@ -270,16 +287,53 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
         }
     };
 
-    const parsedSchema = useMemo<RendererSchemaNode | null>(() => {
+    // Detect wireframe format and normalize
+    const wireframeData = useMemo<WireframeData | null>(() => {
         try {
             const parsed = JSON.parse(content);
             setError(null);
-            return parsed;
+            
+            // Check if it's new format (screens array)
+            if (parsed && typeof parsed === 'object' && 'screens' in parsed && Array.isArray(parsed.screens)) {
+                return {
+                    format: 'screens',
+                    screens: parsed.screens,
+                };
+            }
+            
+            // Check if it's old format (single page object)
+            if (parsed && typeof parsed === 'object' && 'type' in parsed && parsed.type === 'page') {
+                return {
+                    format: 'legacy',
+                    legacy: parsed,
+                };
+            }
+            
+            // Default to legacy for backward compatibility
+            return {
+                format: 'legacy',
+                legacy: parsed,
+            };
         } catch (e: any) {
             setError(e?.message || 'Invalid JSON');
             return null;
         }
     }, [content]);
+
+    // Get the current screen/page to render
+    const parsedSchema = useMemo<RendererSchemaNode | null>(() => {
+        if (!wireframeData) return null;
+        
+        if (wireframeData.format === 'screens' && wireframeData.screens) {
+            const screen = wireframeData.screens[selectedScreenIndex];
+            if (screen && screen.type === 'page') {
+                return screen as RendererSchemaNode;
+            }
+            return wireframeData.screens[0] as RendererSchemaNode;
+        }
+        
+        return wireframeData.legacy || null;
+    }, [wireframeData, selectedScreenIndex]);
 
     const getNodeById = (root: any, id: string | null): any | null => {
         if (!root || !id) return null;
@@ -404,10 +458,18 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
         }
     };
 
+    const module = feature?.module;
+    
     const breadcrumbs = [
+        { title: 'Dashboard', href: '/projects' },
         { title: project?.name || 'Project', href: `/projects/${project?.id}` },
-        { title: feature?.name || 'Feature', href: `/features/${feature?.id}` },
-        { title: 'Wireframe', href: `/features/${feature?.id}/wireframe` },
+        ...(module ? [
+            { title: module.name, href: `/projects/${project?.id}/modules/${module.id}` },
+            { title: feature?.name || 'Feature', href: `/projects/${project?.id}/modules/${module.id}/features/${feature?.id}` },
+        ] : [
+            { title: feature?.name || 'Feature', href: '#' },
+        ]),
+        { title: 'Wireframe', href: '#' },
     ];
 
     if (!project || !feature) {
@@ -514,6 +576,27 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                         <div className="flex items-center justify-between border-b border-border/50 bg-gradient-to-r from-background via-background/98 to-background px-4 py-2">
                             <div className="flex items-center gap-3 text-sm">
                                 <span className="font-medium opacity-80">Wireframe Preview</span>
+                                {wireframeData?.format === 'screens' && wireframeData.screens && wireframeData.screens.length > 1 && (
+                                    <div className="flex items-center gap-1 border-l border-border pl-3">
+                                        {wireframeData.screens.map((screen, index) => (
+                                            <button
+                                                key={screen.id}
+                                                onClick={() => {
+                                                    setSelectedScreenIndex(index);
+                                                    setSelectedNodeId(null);
+                                                }}
+                                                className={`rounded px-2 py-1 text-xs transition-colors ${
+                                                    selectedScreenIndex === index
+                                                        ? 'bg-primary text-primary-foreground'
+                                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                                }`}
+                                                title={screen.name || screen.id}
+                                            >
+                                                {screen.name || `Screen ${index + 1}`}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                                 {selectedNodeId && parsedSchema && (
                                     <div className="hidden items-center gap-1 md:flex">
                                         {findPath(parsedSchema, selectedNodeId)?.map((crumb, idx, arr) => {

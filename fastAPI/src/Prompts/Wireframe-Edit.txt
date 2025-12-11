@@ -312,40 +312,86 @@ You MUST generate a single JSON object that strictly adheres to the following Ty
 
 
 Minimal generation rules for the LLM
-Always produce a single JSON object for the wireframe root with type: "page".
-Every node must include a unique id and a valid type.
-Use children only for components where childrenAllowed is true.
-Prefer specific field components (select, checkbox, radio-group, textarea, switch, datepicker) rather than overloading input, unless you intentionally want a generic text input.
-For tables, prefer columns over legacy headers.
+
+### Output Format:
+- The wireframe may be in one of two formats:
+  1. **Old format**: Single page object `{ "id": "...", "type": "page", "children": [...] }`
+  2. **New format**: Screens array `{ "screens": [{ "id": "...", "name": "...", "type": "page", "children": [...] }] }`
+- **Preserve the original format** when editing. If input is old format, output old format. If input is new format, output new format.
+- For new format, always maintain the "screens" array structure.
+
+### Low-Fidelity Design Requirements:
+- Apply LOW-FIDELITY, MINIMAL styling throughout:
+  - Use ONLY grayscale colors: `"bg-gray-100"`, `"bg-gray-50"`, `"text-gray-900"`, `"text-gray-700"`, `"border-gray-300"`
+  - NO colors, gradients, or colorful accents
+  - Simple 1px borders only: `"border border-gray-300"`
+  - NO shadows, NO fancy border styles
+  - Minimal padding: `"p-2"` or `"p-4"` at maximum
+  - Buttons: Outlined style only (no filled/solid)
+  - Cards: Simple border, no shadows: `"border border-gray-300 bg-white"`
+  - Focus on layout and structure, not visual appeal
+
+### Component Rules:
+- Every node must include a unique id and a valid type.
+- Use children only for components where childrenAllowed is true.
+- Prefer specific field components (select, checkbox, radio-group, textarea, switch, datepicker) rather than overloading input, unless you intentionally want a generic text input.
+- For tables, prefer columns over legacy headers.
 
 
-## Tiny example the LLM can mirror
+## Example formats to mirror
+
+### Old Format (Single Page):
 {
   "id": "demo",
   "type": "page",
   "children": [
     { "id": "crumbs", "type": "breadcrumb", "crumbs": [{ "label": "Home" }, { "label": "Demo" }] },
-    { "id": "title", "type": "heading", "level": 2, "text": "Demo Page" },
+    { "id": "title", "type": "heading", "level": 2, "text": "Demo Page", "className": "text-gray-900" },
     {
       "id": "layout",
       "type": "grid",
       "columnsCount": 2,
+      "gap": 8,
       "children": [
         {
           "id": "left",
           "type": "card",
+          "className": "border border-gray-300 bg-white p-4",
           "children": [
-            { "id": "name", "type": "input", "text": "Your Name" },
-            { "id": "role", "type": "select", "text": "Role", "options": ["Admin", "User"] },
+            { "id": "name", "type": "input", "text": "Your Name", "className": "border border-gray-300" },
+            { "id": "role", "type": "select", "text": "Role", "options": ["Admin", "User"], "className": "border border-gray-300" },
             { "id": "agree", "type": "checkbox", "text": "I agree" }
           ]
-        },
+        }
+      ]
+    }
+  ]
+}
+
+### New Format (Screens Array):
+{
+  "screens": [
+    {
+      "id": "demo-screen",
+      "name": "Demo Page",
+      "type": "page",
+      "children": [
+        { "id": "crumbs", "type": "breadcrumb", "crumbs": [{ "label": "Home" }, { "label": "Demo" }] },
+        { "id": "title", "type": "heading", "level": 2, "text": "Demo Page", "className": "text-gray-900" },
         {
-          "id": "right",
-          "type": "card",
+          "id": "layout",
+          "type": "grid",
+          "columnsCount": 2,
+          "gap": 8,
           "children": [
-            { "id": "video", "type": "video" },
-            { "id": "progress", "type": "progress", "value": 70 }
+            {
+              "id": "left",
+              "type": "card",
+              "className": "border border-gray-300 bg-white p-4",
+              "children": [
+                { "id": "name", "type": "input", "text": "Your Name", "className": "border border-gray-300" }
+              ]
+            }
           ]
         }
       ]

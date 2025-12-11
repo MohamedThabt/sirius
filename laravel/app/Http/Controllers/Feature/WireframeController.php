@@ -22,7 +22,12 @@ class WireframeController extends Controller
     public function show(Feature $feature)
     {
         try {
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return back()->with('error', 'Project not found for this feature.');
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'You are not authorized to view this project.');
@@ -62,7 +67,12 @@ class WireframeController extends Controller
     public function generate(Feature $feature)
     {
         try {
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return back()->with('error', 'Project not found for this feature.');
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'You are not authorized to perform this action.');
@@ -104,7 +114,12 @@ class WireframeController extends Controller
             // Increase execution time for FastAPI calls
             set_time_limit(180);
 
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return response()->json(['success' => false, 'message' => 'Project not found for this feature.'], 404);
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -198,7 +213,12 @@ class WireframeController extends Controller
             // Increase execution time for FastAPI calls
             set_time_limit(180);
 
-            $project = $feature->project;
+            $feature->load('module.project');
+            $project = $feature->module?->project;
+
+            if (!$project) {
+                return back()->with('error', 'Project not found for this feature.');
+            }
 
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'Unauthorized access.');
