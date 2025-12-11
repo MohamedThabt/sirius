@@ -61,6 +61,26 @@
     animation-delay: 4s;
 }
 
+/* Wireframe skeleton shimmer animation */
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.wireframe-skeleton {
+    background: linear-gradient(90deg, 
+        hsl(var(--muted)) 25%, 
+        hsl(var(--accent)) 50%, 
+        hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
 /* Line clamp utilities */
 .line-clamp-1 {
     overflow: hidden;

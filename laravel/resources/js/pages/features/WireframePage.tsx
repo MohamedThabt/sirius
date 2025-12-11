@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { WireframeRenderer, type SchemaNode as RendererSchemaNode } from './components/WireframeRenderer';
+import { WireframeProvider } from './components/WireframeContext';
 
 type SchemaNode = RendererSchemaNode;
 
@@ -230,7 +231,6 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
     const [error, setError] = useState<string | null>(null);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-    const [device, setDevice] = useState<'desktop' | 'tablet'>('desktop');
     const [zoom, setZoom] = useState<number>(1);
     const [chatInput, setChatInput] = useState<string>('');
     const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; text: string }[]>([]);
@@ -479,8 +479,8 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
     return (
         <>
             <Head title={`Wireframe - ${feature.name}`} />
-            <div className="min-h-screen bg-background">
-                <div className="flex">
+            <div className="h-screen overflow-hidden bg-background">
+                <div className="flex h-full">
                     {!isFullScreen && (
                         <FeatureSidebar
                             project={project}
@@ -493,7 +493,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                     )}
 
                     <div
-                        className={`flex flex-col bg-background text-foreground ${isFullScreen ? 'fixed inset-0 z-50 h-screen w-full' : 'min-h-screen min-w-0 flex-1'}`}
+                        className={`flex flex-col bg-background text-foreground ${isFullScreen ? 'fixed inset-0 z-50 h-screen w-full' : 'h-full min-w-0 flex-1'}`}
                     >
                         {/* Toolbar - Hidden in full screen */}
                         {!isFullScreen && (
@@ -519,24 +519,37 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                             <div className="flex items-center justify-between border-b border-border/50 bg-gradient-to-r from-background via-background/98 to-background px-4 py-2">
                                 <div className="text-sm font-medium opacity-80">AI Chat</div>
                             </div>
-                            <div className="flex-1 space-y-2 overflow-y-auto p-3">
+                            <div className="flex-1 space-y-3 overflow-y-auto p-3">
                                 {messages.length === 0 && (
-                                    <div className="text-xs text-muted-foreground">
-                                        {feature
-                                            ? 'Ask the AI to suggest layout changes or add elements.'
-                                            : 'Feature data not available for AI editing.'}
+                                    <div className="flex h-full items-center justify-center">
+                                        <div className="text-center text-xs text-muted-foreground">
+                                            {feature
+                                                ? 'Ask the AI to suggest layout changes or add elements.'
+                                                : 'Feature data not available for AI editing.'}
+                                        </div>
                                     </div>
                                 )}
                                 {messages.map((m) => (
-                                    <div key={m.id} className={`text-sm ${m.role === 'assistant' ? 'text-muted-foreground' : ''}`}>
-                                        <span className="mr-1 font-semibold">{m.role === 'user' ? 'You:' : 'AI:'}</span>
-                                        <span>{m.text}</span>
+                                    <div
+                                        key={m.id}
+                                        className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div
+                                            className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+                                                m.role === 'user'
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'bg-muted text-foreground'
+                                            }`}
+                                        >
+                                            <p className="whitespace-pre-wrap">{m.text}</p>
+                                        </div>
                                     </div>
                                 ))}
                                 {isGenerating && (
-                                    <div className="text-sm text-muted-foreground">
-                                        <span className="mr-1 font-semibold">AI:</span>
-                                        <TextShimmer className="text-muted-foreground">Generating wireframe updates...</TextShimmer>
+                                    <div className="flex justify-start">
+                                        <div className="max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm">
+                                            <TextShimmer className="text-muted-foreground">Generating wireframe updates...</TextShimmer>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -620,15 +633,6 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                             <div className="flex flex-wrap items-center gap-2">
                                 <select
                                     className="rounded-md border border-border bg-background px-2 py-1 text-xs"
-                                    value={device}
-                                    onChange={(e) => setDevice(e.target.value as any)}
-                                    title="Device size"
-                                >
-                                    <option value="desktop">Desktop</option>
-                                    <option value="tablet">Tablet</option>
-                                </select>
-                                <select
-                                    className="rounded-md border border-border bg-background px-2 py-1 text-xs"
                                     value={zoom}
                                     onChange={(e) => setZoom(parseFloat(e.target.value))}
                                     title="Zoom"
@@ -650,7 +654,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                                         className={``}
                                         style={{
                                             width: '100%',
-                                            maxWidth: device === 'tablet' ? 820 : 1100,
+                                            maxWidth: 1100,
                                             margin: '0 auto',
                                             transform: `scale(${Math.min(zoom, 1)})`,
                                             transformOrigin: 'top center',
@@ -659,7 +663,12 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                                         }}
                                     >
                                         {parsedSchema && !isGenerating ? (
-                                            <WireframeRenderer node={parsedSchema} selectedNodeId={selectedNodeId} onSelectNode={setSelectedNodeId} />
+                                            <WireframeProvider
+                                                initialSelectedNodeId={selectedNodeId}
+                                                onSelectionChange={setSelectedNodeId}
+                                            >
+                                                <WireframeRenderer node={parsedSchema} selectedNodeId={selectedNodeId} onSelectNode={setSelectedNodeId} />
+                                            </WireframeProvider>
                                         ) : isGenerating ? (
                                             <div className="flex h-full min-h-[400px] items-center justify-center">
                                                 <div className="text-center">

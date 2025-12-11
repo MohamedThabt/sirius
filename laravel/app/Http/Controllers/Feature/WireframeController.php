@@ -201,7 +201,7 @@ class WireframeController extends Controller
      *
      * @param Request $request
      * @param Feature $feature
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\JsonResponse
      */
     public function aiEdit(Request $request, Feature $feature)
     {
@@ -217,16 +217,25 @@ class WireframeController extends Controller
             $project = $feature->module?->project;
 
             if (!$project) {
-                return back()->with('error', 'Project not found for this feature.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Project not found for this feature.',
+                ], 404);
             }
 
             if ($project->user_id !== auth()->id()) {
-                return back()->with('error', 'Unauthorized access.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access.',
+                ], 403);
             }
 
             // Check if feature has wireframe
             if (!is_string($feature->wireframe) || $feature->wireframe === '') {
-                return back()->with('error', 'Feature wireframe is missing. Please generate wireframe first.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Feature wireframe is missing. Please generate wireframe first.',
+                ], 400);
             }
 
             $payload = [
@@ -249,19 +258,27 @@ class WireframeController extends Controller
                 throw new \Exception('Invalid wireframe response from API');
             }
 
+            // Validate JSON before saving
+            $parsedWireframe = json_decode($wireframe, true);
+            if ($parsedWireframe === null) {
+                throw new \Exception('Invalid wireframe JSON format');
+            }
+
             // Persist updated wireframe to feature
             $feature->wireframe = $wireframe;
             $feature->save();
 
-            // Validate JSON
-            if (json_decode($wireframe, true) === null) {
-                throw new \Exception('Invalid wireframe JSON format');
-            }
-
-            return back()->with('success', 'Wireframe updated successfully with AI.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Wireframe updated successfully with AI.',
+                'schema' => $parsedWireframe,
+            ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'aiEdit', 'feature_id' => $feature->id]);
-            return back()->with('error', 'Failed to edit wireframe with AI.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to edit wireframe with AI: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }
