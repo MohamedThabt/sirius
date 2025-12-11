@@ -185,7 +185,6 @@
 .linear-landing .hero-stars {
     background-image: radial-gradient(rgba(255, 255, 255, 0.25) 0.8px, transparent 0.8px);
     background-size: 160px 160px;
-    animation: star-drift 100s linear infinite;
     opacity: 0.3;
 }
 
@@ -193,7 +192,6 @@
     background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
     background-size: 220px 220px;
     opacity: 0.18;
-    animation-duration: 130s;
 }
 
 .linear-landing .hero-stars--three {
@@ -692,4 +690,242 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/* ============================================
+   SPACE THEME FOR ALL SECTIONS
+   ============================================ */
+
+/* Base space section styles */
+.linear-landing .space-section {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 5%) 50%, hsl(220 13% 6%) 100%);
+}
+
+/* Stars background layer for all space sections */
+.linear-landing .space-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.2) 0.5px, transparent 0.5px),
+        radial-gradient(rgba(255, 255, 255, 0.15) 0.8px, transparent 0.8px),
+        radial-gradient(rgba(255, 255, 255, 0.1) 1.2px, transparent 1.2px);
+    background-size: 100px 100px, 150px 150px, 200px 200px;
+    background-position: 0 0, 30px 60px, 80px 30px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Nebula glow layer */
+.linear-landing .space-section::after {
+    content: '';
+    position: absolute;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.2;
+    pointer-events: none;
+    z-index: 0;
+    animation: nebula-float 25s ease-in-out infinite;
+}
+
+/* Ensure content is above space effects */
+.linear-landing .space-section > div,
+.linear-landing .space-section > .container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Features Section - Blue/Indigo nebula */
+.linear-landing #features {
+    background: 
+        radial-gradient(ellipse at 20% 0%, rgba(88, 158, 255, 0.12), transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.08), transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.05), transparent 70%),
+        linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 4%) 100%);
+}
+
+.linear-landing #features::after {
+    background: radial-gradient(circle, rgba(88, 158, 255, 0.3), transparent 60%);
+    top: -30%;
+    left: -20%;
+}
+
+/* Comparison Section - Purple/Magenta nebula */
+.linear-landing #comparison {
+    background: 
+        radial-gradient(ellipse at 70% 20%, rgba(187, 108, 217, 0.06), transparent 50%),
+        radial-gradient(ellipse at 30% 80%, rgba(236, 72, 153, 0.04), transparent 50%),
+        linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 6%) 100%);
+}
+
+.linear-landing #comparison::after {
+    display: none;
+}
+
+.linear-landing #comparison::before {
+    opacity: 0.25;
+}
+
+/* Action Slides Section - Cyan/Teal nebula */
+.linear-landing #action-slides {
+    background: 
+        radial-gradient(ellipse at 50% 0%, rgba(34, 211, 238, 0.08), transparent 50%),
+        radial-gradient(ellipse at 0% 100%, rgba(20, 184, 166, 0.06), transparent 50%),
+        radial-gradient(ellipse at 100% 50%, rgba(56, 189, 248, 0.05), transparent 60%),
+        linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 5%) 100%);
+}
+
+.linear-landing #action-slides::after {
+    background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 60%);
+    top: 20%;
+    right: -20%;
+    animation-duration: 28s;
+}
+
+/* Metrics Section - Gold/Amber nebula */
+.linear-landing #metrics {
+    background: 
+        radial-gradient(ellipse at 30% 30%, rgba(251, 191, 36, 0.06), transparent 50%),
+        radial-gradient(ellipse at 70% 70%, rgba(245, 158, 11, 0.04), transparent 50%),
+        linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 6%) 100%);
+}
+
+.linear-landing #metrics::after {
+    display: none;
+}
+
+.linear-landing #metrics::before {
+    opacity: 0.25;
+}
+
+/* Personas Section - Green/Emerald nebula */
+.linear-landing #personas {
+    background: 
+        radial-gradient(ellipse at 80% 20%, rgba(52, 211, 153, 0.08), transparent 50%),
+        radial-gradient(ellipse at 20% 80%, rgba(16, 185, 129, 0.06), transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(34, 197, 94, 0.04), transparent 70%),
+        linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 5%) 100%);
+}
+
+.linear-landing #personas::after {
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.2), transparent 60%);
+    bottom: -25%;
+    left: -15%;
+    animation-direction: reverse;
+    animation-duration: 24s;
+}
+
+/* Final CTA Section - Simplified */
+.linear-landing #final-cta {
+    background: 
+        radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.08), transparent 60%),
+        linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 4%) 100%);
+}
+
+.linear-landing #final-cta::before {
+    opacity: 0.2;
+}
+
+.linear-landing #final-cta::after {
+    display: none;
+}
+
+/* Footer - Deep space fade */
+.linear-landing footer {
+    position: relative;
+    overflow: hidden;
+    background: 
+        radial-gradient(ellipse at 50% 100%, rgba(99, 102, 241, 0.06), transparent 60%),
+        linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 3%) 100%);
+}
+
+.linear-landing footer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 0.5px, transparent 0.5px);
+    background-size: 120px 120px;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* Pulsing glow animation for CTA section */
+@keyframes pulse-glow-bg {
+    0%, 100% {
+        opacity: 0.2;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 0.35;
+        transform: translate(-50%, -50%) scale(1.15);
+    }
+}
+
+/* Floating cosmic particles */
+.linear-landing .space-section .container::before,
+.linear-landing .space-section .max-w-6xl::before {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    top: 15%;
+    left: 8%;
+    box-shadow: 
+        80px 40px 0 rgba(255, 255, 255, 0.4),
+        180px 120px 0 rgba(255, 255, 255, 0.25),
+        280px 60px 0 rgba(255, 255, 255, 0.5),
+        380px 180px 0 rgba(255, 255, 255, 0.3),
+        480px 90px 0 rgba(255, 255, 255, 0.45),
+        580px 200px 0 rgba(255, 255, 255, 0.2),
+        50px 220px 0 rgba(255, 255, 255, 0.35),
+        680px 150px 0 rgba(255, 255, 255, 0.25),
+        150px 280px 0 rgba(255, 255, 255, 0.3),
+        750px 100px 0 rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Twinkling stars effect */
+@keyframes twinkle {
+    0%, 100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+/* Shooting star for select sections */
+.linear-landing #features::before,
+.linear-landing #final-cta::before {
+    background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.2) 0.5px, transparent 0.5px),
+        radial-gradient(rgba(255, 255, 255, 0.15) 0.8px, transparent 0.8px);
+    background-size: 100px 100px, 150px 150px;
+}
+
+/* Add subtle constellation pattern to features section only */
+.linear-landing #features .max-w-6xl::after {
+    content: '';
+    position: absolute;
+    top: 10%;
+    right: 5%;
+    width: 250px;
+    height: 180px;
+    background: 
+        linear-gradient(45deg, transparent 48%, rgba(255, 255, 255, 0.04) 49%, rgba(255, 255, 255, 0.04) 51%, transparent 52%),
+        linear-gradient(-45deg, transparent 48%, rgba(255, 255, 255, 0.04) 49%, rgba(255, 255, 255, 0.04) 51%, transparent 52%);
+    background-size: 50px 50px;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
 }

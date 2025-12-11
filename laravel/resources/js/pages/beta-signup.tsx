@@ -49,7 +49,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
           <Toaster />
           <Sonner />
           <Head title="Join Sirius Beta" />
-          <Navbar />
+          <Navbar hideBetaNav />
           <main>
             <section className="sirius-hero relative overflow-hidden min-h-screen">
         <div className="hero-gradient" aria-hidden="true" />

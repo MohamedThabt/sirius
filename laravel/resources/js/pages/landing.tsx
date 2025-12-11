@@ -1,16 +1,10 @@
 import ComparisonSection from '@/components/landing/ComparisonSection';
-import CompetitorComparison from '@/components/landing/CompetitorComparison';
 import ActionSlidesSection from '@/components/landing/ActionSlidesSection';
 import Features from '@/components/landing/Features';
 import FinalCTA from '@/components/landing/FinalCTA';
 import Footer from '@/components/landing/Footer';
 import Hero from '@/components/landing/Hero';
-import HeroIllustration from '@/components/landing/HeroIllustration';
-import MetricsSection from '@/components/landing/MetricsSection';
 import Navbar from '@/components/landing/Navbar';
-import PersonasSection from '@/components/landing/PersonasSection';
-import TestimonialsSection from '@/components/landing/TestimonialsSection';
-import WorkflowSection from '@/components/landing/WorkflowSection';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -37,15 +31,9 @@ export default function Landing() {
                     <main>
                         <Navbar />
                         <Hero />
-                        <HeroIllustration />
                         <Features />
                         <ComparisonSection />
                         <ActionSlidesSection />
-                        <WorkflowSection />
-                        <MetricsSection />
-                        <PersonasSection />
-                        <TestimonialsSection />
-                        <CompetitorComparison />
                         <FinalCTA />
                         <Footer />
                     </main>

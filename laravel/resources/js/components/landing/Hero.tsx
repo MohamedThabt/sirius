@@ -4,12 +4,12 @@ import { Sparkles, FileText, Database, GitBranch } from "lucide-react";
 
 const headline = "From Project Brief to Complete Spec";
 const subheadline =
-  "Turn your idea into complete technical specifications. Sirius generates PRDs, user stories, ERDs, diagrams, and wireframes—automatically.";
+  "Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators.";
 
 const coreArtifacts = [
-  { icon: FileText, label: "PRD" },
-  { icon: Database, label: "ERDs & C4" },
-  { icon: GitBranch, label: "User Stories" },
+  { icon: FileText, label: "PRD & User Stories" },
+  { icon: Database, label: "ERDs & Diagrams" },
+  { icon: GitBranch, label: "GitHub Export" },
 ];
 
 const Hero = () => {
@@ -29,15 +29,10 @@ const Hero = () => {
       <div className="hero-nebula hero-nebula--left" aria-hidden="true" />
       <div className="hero-nebula hero-nebula--right" aria-hidden="true" />
       
-      {/* Shooting Stars */}
+      {/* Shooting Stars - reduced for performance */}
       <div className="hero-shooting-star hero-shooting-star--1" aria-hidden="true" />
       <div className="hero-shooting-star hero-shooting-star--2" aria-hidden="true" />
       <div className="hero-shooting-star hero-shooting-star--3" aria-hidden="true" />
-      <div className="hero-shooting-star hero-shooting-star--4" aria-hidden="true" />
-      <div className="hero-shooting-star hero-shooting-star--5" aria-hidden="true" />
-      <div className="hero-shooting-star hero-shooting-star--6" aria-hidden="true" />
-      <div className="hero-shooting-star hero-shooting-star--7" aria-hidden="true" />
-      <div className="hero-shooting-star hero-shooting-star--8" aria-hidden="true" />
 
       <div className="hero-inner mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="hero-copy" style={{ opacity: isVisible ? 1 : 0 }}>
@@ -135,7 +130,7 @@ const Hero = () => {
             }}
           >
             <p className="text-sm text-white/60">
-              No credit card required • Built for engineers & product teams
+              No credit card required • 3 free projects • Works with Copilot & Cursor
             </p>
           </div>
         </div>

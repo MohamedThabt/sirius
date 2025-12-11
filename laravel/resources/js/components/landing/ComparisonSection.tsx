@@ -1,47 +1,65 @@
 import React from "react";
-import { X, Check, Clock, FileText, Layers, Code2, Sparkles, Zap, GitBranch, Layout } from "lucide-react";
+import { X, Check, Clock, FileText, Layers, Code2, Sparkles, Zap, GitBranch, Layout, ArrowRight, Github } from "lucide-react";
 
 const ComparisonSection = () => {
   const problems = [
     {
-      text: "Manual documentation creation takes weeks",
+      text: "Spending weeks writing PRDs, ERDs, and technical specs manually",
       icon: Clock,
     },
     {
-      text: "Time-consuming requirements gathering and writing",
+      text: "Scattered documentation across Notion, Confluence, and Google Docs",
       icon: FileText,
     },
     {
-      text: "Disconnected tools for PRDs, ERDs, and wireframes",
+      text: "No visual diagrams—or hours spent in draw.io and Mermaid",
       icon: Layers,
     },
     {
-      text: "Lack of visual diagrams and technical specifications",
+      text: "AI code tools generate wrong code without proper context",
       icon: Code2,
     },
   ];
 
   const solutions = [
     {
-      text: "AI-automated documentation generation from briefs",
+      text: "AI generates complete PRD, SRS, ERDs, and wireframes from your brief",
       icon: Sparkles,
     },
     {
-      text: "Instant ERD, wireframe, and sequence diagram creation",
+      text: "Single platform for all documentation—versioned and organized",
       icon: Zap,
     },
     {
-      text: "Unified platform for all documentation artifacts",
+      text: "Auto-generated diagrams that stay in sync with your specs",
       icon: Layout,
     },
     {
-      text: "Seamless GitHub integration for AI code generator context",
+      text: "Export to GitHub so Copilot/Cursor understand your architecture",
       icon: GitBranch,
     },
   ];
 
+  const workflowSteps = [
+    {
+      icon: FileText,
+      title: "1. Describe Your Idea",
+      description: "Write a brief description of your project in plain language",
+    },
+    {
+      icon: Sparkles,
+      title: "2. AI Generates Specs",
+      description: "Sirius creates PRD, features, ERDs, wireframes, and diagrams",
+    },
+    {
+      icon: Github,
+      title: "3. Export to GitHub",
+      description: "Push documentation to your repo for AI code generator context",
+    },
+  ];
+
   return (
-    <section className="bg-gradient-to-b from-transparent via-white/[0.01] to-white/[0.02] py-24">
+    <section id="comparison" className="space-section py-24">
       <div className="container mx-auto px-6">
         <div className="mx-auto max-w-6xl">
           <div className="mb-16 text-center">
@@ -115,16 +133,31 @@ const ComparisonSection = () => {
             </div>
           </div>
 
-          {/* Visual Divider/Transition */}
-          <div className="mt-12 flex items-center justify-center">
-            <div className="flex items-center gap-4">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-red-500/30 to-emerald-500/30"></div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-lg">
-                <svg className="h-6 w-6 text-[hsl(var(--text-tertiary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </div>
-              <div className="h-px flex-1 bg-gradient-to-l from-transparent via-emerald-500/30 to-red-500/30"></div>
+          {/* Workflow Steps */}
+          <div className="mt-16">
+            <h3 className="text-2xl font-bold text-center mb-8">How It Works</h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              {workflowSteps.map((step, index) => {
+                const Icon = step.icon;
+                return (
+                  <React.Fragment key={index}>
+                    <div className="relative rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-lg p-6 text-center">
+                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[hsl(var(--bg-tertiary))] border border-white/10">
+                        <Icon className="h-7 w-7 text-white" />
+                      </div>
+                      <h4 className="text-lg font-semibold text-white mb-2">{step.title}</h4>
+                      <p className="text-sm text-[hsl(var(--text-secondary))] leading-relaxed">
+                        {step.description}
+                      </p>
+                      {index < workflowSteps.length - 1 && (
+                        <div className="hidden md:block absolute top-1/2 -right-3 -translate-y-1/2 z-10">
+                          <ArrowRight className="h-6 w-6 text-[hsl(var(--text-tertiary))]" />
+                        </div>
+                      )}
+                    </div>
+                  </React.Fragment>
+                );
+              })}
             </div>
           </div>
         </div>
