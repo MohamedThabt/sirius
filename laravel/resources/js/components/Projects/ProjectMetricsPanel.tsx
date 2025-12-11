@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { router } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { router, usePage } from '@inertiajs/react';
 import {
     ArrowUpRight,
     GitBranch,
@@ -23,14 +24,6 @@ interface TeamMember {
     avatar?: string;
 }
 
-interface Repository {
-    id: number;
-    provider: string;
-    name: string;
-    html_url: string;
-    visibility: string;
-}
-
 interface ProjectMetricsPanelProps {
     projectId: number;
     completionPercentage: number;
@@ -39,7 +32,6 @@ interface ProjectMetricsPanelProps {
     health: Health;
     teamMembers?: TeamMember[];
     teamMembersCount?: number;
-    repository?: Repository | null;
     modulesCount?: number;
     className?: string;
 }
@@ -52,10 +44,10 @@ export default function ProjectMetricsPanel({
     health,
     teamMembers = [],
     teamMembersCount = 0,
-    repository,
     modulesCount = 0,
     className,
 }: ProjectMetricsPanelProps) {
+    const { repository } = usePage<SharedData>().props;
     const getInitials = (name: string) => {
         return name
             .split(' ')

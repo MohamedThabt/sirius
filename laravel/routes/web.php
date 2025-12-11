@@ -57,7 +57,7 @@ Route::post('/beta/signup', [BetaController::class, 'store'])->name('beta.store'
 
 // Project routes
 // TODO: Add middleware 'verified'
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'share.project'])->group(function () {
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/invitations', [ProjectController::class, 'invitations'])->name('projects.invitations');
     Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');

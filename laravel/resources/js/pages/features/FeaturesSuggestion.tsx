@@ -206,7 +206,6 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
-                        repository={repository}
                         isCollapsed={isSidebarCollapsed}
                         user={auth.user}
                     />

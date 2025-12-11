@@ -426,7 +426,6 @@ export default function ProjectShow({
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
-                        repository={repository}
                         completionPercentage={completionPercentage}
                         health={health}
                         isCollapsed={isSidebarCollapsed}
@@ -494,7 +493,6 @@ export default function ProjectShow({
                                         health={health}
                                         teamMembers={teamMembers}
                                         teamMembersCount={teamMembersCount}
-                                        repository={repository}
                                         modulesCount={modules.length}
                                         className="h-auto max-h-[50vh]"
                                     />

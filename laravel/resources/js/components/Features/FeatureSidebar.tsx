@@ -1,11 +1,12 @@
 import AppLogo from '@/components/app-logo';
 import { RepoConnectDialog } from '@/components/github/repo-connect-dialog';
+import { RepoManagementModal } from '@/components/github/repo-management-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
-import { type User } from '@/types';
-import { router } from '@inertiajs/react';
+import { type SharedData, type User } from '@/types';
+import { router, usePage } from '@inertiajs/react';
 import {
     AlertCircleIcon,
     CheckCircleIcon,
@@ -50,8 +51,10 @@ interface Props {
 }
 
 export default function FeatureSidebar({ project, feature, activeSection, auth, isSidebarCollapsed = false }: Props) {
+    const { repository } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
+    const [isRepoManagementOpen, setIsRepoManagementOpen] = useState(false);
     const calculateProgress = useMemo(() => {
         const artifacts = [
             !!(feature.description && feature.acceptance_criteria), // Overview
@@ -128,14 +131,6 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
                     disabled: false,
                     onClick: () => router.visit(`/projects/${project.id}/team`),
                 },
-                {
-                    key: 'github',
-                    icon: GithubIcon,
-                    label: 'GitHub',
-                    active: activeSection === 'github',
-                    disabled: false,
-                    onClick: () => setIsGithubModalOpen(true),
-                },
             ],
         },
     ];
@@ -203,6 +198,27 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
                                 </ul>
                             </div>
                         ))}
+
+                        <div className="space-y-2">
+                            <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Integrations</div>
+                            <button
+                                className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                                onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
+                            >
+                                <span className="inline-flex items-center gap-2">
+                                    <GithubIcon className="h-4 w-4 shrink-0" />
+                                    GitHub
+                                </span>
+                                {repository ? (
+                                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                                        <CheckCircleIcon className="h-3.5 w-3.5" />
+                                        Connected
+                                    </span>
+                                ) : (
+                                    <span className="text-xs">Connect</span>
+                                )}
+                            </button>
+                        </div>
                     </nav>
                 </div>
 
@@ -231,6 +247,7 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
             </div>
         </aside>
             <RepoConnectDialog open={isGithubModalOpen} onOpenChange={setIsGithubModalOpen} projectId={project.id} projectName={project.name} />
+            <RepoManagementModal open={isRepoManagementOpen} onOpenChange={setIsRepoManagementOpen} repository={repository} projectId={project.id} />
         </>
     );
 }

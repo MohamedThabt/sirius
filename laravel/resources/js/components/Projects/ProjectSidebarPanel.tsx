@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
-import { type User } from '@/types';
+import { type SharedData, type User } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { AlertCircleIcon, CheckCircleIcon, ChevronDownIcon, CircleIcon, ClockIcon, Github as GithubIcon, TrendingUpIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -15,20 +16,6 @@ export interface ProjectSidebarProject {
     status: string;
     c4?: string | null;
     brief?: string;
-}
-
-export interface ProjectSidebarRepository {
-    id: number;
-    provider: string;
-    repo_id: string;
-    name: string;
-    full_name: string;
-    owner_login: string;
-    owner_type: string;
-    default_branch: string;
-    html_url: string;
-    ssh_url: string;
-    visibility: string;
 }
 
 export interface ProjectNavItem {
@@ -52,7 +39,6 @@ export interface ProjectNavGroup {
 export interface ProjectSidebarPanelProps {
     project: ProjectSidebarProject;
     navGroups: ProjectNavGroup[];
-    repository?: ProjectSidebarRepository | null;
     completionPercentage?: number;
     health?: {
         label: string;
@@ -66,12 +52,12 @@ export interface ProjectSidebarPanelProps {
 export default function ProjectSidebarPanel({
     project,
     navGroups,
-    repository = null,
     completionPercentage,
     health,
     isCollapsed,
     user,
 }: ProjectSidebarPanelProps) {
+    const { repository } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
     const [isRepoManagementOpen, setIsRepoManagementOpen] = useState(false);

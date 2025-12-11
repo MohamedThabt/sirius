@@ -198,7 +198,6 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
-                        repository={repository}
                         isCollapsed={isSidebarCollapsed}
                         user={auth.user}
                     />

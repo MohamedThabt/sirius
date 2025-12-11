@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
-import { type User } from '@/types';
+import { type SharedData, type User } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { AlertCircleIcon, CheckCircleIcon, ChevronDownIcon, CircleIcon, ClockIcon, Github as GithubIcon, TrendingUpIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -15,20 +16,6 @@ interface Project {
     status: string;
     c4?: string | null;
     brief?: string;
-}
-
-interface Repository {
-    id: number;
-    provider: string;
-    repo_id: string;
-    name: string;
-    full_name: string;
-    owner_login: string;
-    owner_type: string;
-    default_branch: string;
-    html_url: string;
-    ssh_url: string;
-    visibility: string;
 }
 
 interface NavItem {
@@ -52,7 +39,6 @@ interface NavGroup {
 interface ProjectSidebarProps {
     project: Project;
     navGroups: NavGroup[];
-    repository?: Repository | null;
     completionPercentage?: number;
     health?: {
         label: string;
@@ -66,12 +52,12 @@ interface ProjectSidebarProps {
 export default function ProjectSidebar({
     project,
     navGroups,
-    repository = null,
     completionPercentage,
     health,
     isCollapsed,
     user,
 }: ProjectSidebarProps) {
+    const { repository } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
     const [isRepoManagementOpen, setIsRepoManagementOpen] = useState(false);
@@ -258,7 +244,7 @@ export default function ProjectSidebar({
 
             <RepoConnectDialog open={isGithubModalOpen} onOpenChange={setIsGithubModalOpen} projectId={project.id} />
 
-            <RepoManagementModal open={isRepoManagementOpen} onOpenChange={setIsRepoManagementOpen} repository={repository} projectId={project.id} />
+            <RepoManagementModal open={isRepoManagementOpen} onOpenChange={setIsRepoManagementOpen} repository={repository ?? null} projectId={project.id} />
         </>
     );
 }
