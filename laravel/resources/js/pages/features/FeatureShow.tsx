@@ -107,7 +107,7 @@ export default function Show({ project, module, feature }: Props) {
     const handleSave = () => {
         if (!editingField) return;
 
-        put(`/features/${feature.id}/update`, {
+        put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
             preserveScroll: true,
             onSuccess: () => {
                 setEditingField(null);
@@ -136,7 +136,7 @@ export default function Show({ project, module, feature }: Props) {
 
     const handleStatusChange = (newStatus: 'draft' | 'in_progress' | 'completed' | 'archived') => {
         setData('status', newStatus);
-        put(`/features/${feature.id}/update`, {
+        put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
             preserveScroll: true,
             onSuccess: () => toast.success('Status updated successfully!'),
             onError: () => toast.error('Failed to update status.'),
@@ -145,7 +145,7 @@ export default function Show({ project, module, feature }: Props) {
 
     const handlePriorityChange = (newPriority: 'low' | 'medium' | 'high' | 'critical') => {
         setData('priority', newPriority);
-        put(`/features/${feature.id}/update`, {
+        put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
             preserveScroll: true,
             onSuccess: () => toast.success('Priority updated successfully!'),
             onError: () => toast.error('Failed to update priority.'),
@@ -288,6 +288,7 @@ export default function Show({ project, module, feature }: Props) {
             <div className="flex min-h-screen bg-background">
                 <FeatureSidebar
                     project={project}
+                    module={module}
                     feature={feature}
                     activeSection="overview"
                     auth={auth}

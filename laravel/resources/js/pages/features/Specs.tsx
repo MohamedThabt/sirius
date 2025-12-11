@@ -14,6 +14,11 @@ interface Project {
     name: string;
 }
 
+interface Module {
+    id: number;
+    name: string;
+}
+
 interface FeatureItem {
     id: number;
     name: string;
@@ -25,6 +30,7 @@ interface FeatureItem {
 
 interface Props {
     project: Project;
+    module: Module;
     feature: FeatureItem;
     specsMarkdown: string;
 }
@@ -61,7 +67,7 @@ const convertEscapedMermaid = (escapedString: string): string => {
     return cleaned;
 };
 
-export default function Specs({ project, feature, specsMarkdown }: Props) {
+export default function Specs({ project, module, feature, specsMarkdown }: Props) {
     useFlashToasts();
     const { auth } = usePage().props as any;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -109,8 +115,10 @@ export default function Specs({ project, feature, specsMarkdown }: Props) {
 
     const breadcrumbs = [
         { title: project.name, href: `/projects/${project.id}` },
-        { title: feature.name, href: `/features/${feature.id}` },
-        { title: 'Specifications', href: `/features/${feature.id}/specs` },
+        { title: 'Modules', href: `/projects/${project.id}/modules` },
+        { title: module.name, href: `/projects/${project.id}/modules/${module.id}` },
+        { title: feature.name, href: `/projects/${project.id}/modules/${module.id}/features/${feature.id}` },
+        { title: 'Specifications', href: `/projects/${project.id}/modules/${module.id}/features/${feature.id}/specs` },
     ];
 
     return (
@@ -120,6 +128,7 @@ export default function Specs({ project, feature, specsMarkdown }: Props) {
                 <div className="flex">
                     <FeatureSidebar
                         project={project}
+                        module={module}
                         feature={feature}
                         activeSection="specs"
                         auth={auth}

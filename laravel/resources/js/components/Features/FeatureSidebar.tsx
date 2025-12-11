@@ -24,6 +24,11 @@ interface Project {
     name: string;
 }
 
+interface Module {
+    id: number;
+    name: string;
+}
+
 interface FeatureItem {
     id: number;
     name: string;
@@ -39,10 +44,12 @@ interface FeatureItem {
     erd?: string | null;
     sequence_diagram?: string | null;
     wireframe?: string | null;
+    module?: Module;
 }
 
 interface Props {
     project: Project;
+    module?: Module;
     feature: FeatureItem;
     activeSection?: 'dashboard' | 'overview' | 'erd' | 'sequence' | 'wireframe' | 'specs' | 'brainstorming' | 'team' | 'integrations' | 'github';
     auth: { user: User };
@@ -50,8 +57,10 @@ interface Props {
     onToggleSidebar?: () => void;
 }
 
-export default function FeatureSidebar({ project, feature, activeSection, auth, isSidebarCollapsed = false }: Props) {
+export default function FeatureSidebar({ project, module, feature, activeSection, auth, isSidebarCollapsed = false }: Props) {
     const { repository } = usePage<SharedData>().props;
+    // Get module from props or from feature.module
+    const currentModule = module || feature.module;
     const getInitials = useInitials();
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
     const [isRepoManagementOpen, setIsRepoManagementOpen] = useState(false);
@@ -90,6 +99,11 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
         items: NavItem[];
     }
 
+    // Build feature base URL based on whether module is available
+    const featureBaseUrl = currentModule 
+        ? `/projects/${project.id}/modules/${currentModule.id}/features/${feature.id}`
+        : `/features/${feature.id}`;
+
     const navGroups: NavGroup[] = [
         {
             label: 'Feature',
@@ -100,7 +114,7 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
                     label: 'Feature',
                     active: activeSection === 'overview',
                     disabled: false,
-                    onClick: () => router.visit(`/features/${feature.id}`),
+                    onClick: () => router.visit(featureBaseUrl),
                 },
                 {
                     key: 'specs',
@@ -108,7 +122,7 @@ export default function FeatureSidebar({ project, feature, activeSection, auth, 
                     label: 'Specs',
                     active: activeSection === 'specs',
                     disabled: false,
-                    onClick: () => router.visit(`/features/${feature.id}/specs`),
+                    onClick: () => router.visit(`${featureBaseUrl}/specs`),
                 },
             ],
         },
