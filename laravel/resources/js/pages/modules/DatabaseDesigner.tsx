@@ -143,57 +143,49 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
-                credentials: 'same-origin', // Ensure cookies/session are sent
+                credentials: 'same-origin',
             });
 
             if (response.ok) {
                 const data = await response.json();
 
                 if (data.success && data.erd) {
-                    // Update content immediately from response
+                    // Update content immediately so the ERD viewer can render it
+                    // This prevents the race condition where isGenerating becomes false
+                    // before the content is available
                     setContent(data.erd);
-                    setIsDirty(false);
                     setGenerationError(null);
-
-                    // Small delay to ensure content is rendered before reload
-                    setTimeout(() => {
-                        // Reload the page to get fresh data with updated ERD
-                        router.visit(`/projects/${project.id}/modules/${moduleId}/erd`, {
-                            preserveScroll: true,
-                            only: ['module', 'initialContent', 'project'],
-                            onStart: () => {
-                                // Keep generating state until reload starts
-                            },
-                            onSuccess: () => {
-                                setIsGenerating(false);
-                                // The useEffect hooks will handle updating the content
-                                // from module.erd or initialContent
-                                toast.success('ERD generated successfully!');
-                            },
-                            onError: () => {
-                                setIsGenerating(false);
-                            },
-                        });
-                    }, 300);
+                    setIsGenerating(false);
+                    setIsDirty(false);
+                    toast.success('ERD generated successfully!');
+                    
+                    // Also do a soft reload to sync props with server state
+                    router.visit(`/projects/${project.id}/modules/${moduleId}/erd`, {
+                        preserveScroll: true,
+                        only: ['module', 'initialContent', 'project'],
+                    });
                 } else {
                     const errorMessage = data.message || 'Failed to generate ERD';
                     setGenerationError(errorMessage);
+                    setIsGenerating(false);
                     toast.error(errorMessage);
                 }
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 const errorMessage = errorData.message || 'Failed to generate ERD. Please try again.';
                 setGenerationError(errorMessage);
+                setIsGenerating(false);
                 toast.error(errorMessage);
             }
         } catch (error) {
             console.error('Error generating ERD:', error);
             const errorMessage = 'An error occurred while generating the ERD.';
             setGenerationError(errorMessage);
-            toast.error(errorMessage);
-        } finally {
             setIsGenerating(false);
+            toast.error(errorMessage);
         }
+        // NOTE: Removed the finally block with setIsGenerating(false) because
+        // we now explicitly set it in each branch to avoid race conditions
     };
 
     const toggleFullScreen = () => {
