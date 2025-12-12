@@ -256,7 +256,7 @@ class ModuleFallbackFactory:
             item_factory=lambda m: EnrichedModule(
                 name=m.get("name", "Unknown Module"),
                 description=m.get("description", "No description provided"),
-                metrics=m.get("metrics", "Metrics to be defined"),
+                metrics=FallbackService.safe_get_string(m, "metrics", "Metrics to be defined"),
                 order_of_implementation=m.get("order_of_implementation", 1)
             )
         )

@@ -1,4 +1,5 @@
 """Modules Controller - Business logic for DDD System Modules generation (Stage S2)"""
+from typing import Optional, Dict, Any
 from fastapi import HTTPException
 from controllers.gemini import ask_gemini
 from models.modules import (
@@ -297,29 +298,27 @@ async def generate_single_module(request: SingleModuleRequest) -> tuple[SingleMo
         if not json_str:
             logger.error("No valid JSON found in Gemini response")
             logger.error(f"Raw response: {raw_response[:500]}...")
-            # Create fallback response
-            return create_single_module_fallback(request, "No JSON found in response"), usage
+            raise HTTPException(status_code=500, detail="No valid JSON found in AI response")
 
         # Parse JSON
         parsed_data = json.loads(json_str)
         
-        # Validate with fallback service
-        single_module_response, success = FallbackService.parse_with_fallback(
-            raw_data=parsed_data,
-            model_class=SingleModuleResponse,
-            fallback_factory=lambda raw_data, error_msg: create_single_module_fallback(request, error_msg)
-        )
+        # Pre-process: Convert metrics to string if it's a list
+        if "module" in parsed_data and isinstance(parsed_data["module"], dict):
+            module_data = parsed_data["module"]
+            if "metrics" in module_data and isinstance(module_data["metrics"], list):
+                module_data["metrics"] = "\n".join(str(item) for item in module_data["metrics"] if item)
+                logger.info("Converted metrics from list to string")
         
-        if success:
-            logger.info(f"Single module generated successfully (JSON: {len(json_str)} chars)")
-        else:
-            logger.warning("Used fallback response due to parsing issues")
+        # Validate response
+        single_module_response = SingleModuleResponse(**parsed_data)
+        logger.info(f"Single module generated successfully (JSON: {len(json_str)} chars)")
             
         return single_module_response, usage
 
     except json.JSONDecodeError as e:
         logger.error(f"JSON parsing error during single module generation: {str(e)}", exc_info=True)
-        return create_single_module_fallback(request, f"JSON decode error: {e}"), usage
+        raise HTTPException(status_code=500, detail=f"JSON decode error: {e}")
         
     except HTTPException as e:
         logger.error(f"HTTP error during single module generation: {e.status_code} - {e.detail}")
@@ -327,30 +326,4 @@ async def generate_single_module(request: SingleModuleRequest) -> tuple[SingleMo
         
     except Exception as e:
         logger.error(f"Unexpected error during single module generation: {str(e)}", exc_info=True)
-        if usage:
-            return create_single_module_fallback(request, f"Unexpected error: {e}"), usage
         raise HTTPException(status_code=500, detail="Internal server error")
-
-
-def create_single_module_fallback(request: SingleModuleRequest, error_msg: str) -> SingleModuleResponse:
-    """Create a fallback response for single module generation"""
-    logger.warning(f"Creating single module fallback due to: {error_msg}")
-    
-    # Determine order based on existing modules
-    max_order = max([m.order_of_implementation for m in request.existing_modules], default=0)
-    new_order = max_order + 1
-    
-    return SingleModuleResponse(
-        analysis_chain=SingleModuleAnalysisChain(
-            context_analysis=f"Fallback analysis: Module added to existing system. Error: {error_msg}",
-            integration_points="Integration analysis unavailable due to generation error.",
-            metrics_rationale="Default metrics applied due to generation error.",
-            order_rationale=f"Placed at order {new_order} (after existing modules) due to generation error."
-        ),
-        module=EnrichedModule(
-            name=request.new_module_name,
-            description=request.new_module_description,
-            metrics="Module success rate, User adoption rate, Error rate < 1%",
-            order_of_implementation=new_order
-        )
-    )

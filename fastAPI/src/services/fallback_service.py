@@ -79,6 +79,32 @@ class FallbackService:
         return default
 
     @staticmethod
+    def safe_get_string(data: Optional[Dict], key: str, default: str = "") -> str:
+        """
+        Safely get a string from a dict. If the value is a list, join it with newlines.
+        
+        Args:
+            data: The dictionary to get the value from
+            key: The key to look up
+            default: Default value if key not found or value is None
+            
+        Returns:
+            str: The value as a string, or default if not found
+        """
+        if data is None or not isinstance(data, dict):
+            return default
+        value = data.get(key)
+        if value is None:
+            return default
+        if isinstance(value, str):
+            return value
+        if isinstance(value, list):
+            # Join list items with newlines, converting each item to string
+            return "\n".join(str(item) for item in value if item)
+        # For any other type, convert to string
+        return str(value)
+
+    @staticmethod
     def extract_items_with_required_field(
         items: list,
         required_field: str,
