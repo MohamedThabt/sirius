@@ -8,13 +8,28 @@ logger = logging.getLogger(__name__)
 def extract_markdown_from_response(raw_response: str) -> Optional[str]:
     """Attempt to extract Markdown content from a response.
     
-    For PRD responses, prioritize returning the full content if it contains
+    For PRD/Overview responses, prioritize returning the full content if it contains
     markdown-like constructs, rather than extracting fenced code blocks.
     """
     try:
         text = raw_response.strip()
 
-        # 1) Check if this looks like a full PRD/document with markdown structure
+        # 1) First, check if response is wrapped in markdown code blocks and extract content
+        # This handles cases where AI wraps the entire response in ```markdown ... ```
+        fenced_md = re.search(r'^```(?:markdown)?\s*\n([\s\S]*?)\n```\s*$', text, re.IGNORECASE | re.MULTILINE)
+        if fenced_md:
+            extracted = fenced_md.group(1).strip()
+            logger.info("Extracted content from markdown code block")
+            return extracted
+
+        # 2) Check for any fenced code block (fallback for other language tags)
+        fenced_any = re.search(r'^```[^\n]*\n([\s\S]*?)\n```\s*$', text, re.MULTILINE)
+        if fenced_any:
+            extracted = fenced_any.group(1).strip()
+            logger.info("Extracted content from code block")
+            return extracted
+
+        # 3) Check if this looks like a full document with markdown structure
         # If it has multiple markdown headers and other content, return the full text
         md_indicators = re.search(r'(^|\n)#{1,6}\s+|\n[-*+]\s+|\[.+?\]\(.+?\)|\*\*.+?\*\*|`.+?`', text)
         if md_indicators:
@@ -23,16 +38,6 @@ def extract_markdown_from_response(raw_response: str) -> Optional[str]:
             if header_count >= 3:  # If it has 3+ headers, it's likely a full document
                 logger.info(f"Detected full document with {header_count} headers, returning full content")
                 return text
-
-        # 2) Prefer fenced markdown code block with optional "markdown" language tag
-        fenced_md = re.search(r'```(?:markdown)?\n([\s\S]*?)\n```', text, re.IGNORECASE)
-        if fenced_md:
-            return fenced_md.group(1).strip()
-
-        # 3) Fallback to any fenced code block content (but only if no full document detected)
-        fenced_any = re.search(r'```([\s\S]*?)```', text)
-        if fenced_any:
-            return fenced_any.group(1).strip()
 
         # 4) If we have markdown-like constructs but not enough headers, return full text
         if md_indicators:

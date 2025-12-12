@@ -226,8 +226,9 @@ async def generate_module_details(request: ModuleDetailsRequest) -> tuple[Module
         module_details, success = FallbackService.parse_with_fallback(
             raw_data=parsed_data,
             model_class=ModuleDetailsResponse,
-            fallback_factory=lambda error_msg: ModuleFallbackFactory.create_details_fallback(
+            fallback_factory=lambda raw_data, error_msg: ModuleFallbackFactory.create_details_fallback(
                 modules=request.modules,
+                raw_data=raw_data,
                 error_msg=error_msg
             )
         )
@@ -306,7 +307,7 @@ async def generate_single_module(request: SingleModuleRequest) -> tuple[SingleMo
         single_module_response, success = FallbackService.parse_with_fallback(
             raw_data=parsed_data,
             model_class=SingleModuleResponse,
-            fallback_factory=lambda error_msg: create_single_module_fallback(request, error_msg)
+            fallback_factory=lambda raw_data, error_msg: create_single_module_fallback(request, error_msg)
         )
         
         if success:
