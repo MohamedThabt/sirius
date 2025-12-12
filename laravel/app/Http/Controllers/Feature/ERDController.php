@@ -129,6 +129,9 @@ class ERDController extends Controller
                 $module->save();
             });
 
+            // Refresh the feature to ensure we have the latest data
+            $feature->refresh();
+
             return back()->with([
                 'success' => 'Datamodel updated successfully using AI suggestions.',
                 'erd' => $datamodel

@@ -22,8 +22,10 @@ return new class extends Migration
             $table->longText('wireframe')->nullable();
             $table->longText('sequence_diagram')->nullable();
             $table->longText('datamodel')->nullable();
+            $table->longText('metrics')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'critical'])->default('medium');
             $table->enum('status', ['draft', 'todo', 'in_progress', 'review', 'done'])->default('draft');
+            $table->integer('order_of_implementation')->nullable();
             $table->timestamps();
 
             $table->index(['module_id', 'status']);

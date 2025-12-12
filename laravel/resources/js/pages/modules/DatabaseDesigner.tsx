@@ -3,15 +3,15 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Toaster } from '@/components/ui/sonner';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type SharedData, type User } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant, Edge, Node } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, Loader2, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData, type User } from '@/types';
 
 import AddTableDialog from '@/components/database-designer/AddTableDialog';
 import DiagramCanvas from '@/components/database-designer/DiagramCanvas';
@@ -52,29 +52,12 @@ interface Props {
     isGenerating?: boolean;
 }
 
-// Sample DBML schema for modules
-const sampleDBML = `// Module Database Schema
-// Define your module's entities and relationships
-
-Table example_entity {
-  id bigint [pk]
-  name varchar [not null]
-  description text
-  status varchar [default: 'active']
-  created_at timestamp [default: 'now()']
-  updated_at timestamp [default: 'now()']
-}
-
-// Add more tables as needed
-// Use foreign keys to reference other modules' entities
-`;
-
 export default function ModuleDatabaseDesigner({ project, module, initialContent, moduleId, isGenerating: initialIsGenerating = false }: Props) {
     useFlashToasts();
     const shared = usePage<SharedData>().props;
     const { auth } = shared;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const [content, setContent] = useState(initialContent ?? sampleDBML);
+    const [content, setContent] = useState(initialContent ?? '');
     const [searchQuery, setSearchQuery] = useState('');
     const [prompt, setPrompt] = useState('');
     const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>(BackgroundVariant.Dots);
@@ -87,6 +70,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     const [isSaving, setIsSaving] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [generationError, setGenerationError] = useState<string | null>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
     const { nodes, edges, error, isLoading } = useDBMLParser(content);
     const [layoutTrigger, setLayoutTrigger] = useState<{ algorithm: string; timestamp: number } | null>(null);
@@ -120,6 +104,14 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
         }
     }, [initialContent]);
 
+    // Sync editor content when module ERD is updated (e.g., after AI edit)
+    useEffect(() => {
+        if (module?.erd && typeof module.erd === 'string' && module.erd.trim()) {
+            setContent(module.erd);
+            setIsDirty(false);
+        }
+    }, [module?.erd]);
+
     // Sync editor content when AI edit returns new ERD via flash
     useEffect(() => {
         if (shared.flash?.erd && typeof shared.flash.erd === 'string') {
@@ -139,6 +131,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     // Handle initial async generation
     const triggerAsyncGeneration = async () => {
         setIsGenerating(true);
+        setGenerationError(null);
         try {
             const response = await fetch(`/projects/${project.id}/modules/${moduleId}/erd/generate-async`, {
                 method: 'POST',
@@ -150,21 +143,33 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
 
             if (response.ok) {
                 const data = await response.json();
-                
+
                 if (data.success && data.erd) {
-                    setContent(data.erd);
-                    setIsDirty(false);
-                    toast.success('ERD generated successfully!');
+                    // Reload the page to get fresh data with updated ERD
+                    router.visit(`/projects/${project.id}/modules/${moduleId}/erd`, {
+                        preserveScroll: true,
+                        only: ['module', 'initialContent'],
+                        onSuccess: () => {
+                            // The useEffect hooks will handle updating the content
+                            toast.success('ERD generated successfully!');
+                        },
+                    });
                 } else {
-                    toast.error(data.message || 'Failed to generate ERD');
+                    const errorMessage = data.message || 'Failed to generate ERD';
+                    setGenerationError(errorMessage);
+                    toast.error(errorMessage);
                 }
             } else {
-                const errorData = await response.json();
-                toast.error(errorData.message || 'Failed to generate ERD. Please try again.');
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.message || 'Failed to generate ERD. Please try again.';
+                setGenerationError(errorMessage);
+                toast.error(errorMessage);
             }
         } catch (error) {
             console.error('Error generating ERD:', error);
-            toast.error('An error occurred while generating the ERD.');
+            const errorMessage = 'An error occurred while generating the ERD.';
+            setGenerationError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsGenerating(false);
         }
@@ -191,7 +196,18 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
             { engineer_notes: prompt },
             {
                 onStart: () => setIsGenerating(true),
-                onSuccess: () => setPrompt(''),
+                onSuccess: () => {
+                    setPrompt('');
+                    // Visit the ERD page again to get fresh data with updated ERD
+                    router.visit(`/projects/${project.id}/modules/${moduleId}/erd`, {
+                        preserveScroll: true,
+                        only: ['module', 'initialContent'],
+                        onSuccess: () => {
+                            // The useEffect hooks will handle updating the content
+                            // from either flash.erd, module.erd, or initialContent
+                        },
+                    });
+                },
                 onError: () => toast.error('Failed to edit ERD. Please try again.'),
                 onFinish: () => setIsGenerating(false),
             },
@@ -228,8 +244,6 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
         }
     };
 
-
-
     const handleSearch = (query: string) => {
         setSearchQuery(query);
     };
@@ -249,25 +263,27 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     };
 
     // Interactive editing handlers
-    const handleNodesChange = useCallback((updatedNodes: Node[]) => {
-        setCurrentNodes(updatedNodes);
-        const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(updatedNodes, currentEdges) 
-            : nodesToDBML(updatedNodes, currentEdges);
-        setContent(newContent);
-        setIsDirty(true);
-    }, [currentEdges, content]);
+    const handleNodesChange = useCallback(
+        (updatedNodes: Node[]) => {
+            setCurrentNodes(updatedNodes);
+            const currentFormat = detectFormat(content);
+            const newContent = currentFormat === 'mermaid' ? nodesToMermaid(updatedNodes, currentEdges) : nodesToDBML(updatedNodes, currentEdges);
+            setContent(newContent);
+            setIsDirty(true);
+        },
+        [currentEdges, content],
+    );
 
-    const handleEdgesChange = useCallback((updatedEdges: Edge[]) => {
-        setCurrentEdges(updatedEdges);
-        const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(currentNodes, updatedEdges) 
-            : nodesToDBML(currentNodes, updatedEdges);
-        setContent(newContent);
-        setIsDirty(true);
-    }, [currentNodes, content]);
+    const handleEdgesChange = useCallback(
+        (updatedEdges: Edge[]) => {
+            setCurrentEdges(updatedEdges);
+            const currentFormat = detectFormat(content);
+            const newContent = currentFormat === 'mermaid' ? nodesToMermaid(currentNodes, updatedEdges) : nodesToDBML(currentNodes, updatedEdges);
+            setContent(newContent);
+            setIsDirty(true);
+        },
+        [currentNodes, content],
+    );
 
     const handleAddTable = (tableName: string, fields: any[]) => {
         const newNode: Node = {
@@ -281,13 +297,13 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
         };
 
         const updatedNodes = [...currentNodes, newNode];
-        
+
         const newEdges: Edge[] = fields
             .filter((f: any) => f.isForeignKey && f.foreignKeyReference)
             .map((f: any) => {
                 const refTable = f.foreignKeyReference.referencedTable;
                 const edgeId = `${tableName}-${refTable}`;
-                
+
                 return {
                     id: edgeId,
                     source: tableName,
@@ -301,16 +317,14 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                     },
                 } as Edge;
             });
-        
+
         const updatedEdges = [...currentEdges, ...newEdges];
-        
+
         setCurrentNodes(updatedNodes);
         setCurrentEdges(updatedEdges);
-        
+
         const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(updatedNodes, updatedEdges) 
-            : nodesToDBML(updatedNodes, updatedEdges);
+        const newContent = currentFormat === 'mermaid' ? nodesToMermaid(updatedNodes, updatedEdges) : nodesToDBML(updatedNodes, updatedEdges);
         setContent(newContent);
         setIsDirty(true);
         toast.success(`Table "${tableName}" added successfully!`);
@@ -355,7 +369,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
             .map((f: any) => {
                 const refTable = f.foreignKeyReference.referencedTable;
                 const edgeId = `${tableName}-${refTable}`;
-                
+
                 return {
                     id: edgeId,
                     source: tableName,
@@ -369,16 +383,14 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                     },
                 } as Edge;
             });
-        
+
         updatedEdges = [...updatedEdges, ...newEdges];
 
         setCurrentNodes(updatedNodes);
         setCurrentEdges(updatedEdges);
-        
+
         const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(updatedNodes, updatedEdges) 
-            : nodesToDBML(updatedNodes, updatedEdges);
+        const newContent = currentFormat === 'mermaid' ? nodesToMermaid(updatedNodes, updatedEdges) : nodesToDBML(updatedNodes, updatedEdges);
         setContent(newContent);
         setIsDirty(true);
         toast.success(`Table updated successfully!`);
@@ -387,14 +399,12 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     const handleDeleteNode = (nodeId: string) => {
         const updatedNodes = currentNodes.filter((node) => node.id !== nodeId);
         const updatedEdges = currentEdges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId);
-        
+
         setCurrentNodes(updatedNodes);
         setCurrentEdges(updatedEdges);
-        
+
         const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(updatedNodes, updatedEdges) 
-            : nodesToDBML(updatedNodes, updatedEdges);
+        const newContent = currentFormat === 'mermaid' ? nodesToMermaid(updatedNodes, updatedEdges) : nodesToDBML(updatedNodes, updatedEdges);
         setContent(newContent);
         setIsDirty(true);
         toast.success(`Table deleted successfully!`);
@@ -415,31 +425,34 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
         setIsResizing(true);
     }, []);
 
-    const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (rafIdRef.current) {
-            cancelAnimationFrame(rafIdRef.current);
-        }
-
-        rafIdRef.current = requestAnimationFrame(() => {
-            const container = document.getElementById('resizable-container');
-            if (!container) return;
-
-            const containerRect = container.getBoundingClientRect();
-            const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-
-            // If dragged below minimum, collapse the editor
-            if (newWidth < MIN_EDITOR_WIDTH) {
-                setIsEditorCollapsed(true);
-                setLeftWidth(DEFAULT_EDITOR_WIDTH); // Reset to default for when reopened
-            } else if (newWidth <= 80) {
-                setLeftWidth(newWidth);
-                // Ensure editor is visible if above minimum
-                if (isEditorCollapsed) {
-                    setIsEditorCollapsed(false);
-                }
+    const handleMouseMove = useCallback(
+        (e: MouseEvent) => {
+            if (rafIdRef.current) {
+                cancelAnimationFrame(rafIdRef.current);
             }
-        });
-    }, [isEditorCollapsed]);
+
+            rafIdRef.current = requestAnimationFrame(() => {
+                const container = document.getElementById('resizable-container');
+                if (!container) return;
+
+                const containerRect = container.getBoundingClientRect();
+                const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+                // If dragged below minimum, collapse the editor
+                if (newWidth < MIN_EDITOR_WIDTH) {
+                    setIsEditorCollapsed(true);
+                    setLeftWidth(DEFAULT_EDITOR_WIDTH); // Reset to default for when reopened
+                } else if (newWidth <= 80) {
+                    setLeftWidth(newWidth);
+                    // Ensure editor is visible if above minimum
+                    if (isEditorCollapsed) {
+                        setIsEditorCollapsed(false);
+                    }
+                }
+            });
+        },
+        [isEditorCollapsed],
+    );
 
     const handleMouseUp = useCallback(() => {
         setIsResizing(false);
@@ -510,9 +523,9 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {module.erd_is_synced === false && (
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
                                                 className="border-amber-500 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
                                                 disabled={isSyncing}
                                                 onClick={() => {
@@ -530,8 +543,8 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                                             },
                                                             onFinish: () => {
                                                                 setIsSyncing(false);
-                                                            }
-                                                        }
+                                                            },
+                                                        },
                                                     );
                                                 }}
                                             >
@@ -559,7 +572,10 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                             </div>
                         )}
 
-                        <div id="resizable-container" className={`relative flex min-h-0 flex-1 overflow-hidden ${isResizing ? 'select-none cursor-col-resize [&_*]:cursor-col-resize' : ''}`}>
+                        <div
+                            id="resizable-container"
+                            className={`relative flex min-h-0 flex-1 overflow-hidden ${isResizing ? 'cursor-col-resize select-none [&_*]:cursor-col-resize' : ''}`}
+                        >
                             {/* Toggle Editor Button - Positioned dynamically based on editor state */}
                             {!isFullScreen && (
                                 <Button
@@ -567,9 +583,9 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                     size="sm"
                                     onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
                                     className="absolute top-1/2 z-30 h-12 w-6 -translate-y-1/2 rounded-l-none rounded-r-md border border-border bg-background/95 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-muted hover:shadow-lg"
-                                    style={{ 
+                                    style={{
                                         left: isEditorCollapsed ? '0px' : `calc(${leftWidth}% + 4px)`,
-                                        pointerEvents: isResizing ? 'none' : 'auto'
+                                        pointerEvents: isResizing ? 'none' : 'auto',
                                     }}
                                     title={isEditorCollapsed ? 'Show Editor Panel' : 'Hide Editor Panel'}
                                 >
@@ -581,7 +597,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                             {/* Collapsible Left Panel - Editor */}
                             {!isFullScreen && (
                                 <div
-                                    className={`flex min-h-0 min-w-0 flex-col bg-card/30 transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0 overflow-hidden' : 'opacity-100'}`}
+                                    className={`flex min-h-0 min-w-0 flex-col bg-card/30 transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 overflow-hidden opacity-0' : 'opacity-100'}`}
                                     style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
                                 >
                                     <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 py-2">
@@ -619,7 +635,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
 
                                     {/* Error Panel - Placed at top for visibility */}
                                     {error && (
-                                        <div className="shrink-0 mx-3 mt-3 rounded-lg border-l-4 border-destructive bg-destructive/10 p-3">
+                                        <div className="mx-3 mt-3 shrink-0 rounded-lg border-l-4 border-destructive bg-destructive/10 p-3">
                                             <p className="text-sm text-destructive-foreground">
                                                 <strong>Parse Error:</strong> {error}
                                             </p>
@@ -627,8 +643,8 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                     )}
 
                                     {/* Editor Content Area */}
-                                    <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden">
-                                        <div className="flex-1 min-h-0 overflow-hidden pb-28">
+                                    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+                                        <div className="min-h-0 flex-1 overflow-hidden pb-28">
                                             <EditorPanel
                                                 value={content}
                                                 onChange={(val) => {
@@ -643,13 +659,13 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                         <div className="absolute right-3 bottom-3 left-3 z-50 rounded-xl border border-border/80 bg-background/98 p-4 shadow-2xl backdrop-blur-lg transition-all duration-200">
                                             <div className="flex items-center gap-3">
                                                 <div className="relative flex-1">
-                                                    <Sparkles className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                                    <Sparkles className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                                     <Input
                                                         type="text"
                                                         placeholder="Describe changes to your schema..."
                                                         value={prompt}
                                                         onChange={(e) => setPrompt(e.target.value)}
-                                                        className="pl-10 pr-4"
+                                                        className="pr-4 pl-10"
                                                         onKeyDown={(e) => {
                                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                                 e.preventDefault();
@@ -662,16 +678,14 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                                     onClick={handleGenerate}
                                                     disabled={!prompt.trim() || isGenerating}
                                                     size="sm"
-                                                    className="bg-primary px-4 text-primary-foreground shadow-sm hover:shadow-md transition-shadow"
+                                                    className="bg-primary px-4 text-primary-foreground shadow-sm transition-shadow hover:shadow-md"
                                                 >
-                                                    {isGenerating ? (
-                                                        <TextShimmer className="text-white">Generating...</TextShimmer>
-                                                    ) : (
-                                                        'Generate'
-                                                    )}
+                                                    {isGenerating ? <TextShimmer className="text-white">Generating...</TextShimmer> : 'Generate'}
                                                 </Button>
                                             </div>
-                                            <p className="mt-2 text-xs text-muted-foreground/80">Press Enter to generate • AI will update your schema based on your description</p>
+                                            <p className="mt-2 text-xs text-muted-foreground/80">
+                                                Press Enter to generate • AI will update your schema based on your description
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -679,14 +693,14 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
 
                             {/* Resize Handle */}
                             {!isFullScreen && !isEditorCollapsed && (
-                                <div 
-                                    className="group relative w-1.5 cursor-col-resize bg-border/50 hover:bg-primary/60 active:bg-primary transition-colors"
+                                <div
+                                    className="group relative w-1.5 cursor-col-resize bg-border/50 transition-colors hover:bg-primary/60 active:bg-primary"
                                     onMouseDown={handleMouseDown}
                                 >
                                     {/* Larger hit area for easier grabbing */}
-                                    <div className="absolute inset-y-0 -left-2 -right-2 z-10" />
+                                    <div className="absolute inset-y-0 -right-2 -left-2 z-10" />
                                     {/* Visual indicator */}
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
                                         <div className="flex h-16 w-2 items-center justify-center rounded-full bg-primary/30 backdrop-blur-sm">
                                             <div className="h-10 w-1 rounded-full bg-primary shadow-sm"></div>
                                         </div>
@@ -720,6 +734,41 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                                 <p className="mt-4 text-sm text-muted-foreground">Please wait while we create your ERD diagram</p>
                                             </div>
                                         </div>
+                                    ) : generationError ? (
+                                        <div className="flex h-full items-center justify-center bg-muted/10">
+                                            <div className="max-w-md text-center">
+                                                <div className="mb-4 text-destructive">
+                                                    <svg
+                                                        className="mx-auto h-16 w-16 opacity-50"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={1.5}
+                                                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                                                        />
+                                                    </svg>
+                                                </div>
+                                                <h3 className="mb-2 text-xl font-semibold text-foreground">Generation Failed</h3>
+                                                <p className="mb-6 text-sm text-muted-foreground">{generationError}</p>
+                                                <Button
+                                                    onClick={() => {
+                                                        if (!moduleId) {
+                                                            toast.error('Module not found for generate route.');
+                                                            return;
+                                                        }
+                                                        router.post(`/projects/${project.id}/modules/${moduleId}/erd/generate`);
+                                                    }}
+                                                    className="bg-primary text-primary-foreground"
+                                                >
+                                                    <Sparkles className="mr-2 h-4 w-4" />
+                                                    Regenerate ERD
+                                                </Button>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <DiagramCanvas
                                             ref={canvasRef}
@@ -740,12 +789,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                         </div>
 
                         {/* Add Table Dialog */}
-                        <AddTableDialog
-                            open={isAddTableOpen}
-                            onOpenChange={setIsAddTableOpen}
-                            onAdd={handleAddTable}
-                            existingTables={currentNodes}
-                        />
+                        <AddTableDialog open={isAddTableOpen} onOpenChange={setIsAddTableOpen} onAdd={handleAddTable} existingTables={currentNodes} />
 
                         {/* Edit Table Dialog */}
                         {editingNode && (

@@ -2,15 +2,15 @@ import FeatureSidebar from '@/components/Features/FeatureSidebar';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Toaster } from '@/components/ui/sonner';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant, Edge, Node } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData } from '@/types';
 
 import AddTableDialog from '@/components/database-designer/AddTableDialog';
 import DiagramCanvas from '@/components/database-designer/DiagramCanvas';
@@ -18,7 +18,6 @@ import DiagramControls from '@/components/database-designer/DiagramControls';
 import EditTableDialog from '@/components/database-designer/EditTableDialog';
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import FormatSelector from '@/components/database-designer/FormatSelector';
-import Toolbar from '@/components/database-designer/Toolbar';
 import { useDBMLParser } from '@/hooks/useDBMLParser';
 import { nodesToDBML, nodesToMermaid } from '@/utils/dbmlConverter';
 import { exportAsSQL } from '@/utils/exportUtils';
@@ -204,6 +203,14 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
         }
     }, [initialContent]);
 
+    // Sync editor content when feature datamodel is updated (e.g., after AI edit)
+    useEffect(() => {
+        if (feature?.datamodel && typeof feature.datamodel === 'string' && feature.datamodel.trim()) {
+            setContent(feature.datamodel);
+            setIsDirty(false);
+        }
+    }, [feature?.datamodel]);
+
     // Sync editor content when AI edit returns new ERD via flash
     useEffect(() => {
         if (shared.flash?.erd && typeof shared.flash.erd === 'string') {
@@ -211,7 +218,6 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
             setIsDirty(false);
         }
     }, [shared.flash?.erd]);
-
 
     // Theme toggle removed - use navbar theme toggle instead
 
@@ -236,13 +242,23 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
             { engineer_notes: prompt },
             {
                 onStart: () => setIsGenerating(true),
-                onSuccess: () => setPrompt(''),
+                onSuccess: (page) => {
+                    setPrompt('');
+                    // Visit the datamodel page again to get fresh data with updated ERD
+                    router.visit(`/features/${featureId}/datamodel`, {
+                        preserveScroll: true,
+                        only: ['feature', 'initialContent'],
+                        onSuccess: () => {
+                            // The useEffect hooks will handle updating the content
+                            // from either flash.erd, feature.datamodel, or initialContent
+                        },
+                    });
+                },
                 onError: () => toast.error('Failed to edit ERD. Please try again.'),
                 onFinish: () => setIsGenerating(false),
             },
         );
     };
-
 
     const handleExportMermaid = () => {
         try {
@@ -314,27 +330,29 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
     };
 
     // Interactive editing handlers
-    const handleNodesChange = useCallback((updatedNodes: Node[]) => {
-        setCurrentNodes(updatedNodes);
-        // Convert nodes back to current format and update content
-        const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(updatedNodes, currentEdges) 
-            : nodesToDBML(updatedNodes, currentEdges);
-        setContent(newContent);
-        setIsDirty(true);
-    }, [currentEdges, content]);
+    const handleNodesChange = useCallback(
+        (updatedNodes: Node[]) => {
+            setCurrentNodes(updatedNodes);
+            // Convert nodes back to current format and update content
+            const currentFormat = detectFormat(content);
+            const newContent = currentFormat === 'mermaid' ? nodesToMermaid(updatedNodes, currentEdges) : nodesToDBML(updatedNodes, currentEdges);
+            setContent(newContent);
+            setIsDirty(true);
+        },
+        [currentEdges, content],
+    );
 
-    const handleEdgesChange = useCallback((updatedEdges: Edge[]) => {
-        setCurrentEdges(updatedEdges);
-        // Convert nodes back to current format and update content
-        const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(currentNodes, updatedEdges) 
-            : nodesToDBML(currentNodes, updatedEdges);
-        setContent(newContent);
-        setIsDirty(true);
-    }, [currentNodes, content]);
+    const handleEdgesChange = useCallback(
+        (updatedEdges: Edge[]) => {
+            setCurrentEdges(updatedEdges);
+            // Convert nodes back to current format and update content
+            const currentFormat = detectFormat(content);
+            const newContent = currentFormat === 'mermaid' ? nodesToMermaid(currentNodes, updatedEdges) : nodesToDBML(currentNodes, updatedEdges);
+            setContent(newContent);
+            setIsDirty(true);
+        },
+        [currentNodes, content],
+    );
 
     const handleAddTable = (tableName: string, fields: any[]) => {
         const newNode: Node = {
@@ -348,14 +366,14 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
         };
 
         const updatedNodes = [...currentNodes, newNode];
-        
+
         // Create edges for FK fields with references
         const newEdges: Edge[] = fields
             .filter((f: any) => f.isForeignKey && f.foreignKeyReference)
             .map((f: any) => {
                 const refTable = f.foreignKeyReference.referencedTable;
                 const edgeId = `${tableName}-${refTable}`;
-                
+
                 return {
                     id: edgeId,
                     source: tableName,
@@ -369,17 +387,15 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                     },
                 } as Edge;
             });
-        
+
         const updatedEdges = [...currentEdges, ...newEdges];
-        
+
         setCurrentNodes(updatedNodes);
         setCurrentEdges(updatedEdges);
-        
+
         // Convert to current format and update content
         const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(updatedNodes, updatedEdges) 
-            : nodesToDBML(updatedNodes, updatedEdges);
+        const newContent = currentFormat === 'mermaid' ? nodesToMermaid(updatedNodes, updatedEdges) : nodesToDBML(updatedNodes, updatedEdges);
         setContent(newContent);
         setIsDirty(true);
         toast.success(`Table "${tableName}" added successfully!`);
@@ -427,7 +443,7 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
             .map((f: any) => {
                 const refTable = f.foreignKeyReference.referencedTable;
                 const edgeId = `${tableName}-${refTable}`;
-                
+
                 return {
                     id: edgeId,
                     source: tableName,
@@ -441,17 +457,15 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                     },
                 } as Edge;
             });
-        
+
         updatedEdges = [...updatedEdges, ...newEdges];
 
         setCurrentNodes(updatedNodes);
         setCurrentEdges(updatedEdges);
-        
+
         // Convert to current format and update content
         const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(updatedNodes, updatedEdges) 
-            : nodesToDBML(updatedNodes, updatedEdges);
+        const newContent = currentFormat === 'mermaid' ? nodesToMermaid(updatedNodes, updatedEdges) : nodesToDBML(updatedNodes, updatedEdges);
         setContent(newContent);
         setIsDirty(true);
         toast.success(`Table updated successfully!`);
@@ -460,15 +474,13 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
     const handleDeleteNode = (nodeId: string) => {
         const updatedNodes = currentNodes.filter((node) => node.id !== nodeId);
         const updatedEdges = currentEdges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId);
-        
+
         setCurrentNodes(updatedNodes);
         setCurrentEdges(updatedEdges);
-        
+
         // Convert to current format and update content
         const currentFormat = detectFormat(content);
-        const newContent = currentFormat === 'mermaid' 
-            ? nodesToMermaid(updatedNodes, updatedEdges) 
-            : nodesToDBML(updatedNodes, updatedEdges);
+        const newContent = currentFormat === 'mermaid' ? nodesToMermaid(updatedNodes, updatedEdges) : nodesToDBML(updatedNodes, updatedEdges);
         setContent(newContent);
         setIsDirty(true);
         toast.success(`Table deleted successfully!`);
@@ -532,13 +544,13 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
     const breadcrumbs = [
         { title: 'Projects', href: '/projects' },
         { title: project.name, href: `/projects/${project.id}` },
-        ...(feature?.module ? [
-            { title: 'Modules', href: `/projects/${project.id}/modules` },
-            { title: feature.module.name, href: `/projects/${project.id}/modules/${feature.module.id}` },
-            { title: feature.name, href: `/projects/${project.id}/modules/${feature.module.id}/features/${feature.id}` },
-        ] : [
-            { title: feature?.name || 'Feature', href: '#' },
-        ]),
+        ...(feature?.module
+            ? [
+                  { title: 'Modules', href: `/projects/${project.id}/modules` },
+                  { title: feature.module.name, href: `/projects/${project.id}/modules/${feature.module.id}` },
+                  { title: feature.name, href: `/projects/${project.id}/modules/${feature.module.id}/features/${feature.id}` },
+              ]
+            : [{ title: feature?.name || 'Feature', href: '#' }]),
         { title: 'Database Designer', href: `/features/${feature?.id}/datamodel` },
     ];
 
@@ -593,193 +605,189 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                             </div>
                         )}
 
-                <div id="resizable-container" className={`relative flex min-h-0 flex-1 overflow-hidden ${isResizing ? 'select-none cursor-col-resize' : ''}`}>
-                    {/* Toggle Editor Button - Positioned dynamically based on editor state */}
-                    {!isFullScreen && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
-                            className="absolute top-1/2 z-30 h-12 w-6 -translate-y-1/2 rounded-l-none rounded-r-md border border-border bg-background/95 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-muted hover:shadow-lg"
-                            style={{ 
-                                left: isEditorCollapsed ? '0px' : `calc(${leftWidth}% + 4px)`,
-                                pointerEvents: isResizing ? 'none' : 'auto'
-                            }}
-                            title={isEditorCollapsed ? 'Show Editor Panel' : 'Hide Editor Panel'}
-                        >
-                            {isEditorCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-                            <span className="sr-only">{isEditorCollapsed ? 'Show Editor Panel' : 'Hide Editor Panel'}</span>
-                        </Button>
-                    )}
-
-                    {/* Collapsible Left Panel - Editor */}
-                    {!isFullScreen && (
                         <div
-                            className={`flex min-h-0 min-w-0 flex-col bg-card/30 transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0 overflow-hidden' : 'opacity-100'}`}
-                            style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
+                            id="resizable-container"
+                            className={`relative flex min-h-0 flex-1 overflow-hidden ${isResizing ? 'cursor-col-resize select-none' : ''}`}
                         >
-                            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 py-2">
-                                <FormatSelector content={content} onConvert={handleConvert} isConverting={isConverting} />
+                            {/* Toggle Editor Button - Positioned dynamically based on editor state */}
+                            {!isFullScreen && (
                                 <Button
-                                    variant="default"
+                                    variant="ghost"
                                     size="sm"
-                                    disabled={isSaving || !isDirty}
-                                    className="mr-3 shrink-0"
-                                    onClick={() => {
-                                        if (!featureId) {
-                                            toast.error('Feature not found for save route.');
-                                            return;
-                                        }
-                                        setIsSaving(true);
-                                        router.post(
-                                            `/features/${featureId}/datamodel/edit`,
-                                            { datamodel: content },
-                                            {
-                                                onSuccess: () => {
-                                                    setIsDirty(false);
-                                                    toast.success('Datamodel saved successfully!');
-                                                },
-                                                onError: () => {
-                                                    toast.error('Failed to save datamodel. Please try again.');
-                                                },
-                                                onFinish: () => setIsSaving(false),
-                                            },
-                                        );
+                                    onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
+                                    className="absolute top-1/2 z-30 h-12 w-6 -translate-y-1/2 rounded-l-none rounded-r-md border border-border bg-background/95 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-muted hover:shadow-lg"
+                                    style={{
+                                        left: isEditorCollapsed ? '0px' : `calc(${leftWidth}% + 4px)`,
+                                        pointerEvents: isResizing ? 'none' : 'auto',
                                     }}
+                                    title={isEditorCollapsed ? 'Show Editor Panel' : 'Hide Editor Panel'}
                                 >
-                                    {isSaving ? <TextShimmer>Saving...</TextShimmer> : 'Save'}
+                                    {isEditorCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                                    <span className="sr-only">{isEditorCollapsed ? 'Show Editor Panel' : 'Hide Editor Panel'}</span>
                                 </Button>
-                            </div>
-
-                            {/* Error Panel - Placed at top for visibility */}
-                            {error && (
-                                <div className="shrink-0 mx-3 mt-3 rounded-lg border-l-4 border-destructive bg-destructive/10 p-3">
-                                    <p className="text-sm text-destructive-foreground">
-                                        <strong>Parse Error:</strong> {error}
-                                    </p>
-                                </div>
                             )}
 
-                            {/* Editor Content Area */}
-                            <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden">
-                                <div className="flex-1 min-h-0 overflow-hidden pb-28">
-                                    <EditorPanel
-                                        value={content}
-                                        onChange={(val) => {
-                                            setContent(val);
-                                            setIsDirty(true);
-                                        }}
-                                        isResizing={isResizing}
-                                    />
-                                </div>
-
-                                {/* AI Prompt Panel - Fixed at bottom */}
-                                <div className="absolute right-3 bottom-3 left-3 z-50 rounded-xl border border-border/80 bg-background/98 p-4 shadow-2xl backdrop-blur-lg transition-all duration-200">
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative flex-1">
-                                            <Sparkles className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                            <Input
-                                                type="text"
-                                                placeholder="Describe changes to your schema..."
-                                                value={prompt}
-                                                onChange={(e) => setPrompt(e.target.value)}
-                                                className="pl-10 pr-4"
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                                        e.preventDefault();
-                                                        handleGenerate();
-                                                    }
-                                                }}
-                                            />
-                                        </div>
+                            {/* Collapsible Left Panel - Editor */}
+                            {!isFullScreen && (
+                                <div
+                                    className={`flex min-h-0 min-w-0 flex-col bg-card/30 transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 overflow-hidden opacity-0' : 'opacity-100'}`}
+                                    style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
+                                >
+                                    <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 py-2">
+                                        <FormatSelector content={content} onConvert={handleConvert} isConverting={isConverting} />
                                         <Button
-                                            onClick={handleGenerate}
-                                            disabled={!prompt.trim() || isGenerating}
+                                            variant="default"
                                             size="sm"
-                                            className="bg-primary px-4 text-primary-foreground shadow-sm hover:shadow-md transition-shadow"
+                                            disabled={isSaving || !isDirty}
+                                            className="mr-3 shrink-0"
+                                            onClick={() => {
+                                                if (!featureId) {
+                                                    toast.error('Feature not found for save route.');
+                                                    return;
+                                                }
+                                                setIsSaving(true);
+                                                router.post(
+                                                    `/features/${featureId}/datamodel/edit`,
+                                                    { datamodel: content },
+                                                    {
+                                                        onSuccess: () => {
+                                                            setIsDirty(false);
+                                                            toast.success('Datamodel saved successfully!');
+                                                        },
+                                                        onError: () => {
+                                                            toast.error('Failed to save datamodel. Please try again.');
+                                                        },
+                                                        onFinish: () => setIsSaving(false),
+                                                    },
+                                                );
+                                            }}
                                         >
-                                            {isGenerating ? (
-                                                <TextShimmer className="text-white">Generating...</TextShimmer>
-                                            ) : (
-                                                'Generate'
-                                            )}
+                                            {isSaving ? <TextShimmer>Saving...</TextShimmer> : 'Save'}
                                         </Button>
                                     </div>
-                                    <p className="mt-2 text-xs text-muted-foreground/80">Press Enter to generate • AI will update your schema based on your description</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Resize Handle */}
-                    {!isFullScreen && !isEditorCollapsed && (
-                        <div 
-                            className="group relative w-1.5 cursor-col-resize bg-border/50 hover:bg-primary/60 active:bg-primary transition-colors"
-                            onMouseDown={handleMouseDown}
-                        >
-                            {/* Larger hit area for easier grabbing */}
-                            <div className="absolute inset-y-0 -left-2 -right-2 z-10" />
-                            {/* Visual indicator */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                <div className="flex h-16 w-2 items-center justify-center rounded-full bg-primary/30 backdrop-blur-sm">
-                                    <div className="h-10 w-1 rounded-full bg-primary shadow-sm"></div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                                    {/* Error Panel - Placed at top for visibility */}
+                                    {error && (
+                                        <div className="mx-3 mt-3 shrink-0 rounded-lg border-l-4 border-destructive bg-destructive/10 p-3">
+                                            <p className="text-sm text-destructive-foreground">
+                                                <strong>Parse Error:</strong> {error}
+                                            </p>
+                                        </div>
+                                    )}
 
-                    {/* Right Panel - Diagram */}
-                    <div
-                        className={`relative flex min-h-0 min-w-0 flex-col transition-all duration-300 ease-in-out ${isFullScreen ? 'w-full border-l-0' : isEditorCollapsed ? 'w-full border-l-0' : 'border-l-0'}`}
-                        style={{ width: isFullScreen || isEditorCollapsed ? '100%' : `${100 - leftWidth}%` }}
-                    >
-                        {/* Diagram Controls - Always visible */}
-                        <DiagramControls
-                            onSearch={handleSearch}
-                            onArrange={handleArrange}
-                            onBackgroundChange={handleBackgroundChange}
-                            onAddTable={() => setIsAddTableOpen(true)}
-                            onToggleEditor={() => setIsEditorCollapsed(!isEditorCollapsed)}
-                            onToggleFullScreen={toggleFullScreen}
-                            searchQuery={searchQuery}
-                            isEditorCollapsed={isEditorCollapsed}
-                            isFullScreen={isFullScreen}
-                        />
+                                    {/* Editor Content Area */}
+                                    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+                                        <div className="min-h-0 flex-1 overflow-hidden pb-28">
+                                            <EditorPanel
+                                                value={content}
+                                                onChange={(val) => {
+                                                    setContent(val);
+                                                    setIsDirty(true);
+                                                }}
+                                                isResizing={isResizing}
+                                            />
+                                        </div>
 
-                        <div className="min-h-0 flex-1">
-                            {isGenerating ? (
-                                <div className="flex h-full items-center justify-center bg-muted/10">
-                                    <div className="text-center">
-                                        <TextShimmer className="text-2xl font-semibold">Generating Database Schema...</TextShimmer>
-                                        <p className="mt-4 text-sm text-muted-foreground">Please wait while we create your ERD diagram</p>
+                                        {/* AI Prompt Panel - Fixed at bottom */}
+                                        <div className="absolute right-3 bottom-3 left-3 z-50 rounded-xl border border-border/80 bg-background/98 p-4 shadow-2xl backdrop-blur-lg transition-all duration-200">
+                                            <div className="flex items-center gap-3">
+                                                <div className="relative flex-1">
+                                                    <Sparkles className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="Describe changes to your schema..."
+                                                        value={prompt}
+                                                        onChange={(e) => setPrompt(e.target.value)}
+                                                        className="pr-4 pl-10"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                                e.preventDefault();
+                                                                handleGenerate();
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                                <Button
+                                                    onClick={handleGenerate}
+                                                    disabled={!prompt.trim() || isGenerating}
+                                                    size="sm"
+                                                    className="bg-primary px-4 text-primary-foreground shadow-sm transition-shadow hover:shadow-md"
+                                                >
+                                                    {isGenerating ? <TextShimmer className="text-white">Generating...</TextShimmer> : 'Generate'}
+                                                </Button>
+                                            </div>
+                                            <p className="mt-2 text-xs text-muted-foreground/80">
+                                                Press Enter to generate • AI will update your schema based on your description
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            ) : (
-                                <DiagramCanvas
-                                    ref={canvasRef}
-                                    nodes={nodes}
-                                    edges={edges}
-                                    onNodesChange={handleNodesChange}
-                                    onEdgesChange={handleEdgesChange}
-                                    onNodeEdit={handleEditNode}
-                                    onNodeDelete={handleDeleteNode}
-                                    searchQuery={searchQuery}
-                                    backgroundVariant={backgroundVariant}
-                                    backgroundOptions={backgroundOptions}
-                                    layoutTrigger={layoutTrigger}
-                                />
                             )}
+
+                            {/* Resize Handle */}
+                            {!isFullScreen && !isEditorCollapsed && (
+                                <div
+                                    className="group relative w-1.5 cursor-col-resize bg-border/50 transition-colors hover:bg-primary/60 active:bg-primary"
+                                    onMouseDown={handleMouseDown}
+                                >
+                                    {/* Larger hit area for easier grabbing */}
+                                    <div className="absolute inset-y-0 -right-2 -left-2 z-10" />
+                                    {/* Visual indicator */}
+                                    <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+                                        <div className="flex h-16 w-2 items-center justify-center rounded-full bg-primary/30 backdrop-blur-sm">
+                                            <div className="h-10 w-1 rounded-full bg-primary shadow-sm"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Right Panel - Diagram */}
+                            <div
+                                className={`relative flex min-h-0 min-w-0 flex-col transition-all duration-300 ease-in-out ${isFullScreen ? 'w-full border-l-0' : isEditorCollapsed ? 'w-full border-l-0' : 'border-l-0'}`}
+                                style={{ width: isFullScreen || isEditorCollapsed ? '100%' : `${100 - leftWidth}%` }}
+                            >
+                                {/* Diagram Controls - Always visible */}
+                                <DiagramControls
+                                    onSearch={handleSearch}
+                                    onArrange={handleArrange}
+                                    onBackgroundChange={handleBackgroundChange}
+                                    onAddTable={() => setIsAddTableOpen(true)}
+                                    onToggleEditor={() => setIsEditorCollapsed(!isEditorCollapsed)}
+                                    onToggleFullScreen={toggleFullScreen}
+                                    searchQuery={searchQuery}
+                                    isEditorCollapsed={isEditorCollapsed}
+                                    isFullScreen={isFullScreen}
+                                />
+
+                                <div className="min-h-0 flex-1">
+                                    {isGenerating ? (
+                                        <div className="flex h-full items-center justify-center bg-muted/10">
+                                            <div className="text-center">
+                                                <TextShimmer className="text-2xl font-semibold">Generating Database Schema...</TextShimmer>
+                                                <p className="mt-4 text-sm text-muted-foreground">Please wait while we create your ERD diagram</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <DiagramCanvas
+                                            ref={canvasRef}
+                                            nodes={nodes}
+                                            edges={edges}
+                                            onNodesChange={handleNodesChange}
+                                            onEdgesChange={handleEdgesChange}
+                                            onNodeEdit={handleEditNode}
+                                            onNodeDelete={handleDeleteNode}
+                                            searchQuery={searchQuery}
+                                            backgroundVariant={backgroundVariant}
+                                            backgroundOptions={backgroundOptions}
+                                            layoutTrigger={layoutTrigger}
+                                        />
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
                         {/* Add Table Dialog */}
-                        <AddTableDialog
-                            open={isAddTableOpen}
-                            onOpenChange={setIsAddTableOpen}
-                            onAdd={handleAddTable}
-                            existingTables={currentNodes}
-                        />
+                        <AddTableDialog open={isAddTableOpen} onOpenChange={setIsAddTableOpen} onAdd={handleAddTable} existingTables={currentNodes} />
 
                         {/* Edit Table Dialog */}
                         {editingNode && (
