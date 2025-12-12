@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('module_id')->constrained()->onDelete('cascade');
             $table->string('name');
+            $table->longText('summary')->nullable();
             $table->longText('description')->nullable();
             $table->longText('acceptance_criteria')->nullable();
             $table->string('user_flows')->nullable();
