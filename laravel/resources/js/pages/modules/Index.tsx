@@ -1,3 +1,13 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateModuleModal from '@/components/Modules/CreateModuleModal';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
@@ -15,6 +25,7 @@ import {
     ClockIcon,
     Layers,
     Plus,
+    Trash2,
     TrendingUp,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -61,6 +72,26 @@ export default function ModulesIndex({ project, modules }: Props) {
     const { auth } = shared;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isCreateModuleModalOpen, setIsCreateModuleModalOpen] = useState(false);
+    const [moduleToDelete, setModuleToDelete] = useState<ModuleItem | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDeleteClick = (e: React.MouseEvent, module: ModuleItem) => {
+        e.stopPropagation();
+        setModuleToDelete(module);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!moduleToDelete) return;
+        
+        setIsDeleting(true);
+        router.delete(`/projects/${project.id}/modules/${moduleToDelete.id}`, {
+            preserveScroll: true,
+            onFinish: () => {
+                setIsDeleting(false);
+                setModuleToDelete(null);
+            },
+        });
+    };
 
     const breadcrumbs = [
         { title: 'Projects', href: '/projects' },
@@ -313,14 +344,25 @@ export default function ModulesIndex({ project, modules }: Props) {
                                                     </div>
                                                 </div>
 
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <Badge className={`border text-xs font-medium ${getStatusColor(module.status)}`}>
-                                                        {getStatusIcon(module.status)}
-                                                        <span className="ml-1">{formatStatus(module.status)}</span>
-                                                    </Badge>
-                                                    <Badge variant="outline" className="text-xs">
-                                                        #{module.order_of_implementation}
-                                                    </Badge>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <Badge className={`border text-xs font-medium ${getStatusColor(module.status)}`}>
+                                                            {getStatusIcon(module.status)}
+                                                            <span className="ml-1">{formatStatus(module.status)}</span>
+                                                        </Badge>
+                                                        <Badge variant="outline" className="text-xs">
+                                                            #{module.order_of_implementation}
+                                                        </Badge>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                        onClick={(e) => handleDeleteClick(e, module)}
+                                                        disabled={isDeleting && moduleToDelete?.id === module.id}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -333,6 +375,28 @@ export default function ModulesIndex({ project, modules }: Props) {
                     </main>
                 </div>
             </div>
+
+            <AlertDialog open={!!moduleToDelete} onOpenChange={(open) => !open && setModuleToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Module</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete <span className="font-semibold">"{moduleToDelete?.name}"</span>? 
+                            This will also delete all features associated with this module. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleConfirmDelete}
+                            disabled={isDeleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <CreateModuleModal
                 open={isCreateModuleModalOpen}

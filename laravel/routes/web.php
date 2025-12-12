@@ -129,6 +129,7 @@ Route::middleware(['auth', 'share.project'])->group(function () {
     Route::post('/modules/regenerate/{project}', [ModuleController::class, 'regenerateSuggestionModules'])->name('modules.regenerate');
     Route::get('/projects/{project}/modules/{module}', [ModuleController::class, 'show'])->name('modules.show');
     Route::put('/projects/{project}/modules/{module}/update', [ModuleController::class, 'update'])->name('modules.update');
+    Route::delete('/projects/{project}/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.destroy');
 
     // Module ERD routes
     Route::get('/projects/{project}/modules/{module}/erd', [ModuleERDController::class, 'show'])->name('modules.erd.show');

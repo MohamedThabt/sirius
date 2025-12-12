@@ -388,6 +388,41 @@ class ModuleController extends Controller
     }
 
     /**
+     * Delete a specific module.
+     *
+     * @param Project $project
+     * @param Module $module
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(Project $project, Module $module)
+    {
+        try {
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to delete this module.');
+            }
+
+            // Ensure the module belongs to the project
+            if ($module->project_id !== $project->id) {
+                return back()->with('error', 'Module does not belong to this project.');
+            }
+
+            $moduleName = $module->name;
+            $module->delete();
+
+            // Mark PRD as unsynced since modules changed
+            if ($project->prd !== null) {
+                $project->update(['prd_is_synced' => false]);
+            }
+
+            return back()->with('success', "Module '{$moduleName}' deleted successfully!");
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'destroy', 'module_id' => $module->id]);
+
+            return back()->with('error', 'Failed to delete module. Please try again.');
+        }
+    }
+
+    /**
      * Create a single module for a project using AI enrichment.
      *
      * @param Request $request
