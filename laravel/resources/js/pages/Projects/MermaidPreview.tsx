@@ -51,6 +51,20 @@ interface Props {
     sections?: Sections;
 }
 
+// Utility function to sanitize Mermaid node labels
+// Escapes parentheses inside square bracket labels to prevent parse errors
+const sanitizeMermaidLabels = (code: string): string => {
+    // Match content inside square brackets [...] and escape parentheses
+    // This handles node labels like A[Transaction Status (Refund/Void)]
+    return code.replace(/\[([^\]]*)\]/g, (match, content) => {
+        // Replace parentheses with HTML entities inside labels
+        const sanitized = content
+            .replace(/\(/g, '&#40;')
+            .replace(/\)/g, '&#41;');
+        return `[${sanitized}]`;
+    });
+};
+
 // Utility function to convert escaped Mermaid strings
 const convertEscapedMermaid = (escapedString: string): string => {
     // Remove markdown code block markers
@@ -59,11 +73,14 @@ const convertEscapedMermaid = (escapedString: string): string => {
     // Convert escaped newlines to actual newlines
     cleaned = cleaned.replace(/\\n/g, '\n');
 
-    // Clean up any remaining escape characters
-    cleaned = cleaned.replace(/\\/g, '');
+    // Clean up any remaining escape characters (except those needed for Mermaid)
+    cleaned = cleaned.replace(/\\(?![()\[\]])/g, '');
 
     // Remove any leading/trailing whitespace
     cleaned = cleaned.trim();
+
+    // Sanitize labels to escape problematic characters
+    cleaned = sanitizeMermaidLabels(cleaned);
 
     return cleaned;
 };
