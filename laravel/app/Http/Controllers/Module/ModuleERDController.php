@@ -36,6 +36,9 @@ class ModuleERDController extends Controller
                 return back()->with('error', 'You are not authorized to access this module.');
             }
 
+            // Refresh module to ensure we have the latest data
+            $module->refresh();
+
             // ERD existence check
             if (!is_string($module->erd) || $module->erd === '') {
                 return back()->with('error', 'ERD not found for this module. Please generate one first.');
@@ -77,10 +80,9 @@ class ModuleERDController extends Controller
             }
 
             // Store module data in session for async generation
-            session([
-                'pending_module_erd_generation' => [
-                    'module_id' => $module->id,
-                ]
+            // Use put() to ensure the session is set before the response is sent
+            session()->put('pending_module_erd_generation', [
+                'module_id' => $module->id,
             ]);
 
             return Inertia::render('modules/DatabaseDesigner', [
@@ -202,6 +204,9 @@ class ModuleERDController extends Controller
                 $module->save();
             });
 
+            // Refresh the module to ensure we have the latest data
+            $module->refresh();
+
             // Clear pending session data
             session()->forget('pending_module_erd_generation');
 
@@ -299,6 +304,9 @@ class ModuleERDController extends Controller
                 $module->erd_is_synced = true;
                 $module->save();
             });
+
+            // Refresh the module to ensure we have the latest data
+            $module->refresh();
 
             return back()->with([
                 'success' => 'ERD updated successfully using AI suggestions.',

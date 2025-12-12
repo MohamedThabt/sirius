@@ -23,66 +23,74 @@ const EditorPanel = React.memo(({ value, onChange, onMount, readOnly = false, is
     };
 
     const handleEditorDidMount = (editor: any, monaco: any) => {
-        // Configure DBML language highlighting
-        monaco.languages.register({ id: 'dbml' });
-        monaco.languages.register({ id: 'mermaid' });
+        try {
+            // Configure DBML language highlighting
+            if (!monaco.languages.getLanguages().some((lang: any) => lang.id === 'dbml')) {
+                monaco.languages.register({ id: 'dbml' });
+            }
+            if (!monaco.languages.getLanguages().some((lang: any) => lang.id === 'mermaid')) {
+                monaco.languages.register({ id: 'mermaid' });
+            }
 
-        monaco.languages.setMonarchTokensProvider('dbml', {
-            tokenizer: {
-                root: [
-                    [/\/\/.*$/, 'comment'],
-                    [/\/\*/, 'comment', '@comment'],
-                    [/\b(Table|Ref|Enum|Project|TableGroup|Note)\b/, 'keyword'],
-                    [
-                        /\b(varchar|integer|int|bigint|text|boolean|datetime|timestamp|date|time|decimal|float|double|json|blob|binary|uuid)\b/i,
-                        'type',
+            monaco.languages.setMonarchTokensProvider('dbml', {
+                tokenizer: {
+                    root: [
+                        [/\/\/.*$/, 'comment'],
+                        [/\/\*/, 'comment', '@comment'],
+                        [/\b(Table|Ref|Enum|Project|TableGroup|Note)\b/, 'keyword'],
+                        [
+                            /\b(varchar|integer|int|bigint|text|boolean|datetime|timestamp|date|time|decimal|float|double|json|blob|binary|uuid)\b/i,
+                            'type',
+                        ],
+                        [/\[(pk|primary key|not null|null|unique|increment|default|note|ref)\]/i, 'attribute'],
+                        [/"([^"\\]|\\.)*$/, 'string.invalid'],
+                        [/'([^'\\]|\\.)*$/, 'string.invalid'],
+                        [/"/, 'string', '@string_double'],
+                        [/'/, 'string', '@string_single'],
+                        [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+                        [/0[xX][0-9a-fA-F]+/, 'number.hex'],
+                        [/\d+/, 'number'],
+                        [/[<>]=?/, 'operator'],
+                        [/[=!]=/, 'operator'],
+                        [/[-+*/%]/, 'operator'],
+                        [/[{}()\[\]]/, '@brackets'],
+                        [/[,:;.]/, 'delimiter'],
                     ],
-                    [/\[(pk|primary key|not null|null|unique|increment|default|note|ref)\]/i, 'attribute'],
-                    [/"([^"\\]|\\.)*$/, 'string.invalid'],
-                    [/'([^'\\]|\\.)*$/, 'string.invalid'],
-                    [/"/, 'string', '@string_double'],
-                    [/'/, 'string', '@string_single'],
-                    [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
-                    [/0[xX][0-9a-fA-F]+/, 'number.hex'],
-                    [/\d+/, 'number'],
-                    [/[<>]=?/, 'operator'],
-                    [/[=!]=/, 'operator'],
-                    [/[-+*/%]/, 'operator'],
-                    [/[{}()\[\]]/, '@brackets'],
-                    [/[,:;.]/, 'delimiter'],
-                ],
-                comment: [
-                    [/[^\/*]+/, 'comment'],
-                    [/\*\//, 'comment', '@pop'],
-                    [/[\/*]/, 'comment'],
-                ],
-                string_double: [
-                    [/[^\\"]+/, 'string'],
-                    [/\\./, 'string.escape.invalid'],
-                    [/"/, 'string', '@pop'],
-                ],
-                string_single: [
-                    [/[^\\']+/, 'string'],
-                    [/\\./, 'string.escape.invalid'],
-                    [/'/, 'string', '@pop'],
-                ],
-            },
-        });
+                    comment: [
+                        [/[^\/*]+/, 'comment'],
+                        [/\*\//, 'comment', '@pop'],
+                        [/[\/*]/, 'comment'],
+                    ],
+                    string_double: [
+                        [/[^\\"]+/, 'string'],
+                        [/\\./, 'string.escape.invalid'],
+                        [/"/, 'string', '@pop'],
+                    ],
+                    string_single: [
+                        [/[^\\']+/, 'string'],
+                        [/\\./, 'string.escape.invalid'],
+                        [/'/, 'string', '@pop'],
+                    ],
+                },
+            });
 
-        editorRef.current = editor;
-        monacoRef.current = monaco;
+            editorRef.current = editor;
+            monacoRef.current = monaco;
 
-        // Force multiple layout calls to ensure content is visible on initial load
-        requestAnimationFrame(() => {
-            editor.layout();
-            // Force a second layout after a short delay to handle async rendering
-            setTimeout(() => {
+            // Force multiple layout calls to ensure content is visible on initial load
+            requestAnimationFrame(() => {
                 editor.layout();
-            }, 100);
-        });
+                // Force a second layout after a short delay to handle async rendering
+                setTimeout(() => {
+                    editor.layout();
+                }, 100);
+            });
 
-        if (onMount) {
-            onMount(editor, monaco);
+            if (onMount) {
+                onMount(editor, monaco);
+            }
+        } catch (error) {
+            console.error('Monaco editor initialization error:', error);
         }
     };
 
@@ -133,6 +141,7 @@ const EditorPanel = React.memo(({ value, onChange, onMount, readOnly = false, is
                     onChange={handleEditorChange}
                     onMount={handleEditorDidMount}
                     theme="vs-dark"
+                    loading={<div className="flex h-full items-center justify-center text-muted-foreground">Loading editor...</div>}
                     options={{
                         minimap: { enabled: false },
                         fontSize: 13,

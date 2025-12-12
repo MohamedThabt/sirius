@@ -42,6 +42,7 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
         const [filteredNodes, setFilteredNodes] = useState<Node[]>(initialNodes);
         const [filteredEdges, setFilteredEdges] = useState<Edge[]>(initialEdges);
         const hasAppliedInitialLayout = useRef(false);
+        const previousNodesLengthRef = useRef(initialNodes.length);
         const [isDarkMode, setIsDarkMode] = useState(() => {
             if (typeof document === 'undefined') return false;
             return document.documentElement.classList.contains('dark');
@@ -80,8 +81,12 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
 
         const applyHierarchicalLayout = (nodes: Node[]) => {
             // Simple hierarchical layout - primary key tables at top
-            const pkTables = nodes.filter((node) => (node.data?.fields as any[] | undefined)?.some((field: any) => field.isPrimaryKey && !field.isForeignKey));
-            const fkTables = nodes.filter((node) => (node.data?.fields as any[] | undefined)?.some((field: any) => field.isForeignKey) && !pkTables.includes(node));
+            const pkTables = nodes.filter((node) =>
+                (node.data?.fields as any[] | undefined)?.some((field: any) => field.isPrimaryKey && !field.isForeignKey),
+            );
+            const fkTables = nodes.filter(
+                (node) => (node.data?.fields as any[] | undefined)?.some((field: any) => field.isForeignKey) && !pkTables.includes(node),
+            );
             const otherTables = nodes.filter((node) => !pkTables.includes(node) && !fkTables.includes(node));
 
             const nodeWidth = 300;
@@ -188,29 +193,53 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
             return layoutNodes;
         };
 
-        // Update nodes when props change
+        // Update nodes and edges when props change
         useEffect(() => {
             setNodes(initialNodes);
-        }, [initialNodes, setNodes]);
-
-        // Update edges when props change
-        useEffect(() => {
             setEdges(initialEdges);
-        }, [initialEdges, setEdges]);
-
-        // Apply grid layout by default when nodes are first loaded
-        useEffect(() => {
-            if (initialNodes.length > 0 && !hasAppliedInitialLayout.current) {
-                hasAppliedInitialLayout.current = true;
-                // Apply grid layout automatically on first load
-                const gridNodes = applyGridLayout(initialNodes);
-                setNodes(gridNodes);
+            // Immediately update filtered nodes/edges if no search query
+            if (!searchQuery.trim()) {
+                setFilteredNodes(initialNodes);
+                setFilteredEdges(initialEdges);
             }
-            // Reset flag when nodes become empty
-            if (initialNodes.length === 0) {
+        }, [initialNodes, initialEdges, setNodes, setEdges, searchQuery]);
+
+        // Apply grid layout by default when nodes are first loaded or when nodes change from empty to populated
+        useEffect(() => {
+            const previousLength = previousNodesLengthRef.current;
+            const currentLength = initialNodes.length;
+
+            // If nodes went from empty to populated, or if nodes are populated and we haven't applied layout yet
+            if (currentLength > 0 && (previousLength === 0 || !hasAppliedInitialLayout.current)) {
+                hasAppliedInitialLayout.current = true;
+                // Use a small delay to ensure nodes are set in state before applying layout
+                const timeoutId = setTimeout(() => {
+                    setNodes((currentNodes) => {
+                        // Use current nodes if available, otherwise use initial nodes
+                        const nodesToLayout = currentNodes.length > 0 ? currentNodes : initialNodes;
+                        if (nodesToLayout.length > 0) {
+                            const layoutedNodes = applyGridLayout(nodesToLayout);
+                            // Also update filtered nodes if no search query
+                            if (!searchQuery.trim()) {
+                                setFilteredNodes(layoutedNodes);
+                            }
+                            return layoutedNodes;
+                        }
+                        return nodesToLayout;
+                    });
+                }, 100);
+
+                return () => clearTimeout(timeoutId);
+            }
+
+            // Reset flag when nodes become empty so layout can be applied again when nodes are populated
+            if (currentLength === 0 && previousLength > 0) {
                 hasAppliedInitialLayout.current = false;
             }
-        }, [initialNodes.length, setNodes]);
+
+            // Update previous length
+            previousNodesLengthRef.current = currentLength;
+        }, [initialNodes, setNodes, searchQuery]);
 
         // Filter nodes based on search query
         useEffect(() => {

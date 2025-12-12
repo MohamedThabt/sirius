@@ -123,7 +123,11 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     // Handle initial generation trigger
     useEffect(() => {
         if (initialIsGenerating && moduleId) {
-            triggerAsyncGeneration();
+            // Small delay to ensure session is set on the backend
+            const timeoutId = setTimeout(() => {
+                triggerAsyncGeneration();
+            }, 100);
+            return () => clearTimeout(timeoutId);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialIsGenerating, moduleId]);
@@ -139,21 +143,38 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
+                credentials: 'same-origin', // Ensure cookies/session are sent
             });
 
             if (response.ok) {
                 const data = await response.json();
 
                 if (data.success && data.erd) {
-                    // Reload the page to get fresh data with updated ERD
-                    router.visit(`/projects/${project.id}/modules/${moduleId}/erd`, {
-                        preserveScroll: true,
-                        only: ['module', 'initialContent'],
-                        onSuccess: () => {
-                            // The useEffect hooks will handle updating the content
-                            toast.success('ERD generated successfully!');
-                        },
-                    });
+                    // Update content immediately from response
+                    setContent(data.erd);
+                    setIsDirty(false);
+                    setGenerationError(null);
+
+                    // Small delay to ensure content is rendered before reload
+                    setTimeout(() => {
+                        // Reload the page to get fresh data with updated ERD
+                        router.visit(`/projects/${project.id}/modules/${moduleId}/erd`, {
+                            preserveScroll: true,
+                            only: ['module', 'initialContent', 'project'],
+                            onStart: () => {
+                                // Keep generating state until reload starts
+                            },
+                            onSuccess: () => {
+                                setIsGenerating(false);
+                                // The useEffect hooks will handle updating the content
+                                // from module.erd or initialContent
+                                toast.success('ERD generated successfully!');
+                            },
+                            onError: () => {
+                                setIsGenerating(false);
+                            },
+                        });
+                    }, 300);
                 } else {
                     const errorMessage = data.message || 'Failed to generate ERD';
                     setGenerationError(errorMessage);
@@ -760,7 +781,23 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                                             toast.error('Module not found for generate route.');
                                                             return;
                                                         }
-                                                        router.post(`/projects/${project.id}/modules/${moduleId}/erd/generate`);
+                                                        // Clear error state and trigger regeneration
+                                                        setGenerationError(null);
+                                                        setIsGenerating(true);
+                                                        router.post(
+                                                            `/projects/${project.id}/modules/${moduleId}/erd/generate`,
+                                                            {},
+                                                            {
+                                                                preserveScroll: true,
+                                                                onSuccess: () => {
+                                                                    // The page will reload with isGenerating=true, which will trigger generateAsync
+                                                                },
+                                                                onError: () => {
+                                                                    setIsGenerating(false);
+                                                                    setGenerationError('Failed to start ERD generation. Please try again.');
+                                                                },
+                                                            },
+                                                        );
                                                     }}
                                                     className="bg-primary text-primary-foreground"
                                                 >
