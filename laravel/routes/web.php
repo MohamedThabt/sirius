@@ -94,8 +94,8 @@ Route::middleware(['auth', 'share.project'])->group(function () {
     Route::post('/projects/{project}/system-overview/regenerate', [SystemOverviewController::class, 'regenerate'])->name('system-overview.regenerate');
     Route::get('/projects/{project}/system-overview', [SystemOverviewController::class, 'show'])->name('projects.system-overview');
     Route::post('/projects/{project}/system-overview/update-with-ai', [SystemOverviewController::class, 'updateWithAi'])->name('system-overview.update-with-ai');
-    Route::post('/projects/{project}/system-overview/{overviewVersion:id}/user-update', [SystemOverviewController::class, 'userUpdate'])->name('system-overview.user-update');
-    Route::post('/projects/{project}/system-overview/{overviewVersion:id}/mark-as-base', [SystemOverviewController::class, 'markAsBase'])->name('system-overview.mark-as-base');
+    Route::post('/projects/{project}/system-overview/{overviewVersion}/user-update', [SystemOverviewController::class, 'userUpdate'])->name('system-overview.user-update');
+    Route::post('/projects/{project}/system-overview/{overviewVersion}/mark-as-base', [SystemOverviewController::class, 'markAsBase'])->name('system-overview.mark-as-base');
     Route::post('/projects/{project}/system-overview/preview-mermaid', [SystemOverviewController::class, 'previewMermaid'])->name('system-overview.preview-mermaid');
 
     // PRD routes
