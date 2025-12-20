@@ -929,3 +929,87 @@
     pointer-events: none;
     z-index: 0;
 }
+
+/* ============================================
+   PREMIUM CARD UTILITIES (X Premium Business Style)
+   ============================================ */
+
+.linear-landing .premium-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 2rem;
+    backdrop-filter: blur(18px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.linear-landing .premium-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Testimonial Card Variant - Gold/Amber radial accent */
+.linear-landing .premium-card-testimonial {
+    background: 
+        radial-gradient(70% 70% at 80% 20%, rgba(251, 191, 36, 0.08), transparent 60%),
+        rgba(255, 255, 255, 0.03);
+}
+
+.linear-landing .premium-card-testimonial:hover {
+    background: 
+        radial-gradient(70% 70% at 80% 20%, rgba(251, 191, 36, 0.12), transparent 60%),
+        rgba(255, 255, 255, 0.06);
+}
+
+/* Accordion Card Variant */
+.linear-landing .premium-card-accordion {
+    padding: 1.5rem 2rem;
+}
+
+.linear-landing .premium-card-accordion.is-open,
+.linear-landing .premium-card-accordion[data-open="true"] {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================
+   TESTIMONIALS SECTION - Gold/Amber Nebula
+   ============================================ */
+
+.linear-landing #testimonials {
+    background: 
+        radial-gradient(ellipse at 30% 20%, rgba(251, 191, 36, 0.08), transparent 50%),
+        radial-gradient(ellipse at 70% 80%, rgba(245, 158, 11, 0.06), transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(252, 211, 77, 0.04), transparent 70%),
+        linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 6%) 100%);
+}
+
+.linear-landing #testimonials::after {
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 60%);
+    top: 10%;
+    right: -15%;
+    animation-duration: 26s;
+}
+
+/* ============================================
+   FAQ SECTION - Teal/Cyan Nebula
+   ============================================ */
+
+.linear-landing #faq {
+    background: 
+        radial-gradient(ellipse at 20% 30%, rgba(20, 184, 166, 0.08), transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(34, 211, 238, 0.06), transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(45, 212, 191, 0.04), transparent 70%),
+        linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 5%) 100%);
+}
+
+.linear-landing #faq::after {
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.18), transparent 60%);
+    bottom: -20%;
+    left: -10%;
+    animation-duration: 22s;
+    animation-direction: reverse;
+}
+

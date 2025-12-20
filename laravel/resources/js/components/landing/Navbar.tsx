@@ -21,7 +21,7 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
             setMobileMenuOpen(false); // Close mobile menu on scroll
 
             // Determine active section based on scroll position
-            const sections = ['features', 'action-slides'];
+            const sections = ['features', 'action-slides', 'testimonials', 'faq'];
             const scrollPosition = window.scrollY + 100;
 
             for (let i = sections.length - 1; i >= 0; i--) {
@@ -102,6 +102,28 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                             >
                                 See It in Action
                             </a>
+                            <a
+                                href="#testimonials"
+                                onClick={(e) => handleNavClick(e, 'testimonials')}
+                                className={`text-sm transition-colors ${
+                                    activeSection === 'testimonials'
+                                        ? 'font-medium text-[hsl(var(--text-primary))]'
+                                        : 'text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))]'
+                                }`}
+                            >
+                                Testimonials
+                            </a>
+                            <a
+                                href="#faq"
+                                onClick={(e) => handleNavClick(e, 'faq')}
+                                className={`text-sm transition-colors ${
+                                    activeSection === 'faq'
+                                        ? 'font-medium text-[hsl(var(--text-primary))]'
+                                        : 'text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))]'
+                                }`}
+                            >
+                                FAQ
+                            </a>
                         </div>
                     )}
 
@@ -156,6 +178,20 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                             className="block px-4 py-2 text-sm text-[hsl(var(--text-secondary))] transition-colors hover:bg-[hsl(var(--bg-secondary))] hover:text-[hsl(var(--text-primary))]"
                                         >
                                             See It in Action
+                                        </a>
+                                        <a
+                                            href="#testimonials"
+                                            onClick={(e) => handleNavClick(e, 'testimonials')}
+                                            className="block px-4 py-2 text-sm text-[hsl(var(--text-secondary))] transition-colors hover:bg-[hsl(var(--bg-secondary))] hover:text-[hsl(var(--text-primary))]"
+                                        >
+                                            Testimonials
+                                        </a>
+                                        <a
+                                            href="#faq"
+                                            onClick={(e) => handleNavClick(e, 'faq')}
+                                            className="block px-4 py-2 text-sm text-[hsl(var(--text-secondary))] transition-colors hover:bg-[hsl(var(--bg-secondary))] hover:text-[hsl(var(--text-primary))]"
+                                        >
+                                            FAQ
                                         </a>
                                     </div>
                                 </>

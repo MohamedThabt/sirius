@@ -52,6 +52,22 @@ const Footer = () => {
               </li>
               <li>
                 <a
+                  href="#testimonials"
+                  className="text-sm text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors"
+                >
+                  Testimonials
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#faq"
+                  className="text-sm text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors"
+                >
+                  FAQ
+                </a>
+              </li>
+              <li>
+                <a
                   href="/beta"
                   className="text-sm text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] transition-colors"
                 >

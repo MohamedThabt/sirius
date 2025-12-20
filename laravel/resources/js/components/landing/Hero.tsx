@@ -1,9 +1,9 @@
-import { Database, FileText, GitBranch, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Highlighter } from '@/components/ui/highlighter';
 import { Meteors } from '@/components/ui/meteors';
+import { IconDocAI, IconDatabaseAI, IconGitAI, IconSparklesSmall } from './LandingIcons';
 
 const headline = 'From Project Brief to Complete Spec';
 const SubheadlineContent = () => (
@@ -21,9 +21,9 @@ const SubheadlineContent = () => (
 );
 
 const coreArtifacts = [
-    { icon: FileText, label: 'PRD & User Stories' },
-    { icon: Database, label: 'ERDs & Diagrams' },
-    { icon: GitBranch, label: 'GitHub Export' },
+    { icon: IconDocAI, label: 'PRD & User Stories' },
+    { icon: IconDatabaseAI, label: 'ERDs & Diagrams' },
+    { icon: IconGitAI, label: 'GitHub Export' },
 ];
 
 const Hero = () => {
@@ -45,7 +45,7 @@ const Hero = () => {
                 <div className="hero-copy" style={{ opacity: isVisible ? 1 : 0 }}>
                     {/* Eyebrow with icon */}
                     <div className="hero-eyebrow mb-8 flex items-center justify-center gap-2">
-                        <Sparkles className="h-5 w-5 animate-pulse text-indigo-400" />
+                        <IconSparklesSmall className="h-5 w-5 animate-pulse" />
                         <span>Sirius AI Planning Engine</span>
                     </div>
 
@@ -102,8 +102,8 @@ const Hero = () => {
                                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
                                     <div className="relative z-10 flex items-center gap-3">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/30 to-purple-500/30 transition-all duration-500 group-hover:scale-110">
-                                            <Icon className="h-6 w-6 text-indigo-300" />
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-white/5 transition-all duration-500 group-hover:scale-110">
+                                            <Icon className="h-7 w-7" />
                                         </div>
                                         <h3 className="text-base font-semibold text-white">{artifact.label}</h3>
                                     </div>

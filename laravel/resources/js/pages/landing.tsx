@@ -5,6 +5,8 @@ import FinalCTA from '@/components/landing/FinalCTA';
 import Footer from '@/components/landing/Footer';
 import Hero from '@/components/landing/Hero';
 import Navbar from '@/components/landing/Navbar';
+import TestimonialsSection from '@/components/landing/TestimonialsSection';
+import FaqSection from '@/components/landing/FaqSection';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -34,6 +36,8 @@ export default function Landing() {
                         <Features />
                         <ComparisonSection />
                         <ActionSlidesSection />
+                        <TestimonialsSection />
+                        <FaqSection />
                         <FinalCTA />
                         <Footer />
                     </main>
@@ -42,3 +46,4 @@ export default function Landing() {
         </div>
     );
 }
+
