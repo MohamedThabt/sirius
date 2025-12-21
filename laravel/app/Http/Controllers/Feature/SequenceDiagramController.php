@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Feature;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
+use App\Services\AiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -160,7 +161,21 @@ class SequenceDiagramController extends Controller
                 throw new \Exception('FastAPI returned status: ' . $response->status());
             }
 
-            $sequence = data_get($response->json(), 'sequence');
+            $responseData = $response->json();
+
+            // Validate and record usage
+            if (!isset($responseData['usage'])) {
+                throw new \Exception('AI usage data missing from response');
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'sequence_diagram_generation',
+                $responseData['usage'],
+                $responseData['model'] ?? null
+            );
+
+            $sequence = data_get($responseData, 'sequence');
 
             if (!is_string($sequence) || $sequence === '') {
                 throw new \Exception('Invalid sequence response from API');
@@ -229,7 +244,21 @@ class SequenceDiagramController extends Controller
                 throw new \Exception('FastAPI returned status: ' . $response->status());
             }
 
-            $sequence = data_get($response->json(), 'sequence');
+            $responseData = $response->json();
+
+            // Validate and record usage
+            if (!isset($responseData['usage'])) {
+                throw new \Exception('AI usage data missing from response');
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'sequence_diagram_edit',
+                $responseData['usage'],
+                $responseData['model'] ?? null
+            );
+
+            $sequence = data_get($responseData, 'sequence');
 
             if (!is_string($sequence) || $sequence === '') {
                 throw new \Exception('Invalid sequence response from API');

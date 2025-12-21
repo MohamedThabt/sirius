@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Services\AiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -130,6 +131,21 @@ class ArchitectureController extends Controller
             if ($response->successful()) {
                 $data = $response->json();
 
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'AI usage data missing from response.'
+                    ], 500);
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'c4_generation',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 // Update project with generated C4 diagram
                 $project->update([
                     'c4' => $data['C4'] ?? null,
@@ -187,6 +203,19 @@ class ArchitectureController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    return back()->with('error', 'AI usage data missing from response.');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'c4_edit',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 $updatedC4 = $data['C4'] ?? null;
 
                 if (!$updatedC4) {

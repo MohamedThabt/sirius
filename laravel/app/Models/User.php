@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -28,6 +29,7 @@ class User extends Authenticatable
         'provider_id',
         'avatar',
         'email_verified_at',
+        'plan_id',
     ];
 
     /**
@@ -134,5 +136,45 @@ class User extends Authenticatable
     public function githubToken(): HasOne
     {
         return $this->hasOne(GithubToken::class);
+    }
+
+    /**
+     * Get the plan for the user.
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    /**
+     * Get the credits for the user.
+     */
+    public function credits(): HasOne
+    {
+        return $this->hasOne(UserCredit::class);
+    }
+
+    /**
+     * Get the usage logs for the user.
+     */
+    public function usageLogs(): HasMany
+    {
+        return $this->hasMany(UsageLog::class);
+    }
+
+    /**
+     * Get the current credits balance.
+     */
+    public function getCreditsBalance(): int
+    {
+        return $this->credits?->credits_balance ?? 0;
+    }
+
+    /**
+     * Get the total credits for this month.
+     */
+    public function getTotalThisMonth(): int
+    {
+        return $this->credits?->total_this_month ?? ($this->plan?->monthly_credits ?? 0);
     }
 }

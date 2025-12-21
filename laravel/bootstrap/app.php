@@ -26,6 +26,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'share.project' => ShareProjectData::class,
+            'check.credits' => \App\Http\Middleware\CheckCredits::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

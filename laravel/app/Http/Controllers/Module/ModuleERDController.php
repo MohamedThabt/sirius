@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Module;
 use App\Http\Controllers\Controller;
 use App\Models\Module;
 use App\Models\Project;
+use App\Services\AiUsageService;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -187,8 +188,25 @@ class ModuleERDController extends Controller
                 ], 502);
             }
 
+            $responseData = $response->json();
+
+            // Validate and record usage
+            if (!isset($responseData['usage'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI usage data missing from response.'
+                ], 500);
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'module_erd_generation',
+                $responseData['usage'],
+                $responseData['model'] ?? null
+            );
+
             // Extract and validate ERD
-            $erd = data_get($response->json(), 'ERD');
+            $erd = data_get($responseData, 'ERD');
 
             if (!is_string($erd) || $erd === '') {
                 return response()->json([

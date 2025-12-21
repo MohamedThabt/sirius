@@ -8,6 +8,7 @@ use App\Models\Feature;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\SuggestedFeature;
+use App\Services\AiUsageService;
 use App\Services\Feature\FeatureSpecService;
 use App\Traits\StructuredLogger;
 use Illuminate\Support\Facades\DB;
@@ -98,6 +99,19 @@ class FeaturesController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    return back()->with('error', 'AI usage data missing from response.');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'feature_suggestion',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 $generatedFeatures = $data['features'] ?? [];
 
                 // Cache the suggestions
@@ -200,6 +214,19 @@ class FeaturesController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    return back()->with('error', 'AI usage data missing from response.');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'feature_regeneration',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 $generatedFeatures = $data['features'] ?? [];
 
                 // Cache the new suggestions
@@ -298,6 +325,19 @@ class FeaturesController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    return back()->with('error', 'AI usage data missing from response.');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'feature_enrichment',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 $enrichedFeatures = $data['features'] ?? [];
 
                 if (empty($enrichedFeatures)) {
@@ -411,6 +451,19 @@ class FeaturesController extends Controller
             }
 
             $detailed = $response->json();
+
+            // Validate and record usage
+            if (!isset($detailed['usage'])) {
+                return back()->with('error', 'AI usage data missing from response.');
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'feature_single',
+                $detailed['usage'],
+                $detailed['model'] ?? null
+            );
+
             $detailedFeature = $detailed['feature'] ?? null;
 
             if (!is_array($detailedFeature)) {

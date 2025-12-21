@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Services\AiUsageService;
 use App\Services\Documentation\FeatureMarkdownService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -117,7 +118,21 @@ class PRDController extends Controller
                 ->post($fastApiBaseUrl.'/v1/PRD/generate', $payload);
 
             if ($response->successful()) {
-                $combined = $response->json('combined_file');
+                $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    throw new \Exception('AI usage data missing from response');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'prd_generation',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
+                $combined = $data['combined_file'] ?? null;
                 if (is_string($combined) && $combined !== '') {
                     $project->update([
                         'prd' => $combined,
@@ -279,7 +294,21 @@ class PRDController extends Controller
                 throw new \Exception('FastAPI PRD edit failed: ' . $response->body());
             }
 
-            $updatedPrd = $response->json('PRD');
+            $responseData = $response->json();
+
+            // Validate and record usage
+            if (!isset($responseData['usage'])) {
+                throw new \Exception('AI usage data missing from response');
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'prd_edit',
+                $responseData['usage'],
+                $responseData['model'] ?? null
+            );
+
+            $updatedPrd = $responseData['PRD'] ?? null;
             if (is_string($updatedPrd) && $updatedPrd !== '') {
                 $project->update([
                     'prd' => $updatedPrd,
@@ -376,7 +405,21 @@ class PRDController extends Controller
                 throw new \Exception('FastAPI PRD sync failed: ' . $response->body());
             }
 
-            $combined = $response->json('combined_file');
+            $responseData = $response->json();
+
+            // Validate and record usage
+            if (!isset($responseData['usage'])) {
+                throw new \Exception('AI usage data missing from response');
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'prd_sync',
+                $responseData['usage'],
+                $responseData['model'] ?? null
+            );
+
+            $combined = $responseData['combined_file'] ?? null;
             if (is_string($combined) && $combined !== '') {
                 $project->update([
                     'prd' => $combined,

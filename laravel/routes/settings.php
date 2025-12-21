@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\UsageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -22,7 +23,6 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('settings/appearance');
     })->name('appearance');
 
-    Route::get('settings/billing', function () {
-        return Inertia::render('settings/billing');
-    })->name('billing');
+    Route::get('settings/usage', [UsageController::class, 'index'])->name('usage.index');
+    Route::post('settings/usage/purchase-credits', [UsageController::class, 'purchaseCredits'])->name('usage.purchase');
 });

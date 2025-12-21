@@ -1,9 +1,10 @@
-import { update } from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import { send } from '@/routes/verification';
 import { type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+
+// @ts-ignore - route helper is available globally via Ziggy
+declare function route(name: string, params?: any): string;
 
 import DeleteUser from '@/components/delete-user';
 import InputError from '@/components/input-error';
@@ -15,6 +16,9 @@ import SettingsLayout from '@/layouts/settings/layout';
 function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
     useFlashToasts();
     const { auth } = usePage<SharedData>().props;
+    const { data, setData, patch, processing, recentlySuccessful, errors } = useForm({
+        name: auth.user.name,
+    });
 
     return (
         <>
@@ -34,81 +38,80 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                         <h2 className="text-base font-semibold text-foreground">Profile Information</h2>
                         <p className="mt-1 text-sm text-muted-foreground">Update your personal information</p>
                     </div>
-                        <Form
-                            {...update.form()}
-                            options={{
-                                preserveScroll: true,
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                patch(route('profile.update'), {
+                                    preserveScroll: true,
+                                });
                             }}
                             className="space-y-6"
                         >
-                            {({ processing, recentlySuccessful, errors }) => (
-                                <>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="name">Name</Label>
-                                        <Input
-                                            id="name"
-                                            className="mt-1 block w-full"
-                                            defaultValue={auth.user.name}
-                                            name="name"
-                                            required
-                                            autoComplete="name"
-                                            placeholder="Full name"
-                                        />
-                                        <InputError className="mt-2" message={errors.name} />
-                                    </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Name</Label>
+                                <Input
+                                    id="name"
+                                    className="mt-1 block w-full"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    required
+                                    autoComplete="name"
+                                    placeholder="Full name"
+                                />
+                                <InputError className="mt-2" message={errors.name} />
+                            </div>
 
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="email">Email address</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            className="mt-1 block w-full"
-                                            defaultValue={auth.user.email}
-                                            name="email"
-                                            disabled
-                                            autoComplete="username"
-                                            placeholder="Email address"
-                                        />
-                                        <p className="text-sm text-muted-foreground">Email address cannot be changed</p>
-                                    </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">Email address</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    className="mt-1 block w-full"
+                                    value={auth.user.email}
+                                    disabled
+                                    autoComplete="username"
+                                    placeholder="Email address"
+                                />
+                                <p className="text-sm text-muted-foreground">Email address cannot be changed</p>
+                            </div>
 
-                                    {mustVerifyEmail && auth.user.email_verified_at === null && (
-                                        <div>
-                                            <p className="-mt-4 text-sm text-muted-foreground">
-                                                Your email address is unverified.{' '}
-                                                <Link
-                                                    href={send()}
-                                                    as="button"
-                                                    className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                                >
-                                                    Click here to resend the verification email.
-                                                </Link>
-                                            </p>
+                            {mustVerifyEmail && auth.user.email_verified_at === null && (
+                                <div>
+                                    <p className="-mt-4 text-sm text-muted-foreground">
+                                        Your email address is unverified.{' '}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                router.post(route('verification.send'));
+                                            }}
+                                            className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                        >
+                                            Click here to resend the verification email.
+                                        </button>
+                                    </p>
 
-                                            {status === 'verification-link-sent' && (
-                                                <div className="mt-2 text-sm font-medium text-green-600">
-                                                    A new verification link has been sent to your email address.
-                                                </div>
-                                            )}
+                                    {status === 'verification-link-sent' && (
+                                        <div className="mt-2 text-sm font-medium text-green-600">
+                                            A new verification link has been sent to your email address.
                                         </div>
                                     )}
-
-                                    <div className="flex items-center gap-4">
-                                        <Button disabled={processing}>Save</Button>
-
-                                        <Transition
-                                            show={recentlySuccessful}
-                                            enter="transition ease-in-out"
-                                            enterFrom="opacity-0"
-                                            leave="transition ease-in-out"
-                                            leaveTo="opacity-0"
-                                        >
-                                            <p className="text-sm text-muted-foreground">Saved</p>
-                                        </Transition>
-                                    </div>
-                                </>
+                                </div>
                             )}
-                        </Form>
+
+                            <div className="flex items-center gap-4">
+                                <Button type="submit" disabled={processing}>Save</Button>
+
+                                <Transition
+                                    show={recentlySuccessful}
+                                    enter="transition ease-in-out"
+                                    enterFrom="opacity-0"
+                                    leave="transition ease-in-out"
+                                    leaveTo="opacity-0"
+                                >
+                                    <p className="text-sm text-muted-foreground">Saved</p>
+                                </Transition>
+                            </div>
+                        </form>
                 </div>
 
                 {/* Delete Account */}

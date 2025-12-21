@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\SuggestedModule;
+use App\Services\AiUsageService;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -187,6 +188,19 @@ class ModuleController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    return back()->with('error', 'AI usage data missing from response.');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'module_regeneration',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 $generatedModules = $data['modules'] ?? [];
 
                 // Cache the new suggestions
@@ -285,6 +299,19 @@ class ModuleController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    return back()->with('error', 'AI usage data missing from response.');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'module_enrichment',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 $enrichedModules = $data['modules'] ?? [];
 
                 if (empty($enrichedModules)) {

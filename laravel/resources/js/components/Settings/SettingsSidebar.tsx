@@ -6,8 +6,8 @@ import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
 import { router } from '@inertiajs/react';
 import {
+    ActivityIcon,
     ChevronDownIcon,
-    CreditCardIcon,
     FolderKanbanIcon,
     LockIcon,
     UserIcon,
@@ -42,16 +42,16 @@ export default function SettingsSidebar({ auth, isSidebarCollapsed, currentPath 
             href: '/settings/password',
         },
         {
-            key: 'billing',
-            icon: CreditCardIcon,
-            label: 'Billing',
-            href: '/settings/billing',
+            key: 'usage',
+            icon: ActivityIcon,
+            label: 'Usage',
+            href: '/settings/usage',
         },
     ];
 
     return (
         <aside
-            className={`fixed left-0 top-0 z-40 h-screen border-r bg-background transition-all duration-300 scrollbar-hide ${
+            className={`h-screen shrink-0 border-r bg-background transition-all duration-300 scrollbar-hide ${
                 isSidebarCollapsed ? 'w-0 -translate-x-full lg:w-16 lg:translate-x-0' : 'w-64'
             }`}
         >

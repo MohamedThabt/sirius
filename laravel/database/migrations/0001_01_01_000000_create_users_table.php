@@ -23,6 +23,9 @@ return new class extends Migration
             $table->string('provider_id')->nullable();
             $table->string('avatar')->nullable();
             
+            // Plan relationship
+            $table->foreignId('plan_id')->nullable()->constrained()->nullOnDelete();
+            
             $table->rememberToken();
             $table->timestamps();
             

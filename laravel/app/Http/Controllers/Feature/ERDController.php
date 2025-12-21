@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Feature;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
+use App\Services\AiUsageService;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -112,8 +113,22 @@ class ERDController extends Controller
                 return back()->with('error', 'Failed to edit datamodel. The AI service is currently unavailable. Please try again later.');
             }
 
+            $responseData = $response->json();
+
+            // Validate and record usage
+            if (!isset($responseData['usage'])) {
+                return back()->with('error', 'AI usage data missing from response.');
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'feature_erd_edit',
+                $responseData['usage'],
+                $responseData['model'] ?? null
+            );
+
             // Extract and validate ERD
-            $datamodel = data_get($response->json(), 'ERD');
+            $datamodel = data_get($responseData, 'ERD');
 
             if (!is_string($datamodel) || $datamodel === '') {
                 return back()->with('error', 'Received an invalid datamodel response from AI service. Please try again.');

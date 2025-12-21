@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Project;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectOverviewVersion;
+use App\Services\AiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -270,6 +271,19 @@ class SystemOverviewController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    throw new \Exception('AI usage data missing from response');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'system_overview_generation',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 $overviewContent = $data['Overview'] ?? '';
 
                 // Get next version number
@@ -495,6 +509,19 @@ class SystemOverviewController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    throw new \Exception('AI usage data missing from response');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'system_overview_edit',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
                 $updatedOverview = $data['Overview'] ?? '';
 
                 // Get next version number

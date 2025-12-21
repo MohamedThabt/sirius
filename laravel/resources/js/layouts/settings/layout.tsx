@@ -22,36 +22,34 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     ];
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="flex">
-                <SettingsSidebar
-                    auth={auth}
-                    isSidebarCollapsed={isSidebarCollapsed}
-                    onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                    currentPath={currentPath}
-                />
+        <div className="flex h-screen w-full bg-background">
+            <SettingsSidebar
+                auth={auth}
+                isSidebarCollapsed={isSidebarCollapsed}
+                onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                currentPath={currentPath}
+            />
 
-                <main className="min-w-0 flex-1">
-                    <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
-                        <div className="mb-6 flex items-center gap-3">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                className="hidden h-8 w-8 p-0 lg:flex"
-                                title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                            >
-                                {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                            </Button>
-                            <Breadcrumbs breadcrumbs={breadcrumbs} />
-                        </div>
-
-                        <div className="mx-auto max-w-3xl">
-                            {children}
-                        </div>
+            <main className="min-w-0 flex-1 transition-all duration-300">
+                <div className="flex h-full w-full flex-col overflow-hidden">
+                    <div className="flex items-center gap-3 border-b bg-background px-4 py-4 sm:px-6 lg:px-8">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                            className="hidden h-8 w-8 p-0 lg:flex"
+                            title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
+                        >
+                            {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+                        </Button>
+                        <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
-                </main>
-            </div>
+
+                    <div className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
+                        {children}
+                    </div>
+                </div>
+            </main>
         </div>
     );
 }

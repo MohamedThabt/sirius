@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Feature;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
+use App\Services\AiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -163,7 +164,21 @@ class WireframeController extends Controller
                 throw new \Exception('FastAPI returned status: ' . $response->status());
             }
 
-            $wireframe = data_get($response->json(), 'wireframe');
+            $responseData = $response->json();
+
+            // Validate and record usage
+            if (!isset($responseData['usage'])) {
+                throw new \Exception('AI usage data missing from response');
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'wireframe_generation',
+                $responseData['usage'],
+                $responseData['model'] ?? null
+            );
+
+            $wireframe = data_get($responseData, 'wireframe');
 
             if (!is_string($wireframe) || $wireframe === '') {
                 throw new \Exception('Invalid wireframe response from API');
@@ -252,7 +267,21 @@ class WireframeController extends Controller
                 throw new \Exception('FastAPI returned status: ' . $response->status());
             }
 
-            $wireframe = data_get($response->json(), 'wireframe');
+            $responseData = $response->json();
+
+            // Validate and record usage
+            if (!isset($responseData['usage'])) {
+                throw new \Exception('AI usage data missing from response');
+            }
+
+            app(AiUsageService::class)->handle(
+                auth()->user(),
+                'wireframe_edit',
+                $responseData['usage'],
+                $responseData['model'] ?? null
+            );
+
+            $wireframe = data_get($responseData, 'wireframe');
 
             if (!is_string($wireframe) || $wireframe === '') {
                 throw new \Exception('Invalid wireframe response from API');
