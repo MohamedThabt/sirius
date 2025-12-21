@@ -21,7 +21,7 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
             setMobileMenuOpen(false); // Close mobile menu on scroll
 
             // Determine active section based on scroll position
-            const sections = ['features', 'action-slides', 'testimonials', 'faq'];
+            const sections = ['features', 'action-slides', 'faq'];
             const scrollPosition = window.scrollY + 100;
 
             for (let i = sections.length - 1; i >= 0; i--) {
@@ -107,17 +107,6 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                 See It in Action
                             </a>
                             <a
-                                href="#testimonials"
-                                onClick={(e) => handleNavClick(e, 'testimonials')}
-                                className={`text-sm transition-colors ${
-                                    activeSection === 'testimonials'
-                                        ? 'font-medium text-[hsl(var(--text-primary))]'
-                                        : 'text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))]'
-                                }`}
-                            >
-                                Testimonials
-                            </a>
-                            <a
                                 href="#faq"
                                 onClick={(e) => handleNavClick(e, 'faq')}
                                 className={`text-sm transition-colors ${
@@ -190,13 +179,6 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                             See It in Action
                                         </a>
                                         <a
-                                            href="#testimonials"
-                                            onClick={(e) => handleNavClick(e, 'testimonials')}
-                                            className="block px-4 py-2 text-sm text-[hsl(var(--text-secondary))] transition-colors hover:bg-[hsl(var(--bg-secondary))] hover:text-[hsl(var(--text-primary))]"
-                                        >
-                                            Testimonials
-                                        </a>
-                                        <a
                                             href="#faq"
                                             onClick={(e) => handleNavClick(e, 'faq')}
                                             className="block px-4 py-2 text-sm text-[hsl(var(--text-secondary))] transition-colors hover:bg-[hsl(var(--bg-secondary))] hover:text-[hsl(var(--text-primary))]"
@@ -222,7 +204,7 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                 <Button 
                                     variant="default" 
                                     size="sm" 
-                                    className="rounded-full bg-[#edf2f2] text-[#1d2328] hover:bg-white hover:text-black border-0" 
+                                    className="rounded-full bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black border-0" 
                                     asChild
                                 >
                                     <a href="/projects">Go to Projects</a>
@@ -232,7 +214,7 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="text-[#b0b8bf] hover:text-[#edf2f2] hover:bg-transparent"
+                                        className="text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] hover:bg-transparent"
                                         asChild
                                     >
                                         <a href="/login">Sign In</a>
@@ -240,7 +222,7 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                     <Button 
                                         variant="default" 
                                         size="sm" 
-                                        className="rounded-full bg-[#edf2f2] text-[#1d2328] hover:bg-white hover:text-black border-0" 
+                                        className="rounded-full bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black border-0" 
                                         asChild
                                     >
                                         <a href="/beta">Join Closed Beta</a>

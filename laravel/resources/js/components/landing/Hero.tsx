@@ -36,8 +36,8 @@ const Hero = () => {
             {/* Constellation layer */}
             <div className="hero-constellation" aria-hidden="true" />
             
-            {/* More meteors for enhanced effect */}
-            <Meteors number={40} minDuration={2} maxDuration={10} />
+            {/* Optimized meteors - reduced count for better performance */}
+            <Meteors number={20} minDuration={2} maxDuration={10} />
             
             {/* Nebula effects - now visible with vibrant colors */}
             <div className="hero-nebula hero-nebula--left" aria-hidden="true" />
@@ -141,7 +141,7 @@ const Hero = () => {
                                 ))}
                             </div>
                             <span className="text-sm text-white/70">
-                                <span className="font-semibold text-white">500+</span> developers in beta
+                                <span className="font-semibold text-white">50+</span> developers in beta
                             </span>
                         </div>
                         
@@ -150,11 +150,25 @@ const Hero = () => {
                         
                         {/* Additional trust */}
                         <p className="text-sm text-white/60">
-                            No credit card required • Works with Copilot & Cursor
+                            Free during closed beta • Works with Copilot & Cursor
                         </p>
                     </div>
                 </div>
             </div>
+
+            {/* Demo Video Placeholder Section */}
+            <section id="demo" className="relative py-24 px-4">
+                <div className="max-w-4xl mx-auto">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
+                        <div className="aspect-video rounded-lg bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-white/10 flex items-center justify-center">
+                            <div className="text-center">
+                                <Play className="h-12 w-12 text-white/40 mx-auto mb-4" />
+                                <p className="text-white/60 text-lg">Demo video coming soon</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </section>
     );
 };

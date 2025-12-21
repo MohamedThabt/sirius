@@ -73,7 +73,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                         transition: "all 0.6s ease-out",
                       }}
                     >
-                      <Zap className="h-4 w-4 text-indigo-400" />
+                      <Zap className="h-5 w-5 text-indigo-400" />
                       <span>Closed Beta Program</span>
                     </div>
 
@@ -130,7 +130,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                         key={feature}
                         className="flex items-center gap-2 text-sm text-white/90"
                       >
-                        <CheckCircle2 className="h-4 w-4 text-indigo-400 flex-shrink-0" />
+                        <CheckCircle2 className="h-5 w-5 text-indigo-400 flex-shrink-0" />
                         {feature}
                       </span>
                     ))}
@@ -202,7 +202,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                                 exit={{ opacity: 0, height: 0, marginTop: 0 }}
                                 className="flex items-center gap-2 text-sm text-red-400 overflow-hidden"
                             >
-                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                <AlertCircle className="h-5 w-5 flex-shrink-0" />
                                 <span>{errors.name}</span>
                             </motion.div>
                           )}
@@ -239,7 +239,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                                 exit={{ opacity: 0, height: 0, marginTop: 0 }}
                                 className="flex items-center gap-2 text-sm text-red-400 overflow-hidden"
                             >
-                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                <AlertCircle className="h-5 w-5 flex-shrink-0" />
                                 <span>{errors.email}</span>
                             </motion.div>
                           )}

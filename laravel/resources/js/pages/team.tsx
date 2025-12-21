@@ -146,7 +146,7 @@ export default function Team() {
                                     size="sm"
                                     className="text-white/40 hover:text-white/70 hover:bg-transparent -ml-3 mb-6"
                                 >
-                                    <ArrowLeft className="h-4 w-4 mr-1.5" />
+                                    <ArrowLeft className="h-5 w-5 mr-1.5" />
                                     Home
                                 </Button>
                             </Link>

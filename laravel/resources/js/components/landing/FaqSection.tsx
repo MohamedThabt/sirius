@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 const faqs = [
     {
@@ -46,7 +46,7 @@ const FaqSection = () => {
             <div className="max-w-4xl mx-auto">
                 {/* Section Header */}
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+                    <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[hsl(var(--text-primary))]">
                         Frequently asked questions
                     </h2>
                 </div>
@@ -64,7 +64,7 @@ const FaqSection = () => {
                                 onClick={() => toggleFaq(faq.id)}
                                 className="w-full text-left flex items-center justify-between gap-4"
                             >
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="text-lg font-semibold text-[hsl(var(--text-primary))]">
                                     {faq.question}
                                 </h3>
                                 <ChevronDown
@@ -94,4 +94,4 @@ const FaqSection = () => {
     );
 };
 
-export default FaqSection;
+export default memo(FaqSection);

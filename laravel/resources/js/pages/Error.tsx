@@ -53,7 +53,7 @@ export default function Error({ status, message }: ErrorProps) {
                         
                         {/* Eyebrow with icon */}
                         <div className="hero-eyebrow mb-6 flex items-center justify-center gap-2">
-                            <AlertTriangle className="h-4 w-4 text-red-400" />
+                            <AlertTriangle className="h-5 w-5 text-red-400" />
                             <span>{status} Error</span>
                         </div>
 
@@ -98,7 +98,7 @@ export default function Error({ status, message }: ErrorProps) {
                                 onClick={() => window.history.back()}
                                 className="hero-cta-secondary h-12 px-8 text-base border-white/20 hover:bg-white/10 text-white"
                             >
-                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                <ArrowLeft className="mr-2 h-5 w-5" />
                                 Go Back
                             </Button>
                             
@@ -107,7 +107,7 @@ export default function Error({ status, message }: ErrorProps) {
                                     size="lg" 
                                     className="hero-cta-primary group h-12 px-8 text-base font-semibold bg-primary hover:bg-primary/90 text-white border-none"
                                 >
-                                    <Home className="mr-2 h-4 w-4" />
+                                    <Home className="mr-2 h-5 w-5" />
                                     Back to Home
                                 </Button>
                             </Link>

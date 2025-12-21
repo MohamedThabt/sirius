@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { 
     IconDocAI, 
     IconLayersAI, 
@@ -42,14 +43,14 @@ const features = [
 
 const Features = () => {
     return (
-        <section id="features" className="relative py-24 md:py-32 px-4" style={{ background: '#000000' }}>
+        <section id="features" className="relative py-24 md:py-32 px-4">
             <div className="max-w-6xl mx-auto relative z-10">
                 {/* Section Header - X Business Style */}
                 <div className="text-center mb-16 md:mb-20">
-                    <h2 className="text-4xl md:text-5xl lg:text-[45px] font-bold mb-6 text-[#edf2f2] tracking-tight leading-[1.1]">
+                    <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[hsl(var(--text-primary))] tracking-tight leading-[1.1]">
                         Why Sirius?
                     </h2>
-                    <p className="text-lg md:text-xl text-[#b0b8bf] max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-lg md:text-xl text-[hsl(var(--text-secondary))] max-w-2xl mx-auto leading-relaxed">
                         Stop spending weeks on documentation. Transform your project brief into production-ready specs in hours.
                     </p>
                 </div>
@@ -59,45 +60,23 @@ const Features = () => {
                     {features.map((feature, idx) => {
                         const Icon = feature.icon;
                         return (
-                            <a
+                            <div
                                 key={idx}
-                                href="#"
-                                onClick={(e) => e.preventDefault()}
-                                className="group relative block"
+                                className="premium-card"
                             >
-                                {/* Card - X Business elevated dark grey style */}
-                                <div className="relative h-full rounded-[20px] bg-[#16181c] p-8 transition-all duration-200 hover:bg-[#1c1f24] cursor-pointer">
-                                    {/* Icon Container */}
-                                    <div className="mb-6">
-                                        <Icon className="w-12 h-12 opacity-90" />
-                                    </div>
-                                    
-                                    {/* Content */}
-                                    <h3 className="text-xl md:text-[22px] font-bold text-[#edf2f2] mb-3 leading-tight">
-                                        {feature.title}
-                                    </h3>
-                                    <p className="text-base md:text-[17px] text-[#8b9299] leading-relaxed">
-                                        {feature.description}
-                                    </p>
-                                    
-                                    {/* Arrow indicator - X Business style */}
-                                    <div className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-[#25313c] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <svg 
-                                            className="w-5 h-5 text-[#edf2f2]" 
-                                            fill="none" 
-                                            viewBox="0 0 24 24" 
-                                            stroke="currentColor"
-                                        >
-                                            <path 
-                                                strokeLinecap="round" 
-                                                strokeLinejoin="round" 
-                                                strokeWidth={2} 
-                                                d="M14 5l7 7m0 0l-7 7m7-7H3" 
-                                            />
-                                        </svg>
-                                    </div>
+                                {/* Icon Container */}
+                                <div className="mb-6">
+                                    <Icon className="w-12 h-12 opacity-90" />
                                 </div>
-                            </a>
+                                
+                                {/* Content */}
+                                <h3 className="text-xl md:text-[22px] font-bold text-[hsl(var(--text-primary))] mb-3 leading-tight">
+                                    {feature.title}
+                                </h3>
+                                <p className="text-base md:text-[17px] text-[hsl(var(--text-secondary))] leading-relaxed">
+                                    {feature.description}
+                                </p>
+                            </div>
                         );
                     })}
                 </div>
@@ -106,4 +85,4 @@ const Features = () => {
     );
 };
 
-export default Features;
+export default memo(Features);

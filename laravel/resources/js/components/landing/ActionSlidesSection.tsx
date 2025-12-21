@@ -16,9 +16,9 @@ const ActionSlidesSection = () => {
 
     // System Overview & PRD Mockup - Enhanced with tabs and AI generation indicator
     const SystemOverviewMockup = () => (
-        <div className="flex h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(220_13%_8%)]">
+        <div className="flex h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(var(--bg-secondary))]">
             {/* Sidebar with navigation */}
-            <div className="flex w-14 flex-col items-center gap-2 border-r border-white/[0.08] bg-[hsl(220_13%_6%)] py-3">
+            <div className="flex w-14 flex-col items-center gap-2 border-r border-white/[0.08] bg-[hsl(var(--bg-secondary))] py-3">
                 <div className="h-7 w-7 rounded border border-blue-500/40 bg-blue-500/20 shadow-[0_0_8px_rgba(59,130,246,0.3)]"></div>
                 <div className="h-7 w-7 rounded border border-white/10 bg-white/5 transition-colors hover:bg-white/10"></div>
                 <div className="h-7 w-7 rounded border border-white/10 bg-white/5"></div>
@@ -27,7 +27,7 @@ const ActionSlidesSection = () => {
 
             <div className="flex flex-1 flex-col">
                 {/* Tabs: Overview | PRD | SRS */}
-                <div className="flex border-b border-white/[0.08] bg-[hsl(220_13%_7%)]">
+                <div className="flex border-b border-white/[0.08] bg-[hsl(var(--bg-secondary))]">
                     <div className="border-b-2 border-blue-500 px-4 py-2">
                         <span className="text-[9px] font-medium text-white/90">Overview</span>
                     </div>
@@ -48,7 +48,7 @@ const ActionSlidesSection = () => {
                 {/* Main content area */}
                 <div className="flex flex-1 overflow-hidden">
                     {/* Version history sidebar */}
-                    <div className="flex w-1/3 flex-col border-r border-white/[0.08] bg-[hsl(220_13%_7%)] p-2.5">
+                    <div className="flex w-1/3 flex-col border-r border-white/[0.08] bg-[hsl(var(--bg-secondary))] p-2.5">
                         <div className="mb-2 text-[8px] font-medium text-white/60">Version History</div>
                         <div className="flex-1 space-y-1.5">
                             <div className="rounded border border-blue-500/30 bg-blue-500/10 p-1.5 transition-all">
@@ -79,8 +79,8 @@ const ActionSlidesSection = () => {
                     </div>
 
                     {/* Document content */}
-                    <div className="flex-1 overflow-hidden bg-[hsl(220_13%_8%)] p-3">
-                        <div className="h-full space-y-2 rounded border border-white/[0.08] bg-[hsl(220_13%_9%)] p-3">
+                    <div className="flex-1 overflow-hidden bg-[hsl(var(--bg-secondary))] p-3">
+                        <div className="h-full space-y-2 rounded border border-white/[0.08] bg-[hsl(var(--bg-secondary))] p-3">
                             <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
                                 <div className="h-2.5 w-28 rounded bg-white/25"></div>
                                 <div className="flex gap-1">
@@ -115,10 +115,10 @@ const ActionSlidesSection = () => {
 
     // Module Discovery Mockup - DDD bounded context cards with selection
     const ModuleDiscoveryMockup = () => (
-        <div className="flex h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(220_13%_8%)]">
+        <div className="flex h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(var(--bg-secondary))]">
             {/* Header with progress indicator */}
             <div className="flex flex-1 flex-col">
-                <div className="flex items-center justify-between border-b border-white/[0.08] bg-[hsl(220_13%_7%)] px-4 py-2">
+                <div className="flex items-center justify-between border-b border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-4 py-2">
                     <div className="flex items-center gap-3">
                         <span className="text-[9px] font-medium text-white/80">Module Discovery</span>
                         <div className="flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5">
@@ -208,7 +208,7 @@ const ActionSlidesSection = () => {
                 </div>
 
                 {/* Footer with actions */}
-                <div className="flex items-center justify-between border-t border-white/[0.08] bg-[hsl(220_13%_7%)] px-4 py-2">
+                <div className="flex items-center justify-between border-t border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-4 py-2">
                     <button className="rounded border border-white/20 bg-white/5 px-3 py-1 text-[8px] text-white/60">Regenerate</button>
                     <button className="rounded bg-blue-500 px-3 py-1 text-[8px] font-medium text-white shadow-lg shadow-blue-500/25">Continue →</button>
                 </div>
@@ -218,10 +218,10 @@ const ActionSlidesSection = () => {
 
     // ERD & Feature Specs Mockup - Split view with ERD and feature spec
     const ERDFeatureSpecsMockup = () => (
-        <div className="flex h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(220_13%_8%)]">
+        <div className="flex h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(var(--bg-secondary))]">
             {/* Left side - ERD Diagram */}
             <div className="flex w-1/2 flex-col border-r border-white/[0.08]">
-                <div className="flex items-center justify-between border-b border-white/[0.08] bg-[hsl(220_13%_7%)] px-3 py-1.5">
+                <div className="flex items-center justify-between border-b border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-3 py-1.5">
                     <span className="text-[8px] font-medium text-white/70">ERD: User Management</span>
                     <div className="flex items-center gap-1 rounded bg-purple-500/20 px-1.5 py-0.5">
                         <span className="text-[6px] text-purple-300">Mermaid</span>
@@ -238,7 +238,7 @@ const ActionSlidesSection = () => {
                     />
                     <div className="relative flex h-full flex-col items-center justify-center gap-3">
                         {/* Users table */}
-                        <div className="w-28 rounded border border-blue-500/30 bg-[hsl(220_13%_10%)] shadow-lg shadow-blue-500/10">
+                        <div className="w-28 rounded border border-blue-500/30 bg-[hsl(var(--bg-secondary))] shadow-lg shadow-blue-500/10">
                             <div className="border-b border-blue-500/20 bg-blue-500/10 px-2 py-1">
                                 <span className="text-[8px] font-semibold text-blue-300">users</span>
                             </div>
@@ -267,7 +267,7 @@ const ActionSlidesSection = () => {
                             <span className="text-[8px] text-white/30">N</span>
                         </div>
                         {/* Roles table */}
-                        <div className="w-28 rounded border border-green-500/30 bg-[hsl(220_13%_10%)] shadow-lg shadow-green-500/10">
+                        <div className="w-28 rounded border border-green-500/30 bg-[hsl(var(--bg-secondary))] shadow-lg shadow-green-500/10">
                             <div className="border-b border-green-500/20 bg-green-500/10 px-2 py-1">
                                 <span className="text-[8px] font-semibold text-green-300">roles</span>
                             </div>
@@ -289,8 +289,8 @@ const ActionSlidesSection = () => {
             </div>
 
             {/* Right side - Feature Spec */}
-            <div className="flex w-1/2 flex-col bg-[hsl(220_13%_9%)]">
-                <div className="flex items-center justify-between border-b border-white/[0.08] bg-[hsl(220_13%_7%)] px-3 py-1.5">
+            <div className="flex w-1/2 flex-col bg-[hsl(var(--bg-secondary))]">
+                <div className="flex items-center justify-between border-b border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-3 py-1.5">
                     <span className="text-[8px] font-medium text-white/70">Feature Spec</span>
                     <div className="flex gap-1">
                         <div className="h-4 w-4 rounded border border-white/10 bg-white/5 flex items-center justify-center text-[7px] text-white/40">📋</div>
@@ -351,10 +351,10 @@ const ActionSlidesSection = () => {
 
     // GitHub Export Mockup - Accurate export structure
     const GitHubExportMockup = () => (
-        <div className="h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(220_13%_8%)]">
+        <div className="h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(var(--bg-secondary))]">
             <div className="flex h-full flex-col">
                 {/* GitHub-style header */}
-                <div className="flex items-center gap-3 border-b border-white/[0.08] bg-[hsl(220_13%_7%)] px-4 py-2">
+                <div className="flex items-center gap-3 border-b border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-4 py-2">
                     <svg className="h-5 w-5 text-white/70" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
                     </svg>
@@ -368,7 +368,7 @@ const ActionSlidesSection = () => {
                 </div>
 
                 {/* File tree - Accurate structure from ProjectSpecsExportService */}
-                <div className="flex-1 overflow-hidden bg-[hsl(220_13%_9%)] p-4">
+                <div className="flex-1 overflow-hidden bg-[hsl(var(--bg-secondary))] p-4">
                     <div className="space-y-0.5 font-mono">
                         {/* specs/ folder */}
                         <div className="flex items-center gap-2 rounded px-2 py-1 text-white/70 hover:bg-white/5">
@@ -439,7 +439,7 @@ const ActionSlidesSection = () => {
                 </div>
 
                 {/* Footer with export info */}
-                <div className="flex items-center justify-between border-t border-white/[0.08] bg-[hsl(220_13%_7%)] px-4 py-2">
+                <div className="flex items-center justify-between border-t border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-4 py-2">
                     <span className="text-[7px] text-white/40">AI-ready for Cursor, Copilot & Claude</span>
                     <div className="flex items-center gap-1.5 text-[7px] text-white/50">
                         <span>12 files</span>
@@ -453,10 +453,10 @@ const ActionSlidesSection = () => {
 
     // Wireframes Mockup
     const WireframesMockup = () => (
-        <div className="flex h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(220_13%_8%)]">
+        <div className="flex h-full w-full overflow-hidden rounded-lg border border-white/[0.08] bg-[hsl(var(--bg-secondary))]">
             {/* Left - Wireframe preview */}
             <div className="flex w-3/5 flex-col border-r border-white/[0.08]">
-                <div className="flex items-center justify-between border-b border-white/[0.08] bg-[hsl(220_13%_7%)] px-3 py-1.5">
+                <div className="flex items-center justify-between border-b border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-3 py-1.5">
                     <div className="flex items-center gap-2">
                         <span className="text-[8px] font-medium text-white/70">Login Page</span>
                         <span className="rounded bg-orange-500/20 px-1.5 py-0.5 text-[6px] text-orange-300">Wireframe</span>
@@ -466,7 +466,7 @@ const ActionSlidesSection = () => {
                         <div className="h-4 w-4 rounded border border-white/10 bg-white/5"></div>
                     </div>
                 </div>
-                <div className="relative flex-1 bg-[hsl(220_13%_9%)] p-4">
+                <div className="relative flex-1 bg-[hsl(var(--bg-secondary))] p-4">
                     {/* Dot grid background */}
                     <div
                         className="absolute inset-0 opacity-20"
@@ -496,8 +496,8 @@ const ActionSlidesSection = () => {
             </div>
 
             {/* Right - Wireframe list */}
-            <div className="flex w-2/5 flex-col bg-[hsl(220_13%_9%)]">
-                <div className="border-b border-white/[0.08] bg-[hsl(220_13%_7%)] px-3 py-1.5">
+            <div className="flex w-2/5 flex-col bg-[hsl(var(--bg-secondary))]">
+                <div className="border-b border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-3 py-1.5">
                     <span className="text-[8px] font-medium text-white/60">Generated Wireframes</span>
                 </div>
                 <div className="flex-1 space-y-1.5 overflow-auto p-2">
@@ -540,7 +540,7 @@ const ActionSlidesSection = () => {
                         </div>
                     </div>
                 </div>
-                <div className="border-t border-white/[0.08] bg-[hsl(220_13%_7%)] px-3 py-2">
+                <div className="border-t border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-3 py-2">
                     <div className="flex items-center justify-between">
                         <span className="text-[7px] text-white/40">4 wireframes</span>
                         <button className="rounded bg-white/10 px-2 py-0.5 text-[7px] text-white/60">Export All</button>
@@ -650,7 +650,7 @@ const ActionSlidesSection = () => {
     }, []);
 
     return (
-        <section id="action-slides" className="space-section py-24">
+        <section id="action-slides" className="space-section py-24 md:py-32 px-4">
             <div className="container mx-auto px-6">
                 <div className="mb-16 text-center">
                     <h2 className="mb-4 text-4xl font-bold md:text-5xl">See It in Action</h2>
@@ -670,8 +670,8 @@ const ActionSlidesSection = () => {
                                 <CarouselItem key={slide.id}>
                                     <div className="grid gap-8 md:grid-cols-5">
                                         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 shadow-xl backdrop-blur-lg transition-all duration-300 hover:border-white/[0.12] md:col-span-3">
-                                            <div className="relative aspect-video overflow-hidden rounded-xl border border-white/[0.1] bg-gradient-to-br from-[hsl(220_13%_6%)] to-[hsl(220_13%_8%)] shadow-inner">
-                                                <div className="absolute top-0 right-0 left-0 flex h-8 items-center gap-2 border-b border-white/[0.08] bg-[hsl(220_13%_6%)] px-3">
+                                            <div className="relative aspect-video overflow-hidden rounded-xl border border-white/[0.1] bg-gradient-to-br from-[hsl(var(--bg-secondary))] to-[hsl(var(--bg-secondary))] shadow-inner">
+                                                <div className="absolute top-0 right-0 left-0 flex h-8 items-center gap-2 border-b border-white/[0.08] bg-[hsl(var(--bg-secondary))] px-3">
                                                     <div className="h-2 w-2 rounded-full bg-red-500/50"></div>
                                                     <div className="h-2 w-2 rounded-full bg-yellow-500/50"></div>
                                                     <div className="h-2 w-2 rounded-full bg-green-500/50"></div>

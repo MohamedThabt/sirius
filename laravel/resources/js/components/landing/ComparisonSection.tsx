@@ -1,5 +1,4 @@
-import React from "react";
-import { ArrowRight, ArrowDown } from "lucide-react";
+import React, { memo } from "react";
 import { 
     IconTimeWarning, 
     IconScattered, 
@@ -61,17 +60,17 @@ const ComparisonSection = () => {
   ];
 
   return (
-    <section id="comparison" className="space-section py-24 px-4 border-t border-white/[0.05]">
+    <section id="comparison" className="space-section py-24 md:py-32 px-4 border-t border-white/[0.05]">
       <div className="container mx-auto max-w-5xl">
         {/* Simplified Header */}
         <div className="text-center mb-20">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
             From Documentation Chaos to <br />
             <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
               AI-Powered Automation
             </span>
           </h2>
-          <p className="text-lg text-white/50 max-w-2xl mx-auto">
+          <p className="text-lg text-[hsl(var(--text-secondary))] max-w-2xl mx-auto">
             Transform your pre-code workflow from manual, time-consuming documentation to instant AI-powered generation.
           </p>
         </div>
@@ -97,7 +96,7 @@ const ComparisonSection = () => {
                       <div className="flex-shrink-0 opacity-70 grayscale transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100">
                         <Icon className="w-12 h-12" />
                       </div>
-                      <span className="text-lg text-white/60 group-hover:text-white/80 transition-colors">
+                      <span className="text-lg text-[hsl(var(--text-secondary))] group-hover:text-[hsl(var(--text-primary))] transition-colors">
                         {item.text}
                       </span>
                     </div>
@@ -121,7 +120,7 @@ const ComparisonSection = () => {
                        <div className="flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
                         <Icon className="w-12 h-12" />
                       </div>
-                      <span className="text-lg text-white font-medium">
+                      <span className="text-lg text-[hsl(var(--text-primary))] font-medium">
                         {item.text}
                       </span>
                     </div>
@@ -142,8 +141,8 @@ const ComparisonSection = () => {
                     <div className="absolute inset-0 bg-white/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <Icon className="w-16 h-16 relative z-10 transition-transform duration-500 group-hover:scale-110" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
-                  <p className="text-sm text-white/50">{step.description}</p>
+                  <h3 className="text-lg font-bold text-[hsl(var(--text-primary))] mb-2">{step.title}</h3>
+                  <p className="text-sm text-[hsl(var(--text-secondary))]">{step.description}</p>
                 </div>
               );
             })}
@@ -154,4 +153,4 @@ const ComparisonSection = () => {
   );
 };
 
-export default ComparisonSection;
+export default memo(ComparisonSection);
