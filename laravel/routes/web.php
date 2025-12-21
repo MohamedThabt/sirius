@@ -54,6 +54,11 @@ Route::get('/beta', function () {
 })->name('beta.page');
 Route::post('/beta/signup', [BetaController::class, 'store'])->name('beta.store');
 
+// Team Page
+Route::get('/team', function () {
+    return Inertia::render('team');
+})->name('team');
+
 
 // Project routes
 // TODO: Add middleware 'verified'

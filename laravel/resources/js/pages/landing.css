@@ -1,91 +1,91 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Linear Landing Page Scoped Styles */
+/* X Business Inspired Landing Page Styles */
 .linear-landing {
-    /* Linear Dark Theme - Always Dark - Based on #0F172A */
+    /* X Business Dark Theme - Pure Black Background */
     /* Background & Surface Colors */
-    --background: 220 13% 6%; /* #0F172A - Linear's primary dark background */
-    --foreground: 210 11% 90%; /* #F7F8F8 - Primary text */
+    --background: 0 0% 0%; /* Pure black #000000 - X Business style */
+    --foreground: 195 10% 94%; /* Off-white rgb(237, 242, 242) */
 
-    --card: 220 13% 8%; /* #1E293B - Card background */
-    --card-foreground: 210 11% 90%;
+    --card: 220 8% 9%; /* Dark grey rgb(22, 24, 28) - elevated surface */
+    --card-foreground: 195 10% 94%;
 
-    --popover: 220 13% 8%;
-    --popover-foreground: 210 11% 90%;
+    --popover: 220 8% 9%;
+    --popover-foreground: 195 10% 94%;
 
-    /* Primary - Linear Magic Blue #5E6AD2 */
-    --primary: 252 56% 64%; /* #5E6AD2 - Linear's signature Magic Blue (HSL: 252° 56% 64%) */
-    --primary-foreground: 0 0% 100%; /* White text on primary */
-    --primary-hover: 252 49% 51%; /* #4551B5 - Darker blue for hover (HSL: 252° 49% 51%) */
-    --primary-accent: 252 56% 64%; /* #5E6AD2 */
+    /* Primary - X Business Blue #0E8ED8 */
+    --primary: 201 87% 48%; /* rgb(14, 142, 216) - X Business link blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 201 87% 42%;
+    --primary-accent: 201 87% 48%;
 
-    --secondary: 220 9% 46%; /* Medium gray */
-    --secondary-foreground: 210 11% 90%;
+    --secondary: 210 6% 25%; /* rgb(37, 49, 60) - secondary button bg */
+    --secondary-foreground: 195 10% 94%;
 
-    --muted: 220 13% 15%; /* Subtle muted backgrounds */
-    --muted-foreground: 220 9% 58%; /* #95A2B3 - Tertiary text */
+    --muted: 220 8% 12%;
+    --muted-foreground: 210 6% 55%;
 
-    --accent: 220 13% 15%;
-    --accent-foreground: 210 11% 90%;
-    --accent-blue: 252 49% 51%; /* #4551B5 - Interactive elements */
+    --accent: 220 8% 12%;
+    --accent-foreground: 195 10% 94%;
+    --accent-blue: 201 87% 48%;
 
-    /* State Colors - Linear Style */
-    --success: 169 70% 74%; /* #1BCDAC - Linear success green */
-    --warning: 37 96% 67%; /* #FBB055 - Linear warning */
-    --error: 354 77% 65%; /* #F14D61 - Linear error */
-    --destructive: 354 77% 65%; /* #F14D61 */
-    --destructive-foreground: 210 11% 90%;
+    /* State Colors */
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --error: 0 72% 51%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 195 10% 94%;
 
-    --border: 220 13% 13%; /* Very subtle borders */
-    --input: 220 13% 13%;
-    --ring: 252 56% 64%; /* Focus ring - Magic Blue #5E6AD2 */
+    --border: 220 8% 15%;
+    --input: 220 8% 12%;
+    --ring: 201 87% 48%;
 
-    /* Linear Border Radius Scale */
-    --radius-sm: 0.125rem; /* 2px - Minimal rounding */
-    --radius-md: 0.3125rem; /* 5px - Cards, containers */
-    --radius-lg: 0.5rem; /* 8px - Larger cards, modals */
-    --radius-xl: 0.75rem; /* 12px - Buttons, prominent elements */
-    --radius-2xl: 1.25rem; /* 20px - Special hover states */
-    --radius: 0.5rem; /* Default radius - 8px */
+    /* X Business Border Radius Scale - Generous Rounding */
+    --radius-sm: 0.5rem; /* 8px */
+    --radius-md: 1rem; /* 16px - Cards */
+    --radius-lg: 1.5rem; /* 24px - Large cards */
+    --radius-xl: 2rem; /* 32px */
+    --radius-pill: 100px; /* Pill buttons */
+    --radius: 1rem;
 
-    /* Linear Text Hierarchy */
-    --text-primary: 210 11% 90%; /* #F7F8F8 - Primary text (dark mode) */
-    --text-secondary: 0 0% 100%; /* #FFFFFF - Secondary text (dark mode) */
-    --text-tertiary: 220 9% 58%; /* #95A2B3 - Muted text */
-    --text-quaternary: 220 9% 46%; /* Subtle text */
+    /* X Business Text Hierarchy - Large, Bold */
+    --text-primary: 195 10% 94%; /* Off-white */
+    --text-secondary: 210 6% 70%; /* Muted grey */
+    --text-tertiary: 210 6% 50%;
+    --text-quaternary: 210 6% 35%;
 
-    /* Linear Background Hierarchy */
-    --bg-primary: 220 13% 6%; /* #0F172A - Main background */
-    --bg-secondary: 220 13% 8%; /* #1E293B - Card/panel background */
-    --bg-tertiary: 220 13% 10%; /* Elevated elements */
+    /* Background Hierarchy */
+    --bg-primary: 0 0% 0%; /* Pure black */
+    --bg-secondary: 220 8% 9%; /* Dark grey card bg */
+    --bg-tertiary: 220 8% 12%;
 
-    --subtle-border: 220 13% 13%; /* Very subtle borders */
+    --subtle-border: 220 8% 15%;
 
-    /* Linear Shadow System */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.6);
-    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.7);
-    --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.8);
-    --shadow-button: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.6);
+    /* X Business Shadow System - Minimal */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --shadow-button: 0 2px 4px rgba(0, 0, 0, 0.2);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
 
-    /* Hero gradient - Linear dark theme */
-    --gradient-hero: linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 4%) 100%);
-    --gradient-primary: linear-gradient(135deg, #5e6ad2, #7474b0);
+    /* Gradients - Subtle */
+    --gradient-hero: linear-gradient(180deg, hsl(0 0% 0%) 0%, hsl(220 8% 3%) 100%);
+    --gradient-primary: linear-gradient(135deg, #0e8ed8, #1da1f2);
 
-    /* Linear Animation System */
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* Standard easing */
-    --ease-out: cubic-bezier(0, 0, 0.2, 1); /* Deceleration - recommended for UI */
-    --ease-in: cubic-bezier(0.4, 0, 1, 1); /* Acceleration */
+    /* Animation System */
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
     --duration-instant: 100ms;
     --duration-fast: 200ms;
     --duration-normal: 300ms;
     --duration-slow: 500ms;
     --duration-slower: 800ms;
 
-    /* Animations */
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-fast: all 0.2s cubic-bezier(0, 0, 0.2, 1);
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0, 0, 0.2, 1);
 }
 
 .linear-landing * {
@@ -138,41 +138,175 @@
     }
 }
 
-/* Sirius Hero Section - Enhanced Space Theme */
+/* Enhanced Hero Section - X Business + Elegant Stars + Vibrant Effects */
 .linear-landing .sirius-hero {
     position: relative;
-    padding: clamp(6rem, 12vw, 10rem) 1.5rem 8rem;
+    padding: clamp(7rem, 12vw, 10rem) 1.5rem 5rem;
     background: 
-        radial-gradient(circle at 20% 20%, rgba(72, 99, 255, 0.15), transparent 50%),
-        radial-gradient(circle at 80% 0%, rgba(187, 108, 217, 0.12), transparent 45%),
-        linear-gradient(180deg, #010109 0%, #030510 40%, #020205 100%);
-    color: #f8fbff;
+        radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.08), transparent 45%),
+        radial-gradient(ellipse at 70% 60%, rgba(168, 85, 247, 0.06), transparent 50%),
+        radial-gradient(ellipse at 50% 0%, rgba(14, 142, 216, 0.06), transparent 50%),
+        #000000;
+    color: hsl(195 10% 94%);
     font-family:
-        'Poppins',
         'Inter',
         -apple-system,
         BlinkMacSystemFont,
         'Segoe UI',
         sans-serif;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     overflow: hidden;
+    min-height: 100vh;
 }
 
+/* Subtle grid pattern overlay */
+.linear-landing .sirius-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100px 100px;
+    opacity: 0.3;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at 50% 0%, black, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black, transparent 70%);
+}
+
+/* Elegant star layers - subtle and refined */
 .linear-landing .sirius-hero::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 65%);
+    background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.4) 0.5px, transparent 0.5px),
+        radial-gradient(rgba(255, 255, 255, 0.3) 0.8px, transparent 0.8px),
+        radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+    background-size: 180px 180px, 250px 250px, 350px 350px;
+    background-position: 0 0, 40px 60px, 130px 270px;
     opacity: 0.3;
     pointer-events: none;
+    animation: star-drift 200s linear infinite;
+    z-index: 1;
 }
 
-.linear-landing .hero-gradient,
-.linear-landing .hero-stars,
-.linear-landing .hero-nebula {
+.linear-landing .hero-gradient {
     position: absolute;
     inset: 0;
     pointer-events: none;
+    background: radial-gradient(circle at 50% 30%, rgba(14, 142, 216, 0.03), transparent 50%);
+    filter: blur(40px);
+    z-index: 0;
+}
+
+/* Ensure content is above overlays */
+.linear-landing .hero-inner {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+@media (min-width: 1024px) {
+    .linear-landing .hero-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+    }
+}
+
+/* Centered Hero Layout - Single column centered */
+.linear-landing .hero-inner-centered {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.linear-landing .hero-copy-centered {
+    max-width: 900px;
+    text-align: center;
+}
+
+/* Hero copy column */
+.linear-landing .hero-copy {
+    text-align: center;
+}
+
+@media (min-width: 1024px) {
+    .linear-landing .hero-copy {
+        text-align: left;
+    }
+}
+
+/* Hero visual column */
+.linear-landing .hero-visual {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+@media (min-width: 1024px) {
+    .linear-landing .hero-visual {
+        min-height: 500px;
+    }
+}
+
+/* Larger headline variant */
+.linear-landing .hero-headline--large {
+    font-size: clamp(3rem, 6vw, 6rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+/* Constellation pattern effect */
+.linear-landing .hero-constellation {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.4;
+    background-image: 
+        radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+        radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.6) 0.8px, transparent 0.8px),
+        radial-gradient(circle at 22% 22%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+        radial-gradient(circle at 75% 35%, rgba(255, 255, 255, 0.9) 1.2px, transparent 1.2px),
+        radial-gradient(circle at 78% 32%, rgba(255, 255, 255, 0.5) 0.8px, transparent 0.8px),
+        radial-gradient(circle at 82% 38%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+        radial-gradient(circle at 45% 70%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+        radial-gradient(circle at 48% 75%, rgba(255, 255, 255, 0.5) 0.8px, transparent 0.8px),
+        radial-gradient(circle at 52% 68%, rgba(255, 255, 255, 0.6) 1px, transparent 1px);
+    background-size: 100% 100%;
+    animation: constellation-twinkle 8s ease-in-out infinite;
+}
+
+@keyframes constellation-twinkle {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.6; }
+}
+
+/* Nebula effects - now visible with vibrant colors */
+.linear-landing .hero-nebula {
+    position: absolute;
+    mix-blend-mode: screen;
+    filter: blur(80px);
+    pointer-events: none;
+    animation: nebula-float 20s ease-in-out infinite;
+}
+
+@keyframes star-drift {
+    from {
+        background-position: 0 0, 40px 60px, 130px 270px;
+    }
+    to {
+        background-position: -180px 180px, -210px 240px, -220px 450px;
+    }
 }
 
 .linear-landing .hero-gradient {
@@ -201,30 +335,37 @@
     animation-duration: 75s;
 }
 
-/* Elegant minimalistic nebula effects */
-.linear-landing .hero-nebula {
-    mix-blend-mode: screen;
-    filter: blur(80px);
-    opacity: 0.25;
-    animation: nebula-float 20s ease-in-out infinite;
-}
-
+/* Vibrant nebula effects - purple, pink, cyan */
 .linear-landing .hero-nebula--left {
-    background: radial-gradient(circle, rgba(88, 158, 255, 0.35), transparent 60%);
-    width: 45%;
-    height: 45%;
-    transform: translate(-15%, -5%);
-    animation-duration: 25s;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.5), rgba(139, 92, 246, 0.3), transparent 70%);
+    width: 50%;
+    height: 50%;
+    top: -10%;
+    left: -10%;
+    opacity: 0.35;
+    animation: nebula-float 25s ease-in-out infinite;
 }
 
 .linear-landing .hero-nebula--right {
-    background: radial-gradient(circle, rgba(255, 108, 217, 0.28), transparent 65%);
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.4), rgba(168, 85, 247, 0.25), transparent 70%);
+    width: 45%;
+    height: 45%;
+    right: -5%;
+    bottom: 5%;
+    opacity: 0.3;
+    animation: nebula-float 22s ease-in-out infinite reverse;
+    animation-delay: -8s;
+}
+
+.linear-landing .hero-nebula--center {
+    background: radial-gradient(circle, rgba(34, 211, 238, 0.25), rgba(59, 130, 246, 0.2), transparent 65%);
     width: 40%;
     height: 40%;
-    right: 8%;
-    bottom: 12%;
-    animation-duration: 22s;
-    animation-delay: -10s;
+    top: 30%;
+    left: 35%;
+    opacity: 0.25;
+    animation: nebula-float 28s ease-in-out infinite;
+    animation-delay: -5s;
 }
 
 /* Shooting Stars */
@@ -381,11 +522,17 @@
     margin: 0;
     color: #fff;
     letter-spacing: -0.02em;
+    text-shadow: 0 0 40px rgba(14, 142, 216, 0.15);
 }
 
 .linear-landing .hero-headline-word {
     display: inline-block;
     transition: all 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.linear-landing .hero-headline-word:hover {
+    transform: translateY(-2px);
+    text-shadow: 0 0 50px rgba(14, 142, 216, 0.3);
 }
 
 .linear-landing .hero-headline-accent {
@@ -395,10 +542,10 @@
 
 @keyframes pulse-glow {
     0%, 100% {
-        box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        text-shadow: 0 0 30px rgba(14, 142, 216, 0.2);
     }
     50% {
-        box-shadow: 0 0 40px rgba(99, 102, 241, 0.5), 0 0 60px rgba(139, 92, 246, 0.3);
+        text-shadow: 0 0 50px rgba(14, 142, 216, 0.4), 0 0 70px rgba(56, 189, 248, 0.2);
     }
 }
 
@@ -406,7 +553,7 @@
     margin-top: 1.5rem;
     font-size: clamp(1.05rem, 2.2vw, 1.35rem);
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.82);
+    color: rgba(255, 255, 255, 0.85);
     max-width: 42rem;
     transition: all 0.85s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -456,34 +603,38 @@
 }
 
 .linear-landing .hero-cta-primary {
-    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-    color: #05060a;
+    background: hsl(195 10% 94%);
+    color: hsl(210 6% 10%);
     font-weight: 600;
-    padding-inline: 2rem;
-    box-shadow: 0 20px 45px rgba(255, 255, 255, 0.2), 0 0 30px rgba(99, 102, 241, 0.3);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.875rem 2rem;
+    border-radius: 100px; /* Pill shape - X Business style */
+    box-shadow: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
 }
 
 .linear-landing .hero-cta-primary:hover {
-    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
-    color: #020205;
-    transform: translateY(-2px);
-    box-shadow: 0 25px 50px rgba(255, 255, 255, 0.25), 0 0 40px rgba(99, 102, 241, 0.4);
+    background: #ffffff;
+    color: #000000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
 }
 
 .linear-landing .hero-cta-secondary {
-    color: rgba(255, 255, 255, 0.85);
+    color: hsl(195 10% 94%);
     font-weight: 500;
     gap: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.875rem 2rem;
+    border-radius: 100px; /* Pill shape */
+    border: 1px solid hsl(220 8% 20%);
+    background: transparent;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .linear-landing .hero-cta-secondary:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: hsl(220 8% 12%);
+    border-color: hsl(220 8% 25%);
 }
 
 .linear-landing .hero-cta-icon {
@@ -670,6 +821,51 @@
     }
 }
 
+/* Hero Mockup Floating Animations */
+@keyframes float-slow {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-12px);
+    }
+}
+
+@keyframes float-medium {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes float-fast {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+.linear-landing .animate-float-slow {
+    animation: float-slow 6s ease-in-out infinite;
+}
+
+.linear-landing .animate-float-medium {
+    animation: float-medium 4s ease-in-out infinite;
+}
+
+.linear-landing .animate-float-fast {
+    animation: float-fast 3s ease-in-out infinite;
+}
+
+/* Hero social proof styles */
+.linear-landing .hero-social-proof {
+    transition: all 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .linear-landing .animate-fade-in-up {
     animation: fade-in-up var(--duration-slower, 800ms) var(--ease-out, cubic-bezier(0, 0, 0.2, 1)) forwards;
     opacity: 0;
@@ -696,63 +892,47 @@
    SPACE THEME FOR ALL SECTIONS
    ============================================ */
 
-/* Base space section styles */
+/* X Business Inspired Section Styles - Clean & Minimal */
 .linear-landing .space-section {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 5%) 50%, hsl(220 13% 6%) 100%);
+    background: #000000;
 }
 
-/* Stars background layer for all space sections */
+/* Subtle gradient accents instead of stars */
 .linear-landing .space-section::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background-image: 
-        radial-gradient(rgba(255, 255, 255, 0.2) 0.5px, transparent 0.5px),
-        radial-gradient(rgba(255, 255, 255, 0.15) 0.8px, transparent 0.8px),
-        radial-gradient(rgba(255, 255, 255, 0.1) 1.2px, transparent 1.2px);
-    background-size: 100px 100px, 150px 150px, 200px 200px;
-    background-position: 0 0, 30px 60px, 80px 30px;
-    opacity: 0.5;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 1400px;
+    height: 500px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(14, 142, 216, 0.04), transparent 60%);
     pointer-events: none;
     z-index: 0;
 }
 
-/* Nebula glow layer */
+/* Remove nebula effects */
 .linear-landing .space-section::after {
-    content: '';
-    position: absolute;
-    width: 70%;
-    height: 70%;
-    border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.2;
-    pointer-events: none;
-    z-index: 0;
-    animation: nebula-float 25s ease-in-out infinite;
+    display: none;
 }
 
-/* Ensure content is above space effects */
+/* Ensure content is above effects */
 .linear-landing .space-section > div,
 .linear-landing .space-section > .container {
     position: relative;
     z-index: 1;
 }
 
-/* Features Section - Blue/Indigo nebula */
+/* Features Section - Clean black */
 .linear-landing #features {
-    background: 
-        radial-gradient(ellipse at 20% 0%, rgba(88, 158, 255, 0.12), transparent 50%),
-        radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.08), transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.05), transparent 70%),
-        linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 4%) 100%);
+    background: #000000;
 }
 
 .linear-landing #features::after {
-    background: radial-gradient(circle, rgba(88, 158, 255, 0.3), transparent 60%);
-    top: -30%;
-    left: -20%;
+    display: none;
 }
 
 /* Comparison Section - Purple/Magenta nebula */
@@ -768,31 +948,21 @@
 }
 
 .linear-landing #comparison::before {
-    opacity: 0.25;
+    display: none;
 }
 
-/* Action Slides Section - Cyan/Teal nebula */
+/* Action Slides Section - Clean black */
 .linear-landing #action-slides {
-    background: 
-        radial-gradient(ellipse at 50% 0%, rgba(34, 211, 238, 0.08), transparent 50%),
-        radial-gradient(ellipse at 0% 100%, rgba(20, 184, 166, 0.06), transparent 50%),
-        radial-gradient(ellipse at 100% 50%, rgba(56, 189, 248, 0.05), transparent 60%),
-        linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 5%) 100%);
+    background: #000000;
 }
 
 .linear-landing #action-slides::after {
-    background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 60%);
-    top: 20%;
-    right: -20%;
-    animation-duration: 28s;
+    display: none;
 }
 
-/* Metrics Section - Gold/Amber nebula */
+/* Metrics Section - Clean black */
 .linear-landing #metrics {
-    background: 
-        radial-gradient(ellipse at 30% 30%, rgba(251, 191, 36, 0.06), transparent 50%),
-        radial-gradient(ellipse at 70% 70%, rgba(245, 158, 11, 0.04), transparent 50%),
-        linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 6%) 100%);
+    background: #000000;
 }
 
 .linear-landing #metrics::after {
@@ -800,16 +970,12 @@
 }
 
 .linear-landing #metrics::before {
-    opacity: 0.25;
+    display: none;
 }
 
-/* Personas Section - Green/Emerald nebula */
+/* Personas Section - Clean black */
 .linear-landing #personas {
-    background: 
-        radial-gradient(ellipse at 80% 20%, rgba(52, 211, 153, 0.08), transparent 50%),
-        radial-gradient(ellipse at 20% 80%, rgba(16, 185, 129, 0.06), transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(34, 197, 94, 0.04), transparent 70%),
-        linear-gradient(180deg, hsl(220 13% 6%) 0%, hsl(220 13% 5%) 100%);
+    background: #000000;
 }
 
 .linear-landing #personas::after {

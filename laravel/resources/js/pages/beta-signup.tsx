@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Mail, Zap } from "lucide-react";
+import { CheckCircle2, Mail, Zap, User, AlertCircle } from "lucide-react";
 import { Head, useForm } from "@inertiajs/react";
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { motion, AnimatePresence } from "framer-motion";
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import './landing.css';
@@ -43,7 +44,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
   };
 
   return (
-    <div className="linear-landing dark min-h-screen bg-background text-foreground">
+    <div className="linear-landing dark bg-background text-foreground">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
@@ -51,7 +52,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
           <Head title="Join Sirius Beta" />
           <Navbar hideBetaNav />
           <main>
-            <section className="sirius-hero relative overflow-hidden min-h-screen">
+            <section className="sirius-hero relative overflow-hidden min-h-screen flex items-center justify-center p-4">
         <div className="hero-gradient" aria-hidden="true" />
         <div className="hero-stars hero-stars--one" aria-hidden="true" />
         <div className="hero-stars hero-stars--two" aria-hidden="true" />
@@ -59,182 +60,206 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
         <div className="hero-nebula hero-nebula--left" aria-hidden="true" />
         <div className="hero-nebula hero-nebula--right" aria-hidden="true" />
 
-        <div className="hero-inner mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-20 flex items-center justify-center min-h-screen">
-          <div className="hero-copy w-full" style={{ opacity: isVisible ? 1 : 0 }}>
-            {/* Eyebrow with icon */}
-            <div
-              className="hero-eyebrow mb-6 flex items-center justify-center gap-2"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(20%)",
-                transition: "all 0.6s ease-out",
-              }}
-            >
-              <Zap className="h-4 w-4 text-indigo-400" />
-              <span>Closed Beta Program</span>
+        <div className="hero-inner mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column: Content */}
+            <div className="flex flex-col text-left space-y-8" style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.5s ease-out' }}>
+                <div>
+                    <div
+                      className="hero-eyebrow mb-4 flex items-center justify-start gap-2"
+                      style={{
+                        opacity: isVisible ? 1 : 0,
+                        transform: isVisible ? "translateY(0)" : "translateY(10px)",
+                        transition: "all 0.6s ease-out",
+                      }}
+                    >
+                      <Zap className="h-4 w-4 text-indigo-400" />
+                      <span>Closed Beta Program</span>
+                    </div>
+
+                    <h1
+                      className="hero-headline mb-4 text-left text-4xl md:text-5xl font-bold"
+                      style={{
+                        opacity: isVisible ? 1 : 0,
+                        transform: isVisible ? "translateY(0)" : "translateY(10px)",
+                        transitionDelay: "0.1s",
+                        transition: "all 0.6s ease-out",
+                      }}
+                    >
+                      Join Sirius Beta
+                    </h1>
+
+                    <p
+                      className="hero-subheadline mb-8 text-left text-lg leading-relaxed text-white/85 sm:text-xl max-w-xl"
+                      style={{
+                        opacity: isVisible ? 1 : 0,
+                        transform: isVisible ? "translateY(0)" : "translateY(10px)",
+                        transitionDelay: "0.2s",
+                        transition: "all 0.6s ease-out",
+                      }}
+                    >
+                      Be among the first to experience the Sirius AI Planning Engine.
+                    </p>
+                </div>
+
+                {/* Features List */}
+                <div
+                  className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur"
+                  style={{
+                    opacity: isVisible ? 1 : 0,
+                    transform: isVisible ? "translateY(0)" : "translateY(10px)",
+                    transitionDelay: "0.3s",
+                    transition: "all 0.6s ease-out",
+                  }}
+                >
+                  <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-indigo-300">
+                    What You Get
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      "PRD Generation",
+                      "Database Design (ERD & C4)",
+                      "Architecture Diagrams",
+                      "User Stories & Features",
+                      "Wireframes",
+                      "Sequence Diagrams",
+                      "Version Control",
+                      "Priority Support",
+                    ].map((feature) => (
+                      <span
+                        key={feature}
+                        className="flex items-center gap-2 text-sm text-white/90"
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-indigo-400 flex-shrink-0" />
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
             </div>
 
-            {/* Main Headline */}
-            <h1
-              className="hero-headline mb-6 text-center text-4xl md:text-5xl font-bold"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(20px)",
-                transitionDelay: "0.1s",
-                transition: "all 0.6s ease-out",
-              }}
-            >
-              Join Sirius Beta
-            </h1>
-
-            {/* Subheadline */}
-            <p
-              className="hero-subheadline mx-auto mb-8 text-balance text-center text-lg leading-relaxed text-white/85 sm:text-xl max-w-2xl"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(16px)",
-                transitionDelay: "0.2s",
-                transition: "all 0.6s ease-out",
-              }}
-            >
-              Be among the first to experience the Sirius AI Planning Engine. Submit your details below to join our exclusive beta program.
-            </p>
-
-            {/* Success Message */}
-            {message && (
-              <div
-                className="mx-auto mb-8 max-w-2xl rounded-2xl border border-green-400/30 bg-green-500/10 p-4 text-center text-green-300"
+            {/* Right Column: Form */}
+            <div 
+                className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto"
                 style={{
                   opacity: isVisible ? 1 : 0,
-                  transform: isVisible ? "translateY(0)" : "translateY(16px)",
-                  transitionDelay: "0.3s",
+                  transform: isVisible ? "translateY(0)" : "translateY(15px)",
+                  transitionDelay: "0.4s",
                   transition: "all 0.6s ease-out",
                 }}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>{message}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Signup Form */}
-            <form
-              onSubmit={handleSubmit}
-              className="mx-auto mb-8 max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(12px)",
-                transitionDelay: "0.3s",
-                transition: "all 0.6s ease-out",
-              }}
             >
-              <div className="space-y-5">
-                {/* Name Field */}
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={data.name}
-                    onChange={(e) => setData("name", e.target.value)}
-                    placeholder="John Doe"
-                    className={`w-full rounded-lg border bg-white/5 px-4 py-3 text-white placeholder-white/40 transition-all focus:outline-none focus:ring-2 ${
-                      errors.name
-                        ? "border-red-400/50 focus:ring-red-400/40"
-                        : "border-white/20 focus:border-indigo-400/50 focus:ring-indigo-400/40"
-                    }`}
-                  />
-                  {errors.name && (
-                    <p className="mt-2 text-sm text-red-400">{errors.name}</p>
-                  )}
-                </div>
+                {/* Success Message */}
+                <AnimatePresence>
+                    {message && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center text-green-400 backdrop-blur-sm shadow-lg shadow-green-900/10"
+                      >
+                        <div className="flex items-center justify-center gap-2 font-medium">
+                          <CheckCircle2 className="h-5 w-5" />
+                          <span>{message}</span>
+                        </div>
+                      </motion.div>
+                    )}
+                </AnimatePresence>
 
-                {/* Email Field */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={data.email}
-                    onChange={(e) => setData("email", e.target.value)}
-                    placeholder="you@example.com"
-                    className={`w-full rounded-lg border bg-white/5 px-4 py-3 text-white placeholder-white/40 transition-all focus:outline-none focus:ring-2 ${
-                      errors.email
-                        ? "border-red-400/50 focus:ring-red-400/40"
-                        : "border-white/20 focus:border-indigo-400/50 focus:ring-indigo-400/40"
-                    }`}
-                  />
-                  {errors.email && (
-                    <p className="mt-2 text-sm text-red-400">{errors.email}</p>
-                  )}
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={processing}
-                  className="w-full rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-3 font-semibold text-white transition-all hover:shadow-lg hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                <form
+                  onSubmit={handleSubmit}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur shadow-2xl relative overflow-hidden"
                 >
-                  <Mail className="h-4 w-4" />
-                  {processing ? "Submitting..." : "Join the Beta"}
-                </button>
-              </div>
-            </form>
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+                  
+                  <div className="space-y-6 relative z-10">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-2 ml-1">
+                        Full Name
+                      </label>
+                      <div className="relative group">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-indigo-400 transition-colors">
+                            <User className="h-5 w-5" />
+                          </div>
+                          <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={data.name}
+                            onChange={(e) => setData("name", e.target.value)}
+                            placeholder="John Doe"
+                            className={`w-full rounded-xl border bg-black/40 pl-10 pr-4 py-3.5 text-white placeholder-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
+                              errors.name
+                                ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                                : "border-white/10 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-white/20"
+                            }`}
+                          />
+                      </div>
+                      <AnimatePresence>
+                          {errors.name && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="flex items-center gap-2 text-sm text-red-400 overflow-hidden"
+                            >
+                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                <span>{errors.name}</span>
+                            </motion.div>
+                          )}
+                      </AnimatePresence>
+                    </div>
 
-            {/* Features List */}
-            <div
-              className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(12px)",
-                transitionDelay: "0.45s",
-                transition: "all 0.6s ease-out",
-              }}
-            >
-              <p className="mb-4 text-center text-sm font-semibold uppercase tracking-wider text-indigo-300">
-                As a Beta Member, You Get Access To
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {[
-                  "PRD Generation",
-                  "Database Design (ERD & C4)",
-                  "Architecture Diagrams",
-                  "User Stories & Features",
-                  "Wireframes",
-                  "Sequence Diagrams",
-                  "Version Control",
-                  "Priority Support",
-                ].map((feature) => (
-                  <span
-                    key={feature}
-                    className="flex items-center gap-2 text-sm text-white/90"
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-                    {feature}
-                  </span>
-                ))}
-              </div>
-            </div>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2 ml-1">
+                        Email Address
+                      </label>
+                      <div className="relative group">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-indigo-400 transition-colors">
+                            <Mail className="h-5 w-5" />
+                          </div>
+                          <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={data.email}
+                            onChange={(e) => setData("email", e.target.value)}
+                            placeholder="you@example.com"
+                            className={`w-full rounded-xl border bg-black/40 pl-10 pr-4 py-3.5 text-white placeholder-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
+                              errors.email
+                                ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                                : "border-white/10 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-white/20"
+                            }`}
+                          />
+                      </div>
+                      <AnimatePresence>
+                          {errors.email && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="flex items-center gap-2 text-sm text-red-400 overflow-hidden"
+                            >
+                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                <span>{errors.email}</span>
+                            </motion.div>
+                          )}
+                      </AnimatePresence>
+                    </div>
 
-            {/* Footer Note */}
-            <div
-              className="mt-8 text-center text-sm text-white/60"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transitionDelay: "0.55s",
-                transition: "opacity 0.6s ease-out",
-              }}
-            >
-              <p>
-                💡 This is an exclusive closed beta. Selected users will be notified when their account is ready.
-              </p>
+                    <button
+                      type="submit"
+                      disabled={processing}
+                      className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 font-semibold text-white transition-all hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
+                    >
+                      <Mail className="h-5 w-5 group-hover:animate-pulse" />
+                      {processing ? "Submitting..." : "Join the Beta"}
+                    </button>
+                    
+                     <p className="text-center text-xs text-white/30">
+                        Limited spots available. No spam, ever.
+                     </p>
+                  </div>
+                </form>
             </div>
           </div>
         </div>

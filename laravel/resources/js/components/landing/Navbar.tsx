@@ -72,7 +72,11 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                 <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
                     <div className="flex-shrink-0">
-                        <a href="#" onClick={handleLogoClick} className="flex items-center">
+                        <a 
+                            href="/" 
+                            onClick={hideBetaNav ? undefined : handleLogoClick} 
+                            className="flex items-center"
+                        >
                             <AppLogoIcon className="h-8 w-auto" />
                         </a>
                     </div>
@@ -123,6 +127,12 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                 }`}
                             >
                                 FAQ
+                            </a>
+                            <a
+                                href="/team"
+                                className="text-sm text-[hsl(var(--text-secondary))] transition-colors hover:text-[hsl(var(--text-primary))]"
+                            >
+                                Team
                             </a>
                         </div>
                     )}
@@ -193,6 +203,12 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                         >
                                             FAQ
                                         </a>
+                                        <a
+                                            href="/team"
+                                            className="block px-4 py-2 text-sm text-[hsl(var(--text-secondary))] transition-colors hover:bg-[hsl(var(--bg-secondary))] hover:text-[hsl(var(--text-primary))]"
+                                        >
+                                            Team
+                                        </a>
                                     </div>
                                 </>
                             )}
@@ -203,7 +219,12 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                     {!hideBetaNav && (
                         <div className="flex items-center gap-3">
                             {isAuthenticated ? (
-                                <Button variant="default" size="sm" className="bg-white text-black hover:bg-white/90" asChild>
+                                <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    className="rounded-full bg-[#edf2f2] text-[#1d2328] hover:bg-white hover:text-black border-0" 
+                                    asChild
+                                >
                                     <a href="/projects">Go to Projects</a>
                                 </Button>
                             ) : (
@@ -211,12 +232,17 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))]"
+                                        className="text-[#b0b8bf] hover:text-[#edf2f2] hover:bg-transparent"
                                         asChild
                                     >
                                         <a href="/login">Sign In</a>
                                     </Button>
-                                    <Button variant="default" size="sm" className="bg-white text-black hover:bg-white/90" asChild>
+                                    <Button 
+                                        variant="default" 
+                                        size="sm" 
+                                        className="rounded-full bg-[#edf2f2] text-[#1d2328] hover:bg-white hover:text-black border-0" 
+                                        asChild
+                                    >
                                         <a href="/beta">Join Closed Beta</a>
                                     </Button>
                                 </>

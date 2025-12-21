@@ -91,11 +91,13 @@ class BetaController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        try {
-            $request->validate([
+        $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:beta_invitations',
+            ], [
+                'email.unique' => 'You have already joined the waitlist!',
             ]);
+        try {
 
             BetaInvitation::create([
                 'name' => $request->name,
@@ -122,12 +124,13 @@ class BetaController extends Controller
      */
     public function create(Request $request): RedirectResponse
     {
-        try {
-            $request->validate([
+        $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:beta_invitations',
+            ], [
+                'email.unique' => 'You have already joined the waitlist!',
             ]);
-
+        try {
             BetaInvitation::create([
                 'name' => $request->name,
                 'email' => $request->email,
