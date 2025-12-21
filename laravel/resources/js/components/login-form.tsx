@@ -18,7 +18,11 @@ interface LoginFormProps {
 export function LoginForm({ status, canResetPassword }: LoginFormProps) {
     return (
         <div className="flex w-full flex-col gap-6">
-            {status && <div className="text-center text-sm font-medium text-green-600">{status}</div>}
+            {status && (
+                <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-center text-sm font-medium text-green-400 backdrop-blur-sm">
+                    {status}
+                </div>
+            )}
 
             <Form {...store.form()} resetOnSuccess={['password']} className="flex flex-col gap-6">
                 {({ processing, errors }) => (
@@ -65,18 +69,23 @@ export function LoginForm({ status, canResetPassword }: LoginFormProps) {
                                 <Label htmlFor="remember">Remember me</Label>
                             </div>
 
-                            <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
-                                {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            <Button 
+                                type="submit" 
+                                className="mt-4 w-full h-11 font-semibold rounded-lg bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black transition-all duration-200" 
+                                tabIndex={4} 
+                                disabled={processing}
+                            >
+                                {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                 Log in
                             </Button>
                         </div>
 
-                        <div className="relative">
+                        <div className="relative my-2">
                             <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
+                                <span className="w-full border-t border-[hsl(var(--subtle-border))]" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-muted px-2 text-muted-foreground">Or continue with</span>
+                                <span className="bg-[hsl(var(--bg-secondary))] px-3 text-[hsl(var(--text-tertiary))]">Or continue with</span>
                             </div>
                         </div>
 
@@ -84,7 +93,7 @@ export function LoginForm({ status, canResetPassword }: LoginFormProps) {
                             <Button 
                                 variant="outline" 
                                 type="button" 
-                                className="w-full"
+                                className="w-full h-11 border-[hsl(var(--subtle-border))] bg-[hsl(var(--bg-secondary))] hover:bg-[hsl(var(--bg-tertiary))] transition-all duration-200"
                                 onClick={() => window.location.href = '/auth/google'}
                             >
                                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -109,9 +118,9 @@ export function LoginForm({ status, canResetPassword }: LoginFormProps) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
+                        <div className="text-center text-sm text-[hsl(var(--text-secondary))]">
                             Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
+                            <TextLink href={register()} tabIndex={5} className="font-medium text-[hsl(var(--text-primary))] hover:underline">
                                 Sign up
                             </TextLink>
                         </div>

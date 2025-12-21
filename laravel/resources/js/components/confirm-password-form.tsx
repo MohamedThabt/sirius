@@ -26,8 +26,12 @@ export function ConfirmPasswordForm() {
                             <InputError message={errors.password} />
                         </div>
 
-                        <Button type="submit" className="w-full" disabled={processing}>
-                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                        <Button 
+                            type="submit" 
+                            className="w-full h-11 font-semibold rounded-lg bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black transition-all duration-200" 
+                            disabled={processing}
+                        >
+                            {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                             Confirm password
                         </Button>
                     </div>

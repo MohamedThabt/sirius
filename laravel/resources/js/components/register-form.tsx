@@ -72,23 +72,33 @@ export function RegisterForm() {
                                 <InputError message={errors.password_confirmation} />
                             </div>
 
-                            <Button type="submit" className="mt-2 w-full" tabIndex={5}>
-                                {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            <Button 
+                                type="submit" 
+                                className="mt-2 w-full h-11 font-semibold rounded-lg bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black transition-all duration-200" 
+                                tabIndex={5}
+                                disabled={processing}
+                            >
+                                {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                 Create account
                             </Button>
                         </div>
 
-                        <div className="relative">
+                        <div className="relative my-2">
                             <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
+                                <span className="w-full border-t border-[hsl(var(--subtle-border))]" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-muted px-2 text-muted-foreground">Or continue with</span>
+                                <span className="bg-[hsl(var(--bg-secondary))] px-3 text-[hsl(var(--text-tertiary))]">Or continue with</span>
                             </div>
                         </div>
 
                         <div className="grid gap-4">
-                            <Button variant="outline" type="button" className="w-full" onClick={() => (window.location.href = '/auth/google')}>
+                            <Button 
+                                variant="outline" 
+                                type="button" 
+                                className="w-full h-11 border-[hsl(var(--subtle-border))] bg-[hsl(var(--bg-secondary))] hover:bg-[hsl(var(--bg-tertiary))] transition-all duration-200" 
+                                onClick={() => (window.location.href = '/auth/google')}
+                            >
                                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                                     <path
                                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -111,9 +121,9 @@ export function RegisterForm() {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
+                        <div className="text-center text-sm text-[hsl(var(--text-secondary))]">
                             Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
+                            <TextLink href={login()} tabIndex={6} className="font-medium text-[hsl(var(--text-primary))] hover:underline">
                                 Log in
                             </TextLink>
                         </div>

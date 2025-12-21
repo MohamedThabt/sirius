@@ -15,7 +15,7 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
     // ERD Visual
     const ERDVisual = () => (
         <div
-            className="relative h-full w-full overflow-hidden rounded-lg border border-[hsl(var(--subtle-border))] bg-[hsl(220_13%_8%)] p-6"
+            className="relative h-full w-full overflow-hidden rounded-xl border border-[hsl(var(--subtle-border))] bg-[hsl(var(--bg-secondary))] p-6 shadow-2xl backdrop-blur-sm"
             style={{
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? 'scale(1)' : 'scale(0.95)',
@@ -34,7 +34,7 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
             {/* Database Tables - Vertical layout with users at top */}
             <div className="relative flex h-full flex-col items-center justify-center gap-4">
                 {/* Users Table - Center/Top */}
-                <div className="relative z-20 w-[180px] rounded-lg border border-white/[0.15] bg-[hsl(220_13%_10%)] p-4 shadow-xl">
+                <div className="relative z-20 w-[180px] rounded-lg border border-white/[0.15] bg-[hsl(var(--bg-secondary))] p-4 shadow-xl transition-all duration-300 hover:border-white/25 hover:shadow-2xl">
                     <div className="mb-3 flex items-center justify-between border-b border-white/[0.1] pb-2">
                         <div className="text-xs font-semibold text-white/95">users</div>
                         <div className="h-1.5 w-1.5 rounded-full bg-green-400/60"></div>
@@ -76,8 +76,8 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
                         </div>
                         {/* Cardinality badge */}
                         <div className="absolute left-1/2 top-3 -translate-x-1/2">
-                            <div className="rounded bg-[hsl(220_13%_9%)] border border-white/10 px-1.5 py-0.5">
-                                <span className="text-[9px] font-medium text-white/75">1:∞</span>
+                            <div className="rounded bg-[hsl(var(--bg-secondary))] border border-white/10 px-1.5 py-0.5 backdrop-blur-sm">
+                                <span className="text-[9px] font-medium text-[hsl(var(--text-secondary))]">1:∞</span>
                             </div>
                         </div>
                     </div>
@@ -93,8 +93,8 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
                         </div>
                         {/* Cardinality badge */}
                         <div className="absolute left-1/2 top-3 -translate-x-1/2">
-                            <div className="rounded bg-[hsl(220_13%_9%)] border border-white/10 px-1.5 py-0.5">
-                                <span className="text-[9px] font-medium text-white/75">1:∞</span>
+                            <div className="rounded bg-[hsl(var(--bg-secondary))] border border-white/10 px-1.5 py-0.5 backdrop-blur-sm">
+                                <span className="text-[9px] font-medium text-[hsl(var(--text-secondary))]">1:∞</span>
                             </div>
                         </div>
                     </div>
@@ -103,7 +103,7 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
                 {/* Bottom Tables Row */}
                 <div className="relative z-20 flex items-center justify-center gap-8">
                     {/* Products Table */}
-                    <div className="w-[180px] rounded-lg border border-white/[0.15] bg-[hsl(220_13%_10%)] p-4 shadow-xl">
+                    <div className="w-[180px] rounded-lg border border-white/[0.15] bg-[hsl(var(--bg-secondary))] p-4 shadow-xl transition-all duration-300 hover:border-white/25 hover:shadow-2xl">
                         <div className="mb-3 flex items-center justify-between border-b border-white/[0.1] pb-2">
                             <div className="text-xs font-semibold text-white/95">products</div>
                             <div className="h-1.5 w-1.5 rounded-full bg-blue-400/60"></div>
@@ -133,7 +133,7 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
                     </div>
 
                     {/* Orders Table */}
-                    <div className="w-[180px] rounded-lg border border-white/[0.15] bg-[hsl(220_13%_10%)] p-4 shadow-xl">
+                    <div className="w-[180px] rounded-lg border border-white/[0.15] bg-[hsl(var(--bg-secondary))] p-4 shadow-xl transition-all duration-300 hover:border-white/25 hover:shadow-2xl">
                         <div className="mb-3 flex items-center justify-between border-b border-white/[0.1] pb-2">
                             <div className="text-xs font-semibold text-white/95">orders</div>
                             <div className="h-1.5 w-1.5 rounded-full bg-purple-400/60"></div>
@@ -170,21 +170,21 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
     // Sequence Diagram Visual
     const SequenceDiagramVisual = () => (
         <div
-            className="relative h-full w-full overflow-hidden rounded-lg border border-[hsl(var(--subtle-border))] bg-[hsl(220_13%_8%)] p-6"
+            className="relative h-full w-full overflow-hidden rounded-xl border border-[hsl(var(--subtle-border))] bg-[hsl(var(--bg-secondary))] p-6 shadow-2xl backdrop-blur-sm"
             style={{
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? 'scale(1)' : 'scale(0.95)',
                 transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
         >
-            <div className="relative h-full rounded border border-white/[0.08] bg-[hsl(220_13%_9%)] p-6">
+            <div className="relative h-full rounded-lg border border-white/[0.08] bg-[hsl(var(--bg-secondary))] p-6">
                 {/* Participants with Lifelines */}
                 <div className="relative mb-4 flex items-start justify-between">
                     {['User', 'API', 'Database'].map((participant, idx) => (
                         <div key={idx} className="relative flex flex-1 flex-col items-center">
                             {/* Participant Box */}
-                            <div className="z-20 mb-3 flex h-8 w-24 items-center justify-center rounded border border-white/[0.18] bg-[hsl(220_13%_11%)] shadow-sm">
-                                <div className="text-[10px] font-medium text-white/85">{participant}</div>
+                            <div className="z-20 mb-3 flex h-8 w-24 items-center justify-center rounded border border-white/[0.18] bg-[hsl(var(--bg-secondary))] shadow-sm transition-all duration-300 hover:border-white/30 hover:shadow-md">
+                                <div className="text-[10px] font-medium text-[hsl(var(--text-primary))]">{participant}</div>
                             </div>
                             {/* Lifeline */}
                             <div
