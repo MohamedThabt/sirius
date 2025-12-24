@@ -15,26 +15,17 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Progress } from '@/components/ui/progress';
 import { SyncIndicator } from '@/components/SyncIndicator';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData, type User } from '@/types';
 import type { ModuleItem } from '@/types/modules';
 import { getModuleStatusConfig } from '@/utils/statusHelpers';
 import { Head, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, CircleIcon, ClockIcon, Layers, Plus, Trash2, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Layers, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
-// Progress bar component
-function ProgressBar({ value, className = '' }: { value: number; className?: string }) {
-    return (
-        <div className={`h-2 w-full overflow-hidden rounded-full bg-muted ${className}`}>
-            <div
-                className="h-full rounded-full bg-primary transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
-            />
-        </div>
-    );
-}
 
 interface Props {
     project: Project;
@@ -152,167 +143,121 @@ export default function ModulesIndex({ project, modules }: Props) {
                         </header>
 
                         {modules.length === 0 ? (
-                            <div className="rounded-xl border-2 border-dashed border-border bg-muted/20 p-12 text-center">
-                                <Layers className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                                <p className="mt-4 text-sm font-medium text-foreground">No modules yet</p>
-                                <p className="mt-1 text-xs text-muted-foreground">Add your first module to get started</p>
-                                <div className="mt-6">
-                                    <Button onClick={() => setIsCreateModuleModalOpen(true)} className="gap-2">
-                                        <Plus className="h-4 w-4" />
-                                        Add Module
-                                    </Button>
-                                </div>
-                            </div>
+                            <EmptyState
+                                icon={Layers}
+                                title="No modules yet"
+                                description="Add your first module to get started with your project's architecture."
+                                action={{
+                                    label: 'Add Module',
+                                    onClick: () => setIsCreateModuleModalOpen(true),
+                                    icon: Plus,
+                                }}
+                                variant="dashed"
+                            />
                         ) : (
-                            <div className="space-y-6">
-                                {/* Insights Section */}
-                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                    {/* Total Modules */}
-                                    <div className="rounded-lg border border-border bg-card p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="rounded-full bg-primary/10 p-2">
-                                                <Layers className="h-5 w-5 text-primary" />
-                                            </div>
-                                            <div>
-                                                <p className="text-2xl font-bold text-foreground">{modules.length}</p>
-                                                <p className="text-xs text-muted-foreground">Total Modules</p>
-                                            </div>
+                            <div className="space-y-8">
+                                {/* Minimal Stats Bar */}
+                                <div className="flex flex-wrap items-center gap-6 text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-2xl font-semibold text-foreground">{modules.length}</span>
+                                        <span className="text-muted-foreground">modules</span>
+                                    </div>
+                                    <div className="h-4 w-px bg-border" />
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                                            <span className="text-muted-foreground">{moduleCounts.completed} done</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                            <span className="text-muted-foreground">{moduleCounts.inProgress} active</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="h-2 w-2 rounded-full bg-amber-500" />
+                                            <span className="text-muted-foreground">{moduleCounts.planned} planned</span>
                                         </div>
                                     </div>
-
-                                    {/* Completed */}
-                                    <div className="rounded-lg border border-border bg-card p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="rounded-full bg-green-100 p-2 dark:bg-green-500/10">
-                                                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                    {completionPercentage > 0 && (
+                                        <>
+                                            <div className="h-4 w-px bg-border" />
+                                            <div className="flex items-center gap-2">
+                                                <Progress value={completionPercentage} className="w-24 h-1.5" />
+                                                <span className="text-xs font-medium text-muted-foreground">{completionPercentage}%</span>
                                             </div>
-                                            <div>
-                                                <p className="text-2xl font-bold text-foreground">
-                                                    {moduleCounts.completed}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">Completed</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* In Progress */}
-                                    <div className="rounded-lg border border-border bg-card p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-500/10">
-                                                <ClockIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                            </div>
-                                            <div>
-                                                <p className="text-2xl font-bold text-foreground">
-                                                    {moduleCounts.inProgress}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">In Progress</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Planned */}
-                                    <div className="rounded-lg border border-border bg-card p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="rounded-full bg-orange-100 p-2 dark:bg-orange-500/10">
-                                                <CircleIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                                            </div>
-                                            <div>
-                                                <p className="text-2xl font-bold text-foreground">
-                                                    {moduleCounts.planned}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">Planned</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        </>
+                                    )}
                                 </div>
 
-                                {/* Progress Overview */}
-                                <div className="rounded-lg border border-border bg-card p-5">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-2">
-                                            <TrendingUp className="h-5 w-5 text-primary" />
-                                            <h3 className="font-semibold text-foreground">Progress Overview</h3>
-                                        </div>
-                                        <span className="text-sm font-medium text-primary">
-                                            {completionPercentage}% Complete
-                                        </span>
-                                    </div>
-                                    <ProgressBar 
-                                        value={completionPercentage} 
-                                        className="mb-3"
-                                    />
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="h-2 w-2 rounded-full bg-green-500" />
-                                                <span>Completed ({moduleCounts.completed})</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="h-2 w-2 rounded-full bg-blue-500" />
-                                                <span>In Progress ({moduleCounts.inProgress})</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="h-2 w-2 rounded-full bg-orange-500" />
-                                                <span>Planned ({moduleCounts.planned})</span>
-                                            </div>
-                                        </div>
-                                        <span>{moduleCounts.completed} of {moduleCounts.total} modules</span>
-                                    </div>
-                                </div>
-
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {/* Module Cards Grid */}
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     {modules.map((module) => {
                                         const statusConfig = getModuleStatusConfig(module.status);
                                         const StatusIcon = statusConfig.icon;
                                         
+                                        // Determine icon color based on status
+                                        const iconColorClass = module.status === 'completed' 
+                                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                            : module.status === 'in_progress'
+                                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+                                        
                                         return (
                                             <div
                                                 key={module.id}
-                                                className="relative"
+                                                className="group relative"
                                             >
                                                 <SyncIndicator isSynced={module.erd_is_synced} className="z-10" />
                                                 <div
-                                                    className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                    className="flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/20"
                                                     onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}`)}
                                                     role="button"
                                                     tabIndex={0}
                                                     onKeyDown={(e) => e.key === 'Enter' && router.visit(`/projects/${project.id}/modules/${module.id}`)}
                                                     aria-label={`View module ${module.name}`}
                                                 >
-                                                    <div className="mb-4 flex items-start justify-between gap-3">
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <StatusIcon className="h-4 w-4" />
-                                                                <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
-                                                                    {module.name}
-                                                                </h3>
-                                                            </div>
-                                                            {module.description && (
-                                                                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{module.description}</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex flex-wrap items-center gap-2">
-                                                            <Badge className={`border text-xs font-medium ${statusConfig.color}`}>
-                                                                <StatusIcon className="h-3 w-3" />
-                                                                <span className="ml-1">{statusConfig.label}</span>
-                                                            </Badge>
-                                                            <Badge variant="outline" className="text-xs">
-                                                                #{module.order_of_implementation}
-                                                            </Badge>
+                                                    {/* Header with colored icon */}
+                                                    <div className="mb-3 flex items-start justify-between gap-3">
+                                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconColorClass}`}>
+                                                            <Layers className="h-5 w-5" />
                                                         </div>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                            className="h-7 w-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                                             onClick={(e) => handleDeleteClick(e, module)}
                                                             disabled={isDeleting && moduleToDelete?.id === module.id}
                                                             aria-label={`Delete module ${module.name}`}
                                                         >
-                                                            <Trash2 className="h-4 w-4" />
+                                                            <Trash2 className="h-3.5 w-3.5" />
                                                         </Button>
+                                                    </div>
+                                                    
+                                                    {/* Content */}
+                                                    <div className="flex-1">
+                                                        <h3 className="text-base font-medium text-foreground transition-colors group-hover:text-primary">
+                                                            {module.name}
+                                                        </h3>
+                                                        {module.description && (
+                                                            <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground/80 leading-relaxed">
+                                                                {module.description}
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Footer with status */}
+                                                    <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <StatusIcon className={`h-3.5 w-3.5 ${
+                                                                module.status === 'completed' ? 'text-emerald-500' :
+                                                                module.status === 'in_progress' ? 'text-blue-500' : 'text-amber-500'
+                                                            }`} />
+                                                            <span className="text-xs font-medium text-muted-foreground">
+                                                                {statusConfig.label}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-xs text-muted-foreground/60">
+                                                            #{module.order_of_implementation}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>

@@ -1,5 +1,8 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import EditorPanel from '@/components/database-designer/EditorPanel';
+import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
@@ -7,12 +10,9 @@ import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData } from '@/types';
 import { type FeatureItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-
-import EditorPanel from '@/components/database-designer/EditorPanel';
-import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
 
 interface Props {
     project: Project;
@@ -38,7 +38,7 @@ const sampleMermaidSequence = `sequenceDiagram
 
 export default function SequenceDiagram({ project, feature, featureId, initialContent, isGenerating: initialIsGenerating = false }: Props) {
     useFlashToasts();
-    const { auth, flash } = usePage().props as any;
+    const { auth, flash } = usePage<SharedData>().props;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [content, setContent] = useState(initialContent ?? sampleMermaidSequence);
     const [lastSavedContent, setLastSavedContent] = useState(initialContent ?? sampleMermaidSequence);
@@ -302,15 +302,7 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
                         {!isFullScreen && (
                             <div className="flex items-center justify-between border-b border-border bg-card/50 px-4 py-3">
                                 <div className="flex items-center space-x-4">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                        className="hidden h-8 w-8 p-0 lg:flex"
-                                        title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                    >
-                                        {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                    </Button>
+                                    <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                     <Breadcrumbs breadcrumbs={breadcrumbs} />
                                 </div>
                             </div>

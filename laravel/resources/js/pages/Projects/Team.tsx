@@ -1,5 +1,6 @@
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -10,10 +11,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PageHeader } from '@/components/ui/page-header';
 import { useInitials } from '@/hooks/use-initials';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { getRoleBadgeColor } from '@/utils/role-colors';
-import { type User as AuthUser } from '@/types';
+import { type User as AuthUser, type Invitation as UserInvitation, type ProjectTeamMember as TeamMember } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
@@ -22,8 +24,6 @@ import {
     Loader2,
     Mail,
     MoreVertical,
-    PanelLeftClose,
-    PanelLeftOpen,
     Search,
     Shield,
     UserMinus,
@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+// Types: UserInvitation and TeamMember now imported from '@/types'
+
 interface SearchedUser {
     id: number;
     name: string;
@@ -40,6 +42,7 @@ interface SearchedUser {
     avatar?: string;
 }
 
+// Project extends shared type with user_id for ownership checks
 interface Project {
     id: number;
     name: string;
@@ -47,15 +50,7 @@ interface Project {
     user_id: number;
 }
 
-interface TeamMember {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    role: 'owner' | 'admin' | 'developer' | 'viewer';
-    joined_at: string;
-}
-
+// Pending invitation has different structure from UserInvitation
 interface PendingInvitation {
     id: number;
     user: {
@@ -68,22 +63,6 @@ interface PendingInvitation {
     invited_by: {
         id: number;
         name: string;
-    } | null;
-    invited_at: string;
-}
-
-interface UserInvitation {
-    id: number;
-    project: {
-        id: number;
-        name: string;
-        brief: string;
-    };
-    role: 'admin' | 'developer' | 'viewer';
-    invited_by: {
-        id: number;
-        name: string;
-        avatar?: string;
     } | null;
     invited_at: string;
 }
@@ -243,30 +222,25 @@ export default function Team({ project, members, invitations, userInvitations, u
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-6 flex items-center gap-3">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    className="hidden h-8 w-8 p-0 lg:flex"
-                                    title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                >
-                                    {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                </Button>
+                                <SidebarToggle
+                                    isCollapsed={isSidebarCollapsed}
+                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
 
-                            <header className="mb-8 flex items-center justify-between">
-                                <div>
-                                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">Team Management</h1>
-                                    <p className="mt-1 text-sm text-muted-foreground">Manage team members and invitations</p>
-                                </div>
-                                {canManageTeam && (
-                                    <Button onClick={() => setIsInviteModalOpen(true)}>
-                                        <UserPlus className="mr-2 h-4 w-4" />
-                                        Invite Member
-                                    </Button>
-                                )}
-                            </header>
+                            <PageHeader
+                                title="Team Management"
+                                description="Manage team members and invitations"
+                                action={
+                                    canManageTeam ? (
+                                        <Button onClick={() => setIsInviteModalOpen(true)}>
+                                            <UserPlus className="mr-2 h-4 w-4" />
+                                            Invite Member
+                                        </Button>
+                                    ) : undefined
+                                }
+                            />
 
                             <div className="space-y-6">
                                 {/* My Invitations (for current user) */}

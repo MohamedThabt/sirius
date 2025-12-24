@@ -40,6 +40,7 @@ export interface FlashMessages {
     warning?: string;
     info?: string;
     erd?: string;
+    newSequence?: string;
 }
 
 export interface Repository {
@@ -227,4 +228,53 @@ export interface PaginatedData<T> {
     last_page: number;
     per_page: number;
     total: number;
+}
+
+// ============================================
+// Invitation types (shared across project pages)
+// ============================================
+
+/**
+ * Project invitation for team collaboration.
+ * WHY: Previously duplicated in Index.tsx, Invitations.tsx, Team.tsx
+ */
+export interface Invitation {
+    id: number;
+    project: {
+        id: number;
+        name: string;
+        brief: string;
+    };
+    role: 'admin' | 'developer' | 'viewer';
+    invited_by: {
+        id: number;
+        name: string;
+        avatar?: string;
+    } | null;
+    invited_at: string;
+}
+
+/**
+ * Team member with project-specific role.
+ * WHY: Distinct from landing page TeamMember, includes role and joined_at.
+ */
+export interface ProjectTeamMember {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+    role: 'owner' | 'admin' | 'developer' | 'viewer';
+    joined_at: string;
+}
+
+/**
+ * Invitation for acceptance page - includes token and expiry.
+ * WHY: AcceptInvitation.tsx needs different fields than regular invitation listings.
+ */
+export interface AcceptableInvitation {
+    id: number;
+    email: string;
+    role: string;
+    token: string;
+    expires_at: string;
 }

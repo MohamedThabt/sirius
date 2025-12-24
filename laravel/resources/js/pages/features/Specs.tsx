@@ -1,12 +1,11 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
 import { MermaidCode } from '@/components/MermaidCode';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { Button } from '@/components/ui/button';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type Project } from '@/types';
+import { type Project, type SharedData } from '@/types';
 import { type FeatureItem, type ModuleItem } from '@/types/modules';
 import { Head, usePage } from '@inertiajs/react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -21,7 +20,7 @@ interface Props {
 
 export default function Specs({ project, module, feature, specsMarkdown }: Props) {
     useFlashToasts();
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<SharedData>().props;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     const breadcrumbs = [
@@ -49,15 +48,7 @@ export default function Specs({ project, module, feature, specsMarkdown }: Props
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-6 flex items-center gap-3">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    className="hidden h-8 w-8 p-0 lg:flex"
-                                    title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                >
-                                    {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                </Button>
+                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
 
@@ -81,7 +72,7 @@ export default function Specs({ project, module, feature, specsMarkdown }: Props
                                                     const isInline = !className?.includes('language-');
 
                                                     if (language === 'mermaid' && !isInline) {
-                                                        const codeId = `mermaid-${Date.now()}-${Math.random()}`;
+                                                        const codeId = `mermaid${Date.now()}${Math.random().toString(36).substring(2, 9)}`;
                                                         return <MermaidCode id={codeId}>{String(children).replace(/\n$/, '')}</MermaidCode>;
                                                     }
 

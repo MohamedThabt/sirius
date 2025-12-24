@@ -1,5 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { PencilIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, PencilIcon } from 'lucide-react';
+import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ContentCardProps {
     title: string;
@@ -9,12 +12,18 @@ interface ContentCardProps {
     value: string;
     onEdit: (field: string) => void;
     className?: string;
+    /** If true, render value as markdown. Defaults to true. */
+    renderMarkdown?: boolean;
+    /** Max height before content is collapsed, in pixels. Defaults to 200. */
+    maxCollapsedHeight?: number;
 }
 
 /**
  * WHY: Extracted from ModuleShow.tsx to prevent re-creation on each render.
  * When defined inline in a component, this function component is recreated
  * on every parent render, causing unnecessary re-renders of all its children.
+ * 
+ * Now supports markdown rendering and collapsible content for long text.
  */
 export function ContentCard({
     title,
@@ -24,44 +33,86 @@ export function ContentCard({
     value,
     onEdit,
     className = '',
+    renderMarkdown = true,
+    maxCollapsedHeight = 200,
 }: ContentCardProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    
+    // Check if content is likely to be long (simple heuristic: more than 300 chars or 5 newlines)
+    const isLongContent = value && (value.length > 300 || (value.match(/\n/g) || []).length > 5);
+
     return (
         <div
-            className={`group relative rounded-xl border border-border/40 bg-card/50 p-6 transition-all hover:border-border/80 hover:bg-card hover:shadow-sm ${className}`}
+            className={`group relative rounded-lg border border-border/40 bg-card/50 p-5 transition-colors hover:border-border/60 hover:bg-card ${className}`}
         >
-            <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Icon className="h-4 w-4" />
-                    </div>
-                    <h3 className="font-semibold text-foreground">{title}</h3>
+            <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-medium text-foreground">{title}</h3>
                 </div>
                 <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => onEdit(field)} 
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
+                    className="h-7 px-2 opacity-0 transition-opacity group-hover:opacity-100"
                 >
-                    <PencilIcon className="mr-2 h-3.5 w-3.5" />
-                    Edit
+                    <PencilIcon className="h-3 w-3" />
                 </Button>
             </div>
             {value ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-muted-foreground">
-                    {value}
+                <div className="relative">
+                    <div 
+                        className={`overflow-hidden transition-all duration-300 ease-out ${!isExpanded && isLongContent ? '' : ''}`}
+                        style={{ maxHeight: !isExpanded && isLongContent ? `${maxCollapsedHeight}px` : 'none' }}
+                    >
+                        {renderMarkdown ? (
+                            <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-medium prose-headings:text-sm prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {value}
+                                </ReactMarkdown>
+                            </div>
+                        ) : (
+                            <div className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
+                                {value}
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Gradient overlay and expand button for long content */}
+                    {isLongContent && !isExpanded && (
+                        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card/90 to-transparent pointer-events-none" />
+                    )}
+                    
+                    {isLongContent && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="mt-2 h-7 w-full text-xs text-muted-foreground hover:text-foreground"
+                        >
+                            {isExpanded ? (
+                                <>
+                                    <ChevronUpIcon className="mr-1 h-3 w-3" />
+                                    Show less
+                                </>
+                            ) : (
+                                <>
+                                    <ChevronDownIcon className="mr-1 h-3 w-3" />
+                                    Show more
+                                </>
+                            )}
+                        </Button>
+                    )}
                 </div>
             ) : (
                 <div
-                    className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border/50 py-8 text-center transition-colors hover:bg-muted/50"
+                    className="flex cursor-pointer flex-col items-center justify-center rounded border border-dashed border-border/40 py-6 text-center transition-colors hover:border-border/60 hover:bg-muted/30"
                     onClick={() => onEdit(field)}
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && onEdit(field)}
                 >
-                    <p className="text-sm text-muted-foreground">{placeholder}</p>
-                    <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-primary">
-                        Add {title}
-                    </Button>
+                    <p className="text-xs text-muted-foreground">{placeholder}</p>
                 </div>
             )}
         </div>

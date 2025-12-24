@@ -1,44 +1,19 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type Project, type SharedData } from '@/types';
+import { type FeatureItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { WireframeRenderer, type SchemaNode as RendererSchemaNode } from './components/WireframeRenderer';
 import { WireframeProvider } from './components/WireframeContext';
+import { WireframeRenderer, type SchemaNode as RendererSchemaNode } from './components/WireframeRenderer';
 
 type SchemaNode = RendererSchemaNode;
-
-interface Project {
-    id: number;
-    name: string;
-}
-
-interface Module {
-    id: number;
-    name: string;
-}
-
-interface FeatureItem {
-    id: number;
-    name: string;
-    summary: string | null;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
-    order_of_implementation: number;
-    progress?: number | null;
-    description?: string | null;
-    acceptance_criteria?: string | null;
-    user_flows?: string | null;
-    metrics?: string | null;
-    erd?: string | null;
-    sequence_diagram?: string | null;
-    wireframe?: string | null;
-    module?: Module;
-}
 
 interface WireframePageProps {
     schema?: SchemaNode;
@@ -225,7 +200,7 @@ interface WireframeData {
 
 export default function WireframePage({ schema, project, feature, isGenerating: initialIsGenerating = false }: WireframePageProps) {
     useFlashToasts();
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<SharedData>().props;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [content, setContent] = useState<string>(JSON.stringify(schema || sampleSchema, null, 2));
     const [error, setError] = useState<string | null>(null);
@@ -256,6 +231,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
 
     // Handle initial async generation
     const triggerAsyncGeneration = async () => {
+        if (!feature) return;
         setIsGenerating(true);
         try {
             const response = await fetch(`/features/${feature.id}/wireframe/generate-async`, {
@@ -499,15 +475,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                         {!isFullScreen && (
                             <div className="flex items-center justify-between border-b border-border bg-card/50 px-4 py-3">
                                 <div className="flex items-center space-x-4">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                        className="hidden h-8 w-8 p-0 lg:flex"
-                                        title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                    >
-                                        {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                    </Button>
+                                    <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                     <Breadcrumbs breadcrumbs={breadcrumbs} />
                                 </div>
                             </div>

@@ -1,37 +1,18 @@
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
-import { type User } from '@/types';
+import { type User, type Project, type Sections } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Excalidraw, exportToBlob, serializeAsJSON } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import { Head, router, usePage } from '@inertiajs/react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { useThemeDetection } from '@/hooks/use-theme-detection';
 
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    non_functional_requirements: string;
-    technical_details: string;
-    status: string;
-    c4: string | null;
-    created_at: string;
-    updated_at: string;
-    brainstorming_scene?: any;
-}
-
-interface Sections {
-    overview: string | null;
-    prd: string | null;
-    data_modeling: string | null;
-    non_functional_requirements: string | null;
-}
+// Project and Sections types now imported from @/types
 
 interface BrainstormingPageProps {
     project: Project;
@@ -116,15 +97,10 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
                         <div className="shrink-0 border-b px-4 py-3 sm:pl-6 lg:pl-6">
                             <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                        className="hidden h-8 w-8 p-0 lg:flex"
-                                        title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                    >
-                                        {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                    </Button>
+                                    <SidebarToggle
+                                        isCollapsed={isSidebarCollapsed}
+                                        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                    />
                                     <Breadcrumbs breadcrumbs={breadcrumbs} />
                                 </div>
                                 <div className="flex items-center gap-2">

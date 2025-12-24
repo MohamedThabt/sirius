@@ -9,6 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
@@ -19,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Check, Plus, RefreshCw, Layers } from 'lucide-react';
+import { AlertTriangle, Check, Plus, RefreshCw, Layers } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
@@ -241,11 +242,12 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                                         </CardHeader>
                                         <CardContent className="space-y-4">
                                             {generatedModules.length === 0 && (
-                                                <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-center">
-                                                    <p className="text-sm text-yellow-800">
-                                                        No AI-generated modules available. Please try again or contact support.
-                                                    </p>
-                                                </div>
+                                                <EmptyState
+                                                    icon={AlertTriangle}
+                                                    title="No modules available"
+                                                    description="No AI-generated modules available. Please try again or contact support."
+                                                    variant="card"
+                                                />
                                             )}
                                         {generatedModules.map((module, index) => {
                                             const isSelected = selectedModules.some((m) => m.name === module.name);
@@ -424,17 +426,17 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Your Feedback</label>
-                            <textarea
+                            <Textarea
                                 value={regenerateNotes}
                                 onChange={(e) => setRegenerateNotes(e.target.value)}
-                                placeholder="Examples:
+                                placeholder={`Examples:
 - Add a 'Reporting & Analytics' module
 - Merge 'User Management' and 'Authentication' into one module
 - Split 'Order Management' into 'Orders' and 'Shipping'
 - Remove the 'Notifications' module, it's not needed
-- Rename 'Content' to 'CMS'"
+- Rename 'Content' to 'CMS'`}
                                 rows={6}
-                                className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
+                                className="resize-none"
                             />
                             <p className="text-xs text-muted-foreground">
                                 Minimum 10 characters. Be specific about your requirements.

@@ -5,8 +5,6 @@ import {
     CheckCircle, 
     XCircle, 
     Clock,
-    PanelLeftClose,
-    PanelLeftOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,26 +12,15 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 import { useInitials } from "@/hooks/use-initials";
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { getRoleBadgeColor } from '@/utils/role-colors';
-import { type SharedData } from '@/types';
+import { type SharedData, type Invitation } from '@/types';
 
-interface Invitation {
-    id: number;
-    project: {
-        id: number;
-        name: string;
-        brief: string;
-    };
-    role: 'admin' | 'developer' | 'viewer';
-    invited_by: {
-        id: number;
-        name: string;
-        avatar?: string;
-    } | null;
-    invited_at: string;
-}
+// Invitation type now imported from @/types
 
 interface Props {
     invitations: Invitation[];
@@ -79,45 +66,31 @@ export default function ProjectInvitations({ invitations }: Props) {
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-6 flex items-center gap-3">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    className="hidden h-8 w-8 p-0 lg:flex"
-                                    title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                >
-                                    {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                </Button>
+                                <SidebarToggle
+                                    isCollapsed={isSidebarCollapsed}
+                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
 
-                            <header className="mb-8">
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Project Invitations</h1>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            Review and respond to your pending project invitations
-                                        </p>
-                                    </div>
-                                </div>
-                            </header>
+                            <PageHeader
+                                title="Project Invitations"
+                                description="Review and respond to your pending project invitations"
+                            />
 
                             <div className="space-y-6">
                                 {invitations.length === 0 ? (
                                     <Card>
-                                        <CardContent className="py-12">
-                                            <div className="flex flex-col items-center justify-center text-center">
-                                                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10">
-                                                    <Mail className="h-10 w-10 text-primary" />
-                                                </div>
-                                                <h3 className="text-lg font-medium text-foreground mb-2">No pending invitations</h3>
-                                                <p className="text-sm text-muted-foreground max-w-md mb-6">
-                                                    You don't have any pending project invitations at the moment.
-                                                </p>
-                                                <Button onClick={() => router.visit('/projects')}>
-                                                    Go to Projects
-                                                </Button>
-                                            </div>
+                                        <CardContent className="py-0">
+                                            <EmptyState
+                                                icon={Mail}
+                                                title="No pending invitations"
+                                                description="You don't have any pending project invitations at the moment."
+                                                action={{
+                                                    label: 'Go to Projects',
+                                                    onClick: () => router.visit('/projects'),
+                                                }}
+                                            />
                                         </CardContent>
                                     </Card>
                                 ) : (

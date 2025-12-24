@@ -1,10 +1,12 @@
 import { Button } from '@/components/ui/button';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import type { User, SharedData } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head, router, usePage } from '@inertiajs/react';
 import { CheckboxGrid } from '@/components/ui/checkbox-grid';
@@ -25,8 +27,6 @@ import {
     Sparkles,
     TargetIcon,
     UsersIcon,
-    PanelLeftOpen,
-    PanelLeftClose,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -685,12 +685,12 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                         <Label htmlFor="platform_additional" className="text-sm">
                             Additional Platform Details (Optional)
                         </Label>
-                        <textarea
+                        <Textarea
                             id="platform_additional"
                             value={platformAdditional}
                             onChange={(e) => setPlatformAdditional(e.target.value)}
                             placeholder="Example: Offline support needed, minimum OS versions (iOS 15+, Android 10+), specific browser requirements..."
-                            className="min-h-[100px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                            className="min-h-[100px]"
                             rows={4}
                             maxLength={2000}
                             aria-describedby="platform_additional-hint platform_additional-counter"
@@ -724,12 +724,12 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                         <Label htmlFor="frontend_additional" className="text-sm">
                             UI Library & State Management (Optional)
                         </Label>
-                        <textarea
+                        <Textarea
                             id="frontend_additional"
                             value={frontendAdditional}
                             onChange={(e) => setFrontendAdditional(e.target.value)}
                             placeholder="Example:\nUI: Tailwind, shadcn/ui, Material UI\nState: TanStack Query, Redux, Context API\ni18n: English, French, Spanish\nAccessibility: WCAG 2.1 AA"
-                            className="min-h-[100px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                            className="min-h-[100px]"
                             rows={4}
                             maxLength={2000}
                             aria-describedby="frontend_additional-hint frontend_additional-counter"
@@ -763,12 +763,12 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                         <Label htmlFor="backend_additional" className="text-sm">
                             Database, API & Auth Details (Optional)
                         </Label>
-                        <textarea
+                        <Textarea
                             id="backend_additional"
                             value={backendAdditional}
                             onChange={(e) => setBackendAdditional(e.target.value)}
                             placeholder="Example:\nDatabase: PostgreSQL with Eloquent ORM\nAPI Style: REST + JSON, GraphQL for analytics\nAuth: OAuth2 (Auth0), JWT tokens\nJobs/Queues: Redis + Laravel Horizon\nCache: Redis"
-                            className="min-h-[120px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                            className="min-h-[120px]"
                             rows={5}
                             maxLength={2000}
                             aria-describedby="backend_additional-hint backend_additional-counter"
@@ -882,12 +882,12 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                         <Label htmlFor="services_additional" className="text-sm">
                             Other Services & Details (Optional)
                         </Label>
-                        <textarea
+                        <Textarea
                             id="services_additional"
                             value={servicesAdditional}
                             onChange={(e) => setServicesAdditional(e.target.value)}
                             placeholder="Example:\nNotifications: Push (FCM/APNs), SMS via Twilio\nMonitoring: Sentry for errors, DataDog for metrics\nCRM: Salesforce integration\nOther: Slack webhooks, Jira API"
-                            className="min-h-[100px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                            className="min-h-[100px]"
                             rows={4}
                             maxLength={2000}
                             aria-describedby="services_additional-hint services_additional-counter"
@@ -928,15 +928,10 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                     <div className="mx-auto max-w-[1600px] px-4 py-3 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    className="hidden h-8 w-8 p-0 lg:flex"
-                                    title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                >
-                                    {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                </Button>
+                                <SidebarToggle
+                                    isCollapsed={isSidebarCollapsed}
+                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                />
                                 <div className="flex items-center gap-2 rounded-lg bg-primary/10 px-2.5 py-1.5">
                                     <Sparkles className="h-3.5 w-3.5 text-primary" />
                                     <span className="text-xs font-medium text-primary">AI Setup</span>

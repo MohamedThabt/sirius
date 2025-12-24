@@ -7,6 +7,7 @@ import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -219,55 +220,46 @@ export default function ModuleShow({ project, module }: Props) {
                                     </div>
                                 </header>
 
-                                {/* Metrics Grid */}
-                                <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                    <div className="rounded-xl border border-border/40 bg-card/50 p-4">
-                                        <div className="mb-1 text-xs font-medium text-muted-foreground">Module Progress</div>
-                                        <div className="mb-2 text-2xl font-bold text-foreground">{moduleProgress}%</div>
-                                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                                            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${moduleProgress}%` }} />
+                                {/* Minimal Stats Bar */}
+                                <div className="mb-8 flex flex-wrap items-center gap-6 text-sm">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                            <Layers className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <div className="text-2xl font-semibold text-foreground">{moduleProgress}%</div>
+                                            <div className="text-xs text-muted-foreground">Progress</div>
                                         </div>
                                     </div>
-
-                                    <div className="rounded-xl border border-border/40 bg-card/50 p-4">
-                                        <div className="mb-1 text-xs font-medium text-muted-foreground">Features</div>
-                                        <div className="mb-2 text-2xl font-bold text-foreground">
-                                            {completedFeatures}/{features.length}
+                                    <div className="h-8 w-px bg-border" />
+                                    <div className="flex items-center gap-3">
+                                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${health.color.includes('emerald') ? 'bg-emerald-500/10' : health.color.includes('blue') ? 'bg-blue-500/10' : health.color.includes('orange') ? 'bg-amber-500/10' : 'bg-red-500/10'}`}>
+                                            <ZapIcon className={`h-5 w-5 ${health.color}`} />
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-xs">
-                                            <health.Icon className={`h-3.5 w-3.5 ${health.color}`} />
-                                            <span className={`capitalize ${health.color}`}>{health.label}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="rounded-xl border border-border/40 bg-card/50 p-4">
-                                        <div className="mb-1 text-xs font-medium text-muted-foreground">Module Status</div>
-                                        <div className="mb-2 flex items-center gap-2">
-                                            <span
-                                                className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium ${statusConfig.color}`}
-                                            >
-                                                {statusConfig.label}
-                                            </span>
+                                        <div>
+                                            <div className="text-2xl font-semibold text-foreground">{completedFeatures}/{features.length}</div>
+                                            <div className="text-xs text-muted-foreground">Features</div>
                                         </div>
                                     </div>
-
-                                    <div className="rounded-xl border border-border/40 bg-card/50 p-4">
-                                        <div className="mb-1 text-xs font-medium text-muted-foreground">Implementation Order</div>
-                                        <div className="mb-2 text-2xl font-bold text-foreground">#{data.order_of_implementation}</div>
-                                        <Button
-                                            variant="link"
-                                            size="sm"
-                                            onClick={() => handleEdit('order_of_implementation')}
-                                            className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                                        >
-                                            Edit Order
-                                        </Button>
+                                    <div className="h-8 w-px bg-border" />
+                                    <div className="flex items-center gap-1.5">
+                                        <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${statusConfig.color}`}>
+                                            {statusConfig.label}
+                                        </span>
+                                    </div>
+                                    <div className="h-8 w-px bg-border" />
+                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                                        <span className="text-xs">Order</span>
+                                        <span className="text-sm font-medium text-foreground">#{data.order_of_implementation}</span>
                                     </div>
                                 </div>
 
                                 {/* ERD Section */}
                                 <div className="mb-8">
-                                    <h2 className="mb-4 text-lg font-semibold text-foreground">Entity Relationship Diagram</h2>
+                                    <h2 className="mb-4 flex items-center gap-2 text-base font-medium text-foreground">
+                                        <DatabaseIcon className="h-4 w-4 text-muted-foreground" />
+                                        Database Schema
+                                    </h2>
                                     
                                     {/* Warning Banner for Out of Sync */}
                                     {module.erd_is_synced === false && (
@@ -309,24 +301,22 @@ export default function ModuleShow({ project, module }: Props) {
                                     )}
 
                                     <div
-                                        className="group cursor-pointer rounded-xl border border-border/40 bg-card/50 p-6 transition-all hover:border-border/80 hover:bg-card hover:shadow-sm"
+                                        className="group cursor-pointer rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5"
                                         onClick={() => {
                                             if (module.erd) {
-                                                // Navigate to ERD designer page
                                                 router.visit(`/projects/${project.id}/modules/${module.id}/erd`);
                                             } else {
-                                                // Generate ERD (navigate to generate page)
                                                 router.post(`/projects/${project.id}/modules/${module.id}/erd/generate`);
                                             }
                                         }}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-4">
                                                 <div className="relative">
                                                     <div
-                                                        className={`flex h-10 w-10 items-center justify-center rounded-lg ${module.erd ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}
+                                                        className={`flex h-12 w-12 items-center justify-center rounded-xl ${module.erd ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}
                                                     >
-                                                        {module.erd ? <CheckCircle2 className="h-5 w-5" /> : <DatabaseIcon className="h-5 w-5" />}
+                                                        {module.erd ? <CheckCircle2 className="h-6 w-6" /> : <DatabaseIcon className="h-6 w-6" />}
                                                     </div>
                                                     <SyncIndicator 
                                                         isSynced={module.erd_is_synced} 
@@ -336,21 +326,24 @@ export default function ModuleShow({ project, module }: Props) {
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-foreground">Database Schema</span>
+                                                        <span className="font-medium text-foreground group-hover:text-primary transition-colors">
+                                                            {module.erd ? 'View & Edit Schema' : 'Generate Schema'}
+                                                        </span>
                                                         {module.erd_is_synced === false && (
                                                             <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs">
                                                                 Out of sync
                                                             </Badge>
                                                         )}
                                                     </div>
-                                                    <div className="text-xs text-muted-foreground">
-                                                        {module.erd ? 'Click to view and edit ERD diagram' : 'Generate database schema with AI'}
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {module.erd ? 'ERD diagram ready' : 'Generate database schema with AI'}
                                                     </div>
                                                 </div>
                                             </div>
                                             <Button
                                                 variant={module.erd ? 'ghost' : 'default'}
                                                 size="sm"
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     if (module.erd) {
@@ -360,7 +353,7 @@ export default function ModuleShow({ project, module }: Props) {
                                                     }
                                                 }}
                                             >
-                                                {module.erd ? 'View ERD' : 'Generate ERD'}
+                                                {module.erd ? 'Open' : 'Generate'}
                                             </Button>
                                         </div>
                                     </div>
@@ -368,7 +361,10 @@ export default function ModuleShow({ project, module }: Props) {
 
                                 {/* Module Details */}
                                 <div className="mb-8 space-y-4">
-                                    <h2 className="text-lg font-semibold text-foreground">Module Details</h2>
+                                    <h2 className="flex items-center gap-2 text-base font-medium text-foreground">
+                                        <FileTextIcon className="h-4 w-4 text-muted-foreground" />
+                                        Module Details
+                                    </h2>
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <ContentCard
                                             title="Description"
@@ -392,7 +388,13 @@ export default function ModuleShow({ project, module }: Props) {
                                 {/* Features Section */}
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h2 className="text-lg font-semibold text-foreground">Module Features</h2>
+                                        <h2 className="flex items-center gap-2 text-base font-medium text-foreground">
+                                            <ZapIcon className="h-4 w-4 text-muted-foreground" />
+                                            Features
+                                            {features.length > 0 && (
+                                                <span className="text-sm font-normal text-muted-foreground">({features.length})</span>
+                                            )}
+                                        </h2>
                                         <div className="flex items-center gap-2">
                                             {features.length > 0 && (
                                                 <Button 
@@ -436,60 +438,76 @@ export default function ModuleShow({ project, module }: Props) {
                                     </div>
 
                                     {features.length === 0 ? (
-                                        <div className="rounded-xl border-2 border-dashed border-border bg-muted/20 p-12 text-center">
-                                            <ZapIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                                            <p className="mt-4 text-sm font-medium text-foreground">No features yet</p>
-                                            <p className="mt-1 text-xs text-muted-foreground">
-                                                {!module.erd 
+                                        <EmptyState
+                                            icon={ZapIcon}
+                                            title="No features yet"
+                                            description={
+                                                !module.erd 
                                                     ? 'Generate an ERD first, then you can generate features for this module'
                                                     : 'Click "Generate Features" to create AI-powered feature suggestions'
-                                                }
-                                            </p>
-                                        </div>
+                                            }
+                                            variant="dashed"
+                                        />
                                     ) : (
-                                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                             {features.map((feature) => {
                                                 const featureStatusConfig = getFeatureStatusConfig(feature.status);
                                                 const FeatureStatusIcon = featureStatusConfig.icon;
                                                 const priorityConfig = getFeaturePriorityConfig(feature.priority);
                                                 
+                                                // Determine icon color based on status
+                                                const iconColorClass = feature.status === 'completed' 
+                                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                    : feature.status === 'in_progress'
+                                                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+                                                
                                                 return (
                                                     <div
                                                         key={feature.id}
-                                                        className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                        className="group flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/20"
                                                         onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)}
                                                         role="button"
                                                         tabIndex={0}
                                                         onKeyDown={(e) => e.key === 'Enter' && router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)}
                                                         aria-label={`View feature ${feature.name}`}
                                                     >
-                                                        <div className="mb-4 flex items-start justify-between gap-3">
-                                                            <div className="min-w-0 flex-1">
-                                                                <div className="flex items-center gap-2">
-                                                                    <FeatureStatusIcon className="h-4 w-4" />
-                                                                    <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
-                                                                        {feature.name}
-                                                                    </h3>
-                                                                </div>
-                                                                {feature.summary && (
-                                                                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                                                                        {feature.summary}
-                                                                    </p>
-                                                                )}
+                                                        {/* Header with colored icon */}
+                                                        <div className="mb-3 flex items-start justify-between gap-3">
+                                                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconColorClass}`}>
+                                                                <ZapIcon className="h-5 w-5" />
                                                             </div>
-                                                        </div>
-
-                                                        <div className="flex flex-wrap items-center gap-2">
-                                                            <Badge className={`border text-xs font-medium ${featureStatusConfig.color}`}>
-                                                                <FeatureStatusIcon className="h-3 w-3" />
-                                                                <span className="ml-1">{featureStatusConfig.label}</span>
-                                                            </Badge>
-                                                            <Badge className={`border text-xs font-medium capitalize ${priorityConfig.color}`}>
+                                                            <Badge className={`shrink-0 border text-xs font-medium capitalize ${priorityConfig.color}`}>
                                                                 {priorityConfig.label}
                                                             </Badge>
-                                                            <Badge variant="outline" className="text-xs">
+                                                        </div>
+                                                        
+                                                        {/* Content */}
+                                                        <div className="flex-1">
+                                                            <h3 className="text-base font-medium text-foreground transition-colors group-hover:text-primary">
+                                                                {feature.name}
+                                                            </h3>
+                                                            {feature.summary && (
+                                                                <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground/80 leading-relaxed">
+                                                                    {feature.summary}
+                                                                </p>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Footer with status */}
+                                                        <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <FeatureStatusIcon className={`h-3.5 w-3.5 ${
+                                                                    feature.status === 'completed' ? 'text-emerald-500' :
+                                                                    feature.status === 'in_progress' ? 'text-blue-500' : 'text-amber-500'
+                                                                }`} />
+                                                                <span className="text-xs font-medium text-muted-foreground">
+                                                                    {featureStatusConfig.label}
+                                                                </span>
+                                                            </div>
+                                                            <span className="text-xs text-muted-foreground/60">
                                                                 #{feature.order_of_implementation}
-                                                            </Badge>
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 );

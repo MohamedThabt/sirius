@@ -1,4 +1,4 @@
-import { CheckCircle2, CircleIcon, ClockIcon, type LucideIcon } from 'lucide-react';
+import { AlertCircleIcon, CheckCircle2, CircleIcon, ClockIcon, type LucideIcon } from 'lucide-react';
 import type { FeaturePriority, FeatureStatus } from '@/types/modules';
 
 /**
@@ -34,6 +34,33 @@ export const STATUS_ICONS: Record<FeatureStatus | 'default', LucideIcon> = {
     archived: CircleIcon,
     default: CircleIcon,
 };
+
+/**
+ * Health indicator styles for feature progress displays.
+ * WHY: Centralizes hardcoded colors from FeatureShow.tsx health indicator.
+ */
+export type HealthLevel = 'excellent' | 'good' | 'fair' | 'attention';
+
+export const HEALTH_COLORS: Record<HealthLevel, string> = {
+    excellent: 'text-emerald-600 dark:text-emerald-400',
+    good: 'text-blue-600 dark:text-blue-400',
+    fair: 'text-orange-600 dark:text-orange-400',
+    attention: 'text-red-600 dark:text-red-400',
+};
+
+export const HEALTH_ICONS: Record<HealthLevel, LucideIcon> = {
+    excellent: CheckCircle2,
+    good: CheckCircle2,
+    fair: AlertCircleIcon,
+    attention: AlertCircleIcon,
+};
+
+export function getHealthIndicator(progress: number): { label: HealthLevel; Icon: LucideIcon; color: string } {
+    if (progress >= 80) return { label: 'excellent', Icon: HEALTH_ICONS.excellent, color: HEALTH_COLORS.excellent };
+    if (progress >= 60) return { label: 'good', Icon: HEALTH_ICONS.good, color: HEALTH_COLORS.good };
+    if (progress >= 40) return { label: 'fair', Icon: HEALTH_ICONS.fair, color: HEALTH_COLORS.fair };
+    return { label: 'attention', Icon: HEALTH_ICONS.attention, color: HEALTH_COLORS.attention };
+}
 
 export function getPriorityColor(priority: string): string {
     return PRIORITY_COLORS[priority as FeaturePriority] ?? PRIORITY_COLORS.default;

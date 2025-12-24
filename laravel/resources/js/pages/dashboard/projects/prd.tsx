@@ -216,7 +216,7 @@ export default function ProjectPRD({ project, featuresMarkdown = '' }: Props) {
                 try {
                     setError('');
                     const cleanChildren = convertEscapedMermaid(children);
-                    const { svg: renderedSvg } = await mermaid.render(`mermaid-${Date.now()}`, cleanChildren);
+                    const { svg: renderedSvg } = await mermaid.render(`mermaid${Date.now()}${Math.random().toString(36).substring(2, 9)}`, cleanChildren);
                     setSvg(renderedSvg);
                 } catch (err) {
                     console.error('Mermaid rendering error:', err);

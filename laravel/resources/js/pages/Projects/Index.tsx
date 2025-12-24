@@ -1,11 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StatCard } from '@/components/ui/stat-card';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData, type Project } from '@/types';
+import { type SharedData, type Project, type Invitation } from '@/types';
+import { getStatusColor } from '@/utils/status-colors';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     CalendarIcon,
@@ -14,8 +19,6 @@ import {
     ClockIcon,
     EditIcon,
     FolderIcon,
-    PanelLeftClose,
-    PanelLeftOpen,
     PlusIcon,
     SearchIcon,
     TrashIcon,
@@ -23,23 +26,9 @@ import {
 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 
-// WHY: Using shared Project type from @/types instead of duplicate definition
+// WHY: Using shared types from @/types instead of duplicate definitions
 
-interface Invitation {
-    id: number;
-    project: {
-        id: number;
-        name: string;
-        brief: string;
-    };
-    role: 'admin' | 'developer' | 'viewer';
-    invited_by: {
-        id: number;
-        name: string;
-        avatar?: string;
-    } | null;
-    invited_at: string;
-}
+// Invitation type now imported from @/types
 
 interface Props {
     projects: Project[];
@@ -124,20 +113,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
         setIsDeleteModalOpen(true);
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return 'bg-gradient-to-br from-orange-100 to-orange-50 text-orange-700 border-orange-200/50 dark:from-orange-500/15 dark:to-orange-500/5 dark:text-orange-300 dark:border-orange-500/20';
-            case 'in_progress':
-                return 'bg-gradient-to-br from-blue-100 to-blue-50 text-blue-700 border-blue-200/50 dark:from-blue-500/15 dark:to-blue-500/5 dark:text-blue-300 dark:border-blue-500/20';
-            case 'review':
-                return 'bg-gradient-to-br from-yellow-100 to-yellow-50 text-yellow-700 border-yellow-200/50 dark:from-yellow-500/15 dark:to-yellow-500/5 dark:text-yellow-300 dark:border-yellow-500/20';
-            case 'completed':
-                return 'bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-700 border-emerald-200/50 dark:from-emerald-500/15 dark:to-emerald-500/5 dark:text-emerald-300 dark:border-emerald-500/20';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
+    // getStatusColor now imported from @/utils/status-colors
 
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -186,28 +162,19 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-8 flex items-center gap-3">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    className="hidden h-8 w-8 p-0 lg:flex"
-                                    title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                >
-                                    {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                </Button>
+                                <SidebarToggle 
+                                    isCollapsed={isSidebarCollapsed} 
+                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+                                />
                                 <Breadcrumbs breadcrumbs={[{ title: 'Projects', href: '/projects' }]} />
                             </div>
 
-                            <header className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="space-y-2">
-                                        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                                            My Projects
-                                        </h1>
-                                        <p className="text-base text-muted-foreground max-w-2xl">
-                                            Manage and organize your software development projects
-                                        </p>
-                                    </div>
+                            <PageHeader
+                                title="My Projects"
+                                description="Manage and organize your software development projects"
+                                size="large"
+                                animated
+                                action={
                                     <Button 
                                         onClick={() => setIsCreateModalOpen(true)} 
                                         className="gap-2 bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105"
@@ -215,55 +182,33 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                         <PlusIcon className="h-4 w-4" />
                                         New Project
                                     </Button>
-                                </div>
-                            </header>
+                                }
+                                className="mb-10"
+                            />
 
                             {/* Stats Section */}
                             <div className="mb-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-                                {/* Total Projects Stat */}
-                                <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-background to-muted/30 p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-border/50">
-                                    <div className="absolute top-0 right-0 h-24 w-24 bg-blue-500/5 rounded-full blur-2xl transition-all duration-300 group-hover:bg-blue-500/10" />
-                                    <div className="relative">
-                                        <div className="mb-3 flex items-center gap-3">
-                                            <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 shadow-lg shadow-blue-500/25">
-                                                <FolderIcon className="h-5 w-5 text-white" />
-                                            </div>
-                                            <span className="text-sm font-medium text-muted-foreground">Total Projects</span>
-                                        </div>
-                                        <div className="mb-1 text-3xl font-bold text-foreground">{stats.total}</div>
-                                        <p className="text-xs text-muted-foreground">All your projects</p>
-                                    </div>
-                                </div>
-
-                                {/* Completed Stat */}
-                                <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-background to-muted/30 p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-border/50">
-                                    <div className="absolute top-0 right-0 h-24 w-24 bg-emerald-500/5 rounded-full blur-2xl transition-all duration-300 group-hover:bg-emerald-500/10" />
-                                    <div className="relative">
-                                        <div className="mb-3 flex items-center gap-3">
-                                            <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 p-2.5 shadow-lg shadow-emerald-500/25">
-                                                <CheckCircleIcon className="h-5 w-5 text-white" />
-                                            </div>
-                                            <span className="text-sm font-medium text-muted-foreground">Completed</span>
-                                        </div>
-                                        <div className="mb-1 text-3xl font-bold text-foreground">{stats.completed}</div>
-                                        <p className="text-xs text-muted-foreground">Successfully finished</p>
-                                    </div>
-                                </div>
-
-                                {/* Active Stat */}
-                                <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-background to-muted/30 p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-border/50">
-                                    <div className="absolute top-0 right-0 h-24 w-24 bg-orange-500/5 rounded-full blur-2xl transition-all duration-300 group-hover:bg-orange-500/10" />
-                                    <div className="relative">
-                                        <div className="mb-3 flex items-center gap-3">
-                                            <div className="rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-2.5 shadow-lg shadow-orange-500/25">
-                                                <ClockIcon className="h-5 w-5 text-white" />
-                                            </div>
-                                            <span className="text-sm font-medium text-muted-foreground">In Progress</span>
-                                        </div>
-                                        <div className="mb-1 text-3xl font-bold text-foreground">{stats.inProgress}</div>
-                                        <p className="text-xs text-muted-foreground">Currently active</p>
-                                    </div>
-                                </div>
+                                <StatCard
+                                    icon={FolderIcon}
+                                    title="Total Projects"
+                                    value={stats.total}
+                                    subtitle="All your projects"
+                                    colorTheme="blue"
+                                />
+                                <StatCard
+                                    icon={CheckCircleIcon}
+                                    title="Completed"
+                                    value={stats.completed}
+                                    subtitle="Successfully finished"
+                                    colorTheme="emerald"
+                                />
+                                <StatCard
+                                    icon={ClockIcon}
+                                    title="In Progress"
+                                    value={stats.inProgress}
+                                    subtitle="Currently active"
+                                    colorTheme="orange"
+                                />
                             </div>
 
                             {/* Search Bar */}
@@ -290,26 +235,17 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
 
                             {/* Projects Grid */}
                             {!projects || projects.length === 0 ? (
-                                <div className="flex min-h-[400px] items-center justify-center animate-in fade-in zoom-in-95 duration-500">
-                                    <div className="max-w-md rounded-2xl border border-dashed border-border/50 bg-muted/20 p-12 text-center backdrop-blur-sm">
-                                        <div className="mb-6 flex justify-center">
-                                            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/10 animate-pulse">
-                                                <FolderIcon className="h-10 w-10 text-primary" />
-                                            </div>
-                                        </div>
-                                        <h3 className="mb-3 text-xl font-semibold text-foreground">No projects yet</h3>
-                                        <p className="mb-6 text-sm text-muted-foreground leading-relaxed">
-                                            Create your first project to get started with AI-powered development
-                                        </p>
-                                        <Button 
-                                            className="gap-2 bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105" 
-                                            onClick={() => setIsCreateModalOpen(true)}
-                                        >
-                                            <PlusIcon className="h-4 w-4" />
-                                            Create New Project
-                                        </Button>
-                                    </div>
-                                </div>
+                                <EmptyState
+                                    icon={FolderIcon}
+                                    title="No projects yet"
+                                    description="Create your first project to get started with AI-powered development"
+                                    variant="dashed"
+                                    action={{
+                                        label: 'Create New Project',
+                                        onClick: () => setIsCreateModalOpen(true),
+                                        icon: PlusIcon,
+                                    }}
+                                />
                             ) : (
                                 <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                                     {projects.map((project, index) => (

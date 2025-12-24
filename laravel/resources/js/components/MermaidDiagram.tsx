@@ -58,7 +58,7 @@ function MermaidDiagramComponent({
                 const cleanChildren = convertEscapedMermaid(children);
 
                 const { svg: renderedSvg } = await mermaid.render(
-                    `mermaid-${Date.now()}`,
+                    `mermaid${Date.now()}${Math.random().toString(36).substring(2, 9)}`,
                     cleanChildren
                 );
                 setSvg(renderedSvg);

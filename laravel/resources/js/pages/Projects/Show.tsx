@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useInitials } from '@/hooks/use-initials';
 import { type User, type Project, type Sections } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
+import { getPriorityColor } from '@/utils/status-colors';
 import { Head, router, usePage } from '@inertiajs/react';
 import { 
     ChevronDown, 
@@ -110,20 +111,7 @@ export default function ProjectShow({
     const [isGeneratingModules, setIsGeneratingModules] = useState(false);
     const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
 
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case 'critical':
-                return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30';
-            case 'high':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'medium':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'low':
-                return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
+    // getPriorityColor now imported from @/utils/status-colors
 
     interface RoadmapStep {
         id: string;

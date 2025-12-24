@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { useInitials } from '@/hooks/use-initials';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { getRoleBadgeColor } from '@/utils/role-colors';
+import { type AcceptableInvitation, type Project } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import {
     CheckCircleIcon,
@@ -15,22 +16,10 @@ import {
     UsersIcon,
 } from 'lucide-react';
 
-interface Invitation {
-    id: number;
-    email: string;
-    role: string;
-    token: string;
-    expires_at: string;
-}
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-}
+// AcceptableInvitation and Project types now imported from '@/types'
 
 interface Props {
-    invitation: Invitation;
+    invitation: AcceptableInvitation;
     project: Project;
 }
 

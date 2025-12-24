@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useC4Parser } from '@/hooks/useC4Parser';
-import { type User } from '@/types';
+import { type User, type Project, type Sections } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -36,25 +36,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { useIsDarkMode } from '@/hooks/use-theme-detection';
 import { useResizablePanel } from '@/hooks/use-resizable-panel';
 
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    non_functional_requirements: string;
-    technical_details: string;
-    c4: string | null;
-    status: string;
-    created_at: string;
-    updated_at: string;
-}
-
-interface Sections {
-    overview: string | null;
-    prd: string | null;
-    data_modeling: string | null;
-    non_functional_requirements: string | null;
-}
+// Project and Sections types now imported from '@/types' via the SidebarToggle and other imports
 
 interface Props {
     project: Project;

@@ -1,13 +1,19 @@
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
-import { type User } from '@/types';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
+import { type User, type Project, type Sections } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head, router, usePage } from '@inertiajs/react';
-import { CodeIcon, DatabaseIcon, LightbulbIcon, MonitorSmartphoneIcon, PanelLeftClose, PanelLeftOpen, PlugIcon } from 'lucide-react';
+import { CodeIcon, DatabaseIcon, LightbulbIcon, MonitorSmartphoneIcon, PlugIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+// Project and Sections types now imported from @/types
+
+// TechnicalIntake specific to this page, not shared yet
 interface TechnicalIntake {
     id: number;
     project_id: number;
@@ -19,21 +25,6 @@ interface TechnicalIntake {
     external_services: string | null;
     created_at: string;
     updated_at: string;
-}
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    status: string;
-    c4: string | null;
-}
-
-interface Sections {
-    overview: string | null;
-    prd: string | null;
-    data_modeling: string | null;
-    non_functional_requirements: string | null;
 }
 
 interface Props {
@@ -122,28 +113,17 @@ export default function Technology({ project, technicalIntake, sections }: Props
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-6 flex items-center gap-3">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    className="hidden h-8 w-8 p-0 lg:flex"
-                                    title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                >
-                                    {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                </Button>
+                                <SidebarToggle
+                                    isCollapsed={isSidebarCollapsed}
+                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
 
-                            <header className="mb-8">
-                                <div className="flex flex-wrap items-center justify-between gap-4">
-                                    <div>
-                                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Technology Stack</h1>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            Technical specifications and technology stack for {project.name}
-                                        </p>
-                                    </div>
-                                </div>
-                            </header>
+                            <PageHeader
+                                title="Technology Stack"
+                                description={`Technical specifications and technology stack for ${project.name}`}
+                            />
 
                             <section className="space-y-10">
                                 {technicalIntake ? (
@@ -217,17 +197,17 @@ export default function Technology({ project, technicalIntake, sections }: Props
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="rounded border p-12 text-center">
-                                        <CodeIcon className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
-                                        <h3 className="mb-2 text-lg font-semibold text-foreground">No Technology Details Yet</h3>
-                                        <p className="mb-6 text-sm text-muted-foreground">
-                                            Technology details will be available once you complete the project preparation phase
-                                        </p>
-                                        <Button onClick={() => router.visit(`/projects/${project.id}/prepare`)} size="sm" className="gap-2">
-                                            <CodeIcon className="h-4 w-4" />
-                                            Complete Project Setup
-                                        </Button>
-                                    </div>
+                                    <EmptyState
+                                        icon={CodeIcon}
+                                        title="No Technology Details Yet"
+                                        description="Technology details will be available once you complete the project preparation phase"
+                                        variant="card"
+                                        action={{
+                                            label: 'Complete Project Setup',
+                                            onClick: () => router.visit(`/projects/${project.id}/prepare`),
+                                            icon: CodeIcon,
+                                        }}
+                                    />
                                 )}
                             </section>
                         </div>

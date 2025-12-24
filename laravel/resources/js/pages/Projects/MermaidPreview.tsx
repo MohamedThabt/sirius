@@ -1,11 +1,13 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
-import { type User } from '@/types';
+import { type User, type Project, type Sections } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { getStatusColor } from '@/utils/status-colors';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     AlertCircleIcon,
@@ -21,8 +23,6 @@ import {
     HomeIcon,
     Layers as LayersIcon,
     LightbulbIcon,
-    PanelLeftClose,
-    PanelLeftOpen,
     TrendingUpIcon,
     ZapIcon,
     ZoomInIcon,
@@ -33,19 +33,7 @@ import mermaid from 'mermaid';
 import { convertEscapedMermaid } from '@/utils/mermaid';
 import { useThemeDetection } from '@/hooks/use-theme-detection';
 
-interface Project {
-    id: number;
-    name: string;
-    status: string;
-    c4: string | null;
-}
-
-interface Sections {
-    overview: string | null;
-    prd: string | null;
-    data_modeling: string | null;
-    non_functional_requirements: string | null;
-}
+// Project and Sections types now imported from @/types
 
 interface Props {
     content: string;
@@ -121,31 +109,7 @@ export default function MermaidPreview({
           ]
         : [{ title: title, href: '#' }];
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30';
-        }
-    };
-
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return <CircleIcon className="h-3 w-3" />;
-            case 'in_progress':
-                return <ClockIcon className="h-3 w-3" />;
-            case 'completed':
-                return <CheckCircleIcon className="h-3 w-3" />;
-            default:
-                return <AlertCircleIcon className="h-3 w-3" />;
-        }
-    };
+    // getStatusColor now imported from @/utils/status-colors
 
     interface NavItem {
         key: string;
@@ -427,15 +391,10 @@ export default function MermaidPreview({
                                 <div className="border-b px-4 py-3 sm:pl-6 lg:pl-6">
                                     <div className="mb-4 flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                                className="hidden h-8 w-8 p-0 lg:flex"
-                                                title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                            >
-                                                {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                            </Button>
+                                            <SidebarToggle
+                                                isCollapsed={isSidebarCollapsed}
+                                                onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                            />
                                             <Breadcrumbs breadcrumbs={breadcrumbs} />
                                         </div>
                                         <div className="flex items-center gap-2">

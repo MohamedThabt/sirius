@@ -1,4 +1,5 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { type Project, type SharedData } from '@/types';
 import { type FeatureItem, type ModuleItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant, Edge, Node } from '@xyflow/react';
-import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -546,15 +547,7 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                             <div className="border-b border-border bg-card/50 px-4 py-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                            className="hidden h-8 w-8 p-0 lg:flex"
-                                            title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                                        >
-                                            {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                                        </Button>
+                                        <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -598,7 +591,7 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                                     style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
                                 >
                                     <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 py-2">
-                                        <FormatSelector content={content} onConvert={handleConvert} isConverting={isConverting} />
+                                        <FormatSelector content={content} />
                                         <Button
                                             variant="default"
                                             size="sm"
