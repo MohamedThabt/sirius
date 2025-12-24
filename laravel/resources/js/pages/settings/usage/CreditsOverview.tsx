@@ -67,8 +67,8 @@ export function CreditsOverview({
                     {/* Used Credits */}
                     <div className="rounded-lg border border-border/50 bg-muted/30 p-3 transition-colors hover:bg-muted/50">
                         <div className="flex items-center gap-2.5">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-500/10">
-                                <ActivityIcon className="h-3.5 w-3.5 text-violet-500" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+                                <ActivityIcon className="h-3.5 w-3.5 text-primary" />
                             </div>
                             <div>
                                 <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Used</p>
@@ -97,11 +97,11 @@ export function CreditsOverview({
                 <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
                         <span className="font-medium text-foreground">Credit Usage</span>
-                        <span className="font-semibold text-violet-500">{credits.percentage_used.toFixed(1)}%</span>
+                        <span className="font-semibold text-primary">{credits.percentage_used.toFixed(1)}%</span>
                     </div>
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
-                            className="h-full rounded-full bg-violet-500 transition-all duration-500 ease-out"
+                            className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
                             style={{ width: `${Math.min(credits.percentage_used, 100)}%` }}
                         />
                     </div>
@@ -116,8 +116,8 @@ export function CreditsOverview({
                     <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-500/10">
-                                    <CreditCardIcon className="h-3.5 w-3.5 text-violet-500" />
+                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+                                <CreditCardIcon className="h-3.5 w-3.5 text-primary" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-foreground">{plan.name}</p>
@@ -161,7 +161,7 @@ export function CreditsOverview({
                                     <DialogContent className="sm:max-w-md">
                                         <DialogHeader>
                                             <DialogTitle className="flex items-center gap-2">
-                                                <CoinsIcon className="h-5 w-5 text-violet-500" />
+                                                <CoinsIcon className="h-5 w-5 text-primary" />
                                                 Purchase Credits
                                             </DialogTitle>
                                             <DialogDescription>
@@ -169,10 +169,10 @@ export function CreditsOverview({
                                             </DialogDescription>
                                         </DialogHeader>
                                         <div className="space-y-4 py-4">
-                                            <div className="rounded-xl border border-violet-200 bg-violet-50 p-4 dark:border-violet-900/50 dark:bg-violet-950/30">
+                                            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 dark:border-primary/30 dark:bg-primary/10">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500">
+                                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                                                             <SparklesIcon className="h-5 w-5 text-white" />
                                                         </div>
                                                         <div>
@@ -182,13 +182,13 @@ export function CreditsOverview({
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <p className="text-2xl font-bold text-violet-500">$5.00</p>
+                                                    <p className="text-2xl font-bold text-primary">$5.00</p>
                                                 </div>
                                             </div>
                                             <Button
                                                 onClick={onPurchase}
                                                 disabled={processing}
-                                                className="w-full bg-violet-500 hover:bg-violet-600"
+                                                className="w-full bg-primary hover:bg-primary/90"
                                             >
                                                 {processing ? 'Processing...' : 'Purchase 250 Credits for $5'}
                                             </Button>

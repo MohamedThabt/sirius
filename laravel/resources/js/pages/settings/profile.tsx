@@ -1,6 +1,6 @@
 import { type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 // @ts-ignore - route helper is available globally via Ziggy
@@ -33,7 +33,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
 
             <div className="space-y-6">
                 {/* Profile Information */}
-                <div className="rounded border p-6">
+                <div className="rounded-lg border border-border p-6">
                     <div className="mb-6">
                         <h2 className="text-base font-semibold text-foreground">Profile Information</h2>
                         <p className="mt-1 text-sm text-muted-foreground">Update your personal information</p>
@@ -115,7 +115,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                 </div>
 
                 {/* Delete Account */}
-                <div className="rounded border p-6">
+                <div className="rounded-lg border border-border p-6">
                     <div className="mb-6">
                         <h2 className="text-base font-semibold text-foreground">Delete Account</h2>
                         <p className="mt-1 text-sm text-muted-foreground">Permanently delete your account and all associated data</p>

@@ -40,7 +40,17 @@ const CHART_TYPE_OPTIONS = [
 const CHART_CONFIG = {
     credits: {
         label: 'Credits Used',
-        color: 'hsl(var(--chart-1))',
+        color: 'hsl(217 91% 60%)', // Vibrant blue
+    },
+};
+
+// WHY: Enhanced colors for better visual appeal
+const CHART_COLORS = {
+    primary: 'hsl(217 91% 60%)', // Vibrant blue
+    primaryLight: 'hsl(217 91% 75%)', // Lighter for gradients
+    gradient: {
+        start: 'hsl(217 91% 60%)',
+        end: 'hsl(262 83% 58%)', // Purple accent
     },
 };
 
@@ -127,7 +137,7 @@ export function UsageChart({ graphData }: UsageChartProps) {
                     <div className="rounded-md border border-border bg-background p-3 shadow-md">
                         <p className="text-xs text-muted-foreground mb-2">{formattedDate}</p>
                         <div className="flex items-center gap-2">
-                            <div className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+                            <div className="h-2.5 w-2.5 rounded-full bg-primary" />
                             <span className="text-base font-semibold text-foreground">
                                 {formatNumber(value)}
                             </span>
@@ -144,11 +154,18 @@ export function UsageChart({ graphData }: UsageChartProps) {
     // WHY: Shared grid and axis components to avoid duplication
     const renderGridAndAxes = () => (
         <>
+            <defs>
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CHART_COLORS.gradient.start} stopOpacity={0.4} />
+                    <stop offset="100%" stopColor={CHART_COLORS.gradient.end} stopOpacity={0.05} />
+                </linearGradient>
+            </defs>
             <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="hsl(var(--muted-foreground))"
-                strokeOpacity={0.1}
-                vertical={false}
+                strokeOpacity={0.15}
+                horizontal={true}
+                vertical={true}
             />
             <XAxis
                 dataKey="date"
@@ -166,7 +183,7 @@ export function UsageChart({ graphData }: UsageChartProps) {
                     y={chartStats.average}
                     stroke="hsl(var(--muted-foreground))"
                     strokeDasharray="4 4"
-                    strokeOpacity={0.4}
+                    strokeOpacity={0.5}
                 />
             )}
         </>
@@ -186,13 +203,12 @@ export function UsageChart({ graphData }: UsageChartProps) {
                     <Area
                         type="monotone"
                         dataKey="credits"
-                        stroke="#8b5cf6"
-                        strokeWidth={2}
-                        fill="#8b5cf6"
-                        fillOpacity={0.1}
+                        stroke={CHART_COLORS.primary}
+                        strokeWidth={2.5}
+                        fill="url(#chartGradient)"
                         animationDuration={800}
                         dot={false}
-                        activeDot={{ r: 4, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: '#fff', strokeWidth: 2 }}
                     />
                 </AreaChart>
             );
@@ -208,8 +224,8 @@ export function UsageChart({ graphData }: UsageChartProps) {
                     />
                     <Bar
                         dataKey="credits"
-                        fill="#8b5cf6"
-                        radius={[3, 3, 0, 0]}
+                        fill={CHART_COLORS.primary}
+                        radius={[4, 4, 0, 0]}
                         animationDuration={800}
                     />
                 </BarChart>
@@ -226,11 +242,11 @@ export function UsageChart({ graphData }: UsageChartProps) {
                 <Line
                     type="monotone"
                     dataKey="credits"
-                    stroke="#8b5cf6"
-                    strokeWidth={2}
+                    stroke={CHART_COLORS.primary}
+                    strokeWidth={2.5}
                     animationDuration={800}
                     dot={false}
-                    activeDot={{ r: 4, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }}
+                    activeDot={{ r: 5, fill: CHART_COLORS.primary, stroke: '#fff', strokeWidth: 2 }}
                 />
             </LineChart>
         );
@@ -242,7 +258,7 @@ export function UsageChart({ graphData }: UsageChartProps) {
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-                        <TrendingUpIcon className="h-4 w-4 text-violet-500" />
+                        <TrendingUpIcon className="h-4 w-4 text-primary" />
                         Usage Analytics
                     </h2>
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -261,7 +277,7 @@ export function UsageChart({ graphData }: UsageChartProps) {
                                 aria-pressed={timeRange === option.value}
                                 className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-200 ${
                                     timeRange === option.value
-                                        ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/25'
+                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
                                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                 }`}
                             >
@@ -281,7 +297,7 @@ export function UsageChart({ graphData }: UsageChartProps) {
                                 title={option.label}
                                 className={`p-2 rounded-md transition-all duration-200 ${
                                     chartType === option.value
-                                        ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/25'
+                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
                                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                 }`}
                             >
@@ -297,49 +313,12 @@ export function UsageChart({ graphData }: UsageChartProps) {
                 {renderChart()}
             </ChartContainer>
 
-            {/* Stats Summary */}
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-border bg-muted/30 p-3">
-                    <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-500/10">
-                            <TrendingUpIcon className="h-4 w-4 text-violet-500" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Total Usage</p>
-                            <p className="text-lg font-semibold text-foreground">{formatNumber(chartStats.total)}</p>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="rounded-lg border border-border bg-muted/30 p-3">
-                    <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10">
-                            <ActivityIcon className="h-4 w-4 text-emerald-500" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Daily Average</p>
-                            <p className="text-lg font-semibold text-foreground">{formatNumber(chartStats.average)}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rounded-lg border border-border bg-muted/30 p-3">
-                    <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-500/10">
-                            <ZapIcon className="h-4 w-4 text-amber-500" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Peak Usage</p>
-                            <p className="text-lg font-semibold text-foreground">{formatNumber(chartStats.peak)}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Legend */}
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+                    <div className="h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.primary }} />
                     <span>Credits Used</span>
                 </div>
                 {chartStats.average > 0 && (

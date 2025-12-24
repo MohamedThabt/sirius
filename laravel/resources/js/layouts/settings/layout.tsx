@@ -1,9 +1,8 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import SettingsSidebar from '@/components/Settings/SettingsSidebar';
-import { Button } from '@/components/ui/button';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { type PropsWithChildren, useState } from 'react';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
@@ -22,7 +21,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     ];
 
     return (
-        <div className="flex h-screen w-full bg-background">
+        <div className="flex min-h-screen w-full bg-background">
             <SettingsSidebar
                 auth={auth}
                 isSidebarCollapsed={isSidebarCollapsed}
@@ -30,26 +29,22 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 currentPath={currentPath}
             />
 
-            <main className="min-w-0 flex-1 transition-all duration-300">
-                <div className="flex h-full w-full flex-col overflow-hidden">
-                    <div className="flex items-center gap-3 border-b bg-background px-4 py-4 sm:px-6 lg:px-8">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                            className="hidden h-8 w-8 p-0 lg:flex"
-                            title={isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
-                        >
-                            {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                        </Button>
+            <main className="flex w-full flex-1 flex-col transition-all duration-300">
+                <div className="shrink-0 border-b border-border/50 bg-muted/20 px-4 py-3 sm:px-6">
+                    <div className="flex items-center gap-3">
+                        <SidebarToggle 
+                            isCollapsed={isSidebarCollapsed} 
+                            onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+                        />
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
+                </div>
 
-                    <div className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
-                        {children}
-                    </div>
+                <div className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
+                    {children}
                 </div>
             </main>
         </div>
     );
 }
+

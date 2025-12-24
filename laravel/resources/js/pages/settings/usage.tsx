@@ -42,10 +42,10 @@ function Usage({ credits, plan, graphData, usageLogs, totalConsumedCredits }: Pr
         <>
             <Head title="Usage & Credits" />
 
-            <header className="mb-6">
+            <header className="mb-8">
                 <div>
-                    <h1 className="text-xl font-semibold tracking-tight text-foreground">Usage & Credits</h1>
-                    <p className="mt-0.5 text-sm text-muted-foreground">Monitor your AI usage and credit consumption</p>
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">Usage & Credits</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">Monitor your AI usage and credit consumption</p>
                 </div>
             </header>
 

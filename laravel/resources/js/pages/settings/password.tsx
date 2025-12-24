@@ -53,7 +53,7 @@ function Password() {
             </header>
 
             <div className="space-y-6">
-                <div className="rounded border p-6">
+                <div className="rounded-lg border border-border p-6">
                     <div className="mb-6">
                         <h2 className="text-base font-semibold text-foreground">Update Password</h2>
                         <p className="mt-1 text-sm text-muted-foreground">Change your account password</p>

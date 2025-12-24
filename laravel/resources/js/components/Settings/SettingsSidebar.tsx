@@ -51,7 +51,7 @@ export default function SettingsSidebar({ auth, isSidebarCollapsed, currentPath 
 
     return (
         <aside
-            className={`h-screen shrink-0 border-r bg-background transition-all duration-300 scrollbar-hide ${
+            className={`sticky top-0 h-screen shrink-0 border-r bg-background transition-all duration-300 scrollbar-hide ${
                 isSidebarCollapsed ? 'w-0 -translate-x-full lg:w-16 lg:translate-x-0' : 'w-64'
             }`}
         >
