@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData } from '@/types';
+import { type SharedData, type Project } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     CalendarIcon,
@@ -21,19 +21,9 @@ import {
     TrashIcon,
     XIcon,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    non_functional_requirements: string;
-    technical_details: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-}
+// WHY: Using shared Project type from @/types instead of duplicate definition
 
 interface Invitation {
     id: number;
@@ -162,16 +152,19 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
         }
     };
 
-    const getProjectStats = () => {
+    /**
+     * WHY useMemo: Previously, getProjectStats() was called on every render,
+     * iterating the projects array 3 times for each render cycle.
+     * With useMemo, we only recalculate when projects array changes.
+     */
+    const stats = useMemo(() => {
         const total = projects.length;
         const completed = projects.filter((p) => p.status === 'completed').length;
         const inProgress = projects.filter((p) => p.status === 'in_progress').length;
         const draft = projects.filter((p) => p.status === 'draft').length;
 
         return { total, completed, inProgress, draft };
-    };
-
-    const stats = getProjectStats();
+    }, [projects]);
 
     return (
         <>

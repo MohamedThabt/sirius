@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInitials } from '@/hooks/use-initials';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { getRoleBadgeColor } from '@/utils/role-colors';
 import { type User as AuthUser } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
@@ -30,7 +31,7 @@ import {
     Users,
     XCircle,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface SearchedUser {
     id: number;
@@ -114,7 +115,10 @@ export default function Team({ project, members, invitations, userInvitations, u
     const [memberSearch, setMemberSearch] = useState('');
 
     // Update local state when prop changes
-    useMemo(() => {
+    // WHY useEffect instead of useMemo: useMemo is for computing derived values,
+    // not for triggering side effects like setState. Using useMemo here caused
+    // React to execute the side effect during render, which is an anti-pattern.
+    useEffect(() => {
         setSearchedUser(initialSearchedUser);
     }, [initialSearchedUser]);
 
@@ -136,20 +140,7 @@ export default function Team({ project, members, invitations, userInvitations, u
 
     const canManageTeam = userRole === 'owner' || userRole === 'admin';
 
-    const getRoleBadgeColor = (role: string) => {
-        switch (role) {
-            case 'owner':
-                return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/30';
-            case 'admin':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'developer':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            case 'viewer':
-                return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
+    // getRoleBadgeColor now imported from '@/utils/role-colors' - removed ~15 lines of duplication
 
     const handleInviteMember = (e: React.FormEvent) => {
         e.preventDefault();

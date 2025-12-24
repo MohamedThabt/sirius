@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useInitials } from '@/hooks/use-initials';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { getRoleBadgeColor } from '@/utils/role-colors';
 import { Head, router } from '@inertiajs/react';
 import {
     CheckCircleIcon,
@@ -45,20 +46,7 @@ export default function AcceptInvitation({ invitation, project }: Props) {
         router.get('/projects');
     };
 
-    const getRoleBadgeColor = (role: string) => {
-        switch (role) {
-            case 'owner':
-                return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/30';
-            case 'admin':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/30';
-            case 'developer':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/30';
-            case 'viewer':
-                return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30';
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    };
+    // getRoleBadgeColor now imported from '@/utils/role-colors'
 
     const getRoleIcon = (role: string) => {
         switch (role) {

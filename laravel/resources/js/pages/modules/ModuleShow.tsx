@@ -1,4 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ContentCard } from '@/components/ContentCard';
+import { SyncIndicator } from '@/components/SyncIndicator';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
@@ -10,15 +12,16 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData, type User } from '@/types';
+import { useErdOperations } from '@/hooks/useErdOperations';
+import { type Project, type SharedData, type User } from '@/types';
+import type { FeatureItem, ModuleItem, ModuleStatus } from '@/types/modules';
+import { getModuleStatusConfig, getFeatureStatusConfig, getFeaturePriorityConfig } from '@/utils/statusHelpers';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
     AlertCircleIcon,
     ArrowLeft,
     BarChart3,
     CheckCircle2,
-    CircleIcon,
-    ClockIcon,
     DatabaseIcon,
     FileTextIcon,
     Layers,
@@ -28,38 +31,8 @@ import {
     Sparkles,
     ZapIcon,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    status: string;
-    c4?: string | null;
-}
-
-interface FeatureItem {
-    id: number;
-    name: string;
-    summary: string;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
-    order_of_implementation: number;
-}
-
-interface ModuleItem {
-    id: number;
-    name: string;
-    description: string;
-    metrics: string | null;
-    erd: string | null;
-    erd_is_synced?: boolean;
-    status: 'planned' | 'in_progress' | 'completed';
-    order_of_implementation: number;
-    features?: FeatureItem[];
-}
 
 interface Props {
     project: Project;
@@ -73,10 +46,12 @@ export default function ModuleShow({ project, module }: Props) {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [editingField, setEditingField] = useState<string | null>(null);
     const [isGeneratingFeatures, setIsGeneratingFeatures] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
     const [isAddFeatureModalOpen, setIsAddFeatureModalOpen] = useState(false);
     const [isCreatingFeature, setIsCreatingFeature] = useState(false);
     const [newFeature, setNewFeature] = useState({ name: '', description: '' });
+
+    // WHY: Hook encapsulates ERD sync logic, reducing duplication with DatabaseDesigner.tsx
+    const { isSyncing, syncErd } = useErdOperations({ projectId: project.id, moduleId: module.id });
 
     const { data, setData, put, processing } = useForm({
         name: module.name,
@@ -87,6 +62,8 @@ export default function ModuleShow({ project, module }: Props) {
         order_of_implementation: module.order_of_implementation || 1,
     });
 
+    // WHY: Syncs form data when module prop changes (e.g., after server update)
+    // Only reset if we're not in the middle of editing a field
     useEffect(() => {
         if (!editingField) {
             setData({
@@ -98,14 +75,13 @@ export default function ModuleShow({ project, module }: Props) {
                 order_of_implementation: module.order_of_implementation || 1,
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [module]);
+    }, [module, editingField, setData]);
 
     const breadcrumbs = [
         { title: 'Projects', href: '/projects' },
         { title: project.name, href: `/projects/${project.id}` },
         { title: 'Modules', href: `/projects/${project.id}/modules` },
-        { title: module.name },
+        { title: module.name, href: `/projects/${project.id}/modules/${module.id}` },
     ];
 
     const navGroups = useMemo(
@@ -117,11 +93,13 @@ export default function ModuleShow({ project, module }: Props) {
         [project],
     );
 
-    const handleEdit = (field: string) => {
+    // WHY: useCallback prevents recreating these functions on each render,
+    // which is important since they're passed to child components
+    const handleEdit = useCallback((field: string) => {
         setEditingField(field);
-    };
+    }, []);
 
-    const handleSave = () => {
+    const handleSave = useCallback(() => {
         if (!editingField) return;
 
         put(`/projects/${project.id}/modules/${module.id}/update`, {
@@ -134,9 +112,9 @@ export default function ModuleShow({ project, module }: Props) {
                 toast.error('Failed to update module. Please try again.');
             },
         });
-    };
+    }, [editingField, project.id, module.id, put]);
 
-    const handleCancel = () => {
+    const handleCancel = useCallback(() => {
         setEditingField(null);
         setData({
             name: module.name,
@@ -146,83 +124,19 @@ export default function ModuleShow({ project, module }: Props) {
             status: module.status || 'planned',
             order_of_implementation: module.order_of_implementation || 1,
         });
-    };
+    }, [module, setData]);
 
-    const handleStatusChange = (newStatus: 'planned' | 'in_progress' | 'completed') => {
+    const handleStatusChange = useCallback((newStatus: ModuleStatus) => {
         setData('status', newStatus);
         put(`/projects/${project.id}/modules/${module.id}/update`, {
             preserveScroll: true,
             onSuccess: () => toast.success('Status updated successfully!'),
             onError: () => toast.error('Failed to update status.'),
         });
-    };
+    }, [project.id, module.id, put, setData]);
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'planned':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
-
-    const formatStatus = (status: string) => {
-        switch (status) {
-            case 'in_progress':
-                return 'In Progress';
-            case 'planned':
-                return 'Planned';
-            case 'completed':
-                return 'Completed';
-            default:
-                return status;
-        }
-    };
-
-    const getFeatureStatusIcon = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return <CircleIcon className="h-4 w-4" />;
-            case 'in_progress':
-                return <ClockIcon className="h-4 w-4" />;
-            case 'completed':
-                return <CheckCircle2 className="h-4 w-4" />;
-            default:
-                return <CircleIcon className="h-4 w-4" />;
-        }
-    };
-
-    const getFeatureStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case 'critical':
-                return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30';
-            case 'high':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'medium':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'low':
-                return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
+    // WHY: Helper function to get status config from centralized utilities
+    const statusConfig = getModuleStatusConfig(data.status);
 
     const features = module.features || [];
     const completedFeatures = features.filter((f) => f.status === 'completed').length;
@@ -237,51 +151,8 @@ export default function ModuleShow({ project, module }: Props) {
         return { label: 'needs attention', Icon: AlertCircleIcon, color: 'text-red-600 dark:text-red-400' };
     }, [moduleProgress]);
 
-    const ContentCard = ({
-        title,
-        field,
-        icon: Icon,
-        placeholder,
-        className = '',
-    }: {
-        title: string;
-        field: string;
-        icon: React.ComponentType<{ className?: string }>;
-        placeholder: string;
-        className?: string;
-    }) => (
-        <div
-            className={`group relative rounded-xl border border-border/40 bg-card/50 p-6 transition-all hover:border-border/80 hover:bg-card hover:shadow-sm ${className}`}
-        >
-            <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Icon className="h-4 w-4" />
-                    </div>
-                    <h3 className="font-semibold text-foreground">{title}</h3>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => handleEdit(field)} className="opacity-0 transition-opacity group-hover:opacity-100">
-                    <PencilIcon className="mr-2 h-3.5 w-3.5" />
-                    Edit
-                </Button>
-            </div>
-            {data[field as keyof typeof data] ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-muted-foreground">
-                    {data[field as keyof typeof data]}
-                </div>
-            ) : (
-                <div
-                    className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border/50 py-8 text-center transition-colors hover:bg-muted/50"
-                    onClick={() => handleEdit(field)}
-                >
-                    <p className="text-sm text-muted-foreground">{placeholder}</p>
-                    <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-primary">
-                        Add {title}
-                    </Button>
-                </div>
-            )}
-        </div>
-    );
+    // WHY: ContentCard is now imported from @/components/ContentCard
+    // This prevents the component from being recreated on every render
 
     return (
         <>
@@ -292,11 +163,8 @@ export default function ModuleShow({ project, module }: Props) {
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
-                        repository={null}
-                        completionPercentage={undefined}
-                        health={undefined}
                         isCollapsed={isSidebarCollapsed}
-                        user={auth.user as unknown as User}
+                        user={auth.user as User}
                     />
 
                     <main className="flex min-w-0 flex-1 flex-col">
@@ -332,7 +200,7 @@ export default function ModuleShow({ project, module }: Props) {
                                             <div className="mt-3 flex flex-wrap items-center gap-3">
                                                 <Select value={data.status} onValueChange={handleStatusChange} disabled={processing}>
                                                     <SelectTrigger
-                                                        className={`h-7 w-auto border-0 px-2.5 text-xs font-medium shadow-none ring-1 ring-inset ${getStatusColor(data.status)}`}
+                                                        className={`h-7 w-auto border-0 px-2.5 text-xs font-medium shadow-none ring-1 ring-inset ${statusConfig.color}`}
                                                     >
                                                         <SelectValue />
                                                     </SelectTrigger>
@@ -376,9 +244,9 @@ export default function ModuleShow({ project, module }: Props) {
                                         <div className="mb-1 text-xs font-medium text-muted-foreground">Module Status</div>
                                         <div className="mb-2 flex items-center gap-2">
                                             <span
-                                                className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium ${getStatusColor(data.status)}`}
+                                                className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium ${statusConfig.color}`}
                                             >
-                                                {formatStatus(data.status)}
+                                                {statusConfig.label}
                                             </span>
                                         </div>
                                     </div>
@@ -421,23 +289,7 @@ export default function ModuleShow({ project, module }: Props) {
                                                     disabled={isSyncing}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        setIsSyncing(true);
-                                                        router.post(
-                                                            `/projects/${project.id}/modules/${module.id}/erd/sync`,
-                                                            {},
-                                                            {
-                                                                preserveScroll: true,
-                                                                onSuccess: () => {
-                                                                    toast.success('Module ERD synced successfully from features!');
-                                                                },
-                                                                onError: () => {
-                                                                    toast.error('Failed to sync ERD. Please try again.');
-                                                                },
-                                                                onFinish: () => {
-                                                                    setIsSyncing(false);
-                                                                }
-                                                            }
-                                                        );
+                                                        syncErd();
                                                     }}
                                                 >
                                                     {isSyncing ? (
@@ -476,9 +328,11 @@ export default function ModuleShow({ project, module }: Props) {
                                                     >
                                                         {module.erd ? <CheckCircle2 className="h-5 w-5" /> : <DatabaseIcon className="h-5 w-5" />}
                                                     </div>
-                                                    {module.erd_is_synced === false && (
-                                                        <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 ring-2 ring-card" />
-                                                    )}
+                                                    <SyncIndicator 
+                                                        isSynced={module.erd_is_synced} 
+                                                        position="absolute" 
+                                                        className="-top-1 -right-1 ring-card" 
+                                                    />
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
@@ -521,12 +375,16 @@ export default function ModuleShow({ project, module }: Props) {
                                             field="description"
                                             icon={FileTextIcon}
                                             placeholder="Add a description for this module..."
+                                            value={data.description}
+                                            onEdit={handleEdit}
                                         />
                                         <ContentCard
                                             title="Success Metrics"
                                             field="metrics"
                                             icon={BarChart3}
                                             placeholder="Define KPIs and measurements..."
+                                            value={data.metrics}
+                                            onEdit={handleEdit}
                                         />
                                     </div>
                                 </div>
@@ -590,44 +448,52 @@ export default function ModuleShow({ project, module }: Props) {
                                         </div>
                                     ) : (
                                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                            {features.map((feature) => (
-                                                <div
-                                                    key={feature.id}
-                                                    className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md"
-                                                    onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)}
-                                                >
-                                                    <div className="mb-4 flex items-start justify-between gap-3">
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-2">
-                                                                {getFeatureStatusIcon(feature.status)}
-                                                                <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
-                                                                    {feature.name}
-                                                                </h3>
+                                            {features.map((feature) => {
+                                                const featureStatusConfig = getFeatureStatusConfig(feature.status);
+                                                const FeatureStatusIcon = featureStatusConfig.icon;
+                                                const priorityConfig = getFeaturePriorityConfig(feature.priority);
+                                                
+                                                return (
+                                                    <div
+                                                        key={feature.id}
+                                                        className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                        onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        onKeyDown={(e) => e.key === 'Enter' && router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)}
+                                                        aria-label={`View feature ${feature.name}`}
+                                                    >
+                                                        <div className="mb-4 flex items-start justify-between gap-3">
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <FeatureStatusIcon className="h-4 w-4" />
+                                                                    <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
+                                                                        {feature.name}
+                                                                    </h3>
+                                                                </div>
+                                                                {feature.summary && (
+                                                                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                                                                        {feature.summary}
+                                                                    </p>
+                                                                )}
                                                             </div>
-                                                            {feature.summary && (
-                                                                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                                                                    {feature.summary}
-                                                                </p>
-                                                            )}
+                                                        </div>
+
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <Badge className={`border text-xs font-medium ${featureStatusConfig.color}`}>
+                                                                <FeatureStatusIcon className="h-3 w-3" />
+                                                                <span className="ml-1">{featureStatusConfig.label}</span>
+                                                            </Badge>
+                                                            <Badge className={`border text-xs font-medium capitalize ${priorityConfig.color}`}>
+                                                                {priorityConfig.label}
+                                                            </Badge>
+                                                            <Badge variant="outline" className="text-xs">
+                                                                #{feature.order_of_implementation}
+                                                            </Badge>
                                                         </div>
                                                     </div>
-
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <Badge className={`border text-xs font-medium ${getFeatureStatusColor(feature.status)}`}>
-                                                            {getFeatureStatusIcon(feature.status)}
-                                                            <span className="ml-1">
-                                                                {feature.status === 'in_progress' ? 'In Progress' : feature.status}
-                                                            </span>
-                                                        </Badge>
-                                                        <Badge className={`border text-xs font-medium capitalize ${getPriorityColor(feature.priority)}`}>
-                                                            {feature.priority}
-                                                        </Badge>
-                                                        <Badge variant="outline" className="text-xs">
-                                                            #{feature.order_of_implementation}
-                                                        </Badge>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>

@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head, router, usePage } from '@inertiajs/react';
+import { CheckboxGrid } from '@/components/ui/checkbox-grid';
+import { TextareaWithCounter } from '@/components/ui/textarea-with-counter';
+import { ReviewModal } from '@/components/Projects/Prepare/ReviewModal';
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
@@ -146,7 +149,8 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
 
     const shared = usePage<SharedData>().props;
     const { auth } = shared;
-    const sidebarAuth: { user: User } = { user: (auth.user as unknown) as User };
+    // WHY: Fixed unsafe double-cast through 'unknown'. Trust the typing or fix source.
+    const sidebarAuth = { user: auth.user as User };
     const projects = (shared.projects as { id: number; name: string; status?: string }[] | undefined) || [];
 
     const [activeTab, setActiveTab] = useState<'business' | 'technical'>('business');
@@ -406,7 +410,8 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
             servicesAdditional?: string;
             expectedUserScale?: number;
         };
-        if (f) setFormData((prev) => ({ ...prev, ...f }));
+        // WHY: Fixed type error by ensuring we only spread defined values
+        if (f) setFormData((prev) => ({ ...prev, ...f } as ProjectFormData));
         if (a) setActiveTab(a);
         if (bs) setCurrentBusinessStep(bs);
         if (ts) setCurrentTechnicalStep(ts);
@@ -637,27 +642,15 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
         if (field === 'platform_targets') {
             return (
                 <div className="space-y-6">
-                    <div className="space-y-4">
+                <div className="space-y-4">
                         <Label className="text-base font-semibold">Select Platform Targets</Label>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {platformOptions.map((option) => (
-                                <div
-                                    key={option.value}
-                                    className="flex items-center space-x-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
-                                >
-                                    <Checkbox
-                                        id={option.value}
-                                        checked={selectedPlatforms.includes(option.value)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange(field, option.value, checked as boolean, selectedPlatforms, setSelectedPlatforms)
-                                        }
-                                    />
-                                    <label htmlFor={option.value} className="flex-1 cursor-pointer text-sm font-medium">
-                                        {option.label}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                        <CheckboxGrid
+                            options={platformOptions}
+                            selected={selectedPlatforms}
+                            onToggle={(value, checked) =>
+                                handleCheckboxChange(field, value, checked, selectedPlatforms, setSelectedPlatforms)
+                            }
+                        />
                     </div>
 
                     {(selectedPlatforms.includes('mobile_ios') || selectedPlatforms.includes('mobile_android')) && (
@@ -718,25 +711,13 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                 <div className="space-y-6">
                     <div className="space-y-4">
                         <Label className="text-base font-semibold">Select Frontend Framework</Label>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {frontendFrameworkOptions.map((option) => (
-                                <div
-                                    key={option.value}
-                                    className="flex items-center space-x-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
-                                >
-                                    <Checkbox
-                                        id={option.value}
-                                        checked={selectedFrontend.includes(option.value)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange(field, option.value, checked as boolean, selectedFrontend, setSelectedFrontend)
-                                        }
-                                    />
-                                    <label htmlFor={option.value} className="flex-1 cursor-pointer text-sm font-medium">
-                                        {option.label}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                        <CheckboxGrid
+                            options={frontendFrameworkOptions}
+                            selected={selectedFrontend}
+                            onToggle={(value, checked) =>
+                                handleCheckboxChange(field, value, checked, selectedFrontend, setSelectedFrontend)
+                            }
+                        />
                     </div>
 
                     <div className="space-y-2">
@@ -769,25 +750,13 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                 <div className="space-y-6">
                     <div className="space-y-4">
                         <Label className="text-base font-semibold">Select Backend Runtime</Label>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {backendOptions.map((option) => (
-                                <div
-                                    key={option.value}
-                                    className="flex items-center space-x-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
-                                >
-                                    <Checkbox
-                                        id={option.value}
-                                        checked={selectedBackend.includes(option.value)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange(field, option.value, checked as boolean, selectedBackend, setSelectedBackend)
-                                        }
-                                    />
-                                    <label htmlFor={option.value} className="flex-1 cursor-pointer text-sm font-medium">
-                                        {option.label}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                        <CheckboxGrid
+                            options={backendOptions}
+                            selected={selectedBackend}
+                            onToggle={(value, checked) =>
+                                handleCheckboxChange(field, value, checked, selectedBackend, setSelectedBackend)
+                            }
+                        />
                     </div>
 
                     <div className="space-y-2">
@@ -820,25 +789,13 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                 <div className="space-y-6">
                     <div className="space-y-4">
                         <Label className="text-base font-semibold">Select Database Technology</Label>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {databaseOptions.map((option) => (
-                                <div
-                                    key={option.value}
-                                    className="flex items-center space-x-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
-                                >
-                                    <Checkbox
-                                        id={option.value}
-                                        checked={selectedDatabase.includes(option.value)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange(field, option.value, checked as boolean, selectedDatabase, setSelectedDatabase)
-                                        }
-                                    />
-                                    <label htmlFor={option.value} className="flex-1 cursor-pointer text-sm font-medium">
-                                        {option.label}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                        <CheckboxGrid
+                            options={databaseOptions}
+                            selected={selectedDatabase}
+                            onToggle={(value, checked) =>
+                                handleCheckboxChange(field, value, checked, selectedDatabase, setSelectedDatabase)
+                            }
+                        />
                     </div>
 
                     <div className="space-y-2">
@@ -871,25 +828,13 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                 <div className="space-y-6">
                     <div className="space-y-4">
                         <Label className="text-base font-semibold">Select AI Use Cases</Label>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {aiUseCaseOptions.map((option) => (
-                                <div
-                                    key={option.value}
-                                    className="flex items-center space-x-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
-                                >
-                                    <Checkbox
-                                        id={option.value}
-                                        checked={selectedAiUseCases.includes(option.value)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange(field, option.value, checked as boolean, selectedAiUseCases, setSelectedAiUseCases)
-                                        }
-                                    />
-                                    <label htmlFor={option.value} className="flex-1 cursor-pointer text-sm font-medium">
-                                        {option.label}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                        <CheckboxGrid
+                            options={aiUseCaseOptions}
+                            selected={selectedAiUseCases}
+                            onToggle={(value, checked) =>
+                                handleCheckboxChange(field, value, checked, selectedAiUseCases, setSelectedAiUseCases)
+                            }
+                        />
                     </div>
 
                     {selectedAiUseCases.length > 0 && (
@@ -924,31 +869,13 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                 <div className="space-y-6">
                     <div className="space-y-4">
                         <Label className="text-base font-semibold">Select External Services</Label>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {externalServiceOptions.map((option) => (
-                                <div
-                                    key={option.value}
-                                    className="flex items-center space-x-3 rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
-                                >
-                                    <Checkbox
-                                        id={option.value}
-                                        checked={selectedExternalServices.includes(option.value)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange(
-                                                field,
-                                                option.value,
-                                                checked as boolean,
-                                                selectedExternalServices,
-                                                setSelectedExternalServices,
-                                            )
-                                        }
-                                    />
-                                    <label htmlFor={option.value} className="flex-1 cursor-pointer text-sm font-medium">
-                                        {option.label}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                        <CheckboxGrid
+                            options={externalServiceOptions}
+                            selected={selectedExternalServices}
+                            onToggle={(value, checked) =>
+                                handleCheckboxChange(field, value, checked, selectedExternalServices, setSelectedExternalServices)
+                            }
+                        />
                     </div>
 
                     <div className="space-y-2">
@@ -1382,76 +1309,17 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
             </div>
                 </main>
             </div>
-            {showReview && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="w-full max-w-3xl overflow-hidden rounded-lg border bg-background shadow-xl">
-                        <div className="flex items-center justify-between border-b px-4 py-3">
-                            <div className="flex items-center gap-2">
-                                <CheckCircleIcon className="h-4 w-4 text-primary" />
-                                <h2 className="text-sm font-semibold">Review your brief</h2>
-                            </div>
-                            <Button variant="ghost" size="sm" onClick={() => setShowReview(false)}>
-                                Close
-                            </Button>
-                        </div>
-                        <div className="max-h-[70vh] space-y-4 overflow-y-auto px-4 py-4 scrollbar-hide">
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <div className="rounded-lg border p-3">
-                                    <div className="text-xs text-muted-foreground">Project</div>
-                                    <div className="text-sm font-medium">{projectName}</div>
-                                </div>
-                                <div className="rounded-lg border p-3">
-                                    <div className="text-xs text-muted-foreground">Expected Users</div>
-                                    <div className="text-sm font-medium">{userScaleOptions[expectedUserScale].label}</div>
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-sm font-semibold">Business</h3>
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                    {businessSteps.map((s) => (
-                                        <div key={`rev-b-${s.id}`} className="rounded-lg border p-3">
-                                            <div className="text-xs text-muted-foreground">{s.title}</div>
-                                            <div className="mt-1 whitespace-pre-wrap text-sm">
-                                                {formData[s.field]?.trim()?.length ? formData[s.field] : <span className="text-muted-foreground">—</span>}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-sm font-semibold">Technical</h3>
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                    {technicalSteps.map((s) => (
-                                        <div key={`rev-t-${s.id}`} className="rounded-lg border p-3">
-                                            <div className="text-xs text-muted-foreground">{s.title}</div>
-                                            <div className="mt-1 whitespace-pre-wrap text-sm">
-                                                {formData[s.field]?.trim()?.length ? formData[s.field] : <span className="text-muted-foreground">—</span>}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between border-t px-4 py-3">
-                            <span className="hidden text-xs text-muted-foreground sm:inline">Tip: Alt+S to open review, Ctrl+Enter to submit</span>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" onClick={() => setShowReview(false)}>
-                                    Back
-                                </Button>
-                                <Button onClick={handleSubmit} disabled={!canSubmit} className="bg-gradient-to-r from-primary to-primary/90">
-                                    Complete Brief
-                                    <CheckIcon className="ml-2 h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ReviewModal
+                isOpen={showReview}
+                onClose={() => setShowReview(false)}
+                onSubmit={handleSubmit}
+                projectName={projectName}
+                expectedScale={userScaleOptions[expectedUserScale].label}
+                businessSteps={businessSteps as { id: number; title: string; field: string }[]}
+                technicalSteps={technicalSteps as { id: number; title: string; field: string }[]}
+                formData={formData}
+                canSubmit={canSubmit}
+            />
         </>
     );
 }
-
-// Review Modal Component appended inline for simplicity
-// (Could be factored out later)
-// Render outside main return to keep minimal edits? For now included conditionally above root closing tag.
-// NOTE: Actually need to render review modal inside component JSX; add before closing root fragment above.

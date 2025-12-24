@@ -30,9 +30,11 @@ import {
     ZoomIn,
     ZoomOut,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
+import { useIsDarkMode } from '@/hooks/use-theme-detection';
+import { useResizablePanel } from '@/hooks/use-resizable-panel';
 
 interface Project {
     id: number;
@@ -107,10 +109,19 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
     }, [content, lastSavedContent]);
     const canvasRef = useRef<HTMLDivElement>(null);
     const { c4Diagram, error, isLoading, warnings } = useC4Parser(content);
-    const [isDarkMode, setIsDarkMode] = useState(true);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [showGenerationMode, setShowGenerationMode] = useState(!project.c4 && !initialIsGenerating);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+    // WHY: Replaced ~20 lines of MutationObserver logic with shared hook
+    const isDarkMode = useIsDarkMode();
+
+    // WHY: Replaced ~60 lines of resize logic with shared hook
+    const { width: leftWidth, isResizing, handleMouseDown, containerRef } = useResizablePanel({
+        initialWidth: 50,
+        minWidth: 20,
+        maxWidth: 80,
+    });
 
     const breadcrumbs = [
         { title: 'Projects', href: '/projects' },
@@ -135,88 +146,9 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
         [project],
     );
 
-    // Resizable panel state
-    const [leftWidth, setLeftWidth] = useState(50); // percentage
-    const [isResizing, setIsResizing] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const animationFrameRef = useRef<number | null>(null);
+    // Resize logic now handled by useResizablePanel hook
 
-    // Resizable panel handlers
-    const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsResizing(true);
-    }, []);
-
-    const handleMouseMove = useCallback(
-        (e: MouseEvent) => {
-            if (!isResizing || !containerRef.current) return;
-
-            // Cancel any pending animation frame
-            if (animationFrameRef.current) {
-                cancelAnimationFrame(animationFrameRef.current);
-            }
-
-            // Throttle updates using requestAnimationFrame
-            animationFrameRef.current = requestAnimationFrame(() => {
-                if (containerRef.current) {
-                    const containerRect = containerRef.current.getBoundingClientRect();
-                    const newLeftWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-
-                    // Constrain between 20% and 80%
-                    const constrainedWidth = Math.min(80, Math.max(20, newLeftWidth));
-                    setLeftWidth(constrainedWidth);
-                }
-            });
-        },
-        [isResizing],
-    );
-
-    const handleMouseUp = useCallback(() => {
-        setIsResizing(false);
-        if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
-            animationFrameRef.current = null;
-        }
-    }, []);
-
-    // Add global mouse event listeners
-    useEffect(() => {
-        if (isResizing) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            document.body.style.cursor = 'col-resize';
-            document.body.style.userSelect = 'none';
-        }
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
-        };
-    }, [isResizing, handleMouseMove, handleMouseUp]);
-
-    // Sync theme with application's global theme
-    useEffect(() => {
-        const detectTheme = () => {
-            const isDark = document.documentElement.classList.contains('dark');
-            setIsDarkMode(isDark);
-        };
-
-        // Initial detection
-        detectTheme();
-
-        // Watch for theme changes
-        const observer = new MutationObserver(detectTheme);
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['class'],
-        });
-
-        return () => {
-            observer.disconnect();
-        };
-    }, []);
+    // Theme detection now handled by useIsDarkMode hook
 
     // Show error toast if errorMessage prop is provided
     useEffect(() => {

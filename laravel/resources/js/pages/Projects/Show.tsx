@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useInitials } from '@/hooks/use-initials';
-import { type User } from '@/types';
+import { type User, type Project, type Sections } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
 import { 
@@ -28,30 +28,7 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    non_functional_requirements: string;
-    technical_details: string;
-    erd: string | null;
-    c4: string | null;
-    status: string;
-    created_at: string;
-    updated_at: string;
-    prd_is_synced?: boolean;
-}
-
-interface Sections {
-    overview: string | null;
-    prd: string | null;
-    data_modeling: string | null;
-    wireframes: string | null;
-    technical_details: string | null;
-    user_stories: string | null;
-    non_functional_requirements: string | null;
-}
+// WHY: Using shared Project and Sections types from @/types instead of duplicate definitions
 
 interface FeatureItem {
     id: number;
@@ -302,7 +279,26 @@ export default function ProjectShow({
         return steps;
     };
 
-    const roadmapSteps = useMemo(() => getRoadmapSteps(), [sections, modules.length, project.c4, hasTechnicalIntake, isGeneratingModules]);
+    /**
+     * WHY: Fixed incomplete dependencies. Original deps were missing:
+     * - project.brief, project.prd_is_synced
+     * - sections.overview, sections.prd, sections.data_modeling
+     * Without these, roadmap wouldn't update when those values change.
+     */
+    const roadmapSteps = useMemo(
+        () => getRoadmapSteps(),
+        [
+            project.brief,
+            project.c4,
+            project.prd_is_synced,
+            sections.overview,
+            sections.prd,
+            sections.data_modeling,
+            modules.length,
+            hasTechnicalIntake,
+            isGeneratingModules,
+        ]
+    );
     const currentStep = roadmapSteps.find((step) => step.isCurrent);
     const completedStepsCount = roadmapSteps.filter((step) => step.isCompleted).length;
     const totalStepsCount = roadmapSteps.length;

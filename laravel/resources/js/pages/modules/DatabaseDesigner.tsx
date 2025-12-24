@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/sonner';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData, type User } from '@/types';
+import { useErdOperations } from '@/hooks/useErdOperations';
+import { type Project, type SharedData, type User } from '@/types';
+import type { ModuleItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant, Edge, Node } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, Loader2, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
@@ -23,26 +25,6 @@ import { useDBMLParser } from '@/hooks/useDBMLParser';
 import { nodesToDBML, nodesToMermaid } from '@/utils/dbmlConverter';
 import { exportAsSQL } from '@/utils/exportUtils';
 import { convertFormat, detectFormat } from '@/utils/formatConverters';
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    status: string;
-    c4?: string | null;
-}
-
-interface ModuleItem {
-    id: number;
-    name: string;
-    description: string;
-    metrics: string | null;
-    erd: string | null;
-    erd_is_synced?: boolean;
-    status: 'planned' | 'in_progress' | 'completed';
-    order_of_implementation: number;
-}
 
 interface Props {
     project: Project;
@@ -69,7 +51,6 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
     const [isSaving, setIsSaving] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
     const { nodes, edges, error, isLoading } = useDBMLParser(content);
@@ -95,6 +76,13 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
             }),
         [project],
     );
+
+    // WHY: Hook encapsulates ERD sync logic, reducing duplication with ModuleShow.tsx
+    // moduleId may be undefined during initial load, so we provide a fallback
+    const { isSyncing, syncErd } = useErdOperations({ 
+        projectId: project.id, 
+        moduleId: moduleId ?? module.id 
+    });
 
     // Sync editor content when server provides updated ERD after edits
     useEffect(() => {
@@ -132,61 +120,40 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialIsGenerating, moduleId]);
 
-    // Handle initial async generation
-    const triggerAsyncGeneration = async () => {
+    // WHY: Using Inertia router instead of manual fetch for proper CSRF handling
+    // and consistent error management across the app
+    const triggerAsyncGeneration = useCallback(() => {
         setIsGenerating(true);
         setGenerationError(null);
-        try {
-            const response = await fetch(`/projects/${project.id}/modules/${moduleId}/erd/generate-async`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        
+        router.post(
+            `/projects/${project.id}/modules/${moduleId}/erd/generate-async`,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    // Access the response data from the page props or flash
+                    const flash = (page.props as any).flash;
+                    if (flash?.erd) {
+                        setContent(flash.erd);
+                        setIsDirty(false);
+                        toast.success('ERD generated successfully!');
+                    } else if (flash?.error) {
+                        setGenerationError(flash.error);
+                        toast.error(flash.error);
+                    }
                 },
-                credentials: 'same-origin',
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-
-                if (data.success && data.erd) {
-                    // Update content immediately so the ERD viewer can render it
-                    // This prevents the race condition where isGenerating becomes false
-                    // before the content is available
-                    setContent(data.erd);
-                    setGenerationError(null);
-                    setIsGenerating(false);
-                    setIsDirty(false);
-                    toast.success('ERD generated successfully!');
-                    
-                    // Also do a soft reload to sync props with server state
-                    router.visit(`/projects/${project.id}/modules/${moduleId}/erd`, {
-                        preserveScroll: true,
-                        only: ['module', 'initialContent', 'project'],
-                    });
-                } else {
-                    const errorMessage = data.message || 'Failed to generate ERD';
+                onError: (errors) => {
+                    const errorMessage = Object.values(errors).flat().join(' ') || 'Failed to generate ERD. Please try again.';
                     setGenerationError(errorMessage);
-                    setIsGenerating(false);
                     toast.error(errorMessage);
-                }
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                const errorMessage = errorData.message || 'Failed to generate ERD. Please try again.';
-                setGenerationError(errorMessage);
-                setIsGenerating(false);
-                toast.error(errorMessage);
+                },
+                onFinish: () => {
+                    setIsGenerating(false);
+                },
             }
-        } catch (error) {
-            console.error('Error generating ERD:', error);
-            const errorMessage = 'An error occurred while generating the ERD.';
-            setGenerationError(errorMessage);
-            setIsGenerating(false);
-            toast.error(errorMessage);
-        }
-        // NOTE: Removed the finally block with setIsGenerating(false) because
-        // we now explicitly set it in each branch to avoid race conditions
-    };
+        );
+    }, [project.id, moduleId]);
 
     const toggleFullScreen = () => {
         const newFullScreenState = !isFullScreen;
@@ -541,25 +508,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                                 size="sm"
                                                 className="border-amber-500 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
                                                 disabled={isSyncing}
-                                                onClick={() => {
-                                                    setIsSyncing(true);
-                                                    router.post(
-                                                        `/projects/${project.id}/modules/${moduleId}/erd/sync`,
-                                                        {},
-                                                        {
-                                                            preserveScroll: true,
-                                                            onSuccess: () => {
-                                                                toast.success('Module ERD synced successfully from features!');
-                                                            },
-                                                            onError: () => {
-                                                                toast.error('Failed to sync ERD. Please try again.');
-                                                            },
-                                                            onFinish: () => {
-                                                                setIsSyncing(false);
-                                                            },
-                                                        },
-                                                    );
-                                                }}
+                                                onClick={() => syncErd()}
                                             >
                                                 {isSyncing ? (
                                                     <>

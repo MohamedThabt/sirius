@@ -16,6 +16,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import { useInitials } from "@/hooks/use-initials";
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { getRoleBadgeColor } from '@/utils/role-colors';
 import { type SharedData } from '@/types';
 
 interface Invitation {
@@ -49,22 +50,11 @@ export default function ProjectInvitations({ invitations }: Props) {
         { title: 'Invitations', href: '/projects/invitations' },
     ];
 
-    const getRoleBadgeColor = (role: string) => {
-        switch (role) {
-            case 'admin':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'developer':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            case 'viewer':
-                return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
-
     const handleApprove = (invitationId: number) => {
         router.post(`/invitations/${invitationId}/accept`);
     };
+
+    // getRoleBadgeColor now imported from '@/utils/role-colors' - removed ~12 lines of duplication
 
     const handleDeny = (invitationId: number) => {
         router.post(`/invitations/${invitationId}/decline`);

@@ -15,20 +15,14 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { SyncIndicator } from '@/components/SyncIndicator';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData, type User } from '@/types';
+import { type Project, type SharedData, type User } from '@/types';
+import type { ModuleItem } from '@/types/modules';
+import { getModuleStatusConfig } from '@/utils/statusHelpers';
 import { Head, router, usePage } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    CheckCircle2,
-    CircleIcon,
-    ClockIcon,
-    Layers,
-    Plus,
-    Trash2,
-    TrendingUp,
-} from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { ArrowLeft, CheckCircle2, CircleIcon, ClockIcon, Layers, Plus, Trash2, TrendingUp } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 
 // Progress bar component
 function ProgressBar({ value, className = '' }: { value: number; className?: string }) {
@@ -40,25 +34,6 @@ function ProgressBar({ value, className = '' }: { value: number; className?: str
             />
         </div>
     );
-}
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    status: string;
-    c4?: string | null;
-}
-
-interface ModuleItem {
-    id: number;
-    name: string;
-    description: string;
-    metrics: string | null;
-    erd_is_synced?: boolean;
-    status: 'planned' | 'in_progress' | 'completed';
-    order_of_implementation: number;
 }
 
 interface Props {
@@ -74,11 +49,6 @@ export default function ModulesIndex({ project, modules }: Props) {
     const [isCreateModuleModalOpen, setIsCreateModuleModalOpen] = useState(false);
     const [moduleToDelete, setModuleToDelete] = useState<ModuleItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-
-    const handleDeleteClick = (e: React.MouseEvent, module: ModuleItem) => {
-        e.stopPropagation();
-        setModuleToDelete(module);
-    };
 
     const handleConfirmDelete = () => {
         if (!moduleToDelete) return;
@@ -105,47 +75,31 @@ export default function ModulesIndex({ project, modules }: Props) {
                 project,
                 currentPage: 'modules',
             }),
-        [project.id],
+        [project],
     );
 
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'planned':
-                return <CircleIcon className="h-4 w-4" />;
-            case 'in_progress':
-                return <ClockIcon className="h-4 w-4" />;
-            case 'completed':
-                return <CheckCircle2 className="h-4 w-4" />;
-            default:
-                return <CircleIcon className="h-4 w-4" />;
-        }
-    };
+    // WHY: Memoize counts to avoid recalculating on every render.
+    // Previously, modules.filter() was called 9+ times in the JSX.
+    const moduleCounts = useMemo(() => ({
+        total: modules.length,
+        completed: modules.filter((m) => m.status === 'completed').length,
+        inProgress: modules.filter((m) => m.status === 'in_progress').length,
+        planned: modules.filter((m) => m.status === 'planned').length,
+    }), [modules]);
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'planned':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
+    const completionPercentage = useMemo(
+        () => moduleCounts.total > 0 
+            ? Math.round((moduleCounts.completed / moduleCounts.total) * 100) 
+            : 0,
+        [moduleCounts]
+    );
 
-    const formatStatus = (status: string) => {
-        switch (status) {
-            case 'in_progress':
-                return 'In Progress';
-            case 'planned':
-                return 'Planned';
-            case 'completed':
-                return 'Completed';
-            default:
-                return status;
-        }
-    };
+    // WHY: useCallback prevents recreating handler on each render.
+    // This handler is passed to child components (delete button).
+    const handleDeleteClick = useCallback((e: React.MouseEvent, module: ModuleItem) => {
+        e.stopPropagation();
+        setModuleToDelete(module);
+    }, []);
 
     return (
         <>
@@ -156,11 +110,8 @@ export default function ModulesIndex({ project, modules }: Props) {
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
-                        repository={null}
-                        completionPercentage={undefined}
-                        health={undefined}
                         isCollapsed={isSidebarCollapsed}
-                        user={auth.user as unknown as User}
+                        user={auth.user as User}
                     />
 
                     <main className="flex min-w-0 flex-1 flex-col">
@@ -237,7 +188,7 @@ export default function ModulesIndex({ project, modules }: Props) {
                                             </div>
                                             <div>
                                                 <p className="text-2xl font-bold text-foreground">
-                                                    {modules.filter((m) => m.status === 'completed').length}
+                                                    {moduleCounts.completed}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">Completed</p>
                                             </div>
@@ -252,7 +203,7 @@ export default function ModulesIndex({ project, modules }: Props) {
                                             </div>
                                             <div>
                                                 <p className="text-2xl font-bold text-foreground">
-                                                    {modules.filter((m) => m.status === 'in_progress').length}
+                                                    {moduleCounts.inProgress}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">In Progress</p>
                                             </div>
@@ -267,7 +218,7 @@ export default function ModulesIndex({ project, modules }: Props) {
                                             </div>
                                             <div>
                                                 <p className="text-2xl font-bold text-foreground">
-                                                    {modules.filter((m) => m.status === 'planned').length}
+                                                    {moduleCounts.planned}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">Planned</p>
                                             </div>
@@ -283,90 +234,90 @@ export default function ModulesIndex({ project, modules }: Props) {
                                             <h3 className="font-semibold text-foreground">Progress Overview</h3>
                                         </div>
                                         <span className="text-sm font-medium text-primary">
-                                            {modules.length > 0 
-                                                ? Math.round((modules.filter((m) => m.status === 'completed').length / modules.length) * 100)
-                                                : 0}% Complete
+                                            {completionPercentage}% Complete
                                         </span>
                                     </div>
                                     <ProgressBar 
-                                        value={modules.length > 0 
-                                            ? (modules.filter((m) => m.status === 'completed').length / modules.length) * 100 
-                                            : 0
-                                        } 
+                                        value={completionPercentage} 
                                         className="mb-3"
                                     />
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center gap-1.5">
                                                 <div className="h-2 w-2 rounded-full bg-green-500" />
-                                                <span>Completed ({modules.filter((m) => m.status === 'completed').length})</span>
+                                                <span>Completed ({moduleCounts.completed})</span>
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <div className="h-2 w-2 rounded-full bg-blue-500" />
-                                                <span>In Progress ({modules.filter((m) => m.status === 'in_progress').length})</span>
+                                                <span>In Progress ({moduleCounts.inProgress})</span>
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <div className="h-2 w-2 rounded-full bg-orange-500" />
-                                                <span>Planned ({modules.filter((m) => m.status === 'planned').length})</span>
+                                                <span>Planned ({moduleCounts.planned})</span>
                                             </div>
                                         </div>
-                                        <span>{modules.filter((m) => m.status === 'completed').length} of {modules.length} modules</span>
+                                        <span>{moduleCounts.completed} of {moduleCounts.total} modules</span>
                                     </div>
                                 </div>
 
                                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                    {modules.map((module) => (
-                                        <div
-                                            key={module.id}
-                                            className="relative"
-                                        >
-                                            {module.erd_is_synced === false && (
-                                                <div 
-                                                    className="absolute -top-2 -right-2 z-10 h-3 w-3 rounded-full bg-amber-500 ring-2 ring-background" 
-                                                    title="Feature data models updated - ERD may need syncing"
-                                                />
-                                            )}
+                                    {modules.map((module) => {
+                                        const statusConfig = getModuleStatusConfig(module.status);
+                                        const StatusIcon = statusConfig.icon;
+                                        
+                                        return (
                                             <div
-                                                className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md"
-                                                onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}`)}
+                                                key={module.id}
+                                                className="relative"
                                             >
-                                                <div className="mb-4 flex items-start justify-between gap-3">
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center gap-2">
-                                                            {getStatusIcon(module.status)}
-                                                            <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
-                                                                {module.name}
-                                                            </h3>
+                                                <SyncIndicator isSynced={module.erd_is_synced} className="z-10" />
+                                                <div
+                                                    className="group cursor-pointer rounded-lg border-2 border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                    onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}`)}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => e.key === 'Enter' && router.visit(`/projects/${project.id}/modules/${module.id}`)}
+                                                    aria-label={`View module ${module.name}`}
+                                                >
+                                                    <div className="mb-4 flex items-start justify-between gap-3">
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <StatusIcon className="h-4 w-4" />
+                                                                <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
+                                                                    {module.name}
+                                                                </h3>
+                                                            </div>
+                                                            {module.description && (
+                                                                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{module.description}</p>
+                                                            )}
                                                         </div>
-                                                        {module.description && (
-                                                            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{module.description}</p>
-                                                        )}
                                                     </div>
-                                                </div>
 
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <Badge className={`border text-xs font-medium ${getStatusColor(module.status)}`}>
-                                                            {getStatusIcon(module.status)}
-                                                            <span className="ml-1">{formatStatus(module.status)}</span>
-                                                        </Badge>
-                                                        <Badge variant="outline" className="text-xs">
-                                                            #{module.order_of_implementation}
-                                                        </Badge>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <Badge className={`border text-xs font-medium ${statusConfig.color}`}>
+                                                                <StatusIcon className="h-3 w-3" />
+                                                                <span className="ml-1">{statusConfig.label}</span>
+                                                            </Badge>
+                                                            <Badge variant="outline" className="text-xs">
+                                                                #{module.order_of_implementation}
+                                                            </Badge>
+                                                        </div>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                            onClick={(e) => handleDeleteClick(e, module)}
+                                                            disabled={isDeleting && moduleToDelete?.id === module.id}
+                                                            aria-label={`Delete module ${module.name}`}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
                                                     </div>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                                        onClick={(e) => handleDeleteClick(e, module)}
-                                                        disabled={isDeleting && moduleToDelete?.id === module.id}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

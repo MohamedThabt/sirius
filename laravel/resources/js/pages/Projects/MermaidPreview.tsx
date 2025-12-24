@@ -11,6 +11,8 @@ import {
     AlertCircleIcon,
     CheckCircleIcon,
     ChevronDownIcon,
+    CircleIcon,
+    ClockIcon,
     CodeIcon,
     CopyIcon,
     DatabaseIcon,
@@ -28,6 +30,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import mermaid from 'mermaid';
+import { convertEscapedMermaid } from '@/utils/mermaid';
+import { useThemeDetection } from '@/hooks/use-theme-detection';
 
 interface Project {
     id: number;
@@ -51,39 +55,7 @@ interface Props {
     sections?: Sections;
 }
 
-// Utility function to sanitize Mermaid node labels
-// Escapes parentheses inside square bracket labels to prevent parse errors
-const sanitizeMermaidLabels = (code: string): string => {
-    // Match content inside square brackets [...] and escape parentheses
-    // This handles node labels like A[Transaction Status (Refund/Void)]
-    return code.replace(/\[([^\]]*)\]/g, (match, content) => {
-        // Replace parentheses with HTML entities inside labels
-        const sanitized = content
-            .replace(/\(/g, '&#40;')
-            .replace(/\)/g, '&#41;');
-        return `[${sanitized}]`;
-    });
-};
-
-// Utility function to convert escaped Mermaid strings
-const convertEscapedMermaid = (escapedString: string): string => {
-    // Remove markdown code block markers
-    let cleaned = escapedString.replace(/```mermaid\s*/g, '').replace(/```\s*$/g, '');
-
-    // Convert escaped newlines to actual newlines
-    cleaned = cleaned.replace(/\\n/g, '\n');
-
-    // Clean up any remaining escape characters (except those needed for Mermaid)
-    cleaned = cleaned.replace(/\\(?![()\[\]])/g, '');
-
-    // Remove any leading/trailing whitespace
-    cleaned = cleaned.trim();
-
-    // Sanitize labels to escape problematic characters
-    cleaned = sanitizeMermaidLabels(cleaned);
-
-    return cleaned;
-};
+// convertEscapedMermaid now imported from '@/utils/mermaid'
 
 // Utility function to validate Mermaid syntax
 // const validateMermaidSyntax = (code: string): { isValid: boolean; error?: string } => {
@@ -136,8 +108,11 @@ export default function MermaidPreview({
     const [error, setError] = useState<string>('');
     const [showCode, setShowCode] = useState(false);
     const [zoom, setZoom] = useState(100);
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+    // WHY: Replaced ~20 lines of MutationObserver logic with shared hook
+    const theme = useThemeDetection();
+    const isDarkMode = theme === 'dark';
 
     const breadcrumbs = project
         ? [
@@ -276,30 +251,9 @@ export default function MermaidPreview({
           ]
         : [];
 
-    // Sync theme with application's global theme
-    useEffect(() => {
-        const detectTheme = () => {
-            const isDark = document.documentElement.classList.contains('dark');
-            setIsDarkMode(isDark);
-        };
-
-        // Initial detection
-        detectTheme();
-
-        // Watch for theme changes
-        const observer = new MutationObserver(detectTheme);
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['class'],
-        });
-
-        return () => {
-            observer.disconnect();
-        };
-    }, []);
+    // Theme detection now handled by useThemeDetection hook
 
     useEffect(() => {
-        const isDarkMode = document.documentElement.classList.contains('dark');
         mermaid.initialize({
             startOnLoad: false,
             theme: isDarkMode ? 'dark' : 'default',

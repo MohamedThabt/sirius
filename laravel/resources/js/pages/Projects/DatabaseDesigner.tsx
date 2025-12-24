@@ -18,36 +18,21 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useDBMLParser } from '@/hooks/useDBMLParser';
-import { type User } from '@/types';
+import { type User, type Project, type Sections } from '@/types';
 import { exportAsSQL } from '@/utils/exportUtils';
 import { convertFormat, detectFormat, DiagramFormat } from '@/utils/formatConverters';
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, CodeIcon, Database as DatabaseIcon, Download, FileCode, FileIcon, FileText, Grid3X3, Layers, Maximize2, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
+import { useIsDarkMode } from '@/hooks/use-theme-detection';
+import { useResizablePanel } from '@/hooks/use-resizable-panel';
 
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    non_functional_requirements: string;
-    technical_details: string;
-    status: string;
-    c4: string | null;
-    created_at: string;
-    updated_at: string;
-}
-
-interface Sections {
-    overview: string | null;
-    prd: string | null;
-    data_modeling: string | null;
-    non_functional_requirements: string | null;
-}
+// WHY: Removed ~25 lines of duplicate interface definitions.
+// Types now imported from '@/types'
 
 interface Props {
     project: Project;
@@ -69,13 +54,19 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
     const canvasRef = useRef<HTMLDivElement>(null);
     const { nodes, edges, error, isLoading } = useDBMLParser(content);
     const [layoutTrigger, setLayoutTrigger] = useState<{ algorithm: string; timestamp: number } | null>(null);
-    const [isDarkMode, setIsDarkMode] = useState(true);
     const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    const [leftWidth, setLeftWidth] = useState(50); // Left panel width in percentage
-    const [isResizing, setIsResizing] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const rafIdRef = useRef<number | null>(null);
+
+    // WHY: Replaced ~20 lines of MutationObserver logic with shared hook
+    const isDarkMode = useIsDarkMode();
+
+    // WHY: Replaced ~50 lines of resize logic with shared hook
+    const { width: leftWidth, isResizing, handleMouseDown, containerRef } = useResizablePanel({
+        initialWidth: 50,
+        minWidth: 20,
+        maxWidth: 80,
+    });
 
     const breadcrumbs = [
         { title: project.name, href: `/projects/${project.id}` },
@@ -99,27 +90,7 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
         [project],
     );
 
-    // Sync theme with application's global theme
-    useEffect(() => {
-        const detectTheme = () => {
-            const isDark = document.documentElement.classList.contains('dark');
-            setIsDarkMode(isDark);
-        };
-
-        // Initial detection
-        detectTheme();
-
-        // Watch for theme changes
-        const observer = new MutationObserver(detectTheme);
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['class'],
-        });
-
-        return () => {
-            observer.disconnect();
-        };
-    }, []);
+    // Theme detection now handled by useIsDarkMode hook
 
     // Sync editor content when initialContent changes
     useEffect(() => {
@@ -209,54 +180,7 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
         toast.success('Canvas background style changed.');
     };
 
-    // Handle resize of panels
-    const handleMouseDown = useCallback(() => {
-        setIsResizing(true);
-    }, []);
-
-    const handleMouseMove = useCallback((e: MouseEvent) => {
-        // Use requestAnimationFrame to throttle updates to 60fps
-        if (rafIdRef.current) {
-            cancelAnimationFrame(rafIdRef.current);
-        }
-
-        rafIdRef.current = requestAnimationFrame(() => {
-            const container = document.getElementById('resizable-container');
-            if (!container) return;
-
-            const containerRect = container.getBoundingClientRect();
-            const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-
-            // Limit width between 20% and 80%
-            if (newWidth >= 20 && newWidth <= 80) {
-                setLeftWidth(newWidth);
-            }
-        });
-    }, []);
-
-    const handleMouseUp = useCallback(() => {
-        setIsResizing(false);
-        if (rafIdRef.current) {
-            cancelAnimationFrame(rafIdRef.current);
-            rafIdRef.current = null;
-        }
-    }, []);
-
-    // Add event listeners for resize
-    useEffect(() => {
-        if (isResizing) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-        }
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-            if (rafIdRef.current) {
-                cancelAnimationFrame(rafIdRef.current);
-            }
-        };
-    }, [isResizing, handleMouseMove, handleMouseUp]);
+    // Resize logic now handled by useResizablePanel hook
 
     return (
         <>
@@ -430,7 +354,7 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
                                                 className={`flex min-h-0 min-w-0 flex-col transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0' : 'opacity-100'}`}
                                                 style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
                                             >
-                                                <FormatSelector content={content} onConvert={handleConvert} isConverting={isConverting} />
+                                                <FormatSelector content={content} />
 
                                                 {/* Informational Note */}
                                                 <div className="mx-4 mb-4 rounded border p-4">

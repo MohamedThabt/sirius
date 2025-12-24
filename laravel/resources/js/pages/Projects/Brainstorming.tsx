@@ -8,8 +8,9 @@ import { Excalidraw, exportToBlob, serializeAsJSON } from '@excalidraw/excalidra
 import '@excalidraw/excalidraw/index.css';
 import { Head, router, usePage } from '@inertiajs/react';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Toaster } from '@/components/ui/sonner';
+import { useThemeDetection } from '@/hooks/use-theme-detection';
 
 interface Project {
     id: number;
@@ -41,11 +42,13 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [elements, setElements] = useState<any[] | null>(null);
     const [appState, setAppState] = useState<any | null>(null);
     const [files, setFiles] = useState<Record<string, any> | null>(null);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+    // WHY: Replaced ~23 lines of MutationObserver logic with shared hook
+    const theme = useThemeDetection();
 
     const breadcrumbs = [
         { title: project.name, href: `/projects/${project.id}` },
@@ -72,30 +75,7 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
         [project],
     );
 
-    // Detect system theme and listen for changes
-    useEffect(() => {
-        const detectTheme = () => {
-            // MODIFICATION: Rely ONLY on the 'dark' class on the <html> element.
-            // This ignores the OS-level setting and syncs with your site's theme toggle.
-            const isDark = document.documentElement.classList.contains('dark');
-            setTheme(isDark ? 'dark' : 'light');
-        };
-
-        // Initial detection
-        detectTheme();
-
-        // This observer correctly watches for when the theme toggle adds/removes the 'dark' class.
-        const observer = new MutationObserver(detectTheme);
-
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['class'],
-        });
-
-        return () => {
-            observer.disconnect();
-        };
-    }, []); // We no longer need the media query listener.
+    // Theme detection now handled by useThemeDetection hook
 
     const handleChange = useCallback((els: readonly any[], app: any, f: Record<string, any>) => {
         setHasUnsavedChanges(true);

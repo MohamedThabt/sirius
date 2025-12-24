@@ -1,4 +1,5 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ChatInput } from '@/components/Chat/ChatInput';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
@@ -9,47 +10,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
 import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
-import { type User } from '@/types';
+import { type User, type Project, type Sections, type PRDVersion, type ChatMessage } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Toaster } from '@/components/ui/sonner';
 import { Head, router, usePage } from '@inertiajs/react';
-import { CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, Maximize2, Minimize2, PencilIcon, SaveIcon, SendIcon } from 'lucide-react';
+import { CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, Maximize2, Minimize2, PencilIcon, SaveIcon } from 'lucide-react';
 import mermaid from 'mermaid';
 import { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { MermaidDiagram } from '@/components/MermaidDiagram';
 
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    non_functional_requirements: string;
-    technical_details: string;
-    status: string;
-    c4: string | null;
-    created_at: string;
-    updated_at: string;
-}
-
-interface Sections {
-    overview: string | null;
-    prd: string | null;
-    data_modeling: string | null;
-    non_functional_requirements: string | null;
-}
-
-interface PRDVersion {
-    id: number;
-    project_id: number;
-    prd_content: string;
-    version_number: number;
-    is_base_version: boolean;
-    user_prompt: string | null;
-    created_at: string;
-    updated_at: string;
-}
+// WHY: Removed ~95 lines of duplicate interface and ChatInput definitions.
+// Types now imported from '@/types', ChatInput from '@/components/Chat/ChatInput'
 
 interface Props {
     project?: Project;
@@ -59,169 +33,7 @@ interface Props {
     sections?: Sections;
 }
 
-interface ChatMessage {
-    id: string;
-    type: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-    versionId?: number;
-}
-
-interface ChatInputProps {
-    onSubmit: (prompt: string) => void;
-    isGenerating: boolean;
-}
-
-const ChatInput = ({ onSubmit, isGenerating }: ChatInputProps) => {
-    const [promptInput, setPromptInput] = useState('');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!promptInput.trim() || isGenerating) return;
-        onSubmit(promptInput.trim());
-        setPromptInput('');
-    };
-
-    return (
-        <div className="border-t border-slate-200/60 p-4 dark:border-slate-700/60">
-            <form onSubmit={handleSubmit} className="relative">
-                <div className="relative">
-                    <Textarea
-                        value={promptInput}
-                        onChange={(e) => setPromptInput(e.target.value)}
-                        placeholder="Ask me to improve or modify the PRD..."
-                        className="min-h-[60px] resize-none border-slate-200 pr-12 text-sm focus:border-blue-300 dark:border-slate-700 dark:focus:border-blue-600"
-                        disabled={isGenerating}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                if (promptInput.trim() && !isGenerating) {
-                                    handleSubmit(e);
-                                }
-                            }
-                        }}
-                    />
-                    <Button
-                        type="submit"
-                        size="sm"
-                        className="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-blue-500 p-0 hover:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-600"
-                        disabled={!promptInput.trim() || isGenerating}
-                    >
-                        {isGenerating ? <TextShimmer className="text-xs text-white">Sending</TextShimmer> : <SendIcon className="h-4 w-4 text-white" />}
-                    </Button>
-                </div>
-            </form>
-        </div>
-    );
-};
-
-// Utility function to convert escaped Mermaid strings
-const convertEscapedMermaid = (escapedString: string): string => {
-    // Remove markdown code block markers
-    let cleaned = escapedString.replace(/```mermaid\s*/g, '').replace(/```\s*$/g, '');
-
-    // Convert escaped newlines to actual newlines
-    cleaned = cleaned.replace(/\\n/g, '\n');
-
-    // Remove backslashes not related to newlines
-    cleaned = cleaned.replace(/\\(?!n)/g, '');
-
-    // Remove empty lines and excessive whitespace
-    cleaned = cleaned
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-        .join('\n');
-
-    // Handle double square brackets
-    cleaned = cleaned.replace(/(\w+)\s*\[\[([^\]]*)\]\]/g, (match, nodeId, content) => {
-        const fixedContent = content
-            .replace(/[()[\]{}"';]/g, '') // Remove problematic symbols
-            .replace(/\s+/g, ' ')
-            .trim();
-        return `${nodeId}[${fixedContent || 'Unnamed'}]`;
-    });
-
-    // Handle single square brackets
-    cleaned = cleaned.replace(/\[([^\]]*)\]/g, (match, content) => {
-        const fixedContent = content
-            .replace(/[()[\]{}"';]/g, '') // Remove problematic symbols
-            .replace(/\s+/g, ' ')
-            .trim();
-        return `[${fixedContent || 'Unnamed'}]`;
-    });
-
-    // Handle node labels in round brackets
-    cleaned = cleaned.replace(/\((\s*[^()]+?\s*)\)/g, (match, content) => {
-        const fixedContent = content
-            .replace(/[()[\]{}"';]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        return `(${fixedContent || 'Unnamed'})`;
-    });
-
-    // Collect defined nodes
-    const lines = cleaned.split('\n');
-    const newLines: string[] = [];
-    const seenNodes = new Set<string>();
-    const subgraphs = new Set<string>();
-
-    // First pass: Collect defined nodes and subgraphs
-    for (const line of lines) {
-        const nodeMatch = line.match(/^(\w+)\[.*?\]/);
-        if (nodeMatch) {
-            seenNodes.add(nodeMatch[1]);
-        }
-        const subgraphMatch = line.match(/^subgraph\s+("[^"]+"|[^\s[{]+)/);
-        if (subgraphMatch) {
-            const subgraphName = subgraphMatch[1].replace(/"/g, '').trim();
-            subgraphs.add(subgraphName);
-        }
-    }
-
-    // Second pass: Process relationships and handle edge labels
-    for (let line of lines) {
-        // Handle relationships with edge labels (e.g., A -- Label with spaces --> B)
-        const edgeLabelMatch = line.match(/(\w+)\s*--\s*([^|>~\-*\s][^|>~\-*\n]*?)\s*-->\s*(\w+)/);
-        if (edgeLabelMatch) {
-            const [, source, label, target] = edgeLabelMatch;
-            // Wrap label in quotes and replace underscores with spaces
-            const fixedLabel = `"${label.replace(/_/g, ' ').trim()}"`;
-            line = `${source} -- ${fixedLabel} --> ${target}`;
-        }
-
-        // Handle invalid relationships like --> [B, C, E, G]
-        const invalidRelationMatch = line.match(/(\w+)\s*-->\s*\[\s*([\w\s,]+)\s*\]/);
-        if (invalidRelationMatch) {
-            const sourceNode = invalidRelationMatch[1];
-            const targetNodes = invalidRelationMatch[2]
-                .split(',')
-                .map((node) => node.trim())
-                .filter((node) => node.length > 0);
-            targetNodes.forEach((target) => {
-                newLines.push(`${sourceNode} --> ${target}`);
-            });
-            continue;
-        }
-
-        newLines.push(line);
-    }
-
-    cleaned = newLines.join('\n');
-
-    // Ensure valid subgraph closure
-    cleaned = cleaned.replace(/subgraph\s+([^\s[{]+)\s*\[\s*([^\]]*?)\s*\]/g, 'subgraph $1 [$2]');
-
-    // Replace underscores with spaces in subgraph names
-    cleaned = cleaned.replace(/subgraph\s+([^\s[{]+)/g, (match, name) => {
-        return `subgraph ${name.replace(/_/g, ' ')}`;
-    });
-
-    // Remove trailing whitespace
-    cleaned = cleaned.trim();
-
-    return cleaned;
-};
+// convertEscapedMermaid now imported via MermaidDiagram component from '@/components/MermaidDiagram'
 
 // Simple Loader Component using TextShimmer
 const SimpleLoader = ({ text = 'Generating' }: { text?: string }) => {
@@ -354,207 +166,8 @@ export default function PRD({
         }
     }, [initialPRDVersions, project, isInitialGeneration]);
 
-    // Custom component for Mermaid diagrams
-    const MermaidDiagram = ({ children }: { children: string }) => {
-        const [svg, setSvg] = useState<string>('');
-        const [error, setError] = useState<string>('');
-        const [showCode, setShowCode] = useState(false);
-        const [isModalOpen, setIsModalOpen] = useState(false);
-        const [copied, setCopied] = useState(false);
-
-        useEffect(() => {
-            const renderDiagram = async () => {
-                try {
-                    setError('');
-                    const cleanChildren = convertEscapedMermaid(children);
-
-                    // Debug: log the cleaned code
-                    console.log('Cleaned Mermaid code:', cleanChildren);
-
-                    // Show warning if content was modified
-                    if (children !== cleanChildren) {
-                        console.warn('Mermaid code was automatically cleaned to fix syntax issues');
-                    }
-
-                    // Validate syntax before rendering
-                    // const validation = validateMermaidSyntax(cleanChildren);
-                    // if (!validation.isValid) {
-                    //     setError(validation.error || 'Invalid Mermaid syntax');
-                    //     return;
-                    // }
-
-                    const { svg: renderedSvg } = await mermaid.render(`mermaid-${Date.now()}`, cleanChildren);
-                    setSvg(renderedSvg);
-                } catch (err) {
-                    console.error('Mermaid rendering error:', err);
-                    setError(err instanceof Error ? err.message : 'Failed to render diagram');
-                }
-            };
-
-            if (children.trim()) {
-                renderDiagram();
-            }
-        }, [children]);
-
-        const copyCode = async () => {
-            try {
-                const cleanCode = convertEscapedMermaid(children);
-                await navigator.clipboard.writeText(cleanCode);
-                setCopied(true);
-                window.setTimeout(() => setCopied(false), 1500);
-            } catch (err) {
-                console.error('Failed to copy code:', err);
-            }
-        };
-
-        const openPreviewInNewTab = () => {
-            // Create a form to submit the Mermaid content to the preview route
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/projects/${project?.id}/prd/preview-mermaid`;
-            form.target = '_blank';
-
-            // Add CSRF token
-            const csrfToken =
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                document.querySelector('meta[name="_token"]')?.getAttribute('content');
-
-            if (csrfToken) {
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = '_token';
-                csrfInput.value = csrfToken;
-                form.appendChild(csrfInput);
-            }
-
-            // Add content
-            const contentInput = document.createElement('input');
-            contentInput.type = 'hidden';
-            contentInput.name = 'content';
-            contentInput.value = children;
-            form.appendChild(contentInput);
-
-            // Add title
-            const titleInput = document.createElement('input');
-            titleInput.type = 'hidden';
-            titleInput.name = 'title';
-            titleInput.value = 'PRD Mermaid Diagram';
-            form.appendChild(titleInput);
-
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-        };
-
-        if (error) {
-            return (
-                <div className="my-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-                    <div className="mb-2">
-                        <p className="text-sm font-medium text-red-600 dark:text-red-400">
-                            <strong>Mermaid Diagram Error</strong>
-                        </p>
-                        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-                    </div>
-                    <details className="mt-2">
-                        <summary className="cursor-pointer text-xs text-red-500 hover:underline dark:text-red-400">Show debugging info</summary>
-                        <div className="mt-2 space-y-2">
-                            <div>
-                                <p className="text-xs font-medium text-red-600 dark:text-red-400">Raw code:</p>
-                                <pre className="overflow-x-auto rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                                    {children}
-                                </pre>
-                            </div>
-                            <div>
-                                <p className="text-xs font-medium text-red-600 dark:text-red-400">Cleaned code:</p>
-                                <pre className="overflow-x-auto rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                                    {convertEscapedMermaid(children)}
-                                </pre>
-                                {children !== convertEscapedMermaid(children) && (
-                                    <p className="mt-1 text-xs text-yellow-600 dark:text-yellow-400">
-                                        ⚠️ Code was automatically cleaned to fix syntax issues
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </details>
-                </div>
-            );
-        }
-
-        if (!svg) {
-            return (
-                <div className="my-4 flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-8 dark:border-slate-700 dark:bg-slate-800">
-                    <TextShimmer className="text-sm text-slate-500 dark:text-slate-400">Rendering diagram...</TextShimmer>
-                </div>
-            );
-        }
-
-        return (
-            <div className="my-4">
-                <div className="mb-3 flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => setShowCode(!showCode)} className="h-8 text-xs">
-                            <CodeIcon className="mr-1 h-3 w-3" />
-                            {showCode ? 'Show Diagram' : 'Show Code'}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={copyCode} className="h-8 text-xs" aria-live="polite">
-                            {copied ? (
-                                <>
-                                    <CheckIcon className="mr-1 h-3 w-3 text-emerald-600" />
-                                    Copied
-                                </>
-                            ) : (
-                                <>
-                                    <CopyIcon className="mr-1 h-3 w-3" />
-                                    Copy Code
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm" onClick={openPreviewInNewTab} className="h-8 text-xs">
-                            <EyeIcon className="mr-1 h-3 w-3" />
-                            Preview in New Tab
-                        </Button>
-                        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                    <EyeIcon className="mr-1 h-3 w-3" />
-                                    Quick Preview
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-full md:max-w-4xl lg:max-w-6xl">
-                                <DialogHeader>
-                                    <DialogTitle>Mermaid Diagram Preview</DialogTitle>
-                                </DialogHeader>
-                                <div className="mt-4 flex justify-center">
-                                    <div
-                                        className="max-h-[70vh] overflow-auto rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
-                                        dangerouslySetInnerHTML={{ __html: svg }}
-                                    />
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                </div>
-
-                {showCode ? (
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-                        <pre className="text-sm text-slate-700 dark:text-slate-300">
-                            <code>{convertEscapedMermaid(children)}</code>
-                        </pre>
-                    </div>
-                ) : (
-                    <div className="flex justify-center">
-                        <div
-                            className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
-                            dangerouslySetInnerHTML={{ __html: svg }}
-                        />
-                    </div>
-                )}
-            </div>
-        );
-    };
+    // MermaidDiagram is now imported from '@/components/MermaidDiagram'
+    // Removed ~200 lines of inline component definition
 
     // Handle initial async generation
     const triggerAsyncGeneration = async () => {
@@ -978,11 +591,14 @@ export default function PRD({
                                                         remarkPlugins={[remarkGfm]}
                                                         rehypePlugins={[rehypeRaw]}
                                                         components={{
-                                                            code({ node, inline, className, children, ...props }) {
+                                                            // WHY: 'inline' prop removed - deprecated in react-markdown v9
+                                                            // Detect inline via: no className = inline code
+                                                            code: ({ className, children, ...props }) => {
                                                                 const match = /language-(\w+)/.exec(className || '');
                                                                 const isMermaid = match && match[1] === 'mermaid';
+                                                                const isInline = !className;
 
-                                                                if (isMermaid && !inline) {
+                                                                if (isMermaid && !isInline) {
                                                                     return <MermaidDiagram>{String(children).replace(/\n$/, '')}</MermaidDiagram>;
                                                                 }
 

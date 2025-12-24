@@ -9,27 +9,22 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { LoadingOverlay } from '@/components/LoadingOverlay';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Check, Plus, RefreshCw, Layers } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type User } from '@/types';
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    prd: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-}
+import { type Project, type User } from '@/types';
+import type { ModuleSuggestion } from '@/types/modules';
 
 interface Repository {
     id: number;
@@ -45,15 +40,9 @@ interface Repository {
     visibility: string;
 }
 
-interface Module {
-    name: string;
-    description: string;
-    metrics?: string;
-}
-
 interface Props {
     project: Project;
-    generatedModules?: Module[];
+    generatedModules?: ModuleSuggestion[];
     fromCache?: boolean;
     repository?: Repository | null;
 }
@@ -62,7 +51,7 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
 
-    const [selectedModules, setSelectedModules] = useState<Module[]>([]);
+    const [selectedModules, setSelectedModules] = useState<ModuleSuggestion[]>([]);
     const [customModuleName, setCustomModuleName] = useState('');
     const [customModuleDescription, setCustomModuleDescription] = useState('');
     const [customModuleMetrics, setCustomModuleMetrics] = useState('');
@@ -87,7 +76,8 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
         [project],
     );
 
-    const toggleModule = (module: Module) => {
+    // WHY: useCallback prevents recreating handler on each render
+    const toggleModule = useCallback((module: ModuleSuggestion) => {
         setSelectedModules((prev) => {
             const isSelected = prev.some((m) => m.name === module.name);
             if (isSelected) {
@@ -96,15 +86,15 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                 return [...prev, module];
             }
         });
-    };
+    }, []);
 
-    const addCustomModule = () => {
+    const addCustomModule = useCallback(() => {
         if (!customModuleName.trim() || !customModuleDescription.trim()) {
             toast.error('Please provide both name and description for the custom module');
             return;
         }
 
-        const customModule: Module = {
+        const customModule: ModuleSuggestion = {
             name: customModuleName.trim(),
             description: customModuleDescription.trim(),
             metrics: customModuleMetrics.trim() || undefined,
@@ -115,18 +105,19 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
         setCustomModuleDescription('');
         setCustomModuleMetrics('');
         toast.success('Custom module added successfully!');
-    };
+    }, [customModuleName, customModuleDescription, customModuleMetrics]);
 
-    const removeModule = (moduleName: string) => {
+    // WHY: useCallback prevents recreating these handlers on each render
+    const removeModule = useCallback((moduleName: string) => {
         setSelectedModules((prev) => prev.filter((m) => m.name !== moduleName));
-    };
+    }, []);
 
-    const openRegenerateModal = () => {
+    const openRegenerateModal = useCallback(() => {
         setRegenerateNotes('');
         setIsRegenerateModalOpen(true);
-    };
+    }, []);
 
-    const handleRegenerate = () => {
+    const handleRegenerate = useCallback(() => {
         if (!regenerateNotes.trim() || regenerateNotes.trim().length < 10) {
             toast.error('Please provide more detailed feedback (at least 10 characters)');
             return;
@@ -157,9 +148,9 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                 },
             }
         );
-    };
+    }, [regenerateNotes, project.id, generatedModules]);
 
-    const handleSubmit = () => {
+    const handleSubmit = useCallback(() => {
         if (selectedModules.length === 0) {
             toast.error('Please select at least one module');
             return;
@@ -187,7 +178,7 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                 },
             }
         );
-    };
+    }, [selectedModules, project.id]);
 
     return (
         <>
@@ -270,7 +261,7 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                                                     onClick={() => toggleModule(module)}
                                                 >
                                                     <div className="flex items-start gap-3">
-                                                        <Checkbox checked={isSelected} onChange={() => toggleModule(module)} className="mt-1" />
+                                                <Checkbox checked={isSelected} onCheckedChange={() => toggleModule(module)} className="mt-1" />
                                                         <div className="flex-1">
                                                             <h3 className="mb-1 font-semibold text-foreground">{module.name}</h3>
                                                             <p className="text-sm text-muted-foreground mb-2">{module.description}</p>
@@ -299,36 +290,36 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                                             <CardDescription>Don't see what you need? Add your own custom module</CardDescription>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            <div>
-                                                <label className="mb-2 block text-sm font-medium">Module Name</label>
-                                                <input
+                                            <div className="space-y-2">
+                                                <Label htmlFor="custom-module-name">Module Name</Label>
+                                                <Input
+                                                    id="custom-module-name"
                                                     type="text"
                                                     value={customModuleName}
                                                     onChange={(e) => setCustomModuleName(e.target.value)}
                                                     placeholder="e.g., Payment Processing"
-                                                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
                                                 />
                                             </div>
-                                            <div>
-                                                <label className="mb-2 block text-sm font-medium">Strategic Definition</label>
-                                                <textarea
+                                            <div className="space-y-2">
+                                                <Label htmlFor="custom-module-desc">Strategic Definition</Label>
+                                                <Textarea
+                                                    id="custom-module-desc"
                                                     value={customModuleDescription}
                                                     onChange={(e) => setCustomModuleDescription(e.target.value)}
                                                     placeholder="Describe the module's purpose and strategic value..."
                                                     rows={3}
-                                                    className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="mb-2 block text-sm font-medium">Business KPIs (Optional)</label>
-                                            <textarea
-                                                value={customModuleMetrics}
-                                                onChange={(e) => setCustomModuleMetrics(e.target.value)}
-                                                placeholder="Define measurable success metrics..."
-                                                rows={2}
-                                                className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
-                                            />
-                                        </div>
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="custom-module-kpi">Business KPIs (Optional)</Label>
+                                                <Textarea
+                                                    id="custom-module-kpi"
+                                                    value={customModuleMetrics}
+                                                    onChange={(e) => setCustomModuleMetrics(e.target.value)}
+                                                    placeholder="Define measurable success metrics..."
+                                                    rows={2}
+                                                />
+                                            </div>
                                         <Button
                                             onClick={addCustomModule}
                                             disabled={!customModuleName.trim() || !customModuleDescription.trim()}
@@ -402,45 +393,18 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                         </div>
                     </div>
 
-                    {/* Loading Overlay */}
-                    {isSubmitting && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                            <div className="flex flex-col items-center space-y-4 rounded-lg border bg-card p-8 shadow-lg">
-                                <div className="relative">
-                                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="h-6 w-6 animate-pulse rounded-full bg-primary/20"></div>
-                                    </div>
-                                </div>
-                                <div className="text-center space-y-2">
-                                    <TextShimmer className="text-lg font-semibold">Creating Modules</TextShimmer>
-                                    <p className="text-sm text-muted-foreground">
-                                        Processing {selectedModules.length} module{selectedModules.length !== 1 ? 's' : ''}...
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Regenerating Overlay */}
-                    {isRegenerating && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                            <div className="flex flex-col items-center space-y-4 rounded-lg border bg-card p-8 shadow-lg">
-                                <div className="relative">
-                                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-                                    </div>
-                                </div>
-                                <div className="text-center space-y-2">
-                                    <TextShimmer className="text-lg font-semibold">Regenerating Modules</TextShimmer>
-                                    <p className="text-sm text-muted-foreground">
-                                        AI is analyzing your feedback...
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* Loading Overlays - WHY: Using extracted component reduces duplication */}
+                    <LoadingOverlay
+                        isVisible={isSubmitting}
+                        title="Creating Modules"
+                        subtitle={`Processing ${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''}...`}
+                    />
+                    <LoadingOverlay
+                        isVisible={isRegenerating}
+                        title="Regenerating Modules"
+                        subtitle="AI is analyzing your feedback..."
+                        showRefreshIcon
+                    />
                 </main>
             </div>
             </div>
