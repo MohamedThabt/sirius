@@ -1,5 +1,5 @@
 import logging
-from ..models.usage import UsageMetrics
+from models.usage import UsageMetrics
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 load_dotenv()
@@ -11,12 +11,14 @@ client = AsyncOpenAI(
 
 logger = logging.getLogger(__name__)
 
-async def proxy(prompt: str , model: str) -> tuple[str, UsageMetrics]:
+async def proxy(prompt: str, model: str = "gem2.5f") -> tuple[str, UsageMetrics]:
     """
     Call Gemini API via LiteLLM proxy and track token usage.
+    model: The model name to use (defaults to gem2.5f)
     
     Args:
         prompt: The input prompt
+        model: The model name to use (defaults to gem2.5f)
         
     Returns:
         Tuple of (response_text, usage_metrics)
@@ -31,7 +33,7 @@ async def proxy(prompt: str , model: str) -> tuple[str, UsageMetrics]:
 
     try:
         response = await client.chat.completions.create(
-            model="cerebras",
+            model=model,
             messages=messages,
             temperature=0.7,
             top_p=0.8

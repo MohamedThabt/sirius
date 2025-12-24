@@ -1,6 +1,6 @@
 """Flow Diagram Controller - Business logic for flow diagram generation"""
 from fastapi import HTTPException
-from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.features import FeatureList
 from models.usage import UsageMetrics
 from utils.prompt_loader import load_prompt
@@ -22,7 +22,7 @@ async def generate_flow(request: FeatureList) -> tuple[str, UsageMetrics]:
 
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         clean = raw_response.replace("\\n", "\n").replace("//n", "\n")
 
     except HTTPException as e:

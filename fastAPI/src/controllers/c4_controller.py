@@ -1,6 +1,6 @@
 """C4 Controller - Business logic for C4 model generation"""
 from fastapi import HTTPException
-from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.C4 import C4Request, EditC4Request
 from models.usage import UsageMetrics
 from utils.json_utils import extract_json_from_response
@@ -90,7 +90,7 @@ async def generate_c4(request: C4Request) -> tuple[str, UsageMetrics]:
                 prompt = template.substitute(**base_context)
             
             # Call Gemini API
-            raw_response, usage = await ask_gemini(prompt)
+            raw_response, usage = await proxy(prompt)
             
             # Accumulate token usage
             accumulated_usage.input_tokens += usage.input_tokens
@@ -211,7 +211,7 @@ async def edit_c4(request: EditC4Request) -> tuple[str, UsageMetrics]:
                 prompt = template.substitute(**base_context)
             
             # Call Gemini API
-            raw_response, usage = await ask_gemini(prompt)
+            raw_response, usage = await proxy(prompt)
             
             # Accumulate token usage
             accumulated_usage.input_tokens += usage.input_tokens

@@ -1,7 +1,7 @@
 """Modules Controller - Business logic for DDD System Modules generation (Stage S2)"""
 from typing import Optional, Dict, Any
 from fastapi import HTTPException
-from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.modules import (
     ModuleGenerationRequest, 
     ModuleList, 
@@ -42,7 +42,7 @@ async def generate_suggestion_modules(request: ModuleGenerationRequest) -> tuple
     
     try:
         logger.info("Calling Gemini API...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
 
         logger.info("Extracting JSON from response...")
         json_str = extract_json_from_response(raw_response)
@@ -114,7 +114,7 @@ async def regenerate_suggestion_modules(request: ModuleRegenerationRequest) -> t
     
     try:
         logger.info("Calling Gemini API for regeneration...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
 
         logger.info("Extracting JSON from response...")
         json_str = extract_json_from_response(raw_response)
@@ -207,7 +207,7 @@ async def generate_module_details(request: ModuleDetailsRequest) -> tuple[Module
     
     try:
         logger.info("Calling Gemini API for module details generation...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
 
         logger.info("Extracting JSON from response...")
         json_str = extract_json_from_response(raw_response)
@@ -290,7 +290,7 @@ async def generate_single_module(request: SingleModuleRequest) -> tuple[SingleMo
     
     try:
         logger.info("Calling Gemini API for single module generation...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
 
         logger.info("Extracting JSON from response...")
         json_str = extract_json_from_response(raw_response)

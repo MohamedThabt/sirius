@@ -1,6 +1,6 @@
 """Sequence Controller - Business logic for sequence diagram generation"""
 from fastapi import HTTPException
-from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.Sequence import SequenceRequest, EditSequenceRequest
 from models.usage import UsageMetrics
 from utils.mermaid_utils import extract_mermaid_from_response
@@ -49,7 +49,7 @@ async def generate_feature_sequence(request: SequenceRequest) -> tuple[str, Usag
             else:
                 prompt = template.substitute(**base_context)
             
-            raw_response, usage = await ask_gemini(prompt)
+            raw_response, usage = await proxy(prompt)
             
             # Accumulate token usage
             accumulated_usage.input_tokens += usage.input_tokens
@@ -137,7 +137,7 @@ async def edit_feature_sequence(request: EditSequenceRequest) -> tuple[str, Usag
             else:
                 prompt = template.substitute(**base_context)
             
-            raw_response, usage = await ask_gemini(prompt)
+            raw_response, usage = await proxy(prompt)
             
             # Accumulate token usage
             accumulated_usage.input_tokens += usage.input_tokens

@@ -1,6 +1,6 @@
 """Features Controller - Business logic for feature generation and management"""
 from fastapi import HTTPException
-from controllers.gemini import ask_gemini
+from controllers.llm_proxy import proxy
 from models.overview import RequirementsRequest
 from models.features import FeatureList, FeatureDetailsRequest, FeatureDetailsResponse, SingleFeatureRequest, SingleFeatureResponse, FeatureGenerationRequest, FeatureSuggestionList, FeatureRegenerationRequest, RegeneratedFeatureList
 from models.prd import SystemPRD
@@ -67,7 +67,7 @@ async def generate_suggestion_features_for_module(request: FeatureGenerationRequ
     
     try:
         logger.info("Calling Gemini API for feature suggestions...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         logger.info(f"Gemini API response received (length: {len(raw_response)} characters)")
 
         logger.info("Extracting JSON from response...")
@@ -155,7 +155,7 @@ async def regenerate_suggestion_features(request: FeatureRegenerationRequest) ->
     
     try:
         logger.info("Calling Gemini API for feature regeneration...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         logger.info(f"Gemini API response received (length: {len(raw_response)} characters)")
 
         logger.info("Extracting JSON from response...")
@@ -241,7 +241,7 @@ async def generate_feature_details(request: FeatureDetailsRequest) -> tuple[Feat
     
     try:
         logger.info("Calling Gemini API for feature details...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         logger.info(f"Gemini API response received (length: {len(raw_response)} characters)")
 
         logger.info("Extracting JSON from response...")
@@ -332,7 +332,7 @@ async def generate_single_feature(request: SingleFeatureRequest) -> tuple[Single
     
     try:
         logger.info("Calling Gemini API for single feature generation...")
-        raw_response, usage = await ask_gemini(prompt)
+        raw_response, usage = await proxy(prompt)
         logger.info(f"Gemini API response received (length: {len(raw_response)} characters)")
 
         logger.info("Extracting JSON from response...")
