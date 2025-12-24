@@ -173,3 +173,58 @@ export interface TeamMember {
     website?: string;
     gender?: 'male' | 'female';
 }
+
+// ============================================
+// Usage & Credits types (shared from settings/usage)
+// ============================================
+
+/**
+ * User's credit balance and subscription cycle info.
+ */
+export interface Credits {
+    total: number;
+    remaining: number;
+    used: number;
+    percentage_used: number;
+    days_until_reset: number;
+}
+
+/**
+ * User's subscription plan details.
+ */
+export interface UsagePlan {
+    name: string;
+    monthly_price: number;
+}
+
+/**
+ * Daily usage data point for charts.
+ */
+export interface GraphData {
+    date: string;
+    credits: number;
+}
+
+/**
+ * Individual usage log entry.
+ */
+export interface UsageLog {
+    id: number;
+    action_type: string;
+    model: string | null;
+    credits_used: number;
+    cost: number | null;
+    created_at: string;
+}
+
+/**
+ * Generic paginated response wrapper.
+ * WHY: Reusable for any paginated data from Laravel.
+ */
+export interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+}
