@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckCircle2, Mail, Zap, User, AlertCircle } from "lucide-react";
 import { Head, useForm } from "@inertiajs/react";
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
+import { useForceTheme } from '@/hooks/use-force-theme';
 import './landing.css';
 
 interface BetaSignupProps {
@@ -16,23 +17,22 @@ interface BetaSignupProps {
 
 const queryClient = new QueryClient();
 
+const fadeInUp: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (custom: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: custom * 0.1, duration: 0.6, ease: "easeOut" }
+  })
+};
+
 const BetaSignup = ({ message }: BetaSignupProps) => {
-  const [isVisible, setIsVisible] = useState(false);
+  useForceTheme('dark');
+  
   const { data, setData, post, processing, errors } = useForm({
     name: "",
     email: "",
   });
-
-  useEffect(() => {
-    setIsVisible(true);
-    // Force dark mode
-    document.documentElement.classList.add('dark');
-    
-    return () => {
-      // Optional: remove dark class on unmount if needed
-      // document.documentElement.classList.remove('dark');
-    };
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,54 +63,43 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
         <div className="hero-inner mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Column: Content */}
-            <div className="flex flex-col text-left space-y-8" style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.5s ease-out' }}>
+            <motion.div 
+              className="flex flex-col text-left space-y-8"
+              initial="hidden"
+              animate="visible"
+            >
                 <div>
-                    <div
+                    <motion.div
                       className="hero-eyebrow mb-4 flex items-center justify-start gap-2"
-                      style={{
-                        opacity: isVisible ? 1 : 0,
-                        transform: isVisible ? "translateY(0)" : "translateY(10px)",
-                        transition: "all 0.6s ease-out",
-                      }}
+                      variants={fadeInUp}
+                      custom={0}
                     >
                       <Zap className="h-5 w-5 text-indigo-400" />
                       <span>Closed Beta Program</span>
-                    </div>
+                    </motion.div>
 
-                    <h1
+                    <motion.h1
                       className="hero-headline mb-4 text-left text-4xl md:text-5xl font-bold"
-                      style={{
-                        opacity: isVisible ? 1 : 0,
-                        transform: isVisible ? "translateY(0)" : "translateY(10px)",
-                        transitionDelay: "0.1s",
-                        transition: "all 0.6s ease-out",
-                      }}
+                      variants={fadeInUp}
+                      custom={1}
                     >
                       Join Sirius Beta
-                    </h1>
+                    </motion.h1>
 
-                    <p
+                    <motion.p
                       className="hero-subheadline mb-8 text-left text-lg leading-relaxed text-white/85 sm:text-xl max-w-xl"
-                      style={{
-                        opacity: isVisible ? 1 : 0,
-                        transform: isVisible ? "translateY(0)" : "translateY(10px)",
-                        transitionDelay: "0.2s",
-                        transition: "all 0.6s ease-out",
-                      }}
+                      variants={fadeInUp}
+                      custom={2}
                     >
                       Be among the first to experience the Sirius AI Planning Engine.
-                    </p>
+                    </motion.p>
                 </div>
 
                 {/* Features List */}
-                <div
+                <motion.div
                   className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur"
-                  style={{
-                    opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? "translateY(0)" : "translateY(10px)",
-                    transitionDelay: "0.3s",
-                    transition: "all 0.6s ease-out",
-                  }}
+                  variants={fadeInUp}
+                  custom={3}
                 >
                   <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-indigo-300">
                     What You Get
@@ -135,18 +124,16 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                       </span>
                     ))}
                   </div>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
 
             {/* Right Column: Form */}
-            <div 
+            <motion.div 
                 className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto"
-                style={{
-                  opacity: isVisible ? 1 : 0,
-                  transform: isVisible ? "translateY(0)" : "translateY(15px)",
-                  transitionDelay: "0.4s",
-                  transition: "all 0.6s ease-out",
-                }}
+                variants={fadeInUp}
+                custom={4}
+                initial="hidden"
+                animate="visible"
             >
                 {/* Success Message */}
                 <AnimatePresence>
@@ -260,7 +247,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                      </p>
                   </div>
                 </form>
-            </div>
+            </motion.div>
           </div>
         </div>
             </section>

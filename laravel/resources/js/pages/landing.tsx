@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react';
+import { lazy, Suspense } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useForceTheme } from '@/hooks/use-force-theme';
 import './landing.css';
 
 // Critical above-the-fold components - load immediately
@@ -35,16 +36,8 @@ const SectionLoader = () => (
 
 export default function Landing() {
     useFlashToasts();
+    useForceTheme('dark');
     
-    // Force dark mode for landing page
-    useEffect(() => {
-        document.documentElement.classList.add('dark');
-        return () => {
-            // Optional: remove dark class when leaving landing page
-            // document.documentElement.classList.remove('dark');
-        };
-    }, []);
-
     return (
         <div className="linear-landing dark min-h-screen bg-background text-foreground">
             <QueryClientProvider client={queryClient}>

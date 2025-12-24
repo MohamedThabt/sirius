@@ -9,61 +9,26 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type Project, type Repository, type User } from '@/types';
+import { type FeatureSuggestion, type ModuleItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Check, Plus, RefreshCw, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type User } from '@/types';
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    prd: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-}
-
-interface Repository {
-    id: number;
-    provider: string;
-    repo_id: string;
-    name: string;
-    full_name: string;
-    owner_login: string;
-    owner_type: string;
-    default_branch: string;
-    html_url: string;
-    ssh_url: string;
-    visibility: string;
-}
-
-interface Module {
-    id: number;
-    name: string;
-    description?: string;
-    status: string;
-    erd?: string;
-}
-
-interface Feature {
-    name: string;
-    description: string;
-    summary?: string;
-    priority?: string;
-}
 
 interface Props {
     project: Project;
-    module: Module;
-    generatedFeatures?: Feature[];
+    module: ModuleItem;
+    generatedFeatures?: FeatureSuggestion[];
     fromCache?: boolean;
     repository?: Repository | null;
 }
@@ -72,7 +37,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
 
-    const [selectedFeatures, setSelectedFeatures] = useState<Feature[]>([]);
+    const [selectedFeatures, setSelectedFeatures] = useState<FeatureSuggestion[]>([]);
     const [customFeatureName, setCustomFeatureName] = useState('');
     const [customFeatureDescription, setCustomFeatureDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,7 +62,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
         [project],
     );
 
-    const toggleFeature = (feature: Feature) => {
+    const toggleFeature = useCallback((feature: FeatureSuggestion) => {
         setSelectedFeatures((prev) => {
             const isSelected = prev.some((f) => f.name === feature.name);
             if (isSelected) {
@@ -106,15 +71,15 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                 return [...prev, feature];
             }
         });
-    };
+    }, []);
 
-    const addCustomFeature = () => {
+    const addCustomFeature = useCallback(() => {
         if (!customFeatureName.trim() || !customFeatureDescription.trim()) {
             toast.error('Please provide both name and description for the custom feature');
             return;
         }
 
-        const customFeature: Feature = {
+        const customFeature: FeatureSuggestion = {
             name: customFeatureName.trim(),
             description: customFeatureDescription.trim(),
         };
@@ -123,16 +88,16 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
         setCustomFeatureName('');
         setCustomFeatureDescription('');
         toast.success('Custom feature added successfully!');
-    };
+    }, [customFeatureName, customFeatureDescription]);
 
-    const removeFeature = (featureName: string) => {
+    const removeFeature = useCallback((featureName: string) => {
         setSelectedFeatures((prev) => prev.filter((f) => f.name !== featureName));
-    };
+    }, []);
 
-    const openRegenerateModal = () => {
+    const openRegenerateModal = useCallback(() => {
         setRegenerateNotes('');
         setIsRegenerateModalOpen(true);
-    };
+    }, []);
 
     const handleRegenerate = () => {
         if (!regenerateNotes.trim() || regenerateNotes.trim().length < 10) {
@@ -307,24 +272,24 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                                             <CardDescription>Don't see what you need? Add your own custom feature</CardDescription>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            <div>
-                                                <label className="mb-2 block text-sm font-medium">Feature Name</label>
-                                                <input
+                                            <div className="space-y-2">
+                                                <Label htmlFor="feature-name">Feature Name</Label>
+                                                <Input
+                                                    id="feature-name"
                                                     type="text"
                                                     value={customFeatureName}
                                                     onChange={(e) => setCustomFeatureName(e.target.value)}
                                                     placeholder="e.g., Advanced Reporting"
-                                                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
                                                 />
                                             </div>
-                                            <div>
-                                                <label className="mb-2 block text-sm font-medium">Description</label>
-                                                <textarea
+                                            <div className="space-y-2">
+                                                <Label htmlFor="feature-description">Description</Label>
+                                                <Textarea
+                                                    id="feature-description"
                                                     value={customFeatureDescription}
                                                     onChange={(e) => setCustomFeatureDescription(e.target.value)}
                                                     placeholder="Describe what this feature does and how it benefits users..."
                                                     rows={3}
-                                                    className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
                                                 />
                                             </div>
                                             <Button
@@ -457,8 +422,9 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Your Feedback</label>
-                            <textarea
+                            <Label htmlFor="regenerate-feedback">Your Feedback</Label>
+                            <Textarea
+                                id="regenerate-feedback"
                                 value={regenerateNotes}
                                 onChange={(e) => setRegenerateNotes(e.target.value)}
                                 placeholder="Examples:
@@ -468,7 +434,6 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
 - Remove the 'Settings' feature, it's not needed
 - Add more CRUD operations for this module"
                                 rows={6}
-                                className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
                             />
                             <p className="text-xs text-muted-foreground">
                                 Minimum 10 characters. Be specific about your requirements.

@@ -3,48 +3,16 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type Project, type SharedData } from '@/types';
+import { type FeatureItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
-// Removed local generation; we now post to backend AI edit route
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    non_functional_requirements: string;
-    technical_details: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-}
-
-interface FeatureItem {
-    id: number;
-    name: string;
-    summary: string | null;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
-    order_of_implementation: number;
-    progress?: number | null;
-    description?: string | null;
-    acceptance_criteria?: string | null;
-    user_flows?: string | null;
-    metrics?: string | null;
-    erd?: string | null;
-    sequence_diagram?: string | null;
-    wireframe?: string | null;
-    module?: {
-        id: number;
-        name: string;
-    };
-}
 
 interface Props {
     project: Project;
@@ -304,7 +272,7 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
         { title: 'Modules', href: `/projects/${project.id}/modules` },
         { title: feature?.module?.name || 'Module', href: `/projects/${project.id}/modules/${feature?.module?.id}` },
         { title: feature?.name || 'Feature', href: `/projects/${project.id}/modules/${feature?.module?.id}/features/${feature?.id}` },
-        { title: 'Sequence Diagram' },
+        { title: 'Sequence Diagram', href: `/features/${featureId}/sequence-diagram` },
     ];
 
     if (!feature) {

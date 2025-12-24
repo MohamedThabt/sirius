@@ -1,19 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Linkedin, Globe, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Meteors } from '@/components/ui/meteors';
+import { TeamMemberCard } from '@/components/Team/TeamMemberCard';
+import { useForceTheme } from '@/hooks/use-force-theme';
+import type { TeamMember } from '@/types';
 import './landing.css';
-
-interface TeamMember {
-    name: string;
-    role: string;
-    image?: string;
-    linkedin?: string;
-    website?: string;
-    gender?: 'male' | 'female';
-}
 
 // Team members - 7 engineers
 const teamMembers: TeamMember[] = [
@@ -64,62 +58,16 @@ const teamMembers: TeamMember[] = [
     },
 ];
 
-// Generate DiceBear avatar URL (initials style - professional)
-const getAvatarUrl = (name: string, gender?: 'male' | 'female') => {
-    const seed = encodeURIComponent(name);
-    // Using "initials" style - standard professional fallback
-    return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=2d3748&textColor=ffffff`;
-};
-
-// Team member card
-const TeamMemberCard = ({ member }: { member: TeamMember }) => {
-    const primaryLink = member.linkedin || member.website;
-    const avatarUrl = member.image || getAvatarUrl(member.name, member.gender);
-    
-    return (
-        <a
-            href={primaryLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block"
-        >
-            <div className="flex flex-col items-center text-center p-6 rounded-2xl transition-all duration-300 hover:bg-white/[0.03]">
-                {/* Avatar */}
-                <div 
-                    className="relative mb-4 w-28 h-28 rounded-full overflow-hidden transition-transform duration-300 group-hover:scale-105 border-4 border-white/5 shadow-xl shadow-black/20"
-                >
-                    <img 
-                        src={avatarUrl} 
-                        alt={member.name} 
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-                
-                {/* Name */}
-                <h3 className="text-lg font-medium text-white mb-1 group-hover:text-indigo-300 transition-colors">
-                    {member.name}
-                </h3>
-                
-                {/* Role */}
-                <p className="text-sm text-white/50 mb-3">{member.role}</p>
-                
-                {/* Social icons */}
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
-                    {member.linkedin && <Linkedin className="h-4 w-4 text-white/50 hover:text-white transition-colors" />}
-                    {member.website && <Globe className="h-4 w-4 text-white/50 hover:text-white transition-colors" />}
-                </div>
-            </div>
-        </a>
-    );
-};
-
 export default function Team() {
+    useForceTheme('dark');
     const [isVisible, setIsVisible] = useState(false);
 
-    useEffect(() => {
-        document.documentElement.classList.add('dark');
-        setIsVisible(true);
-    }, []);
+    // Simple entrance animation effect
+    useState(() => {
+        // Just trigger the state change on mount for the fade-in classes
+        // Note: Using a timeout to ensure initial render is 0 opacity
+        setTimeout(() => setIsVisible(true), 50);
+    });
 
     return (
         <>
@@ -182,8 +130,6 @@ export default function Team() {
                                 <TeamMemberCard key={member.name} member={member} />
                             ))}
                         </div>
-
-
                     </div>
                 </section>
             </div>

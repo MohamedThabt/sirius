@@ -1,117 +1,28 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
+import { MermaidCode } from '@/components/MermaidCode';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type Project } from '@/types';
+import { type FeatureItem, type ModuleItem } from '@/types/modules';
 import { Head, usePage } from '@inertiajs/react';
-import { CheckIcon, CopyIcon, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 
-interface Project {
-    id: number;
-    name: string;
-}
-
-interface Module {
-    id: number;
-    name: string;
-}
-
-interface FeatureItem {
-    id: number;
-    name: string;
-    summary: string | null;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
-    order_of_implementation: number;
-}
-
 interface Props {
     project: Project;
-    module: Module;
+    module: ModuleItem;
     feature: FeatureItem;
     specsMarkdown: string;
 }
-
-const convertEscapedMermaid = (escapedString: string): string => {
-    let cleaned = escapedString.replace(/```mermaid\s*/g, '').replace(/```\s*$/g, '');
-
-    cleaned = cleaned.replace(/\\n/g, '\n');
-
-    cleaned = cleaned.replace(/\\(?!n)/g, '');
-
-    cleaned = cleaned
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-        .join('\n');
-
-    cleaned = cleaned.replace(/(\w+)\s*\[\[([^\]]*)\]\]/g, (match, nodeId, content) => {
-        const fixedContent = content
-            .replace(/[()[\]{}"';]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        return `${nodeId}[${fixedContent || 'Unnamed'}]`;
-    });
-
-    cleaned = cleaned.replace(/\[([^\]]*)\]/g, (match, content) => {
-        const fixedContent = content
-            .replace(/[()[\]{}"';]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        return `[${fixedContent}]`;
-    });
-
-    return cleaned;
-};
 
 export default function Specs({ project, module, feature, specsMarkdown }: Props) {
     useFlashToasts();
     const { auth } = usePage().props as any;
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-    const MermaidCode = ({ children, id }: { children: string; id: string }) => {
-        const [copied, setCopied] = useState(false);
-
-        const copyCode = async () => {
-            try {
-                const cleanCode = convertEscapedMermaid(children);
-                await navigator.clipboard.writeText(cleanCode);
-                setCopied(true);
-                window.setTimeout(() => setCopied(false), 1500);
-            } catch (err) {
-                console.error('Failed to copy code:', err);
-            }
-        };
-
-        return (
-            <div className="my-4">
-                <div className="mb-3 flex items-center justify-end">
-                    <Button variant="outline" size="sm" onClick={copyCode} className="h-8 text-xs" aria-live="polite">
-                        {copied ? (
-                            <>
-                                <CheckIcon className="mr-1 h-3 w-3 text-emerald-600" />
-                                Copied
-                            </>
-                        ) : (
-                            <>
-                                <CopyIcon className="mr-1 h-3 w-3" />
-                                Copy Code
-                            </>
-                        )}
-                    </Button>
-                </div>
-
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-                    <pre className="text-sm text-slate-700 dark:text-slate-300">
-                        <code>{convertEscapedMermaid(children)}</code>
-                    </pre>
-                </div>
-            </div>
-        );
-    };
 
     const breadcrumbs = [
         { title: project.name, href: `/projects/${project.id}` },

@@ -161,3 +161,15 @@ export interface ChatMessage {
     timestamp: Date;
     versionId?: number;
 }
+
+/**
+ * Team member structure for the Team page.
+ */
+export interface TeamMember {
+    name: string;
+    role: string;
+    image?: string;
+    linkedin?: string;
+    website?: string;
+    gender?: 'male' | 'female';
+}

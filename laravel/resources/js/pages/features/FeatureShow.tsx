@@ -1,4 +1,5 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
+import { ContentCard } from '@/components/ContentCard';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type Project, type SharedData } from '@/types';
+import { type FeatureItem, type FeaturePriority, type FeatureStatus, type ModuleItem } from '@/types/modules';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { getPriorityColor, getStatusColor } from '@/utils/featureStatus';
 import {
     AlertCircleIcon,
     ArrowRightIcon,
@@ -27,40 +31,12 @@ import {
     TargetIcon,
     WorkflowIcon,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-interface Project {
-    id: number;
-    name: string;
-}
-
-interface Module {
-    id: number;
-    name: string;
-}
-
-interface FeatureItem {
-    id: number;
-    name: string;
-    summary: string | null;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
-    order_of_implementation: number;
-    progress?: number | null;
-    prd?: string | null;
-    acceptance_criteria?: string | null;
-    user_flows?: string | null;
-    metrics?: string | null;
-    description?: string | null;
-    datamodel?: string | null;
-    sequence_diagram?: string | null;
-    wireframe?: string | null;
-}
 
 interface Props {
     project: Project;
-    module: Module;
+    module: ModuleItem;
     feature: FeatureItem;
 }
 
@@ -134,41 +110,27 @@ export default function Show({ project, module, feature }: Props) {
         });
     };
 
-    const handleStatusChange = (newStatus: 'draft' | 'in_progress' | 'completed' | 'archived') => {
+    const handleStatusChange = useCallback((newStatus: FeatureStatus) => {
         setData('status', newStatus);
-        put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
+        router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
+            method: 'put',
+            data: { status: newStatus },
             preserveScroll: true,
             onSuccess: () => toast.success('Status updated successfully!'),
             onError: () => toast.error('Failed to update status.'),
         });
-    };
+    }, [project.id, module.id, feature.id, setData]);
 
-    const handlePriorityChange = (newPriority: 'low' | 'medium' | 'high' | 'critical') => {
+    const handlePriorityChange = useCallback((newPriority: FeaturePriority) => {
         setData('priority', newPriority);
-        put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
+        router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
+            method: 'put',
+            data: { priority: newPriority },
             preserveScroll: true,
             onSuccess: () => toast.success('Priority updated successfully!'),
             onError: () => toast.error('Failed to update priority.'),
         });
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft': return 'bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-500/10 dark:text-zinc-400 dark:border-zinc-500/20';
-            case 'in_progress': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20';
-            case 'completed': return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
-            default: return 'bg-zinc-100 text-zinc-700 border-zinc-200';
-        }
-    };
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case 'critical': return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20';
-            case 'high': return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20';
-            case 'medium': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20';
-            default: return 'bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-500/10 dark:text-zinc-400 dark:border-zinc-500/20';
-        }
-    };
+    }, [project.id, module.id, feature.id, setData]);
 
     const calculateProgress = useMemo(() => {
         const artifacts = [
@@ -244,43 +206,6 @@ export default function Show({ project, module, feature }: Props) {
         { name: 'Sequence Diagram', completed: !!feature.sequence_diagram, icon: WorkflowIcon, action: () => feature.sequence_diagram ? router.visit(`/features/${feature.id}/sequence-diagram`) : router.post(`/features/${feature.id}/sequence-diagram/generate`), disabled: false },
         { name: 'Wireframe', completed: !!feature.wireframe, icon: LayoutIcon, action: () => feature.wireframe ? router.visit(`/features/${feature.id}/wireframe`) : router.post(`/features/${feature.id}/wireframe/generate`), disabled: false },
     ];
-
-    const ContentCard = ({ title, field, icon: Icon, placeholder, className = '' }: { title: string, field: string, icon: any, placeholder: string, className?: string }) => (
-        <div className={`group relative rounded-xl border border-border/40 bg-card/50 p-6 transition-all hover:border-border/80 hover:bg-card hover:shadow-sm ${className}`}>
-            <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Icon className="h-4 w-4" />
-                    </div>
-                    <h3 className="font-semibold text-foreground">{title}</h3>
-                </div>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(field)}
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                >
-                    <PencilIcon className="mr-2 h-3.5 w-3.5" />
-                    Edit
-                </Button>
-            </div>
-            {data[field as keyof typeof data] ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-muted-foreground">
-                    {data[field as keyof typeof data]}
-                </div>
-            ) : (
-                <div
-                    className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border/50 py-8 text-center transition-colors hover:bg-muted/50"
-                    onClick={() => handleEdit(field)}
-                >
-                    <p className="text-sm text-muted-foreground">{placeholder}</p>
-                    <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-primary">
-                        Add {title}
-                    </Button>
-                </div>
-            )}
-        </div>
-    );
 
     return (
         <>
@@ -480,18 +405,24 @@ export default function Show({ project, module, feature }: Props) {
                                     field="summary"
                                     icon={FileIcon}
                                     placeholder="Add a brief summary..."
+                                    value={data.summary}
+                                    onEdit={handleEdit}
                                 />
                                 <ContentCard
                                     title="User Flows"
                                     field="user_flows"
                                     icon={RouteIcon}
                                     placeholder="Map out user journeys..."
+                                    value={data.user_flows}
+                                    onEdit={handleEdit}
                                 />
                                 <ContentCard
                                     title="Description"
                                     field="description"
                                     icon={MessageSquareIcon}
                                     placeholder="Detailed implementation details..."
+                                    value={data.description}
+                                    onEdit={handleEdit}
                                     className="md:col-span-2"
                                 />
                                 <ContentCard
@@ -499,6 +430,8 @@ export default function Show({ project, module, feature }: Props) {
                                     field="acceptance_criteria"
                                     icon={CheckCircle2}
                                     placeholder="Conditions for completion..."
+                                    value={data.acceptance_criteria}
+                                    onEdit={handleEdit}
                                     className="md:col-span-2"
                                 />
                                 <ContentCard
@@ -506,6 +439,8 @@ export default function Show({ project, module, feature }: Props) {
                                     field="metrics"
                                     icon={TargetIcon}
                                     placeholder="KPIs and measurements..."
+                                    value={data.metrics}
+                                    onEdit={handleEdit}
                                     className="md:col-span-2"
                                 />
                             </div>

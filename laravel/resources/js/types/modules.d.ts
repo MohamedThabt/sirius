@@ -39,14 +39,41 @@ export interface ModuleItem {
 /**
  * Feature entity within a module.
  * WHY: Used in ModuleShow.tsx and feature-related pages.
+ * Extended with optional artifact fields for feature detail pages.
  */
 export interface FeatureItem {
     id: number;
     name: string;
-    summary: string;
+    summary: string | null;
     priority: FeaturePriority;
     status: FeatureStatus;
     order_of_implementation: number;
+    // Optional artifact fields (populated on feature detail pages)
+    progress?: number | null;
+    prd?: string | null;
+    description?: string | null;
+    acceptance_criteria?: string | null;
+    user_flows?: string | null;
+    metrics?: string | null;
+    datamodel?: string | null;
+    sequence_diagram?: string | null;
+    wireframe?: string | null;
+    // Nested module reference (for breadcrumbs)
+    module?: {
+        id: number;
+        name: string;
+    };
+}
+
+/**
+ * AI-generated feature suggestion (before saving to DB).
+ * WHY: Used in FeaturesSuggestion.tsx for selecting features to create.
+ */
+export interface FeatureSuggestion {
+    name: string;
+    description: string;
+    summary?: string;
+    priority?: string;
 }
 
 /**

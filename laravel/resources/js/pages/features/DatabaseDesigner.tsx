@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/sonner';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData } from '@/types';
+import { type Project, type SharedData } from '@/types';
+import { type FeatureItem, type ModuleItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant, Edge, Node } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
@@ -22,43 +23,6 @@ import { useDBMLParser } from '@/hooks/useDBMLParser';
 import { nodesToDBML, nodesToMermaid } from '@/utils/dbmlConverter';
 import { exportAsSQL } from '@/utils/exportUtils';
 import { DiagramFormat, convertFormat, detectFormat } from '@/utils/formatConverters';
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    non_functional_requirements: string;
-    technical_details: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-}
-
-interface Module {
-    id: number;
-    name: string;
-    description: string;
-    status: 'planned' | 'in_progress' | 'completed';
-}
-
-interface FeatureItem {
-    id: number;
-    name: string;
-    summary: string | null;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
-    order_of_implementation: number;
-    progress?: number | null;
-    description?: string | null;
-    acceptance_criteria?: string | null;
-    user_flows?: string | null;
-    metrics?: string | null;
-    datamodel?: string | null;
-    sequence_diagram?: string | null;
-    wireframe?: string | null;
-    module?: Module;
-}
 
 interface Props {
     project: Project;

@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Home, ArrowLeft, AlertTriangle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useForceTheme } from '@/hooks/use-force-theme';
 import './landing.css';
 
 interface ErrorProps {
@@ -9,30 +9,34 @@ interface ErrorProps {
     message?: string;
 }
 
+const ERROR_MESSAGES: Record<number, { title: string; description: string }> = {
+    503: {
+        title: 'Service Unavailable',
+        description: 'Sorry, we are doing some maintenance. Please check back soon.',
+    },
+    500: {
+        title: 'Server Error',
+        description: 'Whoops, something went wrong on our servers.',
+    },
+    404: {
+        title: 'Page Not Found',
+        description: 'Sorry, the page you are looking for could not be found.',
+    },
+    403: {
+        title: 'Forbidden',
+        description: 'Sorry, you are forbidden from accessing this page.',
+    },
+};
+
 export default function Error({ status, message }: ErrorProps) {
-    const [isVisible, setIsVisible] = useState(false);
+    useForceTheme('dark');
 
-    useEffect(() => {
-        document.documentElement.classList.add('dark');
-        setIsVisible(true);
-        return () => {
-            // Optional: remove dark class when leaving
-        };
-    }, []);
+    const defaultError = {
+        title: 'Error',
+        description: message || 'An unexpected error occurred.',
+    };
 
-    const title = {
-        503: 'Service Unavailable',
-        500: 'Server Error',
-        404: 'Page Not Found',
-        403: 'Forbidden',
-    }[status] || 'Error';
-
-    const description = {
-        503: 'Sorry, we are doing some maintenance. Please check back soon.',
-        500: 'Whoops, something went wrong on our servers.',
-        404: 'Sorry, the page you are looking for could not be found.',
-        403: 'Sorry, you are forbidden from accessing this page.',
-    }[status] || message || 'An unexpected error occurred.';
+    const { title, description } = ERROR_MESSAGES[status] || defaultError;
 
     return (
         <div className="linear-landing dark min-h-screen bg-background text-foreground flex flex-col">
@@ -49,7 +53,7 @@ export default function Error({ status, message }: ErrorProps) {
                 <div className="hero-nebula hero-nebula--right" aria-hidden="true" />
                 
                 <div className="hero-inner mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-                    <div className="hero-copy text-center w-full flex flex-col items-center" style={{ opacity: isVisible ? 1 : 0 }}>
+                    <div className="hero-copy text-center w-full flex flex-col items-center animate-in fade-in zoom-in duration-700">
                         
                         {/* Eyebrow with icon */}
                         <div className="hero-eyebrow mb-6 flex items-center justify-center gap-2">
@@ -61,11 +65,6 @@ export default function Error({ status, message }: ErrorProps) {
                         <h1 className="hero-headline mb-6 text-center">
                             <span 
                                 className="hero-headline-word"
-                                style={{
-                                    opacity: isVisible ? 1 : 0,
-                                    transform: isVisible ? "translateY(0)" : "translateY(20%)",
-                                    transitionDelay: "0.1s",
-                                }}
                             >
                                 {title}
                             </span>
@@ -74,11 +73,6 @@ export default function Error({ status, message }: ErrorProps) {
                         {/* Subheadline */}
                         <p 
                             className="hero-subheadline mx-auto mb-10 max-w-2xl text-balance text-center text-lg leading-relaxed text-white/85 sm:text-xl"
-                            style={{
-                                opacity: isVisible ? 1 : 0,
-                                transform: isVisible ? "translateY(0)" : "translateY(16px)",
-                                transitionDelay: "0.25s",
-                            }}
                         >
                             {description}
                         </p>
@@ -86,11 +80,6 @@ export default function Error({ status, message }: ErrorProps) {
                         {/* CTA Buttons */}
                         <div 
                             className="hero-cta mb-6 flex flex-col sm:flex-row gap-4 justify-center"
-                            style={{
-                                opacity: isVisible ? 1 : 0,
-                                transform: isVisible ? "translateY(0)" : "translateY(12px)",
-                                transitionDelay: "0.45s",
-                            }}
                         >
                             <Button 
                                 size="lg" 

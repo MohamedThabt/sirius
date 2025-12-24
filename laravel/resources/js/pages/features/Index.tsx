@@ -3,31 +3,12 @@ import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { type SharedData, type User } from '@/types';
+import { type Project, type SharedData, type User } from '@/types';
+import { type FeatureItem } from '@/types/modules';
+import { getPriorityColor, getStatusColor, getStatusIcon } from '@/utils/featureStatus';
 import { Head, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, CircleIcon, ClockIcon, Plus, ZapIcon } from 'lucide-react';
+import { ArrowLeft, Plus, ZapIcon } from 'lucide-react';
 import { useState } from 'react';
-
-interface Project {
-    id: number;
-    name: string;
-    brief: string;
-    overview: string;
-    status: string;
-}
-
-interface FeatureItem {
-    id: number;
-    name: string;
-    summary: string;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
-    order_of_implementation: number;
-    acceptance_criteria?: string | null;
-    user_flows?: string | null;
-    metrics?: string | null;
-    description?: string | null;
-}
 
 interface Props {
     project: Project;
@@ -47,47 +28,6 @@ export default function FeaturesIndex({ project, features }: Props) {
         { title: project.name, href: `/projects/${project.id}` },
         { title: 'Features', href: `/projects/${project.id}/features` },
     ];
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case 'critical':
-                return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30';
-            case 'high':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'medium':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'low':
-                return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
-
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return <CircleIcon className="h-4 w-4" />;
-            case 'in_progress':
-                return <ClockIcon className="h-4 w-4" />;
-            case 'completed':
-                return <CheckCircle2 className="h-4 w-4" />;
-            default:
-                return <CircleIcon className="h-4 w-4" />;
-        }
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'draft':
-                return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30';
-            case 'completed':
-                return 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30';
-            default:
-                return 'bg-muted text-muted-foreground border-border';
-        }
-    };
 
     return (
         <>
@@ -165,7 +105,7 @@ export default function FeaturesIndex({ project, features }: Props) {
                                             <div className="mb-4 flex items-start justify-between gap-3">
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2">
-                                                        {getStatusIcon(feature.status)}
+                                                        {(() => { const StatusIcon = getStatusIcon(feature.status); return <StatusIcon className="h-4 w-4" />; })()}
                                                         <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
                                                             {feature.name}
                                                         </h3>
@@ -180,7 +120,7 @@ export default function FeaturesIndex({ project, features }: Props) {
 
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <Badge className={`border text-xs font-medium ${getStatusColor(feature.status)}`}>
-                                                    {getStatusIcon(feature.status)}
+                                                    {(() => { const StatusIcon = getStatusIcon(feature.status); return <StatusIcon className="h-3 w-3" />; })()}
                                                     <span className="ml-1">{feature.status === 'in_progress' ? 'In Progress' : feature.status}</span>
                                                 </Badge>
                                                 <Badge className={`border text-xs font-medium capitalize ${getPriorityColor(feature.priority)}`}>
