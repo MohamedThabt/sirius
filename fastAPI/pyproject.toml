@@ -1,0 +1,29 @@
+# pytest configuration for FastAPI tests
+
+[build-system]
+requires = ["pytest", "pytest-asyncio", "pytest-cov"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "-ra",
+    "--cov=src",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+]
+
+markers = [
+    "integration: integration tests",
+    "unit: unit tests",
+    "asyncio: async tests",
+    "slow: slow running tests",
+]
+
+asyncio_mode = "auto"
