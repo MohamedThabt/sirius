@@ -1,6 +1,6 @@
 import { router, useForm } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bug, CheckCircle, Heart, Lightbulb, Rocket, Send, Sparkles, XCircle } from 'lucide-react';
+import { Bug, CheckCircle, Heart, Lightbulb, Loader2, Rocket, Send, Sparkles, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -617,7 +617,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                                     >
                                         {processing || submitting ? (
                                             <>
-                                                <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                                <Loader2 className="size-3.5 animate-spin" />
                                                 Sending...
                                             </>
                                         ) : (
