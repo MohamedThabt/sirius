@@ -609,99 +609,24 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                                     >
                                         Cancel
                                     </Button>
-                                    <motion.div
-                                        whileHover={!submitting && !processing ? { scale: 1.02 } : {}}
-                                        whileTap={!submitting && !processing ? { scale: 0.98 } : {}}
+                                    <Button
+                                        type="submit"
+                                        size="sm"
+                                        disabled={processing || submitting || !data.message.trim()}
+                                        className="min-w-28"
                                     >
-                                        <Button
-                                            type="submit"
-                                            size="sm"
-                                            disabled={processing || submitting || !data.message.trim()}
-                                            className={cn(
-                                                'relative min-w-28 overflow-hidden',
-                                                'bg-gradient-to-r from-primary to-primary/80',
-                                                'hover:from-primary/90 hover:to-primary/70',
-                                                (processing || submitting) && 'cursor-wait',
-                                            )}
-                                        >
-                                            {/* Shimmer effect during loading */}
-                                            {(processing || submitting) && (
-                                                <motion.div
-                                                    className="absolute inset-0 -z-0"
-                                                    initial={{ x: '-100%' }}
-                                                    animate={{ x: '200%' }}
-                                                    transition={{
-                                                        duration: 1.5,
-                                                        repeat: Infinity,
-                                                        ease: 'linear',
-                                                    }}
-                                                    style={{
-                                                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
-                                                    }}
-                                                />
-                                            )}
-
-                                            {/* Content */}
-                                            <span className="relative z-10 flex items-center gap-1.5">
-                                                {processing || submitting ? (
-                                                    <>
-                                                        <motion.div
-                                                            animate={{
-                                                                rotate: [0, 360],
-                                                                y: [0, -4, 0],
-                                                            }}
-                                                            transition={{
-                                                                rotate: {
-                                                                    duration: 1,
-                                                                    repeat: Infinity,
-                                                                    ease: 'linear',
-                                                                },
-                                                                y: {
-                                                                    duration: 0.6,
-                                                                    repeat: Infinity,
-                                                                    ease: 'easeInOut',
-                                                                },
-                                                            }}
-                                                        >
-                                                            <Rocket className="size-3.5" />
-                                                        </motion.div>
-                                                        <motion.span
-                                                            initial={{ opacity: 1 }}
-                                                            animate={{ opacity: [1, 0.5, 1] }}
-                                                            transition={{
-                                                                duration: 1.5,
-                                                                repeat: Infinity,
-                                                                ease: 'easeInOut',
-                                                            }}
-                                                        >
-                                                            Sending...
-                                                        </motion.span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Send className="size-3.5" />
-                                                        Send
-                                                    </>
-                                                )}
-                                            </span>
-
-                                            {/* Pulsing ring effect during loading */}
-                                            {(processing || submitting) && (
-                                                <motion.div
-                                                    className="absolute inset-0 rounded-md ring-2 ring-primary/50"
-                                                    animate={{
-                                                        scale: [1, 1.05, 1],
-                                                        opacity: [0.5, 0.8, 0.5],
-                                                    }}
-                                                    transition={{
-                                                        duration: 1.5,
-                                                        repeat: Infinity,
-                                                        ease: 'easeInOut',
-                                                    }}
-                                                />
-                                            )}
-                                        </Button>
-                                    </motion.div>
+                                        {processing || submitting ? (
+                                            <>
+                                                <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                                Sending...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className="size-3.5" />
+                                                Send
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
                             </div>
                         </div>
