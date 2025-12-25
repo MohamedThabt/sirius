@@ -1,6 +1,7 @@
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { DiagramErrorPanel } from '@/components/diagram/DiagramErrorPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/sonner';
@@ -396,6 +397,11 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
         setCurrentEdges(edges);
     }, [nodes, edges]);
 
+    // Handle fix error request - pre-populate prompt and trigger generation
+    const handleFixError = useCallback((errorPrompt: string) => {
+        setPrompt(errorPrompt);
+    }, []);
+
     // Handle resize of panels
     // Minimum width before auto-collapse (15%)
     const MIN_EDITOR_WIDTH = 15;
@@ -597,11 +603,11 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
 
                                     {/* Error Panel - Placed at top for visibility */}
                                     {error && (
-                                        <div className="mx-3 mt-3 shrink-0 rounded-lg border-l-4 border-destructive bg-destructive/10 p-3">
-                                            <p className="text-sm text-destructive-foreground">
-                                                <strong>Parse Error:</strong> {error}
-                                            </p>
-                                        </div>
+                                        <DiagramErrorPanel
+                                            error={error}
+                                            onFixRequest={handleFixError}
+                                            className="mx-3 mt-3 shrink-0"
+                                        />
                                     )}
 
                                     {/* Editor Content Area */}

@@ -1,6 +1,7 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { DiagramErrorPanel } from '@/components/diagram/DiagramErrorPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
@@ -8,7 +9,7 @@ import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData } from '@/types';
 import { type FeatureItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { WireframeProvider } from './components/WireframeContext';
 import { WireframeRenderer, type SchemaNode as RendererSchemaNode } from './components/WireframeRenderer';
@@ -434,6 +435,11 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
         }
     };
 
+    // Handle fix error request - pre-populate chat input with error context
+    const handleFixError = useCallback((errorPrompt: string) => {
+        setChatInput(errorPrompt);
+    }, []);
+
     const module = feature?.module;
     
     const breadcrumbs = [
@@ -649,9 +655,12 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                                         )}
                                     </div>
                                     {error && (
-                                        <div className="mt-3 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive-foreground">
-                                            Syntax Error: {error}
-                                        </div>
+                                        <DiagramErrorPanel
+                                            error={error}
+                                            onFixRequest={handleFixError}
+                                            title="Syntax Error"
+                                            className="mt-3"
+                                        />
                                     )}
                                 </div>
                                 <div className="sticky top-0 h-fit rounded-lg border border-border bg-card p-4">

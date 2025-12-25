@@ -1,6 +1,7 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import JsonEditor from '@/components/c4-diagram/JsonEditor';
 import ReactFlowDiagram from '@/components/c4-diagram/ReactFlowDiagram';
+import { DiagramErrorPanel } from '@/components/diagram/DiagramErrorPanel';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
@@ -30,7 +31,7 @@ import {
     ZoomIn,
     ZoomOut,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 import { useIsDarkMode } from '@/hooks/use-theme-detection';
@@ -232,6 +233,11 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
             }
         );
     };
+
+    // Handle fix error request - pre-populate prompt
+    const handleFixError = useCallback((errorPrompt: string) => {
+        setPrompt(errorPrompt);
+    }, []);
 
     return (
         <>
@@ -468,11 +474,11 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
 
                                             {/* Error and Warning Display */}
                                             {!isFullScreen && error && (
-                                                <div className="absolute right-4 bottom-4 left-4 z-30 rounded border border-destructive bg-destructive/10 p-4">
-                                                    <p className="text-sm text-destructive-foreground">
-                                                        <strong>Parse Error:</strong> {error ?? 'Unknown error'}
-                                                    </p>
-                                                </div>
+                                                <DiagramErrorPanel
+                                                    error={error ?? 'Unknown error'}
+                                                    onFixRequest={handleFixError}
+                                                    className="absolute right-4 bottom-4 left-4 z-30"
+                                                />
                                             )}
 
                                             {!isFullScreen && warnings && warnings.length > 0 && (

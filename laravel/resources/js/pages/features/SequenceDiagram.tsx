@@ -3,6 +3,7 @@ import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
+import { DiagramErrorPanel } from '@/components/diagram/DiagramErrorPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
@@ -215,6 +216,11 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
         toast.success('Mermaid schema exported successfully!');
     };
 
+    // Handle fix error request - pre-populate prompt
+    const handleFixError = useCallback((errorPrompt: string) => {
+        setPrompt(errorPrompt);
+    }, []);
+
     // Handle resize of panels
     const handleMouseDown = useCallback(() => {
         setIsResizing(true);
@@ -397,15 +403,11 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
                             </div>
 
                             {error && (
-                                <div className="m-4 border-l-4 border-destructive bg-destructive/10 p-4">
-                                    <div className="flex">
-                                        <div className="ml-3">
-                                            <p className="text-sm text-destructive-foreground">
-                                                <strong>Parse Error:</strong> {error}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                                <DiagramErrorPanel
+                                    error={error}
+                                    onFixRequest={handleFixError}
+                                    className="m-4"
+                                />
                             )}
                         </div>
                     )}

@@ -1,6 +1,7 @@
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { DiagramErrorPanel } from '@/components/diagram/DiagramErrorPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Toaster } from '@/components/ui/sonner';
@@ -457,6 +458,11 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
         setCurrentEdges(edges);
     }, [nodes, edges]);
 
+    // Handle fix error request - pre-populate prompt and trigger generation
+    const handleFixError = useCallback((errorPrompt: string) => {
+        setPrompt(errorPrompt);
+    }, []);
+
     // Handle resize of panels
     const handleMouseDown = useCallback(() => {
         setIsResizing(true);
@@ -625,11 +631,11 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
 
                                     {/* Error Panel - Placed at top for visibility */}
                                     {error && (
-                                        <div className="mx-3 mt-3 shrink-0 rounded-lg border-l-4 border-destructive bg-destructive/10 p-3">
-                                            <p className="text-sm text-destructive-foreground">
-                                                <strong>Parse Error:</strong> {error}
-                                            </p>
-                                        </div>
+                                        <DiagramErrorPanel
+                                            error={error}
+                                            onFixRequest={handleFixError}
+                                            className="mx-3 mt-3 shrink-0"
+                                        />
                                     )}
 
                                     {/* Editor Content Area */}
