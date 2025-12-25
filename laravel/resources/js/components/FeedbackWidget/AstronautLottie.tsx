@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 // Animation state types for the astronaut
-export type AstronautState = 'idle' | 'wave' | 'thinking' | 'celebrate' | 'confused';
+export type AstronautState = 'idle' | 'wave' | 'thinking' | 'celebrate' | 'celebrate-idea' | 'celebrate-ux' | 'celebrate-bug' | 'confused';
 
 interface AstronautLottieProps {
     state?: AstronautState;
@@ -28,7 +28,10 @@ export function AstronautLottie({
         idle: { y: [0, -6, 0], rotate: [0, 2, -2, 0], transition: { duration: 5, repeat: Infinity, ease: "easeInOut" } },
         wave: { y: [0, -4, 0], rotate: [0, 2, -2, 0], transition: { duration: 3, repeat: Infinity, ease: "easeInOut" } },
         thinking: { y: [0, -3, 0], rotate: [0, -2, 0], transition: { duration: 5, repeat: Infinity, ease: "easeInOut" } },
-        celebrate: { y: [0, -10, 0, -5, 0], scale: [1, 1.05, 1], transition: { duration: 0.8, repeat: Infinity, ease: "easeOut" } },
+        celebrate: { y: [0, -8, 0], transition: { duration: 0.6, repeat: Infinity, ease: "easeInOut" } },
+        'celebrate-idea': { y: [0, -10, 0], rotate: [0, 3, -3, 0], transition: { duration: 0.5, repeat: Infinity, ease: "easeInOut" } },
+        'celebrate-ux': { y: [0, -5, 0], transition: { duration: 0.8, repeat: Infinity, ease: "easeInOut" } },
+        'celebrate-bug': { y: [0, -12, 0, -6, 0], transition: { duration: 0.6, repeat: Infinity, ease: "easeOut" } },
         confused: { rotate: [0, -5, 5, 0], x: [0, -2, 2, 0], transition: { duration: 2, repeat: Infinity, ease: "easeInOut" } }
     };
 
@@ -36,7 +39,10 @@ export function AstronautLottie({
         idle: { rotate: [-5, 5, -5], transition: { duration: 4, repeat: Infinity, ease: "easeInOut" } },
         wave: { rotate: [0, 30, 0, 30, 0], transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" } },
         thinking: { rotate: 0, y: -2, x: 2, transition: { duration: 0.5 } },
-        celebrate: { rotate: [150, 170, 150], y: -8, transition: { duration: 0.5, repeat: Infinity, loop: true } },
+        celebrate: { rotate: [-45, -60, -45], y: [-2, -6, -2], transition: { duration: 0.4, repeat: Infinity, ease: "easeInOut" } },
+        'celebrate-idea': { rotate: [-60, -75, -60], y: [-4, -8, -4], transition: { duration: 0.3, repeat: Infinity, ease: "easeInOut" } },
+        'celebrate-ux': { rotate: [-30, -40, -30], transition: { duration: 0.5, repeat: Infinity, ease: "easeInOut" } },
+        'celebrate-bug': { rotate: [-80, -95, -80], y: [-6, -10, -6], transition: { duration: 0.35, repeat: Infinity, ease: "easeOut" } },
         confused: { rotate: [-10, 10, -10], transition: { duration: 2, repeat: Infinity } }
     };
 
@@ -44,7 +50,10 @@ export function AstronautLottie({
         idle: { rotate: [5, -5, 5], transition: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 } },
         wave: { rotate: 0, transition: { duration: 0.5 } },
         thinking: { rotate: -100, y: -8, x: -4, transition: { duration: 0.6 } },
-        celebrate: { rotate: [-150, -170, -150], y: -8, transition: { duration: 0.5, repeat: Infinity, loop: true } },
+        celebrate: { rotate: [45, 60, 45], y: [-2, -6, -2], transition: { duration: 0.4, repeat: Infinity, ease: "easeInOut", delay: 0.1 } },
+        'celebrate-idea': { rotate: [60, 75, 60], y: [-4, -8, -4], transition: { duration: 0.3, repeat: Infinity, ease: "easeInOut", delay: 0.05 } },
+        'celebrate-ux': { rotate: [50, 65, 50], y: [-3, -6, -3], transition: { duration: 0.6, repeat: Infinity, ease: "easeInOut" } },
+        'celebrate-bug': { rotate: [80, 95, 80], y: [-6, -10, -6], transition: { duration: 0.35, repeat: Infinity, ease: "easeOut", delay: 0.08 } },
         confused: { rotate: [-20, -40, -20], transition: { duration: 2, repeat: Infinity } }
     };
 

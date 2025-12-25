@@ -95,9 +95,21 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
     const config = useMemo(() => feedbackConfig[data.type], [data.type]);
 
     const astronautState = useMemo<AstronautState>(() => {
-        if (showConfetti) return 'celebrate';
+        if (showConfetti) {
+            // Use type-specific celebration animation
+            switch (data.type) {
+                case 'suggestion':
+                    return 'celebrate-idea';
+                case 'ux':
+                    return 'celebrate-ux';
+                case 'bug':
+                    return 'celebrate-bug';
+                default:
+                    return 'celebrate';
+            }
+        }
         return config.astronautState;
-    }, [config.astronautState, showConfetti]);
+    }, [config.astronautState, showConfetti, data.type]);
 
     // Cycle through astronaut messages
     useEffect(() => {
@@ -363,9 +375,8 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                                 animate={
                                     showConfetti
                                         ? {
-                                              rotate: [0, -15, 15, -10, 10, 0],
-                                              scale: [1, 1.2, 1.1, 1.15, 1],
-                                              y: [0, -10, 0],
+                                              scale: [1, 1.05, 1],
+                                              y: [0, -6, 0],
                                           }
                                         : {
                                               y: [0, -5, 0],
@@ -374,7 +385,9 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                                 transition={
                                     showConfetti
                                         ? {
-                                              duration: 0.8,
+                                              duration: 0.6,
+                                              repeat: 2,
+                                              ease: 'easeInOut',
                                           }
                                         : {
                                               duration: 2,
