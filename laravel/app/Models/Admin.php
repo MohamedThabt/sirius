@@ -54,4 +54,12 @@ class Admin extends Authenticatable
     {
         return $this->hasMany(Admin::class, 'created_by');
     }
+
+    /**
+     * Get all issue comments written by this admin.
+     */
+    public function issueComments(): HasMany
+    {
+        return $this->hasMany(IssueComment::class);
+    }
 }

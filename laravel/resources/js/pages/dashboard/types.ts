@@ -63,6 +63,23 @@ export interface Stats {
     users_with_github: number;
     projects_with_repo: number;
 
+    // Issue metrics
+    total_issues: number;
+    issues_by_status: Record<string, number>;
+    issues_by_severity: Record<string, number>;
+    issues_this_month: number;
+    issues_this_week: number;
+    open_issues: number;
+    blocker_issues: number;
+
+    // Feedback metrics
+    total_feedback: number;
+    feedback_by_status: Record<string, number>;
+    feedback_by_type: Record<string, number>;
+    feedback_this_month: number;
+    feedback_this_week: number;
+    new_feedback: number;
+
     // FastAPI Health Status
     fastapi_health: FastApiHealth;
 
@@ -109,6 +126,32 @@ export interface Stats {
         invited_by_admin?: {
             id: number;
             name: string;
+        };
+    }>;
+    recent_issues: Array<{
+        id: number;
+        title: string;
+        status: string;
+        severity: string;
+        user_id: number;
+        created_at: string;
+        user: {
+            id: number;
+            name: string;
+            email: string;
+        };
+    }>;
+    recent_feedback: Array<{
+        id: number;
+        type: string;
+        message: string;
+        status: string;
+        user_id: number;
+        created_at: string;
+        user: {
+            id: number;
+            name: string;
+            email: string;
         };
     }>;
 }

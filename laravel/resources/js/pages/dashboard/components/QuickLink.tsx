@@ -28,7 +28,7 @@ export function QuickLink({
             >
                 <Icon className={cn("mr-2 h-4 w-4 transition-all duration-300 group-hover:scale-110", iconClassName || "opacity-70 group-hover:opacity-100")} />
                 {label}
-                {badge !== undefined && badge > 0 && (
+                {badge !== undefined && badge !== null && badge > 0 && (
                     <Badge
                         variant="secondary"
                         className="ml-2 h-5 min-w-5 animate-pulse bg-destructive/15 px-1.5 text-xs font-semibold text-destructive"

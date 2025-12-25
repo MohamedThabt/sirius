@@ -104,8 +104,6 @@ export default function Error({ status, message }: ErrorProps) {
                     </div>
                 </div>
             </main>
-
-
         </div>
     );
 }

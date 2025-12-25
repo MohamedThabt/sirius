@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { FolderIcon, FileTextIcon, DatabaseIcon, NetworkIcon } from 'lucide-react';
+import { DatabaseIcon, FileTextIcon, FolderIcon, NetworkIcon } from 'lucide-react';
 import { useState } from 'react';
 
 interface User {
@@ -67,8 +67,8 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
     const applyFilters = (newSearch?: string, newStatus?: string) => {
         const filterData: { search?: string; status?: string } = {};
         const searchValue = newSearch !== undefined ? newSearch : search;
-        const statusValue = newStatus !== undefined ? newStatus : (filters.status || 'all');
-        
+        const statusValue = newStatus !== undefined ? newStatus : filters.status || 'all';
+
         if (searchValue) filterData.search = searchValue;
         if (statusValue && statusValue !== 'all') filterData.status = statusValue;
 
@@ -133,7 +133,9 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Completed</span>
-                                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">{summary.completed}</Badge>
+                                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                                            {summary.completed}
+                                        </Badge>
                                     </div>
                                 </div>
                             </CardContent>
@@ -172,9 +174,7 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">{summary.with_c4}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {summary.with_repo} with GitHub repo
-                                </p>
+                                <p className="text-xs text-muted-foreground">{summary.with_repo} with GitHub repo</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -225,9 +225,9 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                         </TableHeader>
                         <TableBody>
                             {projects.data.map((project) => (
-                                <TableRow 
-                                    key={project.id} 
-                                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                <TableRow
+                                    key={project.id}
+                                    className="cursor-pointer transition-colors hover:bg-muted/50"
                                     onClick={() => router.visit(`/admin/projects/${project.id}`)}
                                 >
                                     <TableCell className="font-medium">{project.name}</TableCell>
@@ -255,9 +255,7 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                 {projects.data.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-12">
                         <p className="text-lg font-medium text-muted-foreground">No projects found</p>
-                        {(search || filters.status) && (
-                            <p className="text-sm text-muted-foreground">Try adjusting your search criteria</p>
-                        )}
+                        {(search || filters.status) && <p className="text-sm text-muted-foreground">Try adjusting your search criteria</p>}
                     </div>
                 )}
 

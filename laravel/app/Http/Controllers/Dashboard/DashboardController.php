@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\BetaInvitation;
+use App\Models\Feedback;
 use App\Models\Feature;
 use App\Models\GithubToken;
+use App\Models\IssueReport;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\User;
@@ -91,6 +93,35 @@ class DashboardController extends Controller
             $usersWithGithub = GithubToken::count();
             $projectsWithRepo = Project::has('repository')->count();
 
+            // Issue stats
+            $totalIssues = IssueReport::count();
+            $issuesByStatus = IssueReport::selectRaw('status, COUNT(*) as count')
+                ->groupBy('status')
+                ->pluck('count', 'status')
+                ->toArray();
+            $issuesBySeverity = IssueReport::selectRaw('severity, COUNT(*) as count')
+                ->groupBy('severity')
+                ->pluck('count', 'severity')
+                ->toArray();
+            $issuesThisMonth = IssueReport::where('created_at', '>=', now()->startOfMonth())->count();
+            $issuesThisWeek = IssueReport::where('created_at', '>=', now()->startOfWeek())->count();
+            $openIssues = IssueReport::where('status', IssueReport::STATUS_OPEN)->count();
+            $blockerIssues = IssueReport::where('severity', IssueReport::SEVERITY_BLOCKER)->count();
+
+            // Feedback stats
+            $totalFeedback = Feedback::count();
+            $feedbackByStatus = Feedback::selectRaw('status, COUNT(*) as count')
+                ->groupBy('status')
+                ->pluck('count', 'status')
+                ->toArray();
+            $feedbackByType = Feedback::selectRaw('type, COUNT(*) as count')
+                ->groupBy('type')
+                ->pluck('count', 'type')
+                ->toArray();
+            $feedbackThisMonth = Feedback::where('created_at', '>=', now()->startOfMonth())->count();
+            $feedbackThisWeek = Feedback::where('created_at', '>=', now()->startOfWeek())->count();
+            $newFeedback = Feedback::where('status', Feedback::STATUS_NEW)->count();
+
             // Recent activity
             $recentUsers = User::latest()
                 ->take(5)
@@ -110,6 +141,16 @@ class DashboardController extends Controller
                 ->latest()
                 ->take(5)
                 ->get(['id', 'name', 'email', 'status', 'invited_by', 'created_at']);
+
+            $recentIssues = IssueReport::with('user:id,name,email')
+                ->latest()
+                ->take(5)
+                ->get(['id', 'title', 'status', 'severity', 'user_id', 'created_at']);
+
+            $recentFeedback = Feedback::with('user:id,name,email')
+                ->latest()
+                ->take(5)
+                ->get(['id', 'type', 'message', 'status', 'user_id', 'created_at']);
 
             // FastAPI Health Check
             $fastApiHealth = $this->getFastApiHealthStatus();
@@ -156,11 +197,30 @@ class DashboardController extends Controller
                 'users_with_github' => $usersWithGithub,
                 'projects_with_repo' => $projectsWithRepo,
 
+                // Issue metrics
+                'total_issues' => $totalIssues,
+                'issues_by_status' => $issuesByStatus,
+                'issues_by_severity' => $issuesBySeverity,
+                'issues_this_month' => $issuesThisMonth,
+                'issues_this_week' => $issuesThisWeek,
+                'open_issues' => $openIssues,
+                'blocker_issues' => $blockerIssues,
+
+                // Feedback metrics
+                'total_feedback' => $totalFeedback,
+                'feedback_by_status' => $feedbackByStatus,
+                'feedback_by_type' => $feedbackByType,
+                'feedback_this_month' => $feedbackThisMonth,
+                'feedback_this_week' => $feedbackThisWeek,
+                'new_feedback' => $newFeedback,
+
                 // Recent activity
                 'recent_users' => $recentUsers,
                 'recent_projects' => $recentProjects,
                 'recent_admins' => $recentAdmins,
                 'recent_beta_invitations' => $recentBetaInvitations,
+                'recent_issues' => $recentIssues,
+                'recent_feedback' => $recentFeedback,
 
                 // FastAPI Health Status
                 'fastapi_health' => $fastApiHealth,

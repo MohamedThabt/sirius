@@ -278,3 +278,37 @@ export interface AcceptableInvitation {
     token: string;
     expires_at: string;
 }
+
+// ============================================
+// Feedback Widget types
+// ============================================
+
+/**
+ * Feedback type for the widget submission.
+ * Maps to backend: suggestion/ux → FeedbackController, bug → IssueController
+ */
+export type FeedbackType = 'suggestion' | 'ux' | 'bug';
+
+/**
+ * Data structure for feedback widget submissions.
+ */
+export interface WidgetFeedback {
+    type: FeedbackType;
+    message: string;
+    page_url: string;
+}
+
+/**
+ * Data structure for bug report submissions via widget.
+ */
+export interface WidgetBugReport {
+    title: string;
+    description: string;
+    steps: string;
+    expected: string;
+    actual: string;
+    severity: 'low' | 'medium' | 'high' | 'blocker';
+    page_url: string;
+    screenshot?: File;
+}
+

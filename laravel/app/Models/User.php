@@ -177,4 +177,28 @@ class User extends Authenticatable
     {
         return $this->credits?->total_this_month ?? ($this->plan?->monthly_credits ?? 0);
     }
+
+    /**
+     * Get the feedbacks submitted by the user.
+     */
+    public function feedbacks(): HasMany
+    {
+        return $this->hasMany(Feedback::class);
+    }
+
+    /**
+     * Get the issue reports submitted by the user.
+     */
+    public function issueReports(): HasMany
+    {
+        return $this->hasMany(IssueReport::class);
+    }
+
+    /**
+     * Get the feedback votes by the user.
+     */
+    public function feedbackVotes(): HasMany
+    {
+        return $this->hasMany(FeedbackVote::class);
+    }
 }

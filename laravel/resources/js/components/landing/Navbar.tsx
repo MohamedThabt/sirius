@@ -13,7 +13,7 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
     const [activeSection, setActiveSection] = useState('');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { auth } = usePage<SharedData>().props;
-    const isAuthenticated = !!auth?.user || !!auth?.admin;
+    const isAuthenticated = !!auth?.user;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -72,11 +72,7 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                 <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
                     <div className="flex-shrink-0">
-                        <a 
-                            href="/" 
-                            onClick={hideBetaNav ? undefined : handleLogoClick} 
-                            className="flex items-center"
-                        >
+                        <a href="/" onClick={hideBetaNav ? undefined : handleLogoClick} className="flex items-center">
                             <AppLogoIcon className="h-8 w-auto" />
                         </a>
                     </div>
@@ -201,10 +197,10 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                     {!hideBetaNav && (
                         <div className="flex items-center gap-3">
                             {isAuthenticated ? (
-                                <Button 
-                                    variant="default" 
-                                    size="sm" 
-                                    className="rounded-full bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black border-0" 
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="rounded-full border-0 bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black"
                                     asChild
                                 >
                                     <a href="/projects">Go to Projects</a>
@@ -214,15 +210,15 @@ const Navbar = ({ hideBetaNav = false }: NavbarProps) => {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="text-[hsl(var(--text-secondary))] hover:text-[hsl(var(--text-primary))] hover:bg-transparent"
+                                        className="text-[hsl(var(--text-secondary))] hover:bg-transparent hover:text-[hsl(var(--text-primary))]"
                                         asChild
                                     >
                                         <a href="/login">Sign In</a>
                                     </Button>
-                                    <Button 
-                                        variant="default" 
-                                        size="sm" 
-                                        className="rounded-full bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black border-0" 
+                                    <Button
+                                        variant="default"
+                                        size="sm"
+                                        className="rounded-full border-0 bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black"
                                         asChild
                                     >
                                         <a href="/beta">Join Closed Beta</a>

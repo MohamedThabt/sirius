@@ -29,7 +29,7 @@ use Inertia\Inertia;
 | Here is where you can register web routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
-|
+    |
 */
 
 // Route Model Binding
@@ -179,6 +179,19 @@ Route::middleware(['auth', 'share.project'])->group(function () {
     Route::patch('/projects/{project}/team/role', [ProjectTeamController::class, 'updateRole'])->name('projects.team.updateRole');
     Route::delete('/projects/{project}/team/member/{user}', [ProjectTeamController::class, 'removeMember'])->name('projects.team.removeMember');
     Route::post('/projects/{project}/team/leave', [ProjectTeamController::class, 'leave'])->name('projects.team.leave');
+});
+
+// Beta Feedback Widget Routes (authenticated users)
+Route::middleware(['auth'])->prefix('beta')->name('beta.')->group(function () {
+    // Feedback (Suggestions, UX issues)
+    Route::get('/feedback', [\App\Http\Controllers\Beta\FeedbackController::class, 'index'])->name('feedback.index');
+    Route::post('/feedback', [\App\Http\Controllers\Beta\FeedbackController::class, 'store'])->name('feedback.store');
+    Route::get('/feedback/{feedback}', [\App\Http\Controllers\Beta\FeedbackController::class, 'show'])->name('feedback.show');
+
+    // Issue Reports (Bugs)
+    Route::get('/issues', [\App\Http\Controllers\Beta\IssueController::class, 'index'])->name('issues.index');
+    Route::post('/issues', [\App\Http\Controllers\Beta\IssueController::class, 'store'])->name('issues.store');
+    Route::get('/issues/{issue}', [\App\Http\Controllers\Beta\IssueController::class, 'show'])->name('issues.show');
 });
 
 require __DIR__.'/auth.php';

@@ -5,6 +5,8 @@ use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\BetaController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\FeatureController;
+use App\Http\Controllers\Dashboard\FeedbackController;
+use App\Http\Controllers\Dashboard\IssueController;
 use App\Http\Controllers\Dashboard\LogsController;
 use App\Http\Controllers\Dashboard\ModuleController;
 use App\Http\Controllers\Dashboard\ProjectController;
@@ -69,6 +71,19 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('modules', [ModuleController::class, 'index'])->name('admin.modules.index');
     Route::get('modules/{module}', [ModuleController::class, 'show'])->name('admin.modules.show');
     Route::get('modules/{module}/erd', [ModuleController::class, 'erd'])->name('admin.modules.erd');
+    
+    // Feedback Management
+    Route::get('feedback', [FeedbackController::class, 'index'])->name('admin.feedback.index');
+    Route::get('feedback/{feedback}', [FeedbackController::class, 'show'])->name('admin.feedback.show');
+    Route::put('feedback/{feedback}', [FeedbackController::class, 'update'])->name('admin.feedback.update');
+    Route::delete('feedback/{feedback}', [FeedbackController::class, 'destroy'])->name('admin.feedback.destroy');
+
+    // Issue Management
+    Route::get('issues', [IssueController::class, 'index'])->name('admin.issues.index');
+    Route::get('issues/{issue}', [IssueController::class, 'show'])->name('admin.issues.show');
+    Route::put('issues/{issue}', [IssueController::class, 'update'])->name('admin.issues.update');
+    Route::delete('issues/{issue}', [IssueController::class, 'destroy'])->name('admin.issues.destroy');
+    Route::post('issues/{issue}/comments', [IssueController::class, 'addComment'])->name('admin.issues.comments.store');
     
     // FastAPI Logs Management
     Route::prefix('logs')->name('admin.logs.')->group(function () {

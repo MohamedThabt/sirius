@@ -4,6 +4,7 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'sonner';
+import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { Toaster } from '@/components/ui/sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
@@ -19,6 +20,7 @@ createInertiaApp({
             <>
                 <App {...props} />
                 <Toaster />
+                <FeedbackWidget />
             </>,
         );
     },
@@ -26,6 +28,7 @@ createInertiaApp({
         color: '#4B5563',
     },
 });
+
 
 // Handle CSRF token mismatch errors
 // Based on: https://inertiajs.com/csrf-protection#handling-mismatches
