@@ -1,15 +1,44 @@
-FROM node:lts-bookworm AS frontend-builder
+# STAGE 1: Generate Wayfinder routes using PHP
+FROM php:8.4-cli AS wayfinder-generator
 
 WORKDIR /app
 
-# Install PHP for Laravel Wayfinder plugin
-RUN apt-get update && apt-get install -y \
-    php-cli \
-    php-xml \
-    php-mbstring \
-    php-curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Install git and unzip for Composer
+RUN apt-get update && apt-get install -y git unzip && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+
+# Copy PHP dependencies first
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies (we need wayfinder package)
+# Use --ignore-platform-reqs to skip ext-gd and other extensions not needed for route generation
+RUN sed 's_@php artisan package:discover_/bin/true_;' -i composer.json \
+    && composer install --ignore-platform-reqs --no-dev --no-scripts --optimize-autoloader
+
+# Copy application code needed for route generation
+COPY app/ ./app/
+COPY bootstrap/ ./bootstrap/
+COPY config/ ./config/
+COPY routes/ ./routes/
+COPY artisan ./
+
+# Create storage directories required by Laravel
+RUN mkdir -p storage/framework/cache/data \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/logs
+
+# Generate Wayfinder routes with form variants
+RUN php artisan wayfinder:generate --with-form
+
+# ----------------------------------------------------------------
+
+# STAGE 2: Build Frontend Assets
+FROM node:lts-bookworm AS frontend-builder
+
+WORKDIR /app
 
 # Enable pnpm via corepack
 RUN corepack enable
@@ -20,50 +49,18 @@ COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 # Install all dependencies (including devDependencies needed for building)
 RUN pnpm install --frozen-lockfile
 
-# Copy Laravel files needed for Wayfinder
-COPY artisan composer.json composer.lock ./
-COPY app/ ./app/
-COPY bootstrap/ ./bootstrap/
-COPY config/ ./config/
-COPY routes/ ./routes/
-COPY database/ ./database/
-
-# Install PHP dependencies needed for Wayfinder
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --no-scripts --optimize-autoloader
-
-# Create .env file with minimal config for build
-RUN echo "APP_KEY=base64:$(openssl rand -base64 32)" > .env \
-    && echo "APP_ENV=production" >> .env \
-    && echo "APP_DEBUG=false" >> .env
-
 # Copy source code required for the build process
 COPY resources/ ./resources/
 COPY vite.config.ts tsconfig.json components.json ./
 
-# Create a production vite config that skips wayfinder to avoid needing artisan during build
-RUN echo "import tailwindcss from '@tailwindcss/vite';" > vite.config.docker.ts && \
-    echo "import react from '@vitejs/plugin-react';" >> vite.config.docker.ts && \
-    echo "import laravel from 'laravel-vite-plugin';" >> vite.config.docker.ts && \
-    echo "import { defineConfig } from 'vite';" >> vite.config.docker.ts && \
-    echo "" >> vite.config.docker.ts && \
-    echo "export default defineConfig({" >> vite.config.docker.ts && \
-    echo "    plugins: [" >> vite.config.docker.ts && \
-    echo "        laravel({" >> vite.config.docker.ts && \
-    echo "            input: ['resources/css/app.css', 'resources/js/app.tsx']," >> vite.config.docker.ts && \
-    echo "            ssr: 'resources/js/ssr.tsx'," >> vite.config.docker.ts && \
-    echo "            refresh: true," >> vite.config.docker.ts && \
-    echo "        })," >> vite.config.docker.ts && \
-    echo "        react()," >> vite.config.docker.ts && \
-    echo "        tailwindcss()," >> vite.config.docker.ts && \
-    echo "    ]," >> vite.config.docker.ts && \
-    echo "    esbuild: {" >> vite.config.docker.ts && \
-    echo "        jsx: 'automatic'," >> vite.config.docker.ts && \
-    echo "    }," >> vite.config.docker.ts && \
-    echo "});" >> vite.config.docker.ts
+# Copy generated Wayfinder routes from the PHP stage
+COPY --from=wayfinder-generator /app/resources/js/actions ./resources/js/actions
+COPY --from=wayfinder-generator /app/resources/js/routes ./resources/js/routes
+COPY --from=wayfinder-generator /app/resources/js/wayfinder ./resources/js/wayfinder
 
-# Build using the Docker-specific config
-RUN pnpm vite build -c vite.config.docker.ts
+# No need to skip wayfinder plugin now, but keep it for safety
+ENV DOCKER_BUILD=true
+RUN pnpm build
 
 # ----------------------------------------------------------------
 

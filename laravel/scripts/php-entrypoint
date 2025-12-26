@@ -1,26 +1,129 @@
-#!/bin/sh
-set -e
+#!/bin/bash
 
-# Run Laravel setup commands
-echo "Running Laravel setup..."
+main() {
+    echo "=========================================="
+    echo "Starting Laravel application..."
+    echo "Working directory: $(pwd)"
+    echo "User: $(whoami)"
+    echo "PHP version: $(php --version | head -1)"
+    echo "=========================================="
+    
+    # Enable strict error handling
+    set -e
+    
+    echo "Step 1: Preparing file permissions..."
+    prepare_file_permissions
+    
+    echo "Step 2: Preparing storage..."
+    prepare_storage
+    
+    echo "Step 3: Waiting for database..."
+    wait_for_db
+    
+    echo "Step 4: Running migrations..."
+    run_migrations
+    
+    echo "Step 5: Optimizing app..."
+    optimize_app
+    
+    echo "Step 6: Starting server..."
+    run_server "$@"
+}
 
-# Create storage directories if they don't exist
-mkdir -p storage/framework/sessions
-mkdir -p storage/framework/views
-mkdir -p storage/framework/cache
+prepare_file_permissions() {
+    # Make artisan executable if it isn't already
+    if [ ! -x "./artisan" ]; then
+        echo "Making artisan executable..."
+        chmod a+x ./artisan
+    else
+        echo "Artisan is already executable, skipping..."
+    fi
+    
+    # Set specific permissions for storage and cache directories
+    if [ -d "/var/www/storage" ]; then
+        chmod -R 775 /var/www/storage
+        echo "Storage directory permissions set"
+    fi
+    
+    if [ -d "/var/www/bootstrap/cache" ]; then
+        chmod -R 775 /var/www/bootstrap/cache
+        echo "Bootstrap cache directory permissions set"
+    fi
+}
 
-# Set proper permissions
-chmod -R 775 storage bootstrap/cache
+prepare_storage() {
+    echo "Preparing Laravel storage directories..."
+    
+    # Create required directories for Laravel
+    mkdir -p /var/www/storage/framework/cache/data
+    mkdir -p /var/www/storage/framework/sessions
+    mkdir -p /var/www/storage/framework/views
+    mkdir -p /var/www/storage/app/public
+    mkdir -p /var/www/storage/logs
 
-# Run migrations (optional - comment out if not needed on every startup)
-# php artisan migrate --force
+    # Set permissions for the storage directory (skip chown - we're running as www-data already)
+    if chmod -R 775 /var/www/storage 2>/dev/null; then
+        echo "Storage permissions set successfully"
+    else
+        echo "Warning: Failed to set storage permissions, continuing..."
+    fi
 
-# Cache configuration for better performance
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+    # Copy assets to volume if it exists
+    if [ -d "/assets_volume" ]; then
+        cp -r /var/www/public/. /assets_volume/
+        echo "Assets copied to volume"
+    fi
+    
+    # Ensure the symlink exists (only if it doesn't already exist)
+    if [ ! -L "public/storage" ]; then
+        echo "Creating storage symlink..."
+        if php artisan storage:link; then
+            echo "Storage symlink created successfully"
+        else
+            echo "Warning: Failed to create storage symlink, continuing..."
+        fi
+    else
+        echo "Storage symlink already exists, skipping..."
+    fi
+}
 
-echo "Laravel setup complete!"
 
-# Execute the main container command
-exec "$@"
+wait_for_db() {
+    echo "Waiting for database to be ready..."
+    local max_attempts=30
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        # Try to connect to database - this will work even if migrations haven't run yet
+        if ./artisan tinker --execute="DB::connection()->getPdo();" 2>/dev/null; then
+            echo "Database is ready!"
+            return 0
+        fi
+        
+        echo "Database not ready, attempt $attempt/$max_attempts..."
+        sleep 2
+        ((attempt++))
+    done
+    
+    echo "Database connection failed after $max_attempts attempts"
+    exit 1
+}
+
+run_migrations() {
+    ./artisan migrate --force
+}
+
+optimize_app() {
+    echo "Optimizing Laravel application..."
+    
+    # Clear any existing caches first
+    ./artisan optimize:clear
+    
+    ./artisan optimize
+}
+
+run_server() {
+    exec /usr/local/bin/docker-php-entrypoint "$@"
+}
+
+main "$@"
