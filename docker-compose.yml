@@ -29,8 +29,6 @@ services:
       - laravel-bootstrap-cache:/var/www/bootstrap/cache:rw
     networks:
       - sirius-network
-    env_file:
-      - ./laravel/.env
     entrypoint: ["/usr/local/bin/php-entrypoint"]
     command: ["php-fpm"]
 
