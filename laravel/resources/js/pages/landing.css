@@ -89,6 +89,102 @@
     --transition-fast: all 0.15s cubic-bezier(0, 0, 0.2, 1);
 }
 
+/* ============================================
+   PERFORMANCE UTILITIES
+   GPU-accelerated animations and layout optimization
+   ============================================ */
+
+/* Force GPU layer for smooth animations */
+.linear-landing .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Smooth scrolling with reduced jank */
+.linear-landing.smooth-scroll {
+    scroll-behavior: smooth;
+}
+
+/* Content visibility optimization for off-screen sections */
+.linear-landing .lazy-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
+}
+
+/* Section loader optimization */
+.linear-landing .section-loader {
+    contain: layout style;
+}
+
+/* Will-change hints for frequently animated elements */
+.linear-landing .hero-nebula,
+.linear-landing .hero-constellation,
+.linear-landing .hero-gradient {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+/* Optimize star animations */
+.linear-landing .sirius-hero::before {
+    will-change: background-position;
+    transform: translateZ(0);
+}
+
+/* Optimized meteor animations */
+.linear-landing [class*="meteor"] {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+/* Premium card hover optimization */
+.linear-landing .premium-card {
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+}
+
+/* ============================================
+   HERO ANIMATIONS - GPU Accelerated
+   ============================================ */
+
+/* Base fade-in for hero copy container */
+.linear-landing .hero-fade-in {
+    opacity: 0;
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.linear-landing .hero-fade-in.is-visible {
+    opacity: 1;
+}
+
+/* Headline word animation - GPU accelerated */
+.linear-landing .hero-word-animate {
+    opacity: 0;
+    transform: translateY(20%) translateZ(0);
+    transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+}
+
+.linear-landing .hero-word-animate.is-visible {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+}
+
+/* Generic hero element animation */
+.linear-landing .hero-element-animate {
+    opacity: 0;
+    transform: translateY(16px) translateZ(0);
+    transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+}
+
+.linear-landing .hero-element-animate.is-visible {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+}
+
 .linear-landing * {
     border-color: hsl(var(--border));
 }
