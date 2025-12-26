@@ -75,6 +75,7 @@ async def ask_gemini(prompt: str) -> tuple[str, UsageMetrics]:
         
         # Create usage metrics
         metrics = UsageMetrics(
+            model_name="gem2.5f",
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             cost=0.0
