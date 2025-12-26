@@ -28,10 +28,12 @@ COPY artisan ./
 RUN mkdir -p storage/framework/cache/data \
     && mkdir -p storage/framework/sessions \
     && mkdir -p storage/framework/views \
-    && mkdir -p storage/logs
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache
 
-# Generate Wayfinder routes with form variants
-RUN php artisan wayfinder:generate --with-form
+# Clear any cached config/services and generate Wayfinder routes with form variants
+RUN rm -f bootstrap/cache/*.php \
+    && php artisan wayfinder:generate --with-form
 
 # ----------------------------------------------------------------
 

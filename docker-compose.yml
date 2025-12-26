@@ -1,4 +1,16 @@
 services:
+  # LiteLLM Proxy
+  litellm-proxy:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./fastAPI/src/configllm.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
+    networks:
+      - sirius-network
+
   # FastAPI Application
   fastapi:
     build:
@@ -8,8 +20,8 @@ services:
     restart: unless-stopped
     ports:
       - "8005:8005"
-    env_file:
-      - ./fastAPI/src/.env
+    depends_on:
+      - litellm-proxy
     networks:
       - sirius-network
 
