@@ -1,12 +1,10 @@
 import logging
 from models.usage import UsageMetrics
 from openai import AsyncOpenAI
-from dotenv import load_dotenv
-load_dotenv()
 
 client = AsyncOpenAI(
     api_key="any key",
-    base_url="http://localhost:4000"
+    base_url="http://litellm-proxy:4000"
 )
 
 logger = logging.getLogger(__name__)

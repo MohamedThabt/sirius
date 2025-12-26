@@ -1,0 +1,31 @@
+general_settings:
+  num_retries: 3
+  retry_after: 2
+  allowed_fails: 1
+  cooldown_time: 30
+  
+model_list:
+  
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyBYukG9ZsLnPqqNv5PI_UKFBqYuFYmHQ8U"
+      rpm: 5
+
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyDSAST0nEFOt8fPIimsIQfthmsSmDXWLEs"
+      rpm: 5
+
+  - model_name: "cerebras"
+    litellm_params:
+      model: "cerebras/llama3.1-8b"
+      api_key: "k"
+      rpm: 5
+
+routing_strategy: simple-shuffle
+
+
+
+
