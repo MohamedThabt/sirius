@@ -34,14 +34,77 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
     email: "",
   });
 
+  const [validationErrors, setValidationErrors] = useState<{ name?: string; email?: string }>({});
+  const [touched, setTouched] = useState<{ name?: boolean; email?: boolean }>({});
+
+  const validateField = (field: 'name' | 'email', value: string): string | undefined => {
+    if (field === 'name') {
+      if (!value.trim()) {
+        return 'Name is required';
+      }
+      if (value.trim().length < 2) {
+        return 'Name must be at least 2 characters';
+      }
+    }
+    
+    if (field === 'email') {
+      if (!value.trim()) {
+        return 'Email is required';
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        return 'Please enter a valid email address';
+      }
+    }
+    
+    return undefined;
+  };
+
+  const validateForm = (): boolean => {
+    const nameError = validateField('name', data.name);
+    const emailError = validateField('email', data.email);
+    
+    setValidationErrors({ name: nameError, email: emailError });
+    setTouched({ name: true, email: true });
+    
+    return !nameError && !emailError;
+  };
+
+  const handleFieldChange = (field: 'name' | 'email', value: string) => {
+    setData(field, value);
+    
+    // Clear validation error when user starts typing (if field was touched)
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setValidationErrors(prev => ({ ...prev, [field]: error }));
+    }
+  };
+
+  const handleBlur = (field: 'name' | 'email') => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const error = validateField(field, data[field]);
+    setValidationErrors(prev => ({ ...prev, [field]: error }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     post("/beta/signup", {
       onSuccess: () => {
         setData({ name: "", email: "" });
+        setValidationErrors({});
+        setTouched({});
       },
     });
   };
+
+  // Combined errors: show validation errors first, then server errors
+  const nameError = validationErrors.name || errors.name;
+  const emailError = validationErrors.email || errors.email;
 
   return (
     <div className="linear-landing dark bg-background text-foreground">
@@ -172,17 +235,18 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                             id="name"
                             name="name"
                             value={data.name}
-                            onChange={(e) => setData("name", e.target.value)}
+                            onChange={(e) => handleFieldChange("name", e.target.value)}
+                            onBlur={() => handleBlur("name")}
                             placeholder="John Doe"
                             className={`w-full rounded-xl border bg-black/40 pl-10 pr-4 py-3.5 text-white placeholder-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
-                              errors.name
+                              nameError
                                 ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                                 : "border-white/10 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-white/20"
                             }`}
                           />
                       </div>
                       <AnimatePresence>
-                          {errors.name && (
+                          {nameError && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0, marginTop: 0 }}
                                 animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
@@ -190,7 +254,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                                 className="flex items-center gap-2 text-sm text-red-400 overflow-hidden"
                             >
                                 <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                                <span>{errors.name}</span>
+                                <span>{nameError}</span>
                             </motion.div>
                           )}
                       </AnimatePresence>
@@ -209,17 +273,18 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                             id="email"
                             name="email"
                             value={data.email}
-                            onChange={(e) => setData("email", e.target.value)}
+                            onChange={(e) => handleFieldChange("email", e.target.value)}
+                            onBlur={() => handleBlur("email")}
                             placeholder="you@example.com"
                             className={`w-full rounded-xl border bg-black/40 pl-10 pr-4 py-3.5 text-white placeholder-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
-                              errors.email
+                              emailError
                                 ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                                 : "border-white/10 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-white/20"
                             }`}
                           />
                       </div>
                       <AnimatePresence>
-                          {errors.email && (
+                          {emailError && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0, marginTop: 0 }}
                                 animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
@@ -227,7 +292,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                                 className="flex items-center gap-2 text-sm text-red-400 overflow-hidden"
                             >
                                 <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                                <span>{errors.email}</span>
+                                <span>{emailError}</span>
                             </motion.div>
                           )}
                       </AnimatePresence>
