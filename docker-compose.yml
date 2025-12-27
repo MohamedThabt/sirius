@@ -33,8 +33,39 @@ services:
     image: sirius-laravel:latest
     restart: unless-stopped
     working_dir: /var/www
-    env_file:
-      - ./laravel/.env
+    environment:
+      # App Configuration
+      - APP_NAME=${APP_NAME:-Sirius}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_URL=${APP_URL:-http://localhost}
+      # Database Configuration
+      - DB_CONNECTION=${DB_CONNECTION:-pgsql}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      # Session & Cache
+      - SESSION_DRIVER=${SESSION_DRIVER:-database}
+      - SESSION_DOMAIN=${SESSION_DOMAIN:-}
+      - SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-true}
+      - CACHE_STORE=${CACHE_STORE:-database}
+      # FastAPI Integration
+      - FASTAPI_BASE_URL=${FASTAPI_BASE_URL:-http://fastapi:8005}
+      # Telescope
+      - TELESCOPE_ENABLED=${TELESCOPE_ENABLED:-false}
+      # OAuth (GitHub & Google)
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      # Telegram
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_NOTIFICATIONS_ENABLED=${TELEGRAM_NOTIFICATIONS_ENABLED:-false}
+      - TELEGRAM_TOPIC_ID=${TELEGRAM_TOPIC_ID:-}
     expose:
       - 9000
     volumes:
