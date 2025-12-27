@@ -33,6 +33,20 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        {{-- Default SEO Meta Tags (can be overridden by Inertia Head component) --}}
+        <meta name="description" content="From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators.">
+        <meta name="keywords" content="AI project planning, PRD generator, ERD generator, wireframe generator, software requirements, project documentation, AI code generation, GitHub integration, sequence diagrams, user stories">
+        <meta name="author" content="Sirius">
+        <meta name="theme-color" content="#0F172A">
+
+        {{-- Open Graph Defaults --}}
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="{{ config('app.name', 'Sirius') }}">
+        <meta property="og:locale" content="en_US">
+
+        {{-- Twitter Card Defaults --}}
+        <meta name="twitter:card" content="summary_large_image">
+
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">

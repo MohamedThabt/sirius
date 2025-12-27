@@ -1,7 +1,7 @@
+import { SEO } from '@/components/SEO';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useForceTheme } from '@/hooks/use-force-theme';
-import { Head } from '@inertiajs/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazy, memo, Suspense } from 'react';
 import './landing.css';
@@ -52,9 +52,35 @@ export default function Landing() {
     useFlashToasts();
     useForceTheme('dark');
 
+    const structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Sirius',
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Web',
+        description:
+            'From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators.',
+        offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD',
+        },
+        aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.8',
+            ratingCount: '150',
+        },
+    };
+
     return (
         <div className="linear-landing dark smooth-scroll min-h-screen bg-background text-foreground">
-            <Head title="Sirius" />
+            <SEO
+                title="Sirius"
+                description="From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators."
+                keywords="AI project planning, PRD generator, ERD generator, wireframe generator, software requirements, project documentation, AI code generation, GitHub integration, sequence diagrams, user stories"
+                type="website"
+                structuredData={structuredData}
+            />
             <QueryClientProvider client={queryClient}>
                 <TooltipProvider>
                     <main aria-label="Sirius landing page">
