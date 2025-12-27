@@ -82,6 +82,7 @@ services:
       start_period: 60s
     networks:
       - app-network
+      - dokploy-network
 
   # Nginx Web Server for Laravel
   nginx:
@@ -107,3 +108,5 @@ volumes:
 networks:
   app-network:
     driver: bridge
+  dokploy-network:
+    external: true
