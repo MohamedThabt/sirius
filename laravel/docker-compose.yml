@@ -16,8 +16,8 @@ services:
       - dokploy-network
     env_file:
       - .env
-    entrypoint: ["/usr/local/bin/php-entrypoint"]
-    command: ["php-fpm"]
+    entrypoint: ['/usr/local/bin/php-entrypoint']
+    command: ['php-fpm']
 
   # The Nginx Web Server Container
   prod-nginx:
