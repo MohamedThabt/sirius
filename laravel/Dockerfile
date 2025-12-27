@@ -20,6 +20,7 @@ RUN sed 's_@php artisan package:discover_/bin/true_;' -i composer.json \
 # Copy application code needed for route generation
 COPY app/ ./app/
 COPY bootstrap/ ./bootstrap/
+RUN rm -f bootstrap/cache/*.php
 COPY config/ ./config/
 COPY routes/ ./routes/
 COPY artisan ./
