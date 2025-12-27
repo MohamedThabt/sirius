@@ -24,10 +24,13 @@ main() {
     echo "Step 4: Running migrations..."
     run_migrations
     
-    echo "Step 5: Optimizing app..."
+    echo "Step 5: Running seeders..."
+    run_seeders
+    
+    echo "Step 6: Optimizing app..."
     optimize_app
     
-    echo "Step 6: Starting server..."
+    echo "Step 7: Starting server..."
     run_server "$@"
 }
 
@@ -112,6 +115,11 @@ wait_for_db() {
 
 run_migrations() {
     ./artisan migrate --force
+}
+
+run_seeders() {
+    echo "Running database seeders..."
+    ./artisan db:seed --force
 }
 
 optimize_app() {

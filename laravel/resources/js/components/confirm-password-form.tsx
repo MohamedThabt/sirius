@@ -1,5 +1,4 @@
 import { store } from '@/actions/App/Http/Controllers/Auth/ConfirmablePasswordController';
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,8 +9,14 @@ export function ConfirmPasswordForm() {
     return (
         <div className="flex w-full max-w-sm flex-col gap-6">
             <Form {...store.form()} resetOnSuccess={['password']} className="flex flex-col gap-6">
-                {({ processing, errors }) => (
-                    <div className="grid gap-6">
+                {({ processing, errors, hasErrors }) => (
+                    <>
+                        {hasErrors && (
+                            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm font-medium text-red-400 backdrop-blur-sm">
+                                {errors.password || 'The provided password is incorrect.'}
+                            </div>
+                        )}
+                        <div className="grid gap-6">
                         <div className="grid gap-2">
                             <Label htmlFor="password">Password</Label>
                             <Input
@@ -23,7 +28,6 @@ export function ConfirmPasswordForm() {
                                 autoComplete="current-password"
                                 placeholder="Password"
                             />
-                            <InputError message={errors.password} />
                         </div>
 
                         <Button 
@@ -34,7 +38,8 @@ export function ConfirmPasswordForm() {
                             {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                             Confirm password
                         </Button>
-                    </div>
+                        </div>
+                    </>
                 )}
             </Form>
         </div>

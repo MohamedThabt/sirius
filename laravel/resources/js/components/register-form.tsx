@@ -1,5 +1,4 @@
 import { store } from '@/actions/App/Http/Controllers/Auth/RegisteredUserController';
-import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,8 +11,19 @@ export function RegisterForm() {
     return (
         <div className="flex w-full flex-col gap-6">
             <Form {...store.form()} resetOnSuccess={['password', 'password_confirmation']} disableWhileProcessing className="flex flex-col gap-6">
-                {({ processing, errors }) => (
+                {({ processing, errors, hasErrors }) => (
                     <>
+                        {hasErrors && (
+                            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400 backdrop-blur-sm">
+                                <p className="font-semibold">Please fix the following errors:</p>
+                                <ul className="mt-1 list-inside list-disc text-left">
+                                    {errors.name && <li>{errors.name}</li>}
+                                    {errors.email && <li>{errors.email}</li>}
+                                    {errors.password && <li>{errors.password}</li>}
+                                    {errors.password_confirmation && <li>{errors.password_confirmation}</li>}
+                                </ul>
+                            </div>
+                        )}
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
@@ -27,7 +37,6 @@ export function RegisterForm() {
                                     name="name"
                                     placeholder="Full name"
                                 />
-                                <InputError message={errors.name} className="mt-2" />
                             </div>
 
                             <div className="grid gap-2">
@@ -41,7 +50,6 @@ export function RegisterForm() {
                                     name="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
@@ -55,7 +63,6 @@ export function RegisterForm() {
                                     name="password"
                                     placeholder="Password"
                                 />
-                                <InputError message={errors.password} />
                             </div>
 
                             <div className="grid gap-2">
@@ -69,7 +76,6 @@ export function RegisterForm() {
                                     name="password_confirmation"
                                     placeholder="Confirm password"
                                 />
-                                <InputError message={errors.password_confirmation} />
                             </div>
 
                             <Button 
