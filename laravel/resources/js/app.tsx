@@ -1,17 +1,22 @@
 import '../css/app.css';
 
+import { FeedbackWidget } from '@/components/FeedbackWidget';
+import { Toaster } from '@/components/ui/sonner';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'sonner';
-import { FeedbackWidget } from '@/components/FeedbackWidget';
-import { Toaster } from '@/components/ui/sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: (title) => {
+        if (!title) return appName;
+        // If title is exactly "Sirius", return it without appending appName
+        if (title === 'Sirius') return title;
+        return `${title} - ${appName}`;
+    },
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
@@ -28,7 +33,6 @@ createInertiaApp({
         color: '#4B5563',
     },
 });
-
 
 // Handle CSRF token mismatch errors
 // Based on: https://inertiajs.com/csrf-protection#handling-mismatches
