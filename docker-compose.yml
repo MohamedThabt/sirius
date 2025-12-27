@@ -3,13 +3,12 @@ services:
   litellm-proxy:
     image: ghcr.io/berriai/litellm:main-latest
     restart: unless-stopped
+    container_name: litellm-proxy
     ports:
       - "4000:4000"
     volumes:
       - ./fastAPI/src/configllm.yaml:/app/config.yaml
     command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
-    networks:
-      - sirius-network
 
   # FastAPI Application
   fastapi:
@@ -18,12 +17,11 @@ services:
       dockerfile: Dockerfile
     image: sirius-fastapi:latest
     restart: unless-stopped
+    container_name: fastapi
     ports:
       - "8005:8005"
     depends_on:
       - litellm-proxy
-    networks:
-      - sirius-network
 
   # Laravel Application
   laravel-app:
@@ -32,6 +30,7 @@ services:
       dockerfile: Dockerfile
     image: sirius-laravel:latest
     restart: unless-stopped
+    container_name: laravel-app
     working_dir: /var/www
     expose:
       - 9000
@@ -39,15 +38,20 @@ services:
       - laravel-storage:/var/www/storage:rw
       - laravel-public:/var/www/public:rw
       - laravel-bootstrap-cache:/var/www/bootstrap/cache:rw
-    networks:
-      - sirius-network
     entrypoint: ["/usr/local/bin/php-entrypoint"]
     command: ["php-fpm"]
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep php-fpm > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
   # Nginx Web Server for Laravel
   nginx:
     image: nginx:alpine
     restart: unless-stopped
+    container_name: nginx
     ports:
       - "80"
     volumes:
@@ -55,15 +59,10 @@ services:
       - laravel-public:/var/www/public:ro
       - laravel-storage:/var/www/storage:rw
     depends_on:
-      - laravel-app
-    networks:
-      - sirius-network
+      laravel-app:
+        condition: service_started
 
 volumes:
   laravel-storage:
   laravel-public:
   laravel-bootstrap-cache:
-
-networks:
-  sirius-network:
-    driver: bridge
