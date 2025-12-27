@@ -6,6 +6,7 @@ main() {
     echo "Working directory: $(pwd)"
     echo "User: $(whoami)"
     echo "PHP version: $(php --version | head -1)"
+    echo "Entrypoint Version: 2025-12-27-FIXED-PERMISSIONS"
     echo "=========================================="
     
     # Enable strict error handling
