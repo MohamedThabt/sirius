@@ -123,6 +123,9 @@ RUN composer dump-autoload --optimize \
 # --- FINAL ROOT-LEVEL TASKS ---
 USER root
 
+# Backup public files so they can be restored when volume is mounted
+RUN cp -r /var/www/public /public_backup
+
 COPY ./scripts/php-entrypoint /usr/local/bin/php-entrypoint
 RUN chmod +x /usr/local/bin/php-entrypoint
 
