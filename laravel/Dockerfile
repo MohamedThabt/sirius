@@ -28,12 +28,10 @@ COPY artisan ./
 RUN mkdir -p storage/framework/cache/data \
     && mkdir -p storage/framework/sessions \
     && mkdir -p storage/framework/views \
-    && mkdir -p storage/logs \
-    && mkdir -p bootstrap/cache
+    && mkdir -p storage/logs
 
-# Clear any cached config/services and generate Wayfinder routes with form variants
-RUN rm -f bootstrap/cache/*.php \
-    && php artisan wayfinder:generate --with-form
+# Generate Wayfinder routes with form variants
+RUN php artisan wayfinder:generate --with-form
 
 # ----------------------------------------------------------------
 
@@ -122,9 +120,6 @@ RUN composer dump-autoload --optimize \
 
 # --- FINAL ROOT-LEVEL TASKS ---
 USER root
-
-# Backup public files so they can be restored when volume is mounted
-RUN cp -r /var/www/public /public_backup
 
 COPY ./scripts/php-entrypoint /usr/local/bin/php-entrypoint
 RUN chmod +x /usr/local/bin/php-entrypoint

@@ -68,11 +68,10 @@ prepare_storage() {
         echo "Warning: Failed to set storage permissions, continuing..."
     fi
 
-    # Restore public files from backup (needed because volume mount hides image files)
-    if [ -d "/public_backup" ]; then
-        echo "Restoring public files from backup..."
-        cp -r /public_backup/. /var/www/public/
-        echo "Public files restored successfully"
+    # Copy assets to volume if it exists
+    if [ -d "/assets_volume" ]; then
+        cp -r /var/www/public/. /assets_volume/
+        echo "Assets copied to volume"
     fi
     
     # Ensure the symlink exists (only if it doesn't already exist)

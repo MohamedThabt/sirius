@@ -1,112 +1,44 @@
 services:
-  # LiteLLM Proxy
-  litellm-proxy:
-    image: ghcr.io/berriai/litellm:main-latest
-    restart: unless-stopped
-    ports:
-      - "4000:4000"
-    volumes:
-      - ./fastAPI/src/configllm.yaml:/app/config.yaml
-    command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
-    networks:
-      - app-network
-
-  # FastAPI Application
-  fastapi:
-    build:
-      context: ./fastAPI
-      dockerfile: Dockerfile
-    image: sirius-fastapi:latest
-    restart: unless-stopped
-    ports:
-      - "8005:8005"
-    depends_on:
-      - litellm-proxy
-    networks:
-      - app-network
-
-  # Laravel Application
-  laravel-app:
+  # The Laravel Application Container
+  prod-app:
     build:
       context: ./laravel
       dockerfile: Dockerfile
-    image: sirius-laravel:latest
     restart: unless-stopped
     working_dir: /var/www
-    environment:
-      # App Configuration
-      - APP_NAME=${APP_NAME:-Sirius}
-      - APP_ENV=${APP_ENV:-production}
-      - APP_KEY=${APP_KEY}
-      - APP_DEBUG=${APP_DEBUG:-false}
-      - APP_URL=${APP_URL:-http://localhost}
-      # Database Configuration
-      - DB_CONNECTION=${DB_CONNECTION:-pgsql}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      # Session & Cache
-      - SESSION_DRIVER=${SESSION_DRIVER:-database}
-      - SESSION_DOMAIN=${SESSION_DOMAIN:-}
-      - SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-true}
-      - CACHE_STORE=${CACHE_STORE:-database}
-      # FastAPI Integration
-      - FASTAPI_BASE_URL=${FASTAPI_BASE_URL:-http://fastapi:8005}
-      # Telescope
-      - TELESCOPE_ENABLED=${TELESCOPE_ENABLED:-false}
-      # OAuth (GitHub & Google)
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
-      # Telegram
-      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
-      - TELEGRAM_NOTIFICATIONS_ENABLED=${TELEGRAM_NOTIFICATIONS_ENABLED:-false}
-      - TELEGRAM_TOPIC_ID=${TELEGRAM_TOPIC_ID:-}
     expose:
       - 9000
     volumes:
-      - laravel-storage:/var/www/storage:rw
-      - laravel-public:/var/www/public:rw
-      - laravel-bootstrap-cache:/var/www/bootstrap/cache:rw
+      - storage:/var/www/storage:rw
+      - public_assets:/assets_volume
+      - bootstrap-cache:/var/www/bootstrap/cache:rw
+    networks:
+      - dokploy-network
+    env_file:
+      - .env
     entrypoint: ["/usr/local/bin/php-entrypoint"]
     command: ["php-fpm"]
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep php-fpm > /dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 60s
-    networks:
-      - app-network
-      - dokploy-network
 
-  # Nginx Web Server for Laravel
-  nginx:
+  # The Nginx Web Server Container
+  prod-nginx:
     image: nginx:alpine
     restart: unless-stopped
-    ports:
-      - "80"
+    expose:
+      - 80
     volumes:
       - ./laravel/.docker/nginx.conf:/etc/nginx/conf.d/default.conf
-      - laravel-public:/var/www/public:ro
-      - laravel-storage:/var/www/storage:rw
+      - public_assets:/var/www/public:ro
+      - storage:/var/www/storage:rw
     depends_on:
-      laravel-app:
-        condition: service_started
+      - prod-app
     networks:
-      - app-network
+      - dokploy-network
 
 volumes:
-  laravel-storage:
-  laravel-public:
-  laravel-bootstrap-cache:
+  storage:
+  public_assets:
+  bootstrap-cache:
 
 networks:
-  app-network:
-    driver: bridge
   dokploy-network:
     external: true
