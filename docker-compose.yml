@@ -33,33 +33,14 @@ services:
     image: sirius-laravel:latest
     restart: unless-stopped
     working_dir: /var/www
+    env_file:
+      - ./laravel/.env
     expose:
       - 9000
-    environment:
-      # App Configuration
-      - APP_NAME=${APP_NAME:-Sirius}
-      - APP_ENV=${APP_ENV:-production}
-      - APP_KEY=${APP_KEY}
-      - APP_DEBUG=${APP_DEBUG:-false}
-      - APP_URL=${APP_URL:-http://localhost}
-      # Database Configuration
-      - DB_CONNECTION=${DB_CONNECTION:-sqlite}
-      - DB_HOST=${DB_HOST:-}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_DATABASE=${DB_DATABASE:-}
-      - DB_USERNAME=${DB_USERNAME:-}
-      - DB_PASSWORD=${DB_PASSWORD:-}
-      # Session & Cache
-      - SESSION_DRIVER=${SESSION_DRIVER:-database}
-      - SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-true}
-      - CACHE_STORE=${CACHE_STORE:-database}
-      # FastAPI Integration
-      - FASTAPI_BASE_URL=${FASTAPI_BASE_URL:-http://fastapi:8005}
     volumes:
       - laravel-storage:/var/www/storage:rw
       - laravel-public:/var/www/public:rw
       - laravel-bootstrap-cache:/var/www/bootstrap/cache:rw
-      - laravel-database:/var/www/database:rw
     entrypoint: ["/usr/local/bin/php-entrypoint"]
     command: ["php-fpm"]
     healthcheck:
@@ -91,7 +72,6 @@ volumes:
   laravel-storage:
   laravel-public:
   laravel-bootstrap-cache:
-  laravel-database:
 
 networks:
   app-network:
