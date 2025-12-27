@@ -7,18 +7,22 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Get the migration connection name.
+     * The database connection that should be used by the migration.
+     *
+     * @var string
      */
-    public function getConnection(): ?string
-    {
-        return config('telescope.storage.database.connection');
-    }
+    protected $connection = null; // Uses the default DB connection (pgsql in production)
 
     /**
      * Run the migrations.
      */
     public function up(): void
     {
+        // Skip migration if Telescope is disabled in production
+        if (! config('telescope.enabled', false)) {
+            return;
+        }
+
         $schema = Schema::connection($this->getConnection());
 
         $schema->create('telescope_entries', function (Blueprint $table) {
@@ -43,12 +47,13 @@ return new class extends Migration
             $table->string('tag');
 
             $table->primary(['entry_uuid', 'tag']);
-            $table->index('tag');
 
             $table->foreign('entry_uuid')
                 ->references('uuid')
                 ->on('telescope_entries')
                 ->onDelete('cascade');
+
+            $table->index('tag');
         });
 
         $schema->create('telescope_monitoring', function (Blueprint $table) {
@@ -61,10 +66,23 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip migration if Telescope is disabled in production
+        if (! config('telescope.enabled', false)) {
+            return;
+        }
+
         $schema = Schema::connection($this->getConnection());
 
         $schema->dropIfExists('telescope_entries_tags');
         $schema->dropIfExists('telescope_entries');
         $schema->dropIfExists('telescope_monitoring');
+    }
+
+    /**
+     * Get the migration connection name.
+     */
+    public function getConnection(): ?string
+    {
+        return $this->connection ?? config('telescope.storage.database.connection');
     }
 };
