@@ -27,7 +27,7 @@ const teamMembers: TeamMember[] = [
     },
     {
         name: 'Kyrillos Nady',
-        role: 'Penetration Tester',
+        role: 'QA & Security Engineer',
         image: '/images/team/kyrillos.png',
         website: 'https://0xk3r0.github.io/',
         gender: 'male',
