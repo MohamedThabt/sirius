@@ -1,12 +1,13 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { TeamMemberCard } from '@/components/Team/TeamMemberCard';
 import { Button } from '@/components/ui/button';
 import { Meteors } from '@/components/ui/meteors';
 import { useForceTheme } from '@/hooks/use-force-theme';
 import type { TeamMember } from '@/types';
+import { preloadImages } from '@/utils/image-preloader';
 import './landing.css';
 
 // Team members - 7 engineers
@@ -62,12 +63,21 @@ export default function Team() {
     useForceTheme('dark');
     const [isVisible, setIsVisible] = useState(false);
 
+    // Preload team images when component mounts
+    useEffect(() => {
+        const imageSources = teamMembers.filter((member) => member.image).map((member) => member.image!);
+
+        if (imageSources.length > 0) {
+            preloadImages(imageSources, 'low');
+        }
+    }, []);
+
     // Simple entrance animation effect
-    useState(() => {
+    useEffect(() => {
         // Just trigger the state change on mount for the fade-in classes
         // Note: Using a timeout to ensure initial render is 0 opacity
         setTimeout(() => setIsVisible(true), 50);
-    });
+    }, []);
 
     return (
         <>

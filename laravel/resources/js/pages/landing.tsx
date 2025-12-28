@@ -78,6 +78,7 @@ export default function Landing() {
                 title="Sirius"
                 description="From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators."
                 keywords="AI project planning, PRD generator, ERD generator, wireframe generator, software requirements, project documentation, AI code generation, GitHub integration, sequence diagrams, user stories"
+                image="/images/seo/image.png"
                 type="website"
                 structuredData={structuredData}
             />

@@ -1,5 +1,6 @@
-import { Linkedin, Globe } from 'lucide-react';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import type { TeamMember } from '@/types';
+import { Globe, Linkedin } from 'lucide-react';
 
 interface TeamMemberCardProps {
     member: TeamMember;
@@ -14,39 +15,25 @@ const getAvatarUrl = (name: string) => {
 export const TeamMemberCard = ({ member }: TeamMemberCardProps) => {
     const primaryLink = member.linkedin || member.website;
     const avatarUrl = member.image || getAvatarUrl(member.name);
-    
+
     return (
-        <a
-            href={primaryLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block"
-        >
-            <div className="flex flex-col items-center text-center p-6 rounded-2xl transition-all duration-300 hover:bg-white/[0.03]">
+        <a href={primaryLink} target="_blank" rel="noopener noreferrer" className="group block">
+            <div className="flex flex-col items-center rounded-2xl p-6 text-center transition-all duration-300 hover:bg-white/[0.03]">
                 {/* Avatar */}
-                <div 
-                    className="relative mb-4 w-28 h-28 rounded-full overflow-hidden transition-transform duration-300 group-hover:scale-105 border-4 border-white/5 shadow-xl shadow-black/20"
-                >
-                    <img 
-                        src={avatarUrl} 
-                        alt={member.name} 
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                    />
+                <div className="relative mb-4 h-28 w-28 overflow-hidden rounded-full border-4 border-white/5 shadow-xl shadow-black/20 transition-transform duration-300 group-hover:scale-105">
+                    <OptimizedImage src={avatarUrl} alt={member.name} width={112} height={112} className="h-full w-full object-cover" />
                 </div>
-                
+
                 {/* Name */}
-                <h3 className="text-lg font-medium text-white mb-1 group-hover:text-indigo-300 transition-colors">
-                    {member.name}
-                </h3>
-                
+                <h3 className="mb-1 text-lg font-medium text-white transition-colors group-hover:text-indigo-300">{member.name}</h3>
+
                 {/* Role */}
-                <p className="text-sm text-white/50 mb-3">{member.role}</p>
-                
+                <p className="mb-3 text-sm text-white/50">{member.role}</p>
+
                 {/* Social icons */}
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
-                    {member.linkedin && <Linkedin className="h-4 w-4 text-white/50 hover:text-white transition-colors" />}
-                    {member.website && <Globe className="h-4 w-4 text-white/50 hover:text-white transition-colors" />}
+                <div className="flex translate-y-2 items-center gap-2 opacity-0 transition-opacity duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                    {member.linkedin && <Linkedin className="h-4 w-4 text-white/50 transition-colors hover:text-white" />}
+                    {member.website && <Globe className="h-4 w-4 text-white/50 transition-colors hover:text-white" />}
                 </div>
             </div>
         </a>

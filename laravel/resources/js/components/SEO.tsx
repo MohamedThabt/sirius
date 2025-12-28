@@ -29,8 +29,9 @@ export function SEO({
     const currentUrl = page.url;
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const fullTitle = title ? (title === 'Sirius' ? title : `${title} - ${siteName}`) : siteName;
-    const defaultDescription = 'From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators.';
-    const defaultImage = image || (baseUrl ? `${baseUrl}/images/og-image.png` : '/images/og-image.png');
+    const defaultDescription =
+        'From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators.';
+    const defaultImage = image || (baseUrl ? `${baseUrl}/images/seo/image.png` : '/images/seo/image.png');
     const canonicalUrl = url || (baseUrl ? `${baseUrl}${currentUrl}` : currentUrl);
 
     return (
@@ -65,13 +66,7 @@ export function SEO({
             <meta name="apple-mobile-web-app-title" content={siteName} />
 
             {/* Structured Data (JSON-LD) */}
-            {structuredData && (
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-                />
-            )}
+            {structuredData && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />}
         </Head>
     );
 }
-
