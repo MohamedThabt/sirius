@@ -102,7 +102,8 @@ USER www-data
 # 1. Copy and install PHP dependencies
 COPY --chown=www-data:www-data composer.json composer.lock ./
 RUN sed 's_@php artisan package:discover_/bin/true_;' -i composer.json \
-    && composer install --ignore-platform-req=php --no-dev --no-scripts --optimize-autoloader
+    && COMPOSER_MEMORY_LIMIT=-1 composer install --ignore-platform-req=php --no-dev --no-scripts --no-interaction --prefer-dist --verbose \
+    && COMPOSER_MEMORY_LIMIT=-1 composer dump-autoload --optimize --no-interaction --verbose
 
 COPY --chown=www-data:www-data package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 RUN pnpm install --prod --frozen-lockfile
@@ -112,8 +113,7 @@ COPY --chown=www-data:www-data . .
 COPY --from=frontend-builder /app/public/build ./public/build
 
 # Finalize composer and set permissions
-RUN composer dump-autoload --optimize \
-    && php artisan package:discover --ansi \
+RUN php artisan package:discover --ansi \
     && composer clear-cache \
     && mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache \
     && chmod -R 775 storage bootstrap/cache \
@@ -126,4 +126,5 @@ COPY ./scripts/php-entrypoint /usr/local/bin/php-entrypoint
 RUN chmod +x /usr/local/bin/php-entrypoint
 
 EXPOSE 9000
+ENTRYPOINT ["/usr/local/bin/php-entrypoint"]
 CMD ["php-fpm"]

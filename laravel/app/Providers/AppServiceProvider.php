@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Socialite\Facades\Socialite;
 use SocialiteProviders\GitHub\Provider as GitHubProvider;
@@ -23,10 +24,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Force HTTPS in production
-        // if (app()->environment('production')) {
-        //     \Illuminate\Support\Facades\URL::forceScheme('https');
-        // }
+        // #region agent log
+        Log::info('[DEBUG-BOOT] AppServiceProvider boot', [
+            'hypothesisId' => 'E',
+            'app_env' => config('app.env'),
+            'app_url' => config('app.url'),
+            'session_driver' => config('session.driver'),
+            'session_secure' => config('session.secure'),
+        ]);
+        // #endregion
+
+        // Force HTTPS in production when behind reverse proxy
+        // This is a safety net in case X-Forwarded-Proto header is missing
+        if (app()->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
 
         // Register Socialite providers
         $this->bootSocialiteProviders();

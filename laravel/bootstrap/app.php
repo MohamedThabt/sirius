@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\DebugRedirectMiddleware;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ShareProjectData;
@@ -26,6 +27,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO
         );
+
+        // Debug middleware - prepend to run first
+        $middleware->prepend(DebugRedirectMiddleware::class);
 
         $middleware->web(append: [
             HandleAppearance::class,
