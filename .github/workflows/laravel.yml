@@ -48,8 +48,6 @@ jobs:
           push: true
           tags: ${{ steps.meta-laravel.outputs.tags }}
           labels: ${{ steps.meta-laravel.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           provenance: false
           sbom: false
 
