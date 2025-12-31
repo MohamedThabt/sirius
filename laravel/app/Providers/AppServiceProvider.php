@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Socialite\Facades\Socialite;
 use SocialiteProviders\GitHub\Provider as GitHubProvider;
@@ -24,16 +24,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // #region agent log
-        Log::info('[DEBUG-BOOT] AppServiceProvider boot', [
-            'hypothesisId' => 'E',
-            'app_env' => config('app.env'),
-            'app_url' => config('app.url'),
-            'session_driver' => config('session.driver'),
-            'session_secure' => config('session.secure'),
-        ]);
-        // #endregion
-
         // Force HTTPS in production when behind reverse proxy
         // This is a safety net in case X-Forwarded-Proto header is missing
         if (app()->environment('production')) {
@@ -42,6 +32,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Socialite providers
         $this->bootSocialiteProviders();
+
+        // Authorize Laravel Pulse access for admin guard only
+        Gate::define('viewPulse', function () {
+            return auth()->guard('admin')->check();
+        });
     }
 
     /**

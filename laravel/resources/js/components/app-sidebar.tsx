@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
-import { Briefcase, Bug, LayoutDashboard, MessageSquare, ScrollText, Shield, Telescope, Users, Zap } from 'lucide-react';
+import { Activity, Briefcase, Bug, LayoutDashboard, MessageSquare, ScrollText, Shield, Telescope, Users, Zap } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppearanceToggleDropdown from './appearance-dropdown';
 
@@ -54,8 +54,13 @@ const adminNavItems: NavItem[] = [
     },
     {
         title: 'Telescope',
-        href: '/telescope',
+        href: '/admin/telescope',
         icon: Telescope,
+    },
+    {
+        title: 'Pulse',
+        href: '/admin/pulse',
+        icon: Activity,
     },
 ];
 
