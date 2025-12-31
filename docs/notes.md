@@ -56,3 +56,6 @@ Primary users are university students and professors in STEM fields who need col
 Our platform transforms passive video consumption into active collaborative learning experiences. Students learn faster through peer interaction, real-time problem-solving sessions, and immediate feedback mechanisms. Educators get detailed analytics on student engagement and learning patterns, while institutions see improved course completion rates and student satisfaction scores compared to traditional LMS platforms.
 
 Core functionality includes virtual whiteboards for collaborative problem-solving, breakout room management, peer review systems, and real-time code collaboration tools. Advanced features include AI-powered study group matching, automated assignment distribution, plagiarism detection, video recording with timestamped annotations, mobile learning apps, and integration with existing LMS platforms. The system will also include analytics dashboards, accessibility tools for disabled students, and multi-language support.
+
+
+docploy push test
