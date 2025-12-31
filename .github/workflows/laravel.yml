@@ -57,14 +57,4 @@ jobs:
       - name: Trigger Dokploy deployment
         if: success()
         run: |
-          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/6o4154MgFhTsHvUloM2om" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "ref": "${{ github.ref_name }}",
-              "sha": "${{ github.sha }}",
-              "repository": "${{ github.repository }}",
-              "pusher": {
-                "name": "${{ github.actor }}",
-                "email": "${{ github.actor }}@users.noreply.github.com"
-              }
-            }'
+          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/6o4154MgFhTsHvUloM2om"
