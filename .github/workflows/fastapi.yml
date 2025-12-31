@@ -56,7 +56,7 @@ jobs:
       - name: Trigger Dokploy Deployment
         if: success()
         run: |
-          curl -X POST ${{ secrets.DOKPLOY_WEBHOOK_URL_FASTAPI }} \
+          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/nFCrbfzxWWJJk-Wgd8JWs" \
             -H "Content-Type: application/json" \
             -d '{
               "ref": "${{ github.ref }}",
