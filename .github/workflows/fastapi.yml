@@ -33,3 +33,9 @@ jobs:
           tags: ghcr.io/mohamedthabt/sirius-fastapi:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Trigger Dokploy Deployment
+        if: success()
+        run: |
+          curl -X POST ${{ secrets.DOKPLOY_WEBHOOK_URL_FASTAPI }}
+        continue-on-error: true
