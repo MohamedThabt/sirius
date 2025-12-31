@@ -11,8 +11,9 @@ services:
       - public_assets:/assets_volume # Target for entrypoint copy script
       - storage:/var/www/storage:rw
     networks:
-      - sirius-network
-    # Environment variables managed via Dokploy UI
+      - dokploy-network
+    env_file:
+      - .env
 
   # Nginx Web Server (Production - Standard Image)
   prod-nginx:
@@ -28,12 +29,12 @@ services:
     depends_on:
       - prod-app
     networks:
-      - sirius-network
+      - dokploy-network
 
 volumes:
   public_assets:
   storage:
 
 networks:
-  sirius-network:
-    driver: bridge
+  dokploy-network:
+    external: true
