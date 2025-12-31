@@ -19,8 +19,8 @@ services:
     image: nginx:alpine
     pull_policy: always
     restart: unless-stopped
-    ports:
-      - "80:80"
+    expose:
+      - 80
     volumes:
       - ./.docker/nginx.prod.conf:/etc/nginx/conf.d/default.conf
       - public_assets:/var/www/public:ro # Read from shared volume
