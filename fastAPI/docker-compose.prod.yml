@@ -2,6 +2,7 @@ services:
   # LiteLLM Proxy
   litellm-proxy:
     image: ghcr.io/berriai/litellm:main-latest
+    pull_policy: always
     restart: unless-stopped
     ports:
       - "4000:4000"
@@ -14,6 +15,7 @@ services:
   # FastAPI Application (Production - Pulls from GHCR)
   fastapi:
     image: ghcr.io/mohamedthabt/sirius-fastapi:latest
+    pull_policy: always
     restart: unless-stopped
     ports:
       - "8005:8005"
