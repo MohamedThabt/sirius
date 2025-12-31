@@ -1,43 +1,36 @@
 services:
-  # The Laravel Application Container
-  prod-app:
-    image: ghcr.io/mohamedthabt/sirius-laravel:latest
-    pull_policy: always
+  # The Laravel Application Container (Local Development - builds from Dockerfile)
+  dev-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     working_dir: /var/www
     expose:
       - 9000
     volumes:
-      - storage:/var/www/storage:rw
-      - public_assets:/assets_volume
-      - bootstrap-cache:/var/www/bootstrap/cache:rw
+      - .:/var/www
+      - /var/www/vendor  # Exclude vendor from bind mount
+      - /var/www/node_modules  # Exclude node_modules from bind mount
     networks:
-      - dokploy-network
+      - dev-network
     env_file:
       - .env
-    entrypoint: ['/usr/local/bin/php-entrypoint']
-    command: ['php-fpm']
 
   # The Nginx Web Server Container
-  prod-nginx:
+  dev-nginx:
     image: nginx:alpine
     restart: unless-stopped
-    expose:
-      - 80
+    ports:
+      - "80:80"
     volumes:
       - ./.docker/nginx.prod.conf:/etc/nginx/conf.d/default.conf
-      - public_assets:/var/www/public:ro
-      - storage:/var/www/storage:rw
+      - .:/var/www
     depends_on:
-      - prod-app
+      - dev-app
     networks:
-      - dokploy-network
-
-volumes:
-  storage:
-  public_assets:
-  bootstrap-cache:
+      - dev-network
 
 networks:
-  dokploy-network:
-    external: true
+  dev-network:
+    driver: bridge

@@ -1,0 +1,28 @@
+services:
+  # LiteLLM Proxy
+  litellm-proxy:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./src/configllm.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
+    networks:
+      - app-network
+
+  # FastAPI Application (Pre-built from GHCR)
+  fastapi:
+    image: ghcr.io/mohamedthabt/sirius-fastapi:latest
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "8005:8005"
+    depends_on:
+      - litellm-proxy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

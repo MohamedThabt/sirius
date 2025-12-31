@@ -11,10 +11,11 @@ services:
     networks:
       - app-network
 
-  # FastAPI Application
+  # FastAPI Application (Local Development - builds from Dockerfile)
   fastapi:
-    image: ghcr.io/mohamedthabt/sirius-fastapi:latest
-    pull_policy: always
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "8005:8005"
@@ -22,6 +23,8 @@ services:
       - litellm-proxy
     networks:
       - app-network
+    volumes:
+      - ./src:/app  # Hot reload for development
 
 networks:
   app-network:
