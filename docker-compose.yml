@@ -1,9 +1,7 @@
 services:
   # The Laravel Application Container
   prod-app:
-    build:
-      context: ./laravel
-      dockerfile: Dockerfile
+    image: ghcr.io/Mohamed-Sayed777/sirius-laravel:latest
     restart: unless-stopped
     working_dir: /var/www
     expose:

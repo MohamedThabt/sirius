@@ -13,10 +13,7 @@ services:
 
   # FastAPI Application
   fastapi:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: sirius-fastapi:latest
+    image: ghcr.io/Mohamed-Sayed777/sirius-fastapi:latest
     restart: unless-stopped
     ports:
       - "8005:8005"
