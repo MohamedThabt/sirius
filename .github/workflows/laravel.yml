@@ -15,7 +15,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build image
-        run: docker build -t ghcr.io/MohamedThabt/sirius-laravel:latest ./laravel
+        run: docker build -t ghcr.io/mohamedthabt/sirius-laravel:latest ./laravel
 
       - name: Push image
-        run: docker push ghcr.io/MohamedThabt/sirius-laravel:latest
+        run: docker push ghcr.io/mohamedthabt/sirius-laravel:latest
