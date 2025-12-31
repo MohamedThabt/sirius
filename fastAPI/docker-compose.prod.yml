@@ -9,20 +9,20 @@ services:
       - ./src/configllm.yaml:/app/config.yaml
     command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
     networks:
-      - app-network
+      - sirius-network
 
-  # FastAPI Application (Pre-built from GHCR)
+  # FastAPI Application (Production - Pulls from GHCR)
   fastapi:
     image: ghcr.io/mohamedthabt/sirius-fastapi:latest
-    pull_policy: always
     restart: unless-stopped
     ports:
       - "8005:8005"
     depends_on:
       - litellm-proxy
     networks:
-      - app-network
+      - sirius-network
+    # Environment variables managed via Dokploy UI
 
 networks:
-  app-network:
+  sirius-network:
     driver: bridge

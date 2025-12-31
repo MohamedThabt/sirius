@@ -25,12 +25,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push image
+      - name: Build and push Laravel app image
         uses: docker/build-push-action@v5
         with:
           context: ./laravel
           push: true
           tags: ghcr.io/mohamedthabt/sirius-laravel:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Nginx image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./laravel
+          file: ./laravel/Dockerfile.nginx
+          push: true
+          tags: ghcr.io/mohamedthabt/sirius-nginx:latest
+          build-args: |
+            APP_IMAGE=ghcr.io/mohamedthabt/sirius-laravel:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

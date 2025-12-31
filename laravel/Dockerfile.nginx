@@ -1,0 +1,16 @@
+ARG APP_IMAGE=ghcr.io/mohamedthabt/sirius-laravel:latest
+
+# Stage 1: Get assets from the app image
+FROM ${APP_IMAGE} as app_assets
+
+# Stage 2: Build Nginx image
+FROM nginx:alpine
+
+# Remove default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy production configuration
+COPY ./.docker/nginx.prod.conf /etc/nginx/conf.d/default.conf
+
+# Copy public directory (with built assets) from the app image
+COPY --from=app_assets /var/www/public /var/www/public
