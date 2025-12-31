@@ -1,9 +1,8 @@
 services:
   # The Laravel Application Container (Local Development - builds from Dockerfile)
   dev-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/mohamedthabt/sirius-laravel:latest
+    pull_policy: always
     restart: unless-stopped
     working_dir: /var/www
     expose:
