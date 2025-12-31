@@ -8,9 +8,11 @@ services:
       - "4000:4000"
     volumes:
       - ./src/configllm.yaml:/app/config.yaml
-    command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
+    command: [ "--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0" ]
     networks:
-      - sirius-network
+      - dokploy-network
+    env_file:
+      - .env
 
   # FastAPI Application (Production - Pulls from GHCR)
   fastapi:
@@ -22,9 +24,10 @@ services:
     depends_on:
       - litellm-proxy
     networks:
-      - sirius-network
-    # Environment variables managed via Dokploy UI
+      - dokploy-network
+    env_file:
+      - .env
 
 networks:
-  sirius-network:
-    driver: bridge
+  dokploy-network:
+    external: true

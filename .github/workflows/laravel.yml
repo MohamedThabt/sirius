@@ -50,6 +50,8 @@ jobs:
           labels: ${{ steps.meta-laravel.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
 
       # --- Deployment Trigger ---
       - name: Trigger Dokploy deployment
