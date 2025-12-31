@@ -53,7 +53,3 @@ jobs:
           provenance: false
           sbom: false
 
-      - name: Trigger Dokploy Deployment
-        if: success()
-        run: |
-          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/nFCrbfzxWWJJk-Wgd8JWs"
