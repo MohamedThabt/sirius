@@ -13,7 +13,7 @@ services:
 
   # FastAPI Application
   fastapi:
-    image: ghcr.io/Mohamed-Sayed777/sirius-fastapi:latest
+    image: ghcr.io/MohamedThabt/sirius-fastapi:latest
     restart: unless-stopped
     ports:
       - "8005:8005"
