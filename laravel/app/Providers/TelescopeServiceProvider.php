@@ -14,6 +14,11 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     public function register(): void
     {
+        // Skip Telescope during Docker builds (no database available)
+        if (env('DOCKER_BUILD', false)) {
+            return;
+        }
+
         // Telescope::night();
 
         $this->hideSensitiveRequestDetails();
@@ -21,7 +26,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         $isLocal = $this->app->environment('local');
         $isEnabled = config('telescope.enabled', false);
 
-            Telescope::filter(function (IncomingEntry $entry) use ($isLocal, $isEnabled) {
+        Telescope::filter(function (IncomingEntry $entry) use ($isLocal, $isEnabled) {
             if ($isLocal) {
                 return true;
             }
