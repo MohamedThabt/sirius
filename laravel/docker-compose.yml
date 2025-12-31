@@ -1,7 +1,7 @@
 services:
   # The Laravel Application Container
   prod-app:
-    image: ghcr.io/MohamedThabt/sirius-laravel:latest
+    image: ghcr.io/mohamedthabt/sirius-laravel:latest
     restart: unless-stopped
     working_dir: /var/www
     expose:
