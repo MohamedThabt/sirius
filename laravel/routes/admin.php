@@ -7,6 +7,7 @@ use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\FeatureController;
 use App\Http\Controllers\Dashboard\FeedbackController;
 use App\Http\Controllers\Dashboard\IssueController;
+use App\Http\Controllers\Dashboard\LaravelLogsController;
 use App\Http\Controllers\Dashboard\LogsController;
 use App\Http\Controllers\Dashboard\ModuleController;
 use App\Http\Controllers\Dashboard\ProjectController;
@@ -86,10 +87,17 @@ Route::middleware('auth:admin')->group(function () {
     Route::post('issues/{issue}/comments', [IssueController::class, 'addComment'])->name('admin.issues.comments.store');
     
     // FastAPI Logs Management
-    Route::prefix('logs')->name('admin.logs.')->group(function () {
+    Route::prefix('logs/fastapi')->name('admin.logs.fastapi.')->group(function () {
         Route::get('/', [LogsController::class, 'index'])->name('index');
         Route::delete('/clear', [LogsController::class, 'clearLogs'])->name('clear');
         Route::get('/download/{logType}', [LogsController::class, 'downloadLog'])->name('download');
+    });
+    
+    // Laravel Logs Management
+    Route::prefix('logs/laravel')->name('admin.logs.laravel.')->group(function () {
+        Route::get('/', [LaravelLogsController::class, 'index'])->name('index');
+        Route::delete('/clear', [LaravelLogsController::class, 'clearLogs'])->name('clear');
+        Route::get('/download/{logFile}', [LaravelLogsController::class, 'downloadLog'])->name('download');
     });
     
     // Admin Profile (Password Change Only)

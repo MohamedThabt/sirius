@@ -38,9 +38,6 @@ RUN mkdir -p storage/framework/cache/data \
     && mkdir -p storage/framework/views \
     && mkdir -p storage/logs
 
-# Set environment to skip Telescope during build
-ENV DOCKER_BUILD=true
-
 # Generate Wayfinder routes with form variants
 RUN php artisan wayfinder:generate --with-form
 
