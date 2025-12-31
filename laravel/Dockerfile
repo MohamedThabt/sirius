@@ -126,4 +126,5 @@ COPY ./scripts/php-entrypoint /usr/local/bin/php-entrypoint
 RUN chmod +x /usr/local/bin/php-entrypoint
 
 EXPOSE 9000
+ENTRYPOINT ["/usr/local/bin/php-entrypoint"]
 CMD ["php-fpm"]
