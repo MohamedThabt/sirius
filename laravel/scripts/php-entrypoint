@@ -9,6 +9,11 @@ main() {
     echo "Entrypoint Version: 2025-12-27-FIXED-PERMISSIONS"
     echo "=========================================="
     
+    # Log entrypoint start
+    echo "ENTRYPOINT_START: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "ENV_APP_URL: ${APP_URL:-NOT_SET}" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "ENV_SESSION_SECURE: ${SESSION_SECURE_COOKIE:-NOT_SET}" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    
     # Enable strict error handling
     set -e
     
@@ -125,13 +130,23 @@ run_seeders() {
 optimize_app() {
     echo "Optimizing Laravel application..."
     
+    # Log before optimize
+    echo "OPTIMIZE_START: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "BEFORE_APP_URL: $(php artisan tinker --execute='echo config(\"app.url\");' 2>/dev/null || echo 'ERROR')" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    
     # Clear any existing caches first
     ./artisan optimize:clear
     
     ./artisan optimize
+    
+    # Log after optimize
+    echo "AFTER_APP_URL: $(php artisan tinker --execute='echo config(\"app.url\");' 2>/dev/null || echo 'ERROR')" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "OPTIMIZE_END: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
 }
 
 run_server() {
+    echo "SERVER_START: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "ENTRYPOINT_COMPLETE: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
     exec /usr/local/bin/docker-php-entrypoint "$@"
 }
 
