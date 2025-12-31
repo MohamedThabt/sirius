@@ -71,7 +71,7 @@ export default function Landing() {
             ratingCount: '150',
         },
     };
-
+    
     return (
         <div className="linear-landing dark smooth-scroll min-h-screen bg-background text-foreground">
             <SEO
