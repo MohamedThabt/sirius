@@ -53,3 +53,9 @@ jobs:
           provenance: false
           sbom: false
 
+      # --- Deployment Trigger (After image push) ---
+      - name: Trigger Dokploy deployment
+        if: success()
+        run: |
+          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/nFCrbfzxWWJJk-Wgd8JWs" \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_TOKEN }}"

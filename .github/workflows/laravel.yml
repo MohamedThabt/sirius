@@ -52,3 +52,10 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: false
           sbom: false
+
+      # --- Deployment Trigger (After image push) ---
+      - name: Trigger Dokploy deployment
+        if: success()
+        run: |
+          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/6o4154MgFhTsHvUloM2om" \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_TOKEN }}"
