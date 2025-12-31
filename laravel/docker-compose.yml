@@ -2,6 +2,7 @@ services:
   # The Laravel Application Container
   prod-app:
     image: ghcr.io/mohamedthabt/sirius-laravel:latest
+    pull_policy: always
     restart: unless-stopped
     working_dir: /var/www
     expose:
