@@ -115,10 +115,10 @@ COPY --chown=www-data:www-data . .
 COPY --from=frontend-builder /app/public/build ./public/build
 
 # Finalize composer and set permissions
-RUN php artisan package:discover --ansi \
-    && mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache \
+RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache \
     && chmod -R 775 storage bootstrap/cache \
-    && chmod +x artisan
+    && chmod +x artisan \
+    && php artisan package:discover --ansi
 
 # --- FINAL ROOT-LEVEL TASKS ---
 USER root
