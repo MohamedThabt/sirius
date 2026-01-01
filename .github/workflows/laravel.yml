@@ -50,6 +50,7 @@ jobs:
           labels: ${{ steps.meta-laravel.outputs.labels }}
           provenance: false
           sbom: false
+          no-cache: true
 
       # --- Deployment Trigger (After image push) ---
       - name: Trigger Dokploy deployment
