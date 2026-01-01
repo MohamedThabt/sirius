@@ -2,7 +2,7 @@ name: Build & Push FastAPI
 
 on:
   push:
-    branches: [ "prod" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 env:
