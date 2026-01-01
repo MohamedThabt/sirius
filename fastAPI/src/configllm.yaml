@@ -21,11 +21,15 @@ model_list:
   - model_name: "cerebras"
     litellm_params:
       model: "cerebras/llama3.1-8b"
-      api_key: "k"
+      api_key: "os.environ/CEREBRAS_API_KEY"
       rpm: 5
 
 routing_strategy: simple-shuffle
 
-
+litellm_settings:
+  drop_params: true
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+  redact_user_api_key_info: true
 
 
