@@ -20,7 +20,6 @@ import {
     MessageSquareIcon,
     ScrollTextIcon,
     ShieldIcon,
-    TelescopeIcon,
     UsersIcon,
     ZapIcon,
 } from 'lucide-react';
@@ -63,7 +62,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                     <QuickLink href="/admin/issues" icon={BugIcon} label="Issues" iconClassName="text-red-500" />
                     <QuickLink href="/admin/feedback" icon={MessageSquareIcon} label="Feedback" iconClassName="text-green-500" />
                     <QuickLink href="/admin/logs" icon={ScrollTextIcon} label="FastAPI Logs" iconClassName="text-slate-500" />
-                    <QuickLink href="/telescope" icon={TelescopeIcon} label="Telescope" iconClassName="text-indigo-500" />
+
                 </div>
 
                 {/* FastAPI Health Status */}
