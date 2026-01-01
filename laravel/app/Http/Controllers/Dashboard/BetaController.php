@@ -188,10 +188,10 @@ class BetaController extends Controller
                     'invited_by' => auth('admin')->id(),
                     'approved_at' => now(),
                 ]);
-
-                // Send welcome email with password
-                Mail::send(new BetaInvitationMail($betaInvitation, $password));
             });
+
+            // Send welcome email with password (outside transaction for proper queue handling)
+            Mail::send(new BetaInvitationMail($betaInvitation, $password));
 
             return back()->with('success', 'User account created and welcome email sent successfully.');
         } catch (Throwable $e) {
