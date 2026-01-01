@@ -119,11 +119,16 @@ class BetaInvitationMail extends Mailable implements ShouldQueue
     {
         // #region agent log
         $logFile = base_path('.cursor/debug.log');
+        $mailMailer = config('mail.default');
+        $hasResendKey = !empty(config('services.resend.key'));
+        $isSmtpConnectionError = str_contains($exception->getMessage(), 'smtp.resend.com') || 
+                                 str_contains($exception->getMessage(), 'Connection could not be established');
+        
         $logData = json_encode([
             'sessionId' => 'debug-session',
             'runId' => 'run1',
             'hypothesisId' => 'D',
-            'location' => 'BetaInvitationMail.php:66',
+            'location' => 'BetaInvitationMail.php:118',
             'message' => 'Mail job failed',
             'data' => [
                 'invitation_id' => $this->betaInvitation->id,
@@ -131,17 +136,32 @@ class BetaInvitationMail extends Mailable implements ShouldQueue
                 'error_message' => $exception->getMessage(),
                 'error_class' => get_class($exception),
                 'queue_connection' => config('queue.default'),
-                'mail_mailer' => config('mail.default'),
+                'mail_mailer' => $mailMailer,
+                'has_resend_key' => $hasResendKey,
+                'is_smtp_resend_error' => $isSmtpConnectionError,
+                'suggestion' => $isSmtpConnectionError && $hasResendKey ? 'Use MAIL_MAILER=resend instead of smtp' : null,
             ],
             'timestamp' => (int) (microtime(true) * 1000),
         ]) . "\n";
         file_put_contents($logFile, $logData, FILE_APPEND);
         // #endregion
-        Log::error('Failed to send beta invitation email', [
+        
+        $errorContext = [
             'email' => $this->betaInvitation->email,
             'invitation_id' => $this->betaInvitation->id,
             'error' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString(),
-        ]);
+            'mail_mailer' => $mailMailer,
+        ];
+        
+        $isMissingResendClass = str_contains($exception->getMessage(), 'Class "Resend" not found') || 
+                                str_contains($exception->getMessage(), 'Class \'Resend\' not found');
+        
+        if ($isMissingResendClass) {
+            $errorContext['suggestion'] = 'Resend package is not installed. Run: composer require resend/resend-php';
+        } elseif ($isSmtpConnectionError && $hasResendKey && $mailMailer === 'smtp') {
+            $errorContext['suggestion'] = 'SMTP connection to Resend is failing. Switch to MAIL_MAILER=resend in your .env file to use the Resend API instead of SMTP.';
+        }
+        
+        Log::error('Failed to send beta invitation email', $errorContext);
     }
 }
