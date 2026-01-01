@@ -7,6 +7,8 @@ services:
       - "4000:4000"
     volumes:
       - ./fastAPI/src/configllm.yaml:/app/config.yaml
+    env_file:
+      - ./fastAPI/.env
     command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
     networks:
       - sirius-network
