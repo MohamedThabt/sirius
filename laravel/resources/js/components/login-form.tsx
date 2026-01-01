@@ -1,5 +1,4 @@
 import { store } from '@/actions/App/Http/Controllers/Auth/AuthenticatedSessionController';
-import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,8 +24,13 @@ export function LoginForm({ status, canResetPassword }: LoginFormProps) {
             )}
 
             <Form {...store.form()} resetOnSuccess={['password']} className="flex flex-col gap-6">
-                {({ processing, errors }) => (
+                {({ processing, errors, hasErrors }) => (
                     <>
+                        {hasErrors && (
+                            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm font-medium text-red-400 backdrop-blur-sm">
+                                {errors.email || errors.password || 'Invalid credentials. Please try again.'}
+                            </div>
+                        )}
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
@@ -40,7 +44,6 @@ export function LoginForm({ status, canResetPassword }: LoginFormProps) {
                                     autoComplete="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
@@ -61,7 +64,6 @@ export function LoginForm({ status, canResetPassword }: LoginFormProps) {
                                     autoComplete="current-password"
                                     placeholder="Password"
                                 />
-                                <InputError message={errors.password} />
                             </div>
 
                             <div className="flex items-center space-x-3">

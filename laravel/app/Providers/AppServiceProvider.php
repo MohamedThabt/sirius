@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Socialite\Facades\Socialite;
 use SocialiteProviders\GitHub\Provider as GitHubProvider;
@@ -23,8 +24,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production when behind reverse proxy
+        // This is a safety net in case X-Forwarded-Proto header is missing
+        if (app()->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         // Register Socialite providers
         $this->bootSocialiteProviders();
+
+        // Authorize Laravel Pulse access for admin guard only
+        Gate::define('viewPulse', function () {
+            return auth()->guard('admin')->check();
+        });
     }
 
     /**

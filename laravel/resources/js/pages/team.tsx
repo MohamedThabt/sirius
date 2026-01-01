@@ -1,12 +1,13 @@
-import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
+import { TeamMemberCard } from '@/components/Team/TeamMemberCard';
 import { Button } from '@/components/ui/button';
 import { Meteors } from '@/components/ui/meteors';
-import { TeamMemberCard } from '@/components/Team/TeamMemberCard';
 import { useForceTheme } from '@/hooks/use-force-theme';
 import type { TeamMember } from '@/types';
+import { preloadImages } from '@/utils/image-preloader';
 import './landing.css';
 
 // Team members - 7 engineers
@@ -14,8 +15,8 @@ const teamMembers: TeamMember[] = [
     {
         name: 'Mohamed Thabet',
         role: 'Software Engineer',
-        image: 'https://mohamedthabt.github.io/Portfolio/assets/jpg/profile-photo-CSddyIeT.jpg',
-        website: 'https://mohamedthabt.github.io/Portfolio/',
+        image: '/images/team/mohamed-thabet.png',
+        website: 'https://sirthabet.dev/',
         gender: 'male',
     },
     {
@@ -26,7 +27,7 @@ const teamMembers: TeamMember[] = [
     },
     {
         name: 'Kyrillos Nady',
-        role: 'Penetration Tester',
+        role: 'QA & Security Engineer',
         image: '/images/team/kyrillos.png',
         website: 'https://0xk3r0.github.io/',
         gender: 'male',
@@ -62,22 +63,31 @@ export default function Team() {
     useForceTheme('dark');
     const [isVisible, setIsVisible] = useState(false);
 
+    // Preload team images when component mounts
+    useEffect(() => {
+        const imageSources = teamMembers.filter((member) => member.image).map((member) => member.image!);
+
+        if (imageSources.length > 0) {
+            preloadImages(imageSources, 'low');
+        }
+    }, []);
+
     // Simple entrance animation effect
-    useState(() => {
+    useEffect(() => {
         // Just trigger the state change on mount for the fade-in classes
         // Note: Using a timeout to ensure initial render is 0 opacity
         setTimeout(() => setIsVisible(true), 50);
-    });
+    }, []);
 
     return (
         <>
             <Head title="Team - Sirius" />
-            
+
             <div className="linear-landing dark min-h-screen bg-[#030303] text-foreground">
-                <section className="relative overflow-hidden min-h-screen">
+                <section className="relative min-h-screen overflow-hidden">
                     {/* Background */}
-                    <div 
-                        className="absolute inset-0 pointer-events-none"
+                    <div
+                        className="pointer-events-none absolute inset-0"
                         style={{
                             background: `radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
                         }}
@@ -89,37 +99,29 @@ export default function Team() {
                         {/* Back button */}
                         <div style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.6s ease' }}>
                             <Link href="/">
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="text-white/40 hover:text-white/70 hover:bg-transparent -ml-3 mb-6"
-                                >
-                                    <ArrowLeft className="h-5 w-5 mr-1.5" />
+                                <Button variant="ghost" size="sm" className="mb-6 -ml-3 text-white/40 hover:bg-transparent hover:text-white/70">
+                                    <ArrowLeft className="mr-1.5 h-5 w-5" />
                                     Home
                                 </Button>
                             </Link>
                         </div>
 
                         {/* Header */}
-                        <div 
-                            className="text-center mb-12"
+                        <div
+                            className="mb-12 text-center"
                             style={{
                                 opacity: isVisible ? 1 : 0,
                                 transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
                                 transition: 'all 0.8s ease',
                             }}
                         >
-                            <h1 className="text-3xl md:text-4xl font-semibold text-white mb-3">
-                                The People Behind Sirius
-                            </h1>
-                            <p className="text-base text-white/50">
-                                7 Engineers · Building the future of project planning
-                            </p>
+                            <h1 className="mb-3 text-3xl font-semibold text-white md:text-4xl">The People Behind Sirius</h1>
+                            <p className="text-base text-white/50">7 Engineers · Building the future of project planning</p>
                         </div>
 
                         {/* Team Grid */}
-                        <div 
-                            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+                        <div
+                            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
                             style={{
                                 opacity: isVisible ? 1 : 0,
                                 transform: isVisible ? 'translateY(0)' : 'translateY(30px)',

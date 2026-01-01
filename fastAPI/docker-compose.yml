@@ -1,0 +1,31 @@
+services:
+  # LiteLLM Proxy
+  litellm-proxy:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./src/configllm.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
+    networks:
+      - app-network
+
+  # FastAPI Application (Local Development - builds from Dockerfile)
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8005:8005"
+    depends_on:
+      - litellm-proxy
+    networks:
+      - app-network
+    volumes:
+      - ./src:/app  # Hot reload for development
+
+networks:
+  app-network:
+    driver: bridge

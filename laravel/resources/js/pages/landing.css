@@ -132,7 +132,7 @@
 }
 
 /* Optimized meteor animations */
-.linear-landing [class*="meteor"] {
+.linear-landing [class*='meteor'] {
     will-change: transform, opacity;
     transform: translateZ(0);
 }
@@ -161,8 +161,9 @@
 .linear-landing .hero-word-animate {
     opacity: 0;
     transform: translateY(20%) translateZ(0);
-    transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform, opacity;
 }
 
@@ -175,8 +176,9 @@
 .linear-landing .hero-element-animate {
     opacity: 0;
     transform: translateY(16px) translateZ(0);
-    transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform, opacity;
 }
 
@@ -185,9 +187,7 @@
     transform: translateY(0) translateZ(0);
 }
 
-.linear-landing * {
-    border-color: hsl(var(--border));
-}
+/* Border color is now handled via Tailwind utilities - removed wildcard override */
 
 .linear-landing body {
     font-family:
@@ -239,11 +239,10 @@
 .linear-landing .sirius-hero {
     position: relative;
     padding: clamp(7rem, 12vw, 10rem) 1.5rem 5rem;
-    background: 
+    background:
         radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.08), transparent 45%),
         radial-gradient(ellipse at 70% 60%, rgba(168, 85, 247, 0.06), transparent 50%),
-        radial-gradient(ellipse at 50% 0%, rgba(14, 142, 216, 0.06), transparent 50%),
-        #000000;
+        radial-gradient(ellipse at 50% 0%, rgba(14, 142, 216, 0.06), transparent 50%), #000000;
     color: hsl(195 10% 94%);
     font-family:
         'Inter',
@@ -260,9 +259,8 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     background-size: 100px 100px;
     opacity: 0.3;
     pointer-events: none;
@@ -275,12 +273,17 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: 
-        radial-gradient(rgba(255, 255, 255, 0.4) 0.5px, transparent 0.5px),
-        radial-gradient(rgba(255, 255, 255, 0.3) 0.8px, transparent 0.8px),
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.4) 0.5px, transparent 0.5px), radial-gradient(rgba(255, 255, 255, 0.3) 0.8px, transparent 0.8px),
         radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
-    background-size: 180px 180px, 250px 250px, 350px 350px;
-    background-position: 0 0, 40px 60px, 130px 270px;
+    background-size:
+        180px 180px,
+        250px 250px,
+        350px 350px;
+    background-position:
+        0 0,
+        40px 60px,
+        130px 270px;
     opacity: 0.3;
     pointer-events: none;
     animation: star-drift 200s linear infinite;
@@ -369,7 +372,7 @@
     pointer-events: none;
     z-index: 2;
     opacity: 0.4;
-    background-image: 
+    background-image:
         radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
         radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.6) 0.8px, transparent 0.8px),
         radial-gradient(circle at 22% 22%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
@@ -384,8 +387,13 @@
 }
 
 @keyframes constellation-twinkle {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.6; }
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }
 
 /* Nebula effects - now visible with vibrant colors */
@@ -399,10 +407,16 @@
 
 @keyframes star-drift {
     from {
-        background-position: 0 0, 40px 60px, 130px 270px;
+        background-position:
+            0 0,
+            40px 60px,
+            130px 270px;
     }
     to {
-        background-position: -180px 180px, -210px 240px, -220px 450px;
+        background-position:
+            -180px 180px,
+            -210px 240px,
+            -220px 450px;
     }
 }
 
@@ -550,7 +564,7 @@
     top: 15%;
     left: 10%;
     background: radial-gradient(circle at 30% 30%, rgba(147, 197, 253, 0.6), rgba(99, 102, 241, 0.3));
-    box-shadow: 
+    box-shadow:
         inset -10px -10px 20px rgba(0, 0, 0, 0.3),
         0 0 40px rgba(99, 102, 241, 0.2);
     animation: planet-float 30s ease-in-out infinite;
@@ -562,7 +576,7 @@
     bottom: 25%;
     right: 15%;
     background: radial-gradient(circle at 35% 35%, rgba(251, 207, 232, 0.5), rgba(219, 39, 119, 0.2));
-    box-shadow: 
+    box-shadow:
         inset -8px -8px 16px rgba(0, 0, 0, 0.25),
         0 0 30px rgba(219, 39, 119, 0.15);
     animation: planet-float 25s ease-in-out infinite reverse;
@@ -638,11 +652,14 @@
 }
 
 @keyframes pulse-glow {
-    0%, 100% {
+    0%,
+    100% {
         text-shadow: 0 0 30px rgba(14, 142, 216, 0.2);
     }
     50% {
-        text-shadow: 0 0 50px rgba(14, 142, 216, 0.4), 0 0 70px rgba(56, 189, 248, 0.2);
+        text-shadow:
+            0 0 50px rgba(14, 142, 216, 0.4),
+            0 0 70px rgba(56, 189, 248, 0.2);
     }
 }
 
@@ -671,7 +688,9 @@
     gap: 0.75rem;
     font-size: 0.95rem;
     letter-spacing: 0.01em;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
 }
 
 .linear-landing .hero-dot {
@@ -843,7 +862,8 @@
 }
 
 @keyframes nebula-float {
-    0%, 100% {
+    0%,
+    100% {
         transform: translate(0, 0) scale(1);
     }
     33% {
@@ -920,7 +940,8 @@
 
 /* Hero Mockup Floating Animations */
 @keyframes float-slow {
-    0%, 100% {
+    0%,
+    100% {
         transform: translateY(0px);
     }
     50% {
@@ -929,7 +950,8 @@
 }
 
 @keyframes float-medium {
-    0%, 100% {
+    0%,
+    100% {
         transform: translateY(0px);
     }
     50% {
@@ -938,7 +960,8 @@
 }
 
 @keyframes float-fast {
-    0%, 100% {
+    0%,
+    100% {
         transform: translateY(0px);
     }
     50% {
@@ -1034,7 +1057,7 @@
 
 /* Comparison Section - Purple/Magenta nebula */
 .linear-landing #comparison {
-    background: 
+    background:
         radial-gradient(ellipse at 70% 20%, rgba(187, 108, 217, 0.06), transparent 50%),
         radial-gradient(ellipse at 30% 80%, rgba(236, 72, 153, 0.04), transparent 50%),
         linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 6%) 100%);
@@ -1085,7 +1108,7 @@
 
 /* Final CTA Section - Simplified */
 .linear-landing #final-cta {
-    background: 
+    background:
         radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.08), transparent 60%),
         linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 4%) 100%);
 }
@@ -1102,7 +1125,7 @@
 .linear-landing footer {
     position: relative;
     overflow: hidden;
-    background: 
+    background:
         radial-gradient(ellipse at 50% 100%, rgba(99, 102, 241, 0.06), transparent 60%),
         linear-gradient(180deg, hsl(220 13% 5%) 0%, hsl(220 13% 3%) 100%);
 }
@@ -1119,7 +1142,8 @@
 
 /* Pulsing glow animation for CTA section */
 @keyframes pulse-glow-bg {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 0.2;
         transform: translate(-50%, -50%) scale(1);
     }
@@ -1140,7 +1164,7 @@
     border-radius: 50%;
     top: 15%;
     left: 8%;
-    box-shadow: 
+    box-shadow:
         80px 40px 0 rgba(255, 255, 255, 0.4),
         180px 120px 0 rgba(255, 255, 255, 0.25),
         280px 60px 0 rgba(255, 255, 255, 0.5),
@@ -1157,7 +1181,8 @@
 
 /* Twinkling stars effect */
 @keyframes twinkle {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 0.4;
         transform: scale(1);
     }
@@ -1170,10 +1195,11 @@
 /* Shooting star for select sections */
 .linear-landing #features::before,
 .linear-landing #final-cta::before {
-    background-image: 
-        radial-gradient(rgba(255, 255, 255, 0.2) 0.5px, transparent 0.5px),
-        radial-gradient(rgba(255, 255, 255, 0.15) 0.8px, transparent 0.8px);
-    background-size: 100px 100px, 150px 150px;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.2) 0.5px, transparent 0.5px), radial-gradient(rgba(255, 255, 255, 0.15) 0.8px, transparent 0.8px);
+    background-size:
+        100px 100px,
+        150px 150px;
 }
 
 /* Add subtle constellation pattern to features section only */
@@ -1184,7 +1210,7 @@
     right: 5%;
     width: 250px;
     height: 180px;
-    background: 
+    background:
         linear-gradient(45deg, transparent 48%, rgba(255, 255, 255, 0.04) 49%, rgba(255, 255, 255, 0.04) 51%, transparent 52%),
         linear-gradient(-45deg, transparent 48%, rgba(255, 255, 255, 0.04) 49%, rgba(255, 255, 255, 0.04) 51%, transparent 52%);
     background-size: 50px 50px;
@@ -1215,15 +1241,11 @@
 
 /* Testimonial Card Variant - Gold/Amber radial accent */
 .linear-landing .premium-card-testimonial {
-    background: 
-        radial-gradient(70% 70% at 80% 20%, rgba(251, 191, 36, 0.08), transparent 60%),
-        rgba(255, 255, 255, 0.03);
+    background: radial-gradient(70% 70% at 80% 20%, rgba(251, 191, 36, 0.08), transparent 60%), rgba(255, 255, 255, 0.03);
 }
 
 .linear-landing .premium-card-testimonial:hover {
-    background: 
-        radial-gradient(70% 70% at 80% 20%, rgba(251, 191, 36, 0.12), transparent 60%),
-        rgba(255, 255, 255, 0.06);
+    background: radial-gradient(70% 70% at 80% 20%, rgba(251, 191, 36, 0.12), transparent 60%), rgba(255, 255, 255, 0.06);
 }
 
 /* Accordion Card Variant */
@@ -1232,7 +1254,7 @@
 }
 
 .linear-landing .premium-card-accordion.is-open,
-.linear-landing .premium-card-accordion[data-open="true"] {
+.linear-landing .premium-card-accordion[data-open='true'] {
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.12);
 }
@@ -1242,7 +1264,7 @@
    ============================================ */
 
 .linear-landing #testimonials {
-    background: 
+    background:
         radial-gradient(ellipse at 30% 20%, rgba(251, 191, 36, 0.08), transparent 50%),
         radial-gradient(ellipse at 70% 80%, rgba(245, 158, 11, 0.06), transparent 50%),
         radial-gradient(ellipse at 50% 50%, rgba(252, 211, 77, 0.04), transparent 70%),
@@ -1261,7 +1283,7 @@
    ============================================ */
 
 .linear-landing #faq {
-    background: 
+    background:
         radial-gradient(ellipse at 20% 30%, rgba(20, 184, 166, 0.08), transparent 50%),
         radial-gradient(ellipse at 80% 70%, rgba(34, 211, 238, 0.06), transparent 50%),
         radial-gradient(ellipse at 50% 50%, rgba(45, 212, 191, 0.04), transparent 70%),
@@ -1275,4 +1297,3 @@
     animation-duration: 22s;
     animation-direction: reverse;
 }
-

@@ -1,5 +1,4 @@
 import { store } from '@/actions/App/Http/Controllers/Auth/NewPasswordController';
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,12 +14,23 @@ export function ResetPasswordForm({ token, email }: ResetPasswordFormProps) {
     return (
         <div className="flex w-full max-w-sm flex-col gap-6">
             <Form {...store.form()} transform={(data) => ({ ...data, token, email })} resetOnSuccess={['password', 'password_confirmation']}>
-                {({ processing, errors }) => (
-                    <div className="grid gap-6">
+                {({ processing, errors, hasErrors }) => (
+                    <>
+                        {hasErrors && (
+                            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400 backdrop-blur-sm">
+                                <p className="font-semibold">Please fix the following errors:</p>
+                                <ul className="mt-1 list-inside list-disc text-left">
+                                    {errors.email && <li>{errors.email}</li>}
+                                    {errors.password && <li>{errors.password}</li>}
+                                    {errors.password_confirmation && <li>{errors.password_confirmation}</li>}
+                                    {errors.token && <li>Invalid or expired reset token. Please request a new one.</li>}
+                                </ul>
+                            </div>
+                        )}
+                        <div className="grid gap-6">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
                             <Input id="email" type="email" name="email" autoComplete="email" value={email} className="mt-1 block w-full" readOnly />
-                            <InputError message={errors.email} className="mt-2" />
                         </div>
 
                         <div className="grid gap-2">
@@ -34,7 +44,6 @@ export function ResetPasswordForm({ token, email }: ResetPasswordFormProps) {
                                 autoFocus
                                 placeholder="Password"
                             />
-                            <InputError message={errors.password} />
                         </div>
 
                         <div className="grid gap-2">
@@ -47,7 +56,6 @@ export function ResetPasswordForm({ token, email }: ResetPasswordFormProps) {
                                 className="mt-1 block w-full"
                                 placeholder="Confirm password"
                             />
-                            <InputError message={errors.password_confirmation} className="mt-2" />
                         </div>
 
                         <Button 
@@ -58,7 +66,8 @@ export function ResetPasswordForm({ token, email }: ResetPasswordFormProps) {
                             {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                             Reset password
                         </Button>
-                    </div>
+                        </div>
+                    </>
                 )}
             </Form>
         </div>

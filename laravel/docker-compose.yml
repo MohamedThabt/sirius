@@ -1,0 +1,44 @@
+services:
+  # The Laravel Application Container
+  prod-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    working_dir: /var/www
+    expose:
+      - 9000
+    volumes:
+      - storage:/var/www/storage:rw
+      - public_assets:/assets_volume
+      - bootstrap-cache:/var/www/bootstrap/cache:rw
+    networks:
+      - dokploy-network
+    env_file:
+      - .env
+    entrypoint: ['/usr/local/bin/php-entrypoint']
+    command: ['php-fpm']
+
+  # The Nginx Web Server Container
+  prod-nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    expose:
+      - 80
+    volumes:
+      - ./.docker/nginx.prod.conf:/etc/nginx/conf.d/default.conf
+      - public_assets:/var/www/public:ro
+      - storage:/var/www/storage:rw
+    depends_on:
+      - prod-app
+    networks:
+      - dokploy-network
+
+volumes:
+  storage:
+  public_assets:
+  bootstrap-cache:
+
+networks:
+  dokploy-network:
+    external: true

@@ -1,13 +1,14 @@
-import { lazy, Suspense, memo } from 'react';
+import { SEO } from '@/components/SEO';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useForceTheme } from '@/hooks/use-force-theme';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { lazy, memo, Suspense } from 'react';
 import './landing.css';
 
 // Critical above-the-fold components - load immediately
-import Navbar from '@/components/landing/Navbar';
 import Hero from '@/components/landing/Hero';
+import Navbar from '@/components/landing/Navbar';
 
 // Lazy load below-the-fold components for better initial load performance
 const Features = lazy(() => import('@/components/landing/Features'));
@@ -33,12 +34,8 @@ const queryClient = new QueryClient({
  * Uses GPU-accelerated animation for smooth performance.
  */
 export const SectionLoader = memo(() => (
-    <div 
-        className="flex items-center justify-center py-24 section-loader" 
-        role="status" 
-        aria-label="Loading section"
-    >
-        <div className="h-2 w-32 animate-pulse rounded-full bg-white/10 gpu-accelerated" />
+    <div className="section-loader flex items-center justify-center py-24" role="status" aria-label="Loading section">
+        <div className="gpu-accelerated h-2 w-32 animate-pulse rounded-full bg-white/10" />
         <span className="sr-only">Loading...</span>
     </div>
 ));
@@ -48,19 +45,43 @@ SectionLoader.displayName = 'SectionLoader';
  * Wrapper for lazy-loaded sections with content-visibility optimization.
  * This allows the browser to skip rendering off-screen content.
  */
-const LazySection = memo(({ children }: { children: React.ReactNode }) => (
-    <div className="lazy-section">
-        {children}
-    </div>
-));
+const LazySection = memo(({ children }: { children: React.ReactNode }) => <div className="lazy-section">{children}</div>);
 LazySection.displayName = 'LazySection';
 
 export default function Landing() {
     useFlashToasts();
     useForceTheme('dark');
+
+    const structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Sirius',
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Web',
+        description:
+            'From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators.',
+        offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD',
+        },
+        aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.8',
+            ratingCount: '150',
+        },
+    };
     
     return (
-        <div className="linear-landing dark min-h-screen bg-background text-foreground smooth-scroll">
+        <div className="linear-landing dark smooth-scroll min-h-screen bg-background text-foreground">
+            <SEO
+                title="Sirius"
+                description="From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators."
+                keywords="AI project planning, PRD generator, ERD generator, wireframe generator, software requirements, project documentation, AI code generation, GitHub integration, sequence diagrams, user stories"
+                image="/images/seo/image.png"
+                type="website"
+                structuredData={structuredData}
+            />
             <QueryClientProvider client={queryClient}>
                 <TooltipProvider>
                     <main aria-label="Sirius landing page">
@@ -102,4 +123,3 @@ export default function Landing() {
         </div>
     );
 }
-

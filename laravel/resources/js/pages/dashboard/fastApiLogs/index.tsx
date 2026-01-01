@@ -117,7 +117,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'FastAPI Logs',
-        href: '/admin/logs',
+        href: '/admin/logs/fastapi',
     },
 ];
 
@@ -185,7 +185,7 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
         // Remove undefined/empty values
         const cleanFilters = Object.fromEntries(Object.entries(mergedFilters).filter(([, v]) => v !== undefined && v !== '' && v !== 'all'));
 
-        router.get('/admin/logs', cleanFilters, {
+        router.get('/admin/logs/fastapi', cleanFilters, {
             preserveState: true,
             preserveScroll: true,
             onFinish: () => setIsLoading(false),
@@ -232,7 +232,7 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
     // Clear logs
     const handleClearLogs = (logType?: string) => {
         const params = logType ? { log_type: logType } : {};
-        router.delete('/admin/logs/clear', {
+        router.delete('/admin/logs/fastapi/clear', {
             data: params,
             preserveState: false,
             onFinish: () => setIsLoading(false),
@@ -241,7 +241,7 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
 
     // Download logs
     const handleDownload = (logType: 'app' | 'error') => {
-        window.location.href = `/admin/logs/download/${logType}`;
+        window.location.href = `/admin/logs/fastapi/download/${logType}`;
     };
 
     const hasActiveFilters = search || levelFilter !== 'all';

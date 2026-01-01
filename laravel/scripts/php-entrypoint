@@ -6,7 +6,13 @@ main() {
     echo "Working directory: $(pwd)"
     echo "User: $(whoami)"
     echo "PHP version: $(php --version | head -1)"
+    echo "Entrypoint Version: 2025-12-27-FIXED-PERMISSIONS"
     echo "=========================================="
+    
+    # Log entrypoint start
+    echo "ENTRYPOINT_START: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "ENV_APP_URL: ${APP_URL:-NOT_SET}" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "ENV_SESSION_SECURE: ${SESSION_SECURE_COOKIE:-NOT_SET}" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
     
     # Enable strict error handling
     set -e
@@ -23,10 +29,13 @@ main() {
     echo "Step 4: Running migrations..."
     run_migrations
     
-    echo "Step 5: Optimizing app..."
+    echo "Step 5: Running seeders..."
+    run_seeders
+    
+    echo "Step 6: Optimizing app..."
     optimize_app
     
-    echo "Step 6: Starting server..."
+    echo "Step 7: Starting server..."
     run_server "$@"
 }
 
@@ -41,12 +50,12 @@ prepare_file_permissions() {
     
     # Set specific permissions for storage and cache directories
     if [ -d "/var/www/storage" ]; then
-        chmod -R 775 /var/www/storage
+        chmod -R 777 /var/www/storage
         echo "Storage directory permissions set"
     fi
     
     if [ -d "/var/www/bootstrap/cache" ]; then
-        chmod -R 775 /var/www/bootstrap/cache
+        chmod -R 777 /var/www/bootstrap/cache
         echo "Bootstrap cache directory permissions set"
     fi
 }
@@ -62,7 +71,7 @@ prepare_storage() {
     mkdir -p /var/www/storage/logs
 
     # Set permissions for the storage directory (skip chown - we're running as www-data already)
-    if chmod -R 775 /var/www/storage 2>/dev/null; then
+    if chmod -R 777 /var/www/storage 2>/dev/null; then
         echo "Storage permissions set successfully"
     else
         echo "Warning: Failed to set storage permissions, continuing..."
@@ -113,16 +122,31 @@ run_migrations() {
     ./artisan migrate --force
 }
 
+run_seeders() {
+    echo "Running database seeders..."
+    ./artisan db:seed --force
+}
+
 optimize_app() {
     echo "Optimizing Laravel application..."
+    
+    # Log before optimize
+    echo "OPTIMIZE_START: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "BEFORE_APP_URL: $(php artisan tinker --execute='echo config(\"app.url\");' 2>/dev/null || echo 'ERROR')" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
     
     # Clear any existing caches first
     ./artisan optimize:clear
     
     ./artisan optimize
+    
+    # Log after optimize
+    echo "AFTER_APP_URL: $(php artisan tinker --execute='echo config(\"app.url\");' 2>/dev/null || echo 'ERROR')" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "OPTIMIZE_END: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
 }
 
 run_server() {
+    echo "SERVER_START: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "ENTRYPOINT_COMPLETE: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
     exec /usr/local/bin/docker-php-entrypoint "$@"
 }
 

@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
-import { Briefcase, Bug, LayoutDashboard, MessageSquare, ScrollText, Shield, Telescope, Users, Zap } from 'lucide-react';
+import { Activity, Briefcase, Bug, FileText, LayoutDashboard, MessageSquare, ScrollText, Shield, Users, Zap } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppearanceToggleDropdown from './appearance-dropdown';
 
@@ -49,13 +49,18 @@ const adminNavItems: NavItem[] = [
     },
     {
         title: 'FastAPI Logs',
-        href: '/admin/logs',
+        href: '/admin/logs/fastapi',
         icon: ScrollText,
     },
     {
-        title: 'Telescope',
-        href: '/telescope',
-        icon: Telescope,
+        title: 'Laravel Logs',
+        href: '/admin/logs/laravel',
+        icon: FileText,
+    },
+    {
+        title: 'Pulse',
+        href: '/admin/pulse',
+        icon: Activity,
     },
 ];
 

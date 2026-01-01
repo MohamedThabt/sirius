@@ -1,0 +1,40 @@
+services:
+  # Laravel App (Production - Pulls from GHCR)
+  prod-app:
+    image: ghcr.io/mohamedthabt/sirius-laravel:latest
+    pull_policy: always
+    restart: unless-stopped
+    working_dir: /var/www
+    expose:
+      - 9000
+    volumes:
+      - public_assets:/assets_volume # Target for entrypoint copy script
+      - storage:/var/www/storage:rw
+    networks:
+      - dokploy-network
+    env_file:
+      - .env
+
+  # Nginx Web Server (Production - Standard Image)
+  prod-nginx:
+    image: nginx:alpine
+    pull_policy: always
+    restart: unless-stopped
+    expose:
+      - 80
+    volumes:
+      - ./.docker/nginx.prod.conf:/etc/nginx/conf.d/default.conf
+      - public_assets:/var/www/public:ro # Read from shared volume
+      - storage:/var/www/storage:rw      # Serve storage files
+    depends_on:
+      - prod-app
+    networks:
+      - dokploy-network
+
+volumes:
+  public_assets:
+  storage:
+
+networks:
+  dokploy-network:
+    external: true

@@ -12,9 +12,9 @@
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
+        "laravel/pulse": "^1.4",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.23",
-        "laravel/telescope": "^5.11",
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
         "prism-php/prism": "^0.86.0",
@@ -27,6 +27,7 @@
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.18",
         "laravel/sail": "^1.41",
+        "laravel/telescope": "^5.11",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "phpunit/phpunit": "^11.5.3"

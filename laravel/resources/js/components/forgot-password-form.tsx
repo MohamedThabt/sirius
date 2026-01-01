@@ -1,5 +1,4 @@
 import { store } from '@/actions/App/Http/Controllers/Auth/PasswordResetLinkController';
-import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,13 +22,16 @@ export function ForgotPasswordForm({ status }: ForgotPasswordFormProps) {
 
             <div className="space-y-6">
                 <Form {...store.form()}>
-                    {({ processing, errors }) => (
+                    {({ processing, errors, hasErrors }) => (
                         <>
+                            {hasErrors && (
+                                <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm font-medium text-red-400 backdrop-blur-sm">
+                                    {errors.email || 'An error occurred. Please try again.'}
+                                </div>
+                            )}
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
                                 <Input id="email" type="email" name="email" autoComplete="off" autoFocus placeholder="email@example.com" />
-
-                                <InputError message={errors.email} />
                             </div>
 
                             <div className="my-6 flex items-center justify-start">

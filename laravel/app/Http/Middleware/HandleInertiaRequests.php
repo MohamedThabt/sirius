@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -36,9 +37,15 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // #region agent log
+        Log::info('[DEBUG-INERTIA] HandleInertiaRequests share called', [
+            'hypothesisId' => 'D',
+            'path' => $request->path(),
+            'has_session' => $request->hasSession(),
+        ]);
+        // #endregion
+
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
-
-
 
         return [
             ...parent::share($request),
