@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon } from 'lucide-react';
+import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon, CoinsIcon, CpuIcon, ActivityIcon } from 'lucide-react';
 
 interface Project {
     id: number;
@@ -53,9 +53,30 @@ interface UserStats {
     pending_invitations: number;
 }
 
+interface UsageStats {
+    total_logs: number;
+    total_credits: number;
+    total_tokens: number;
+    total_cost: string;
+    this_month_credits: number;
+    top_actions: { action_type: string; count: number; credits: number }[];
+}
+
+interface UsageLog {
+    id: number;
+    action_type: string;
+    model: string | null;
+    credits_used: number;
+    input_tokens: number;
+    output_tokens: number;
+    created_at: string;
+}
+
 interface Props {
     user: User;
     userStats: UserStats;
+    usageStats: UsageStats;
+    recentUsageLogs: UsageLog[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -73,7 +94,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function UserShow({ user, userStats }: Props) {
+export default function UserShow({ user, userStats, usageStats, recentUsageLogs }: Props) {
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
             case 'completed':
@@ -245,6 +266,117 @@ export default function UserShow({ user, userStats }: Props) {
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Usage Stats */}
+                {usageStats && (
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center justify-between text-sm font-medium">
+                                <span className="flex items-center gap-2">
+                                    <ActivityIcon className="h-4 w-4" />
+                                    Usage Statistics
+                                </span>
+                                <Link href={`/admin/usage-logs?user_id=${user.id}`}>
+                                    <Button variant="outline" size="sm">View All Logs</Button>
+                                </Link>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-4 grid-cols-2 md:grid-cols-5 mb-6">
+                                <div className="text-center p-3 rounded-lg bg-muted/50">
+                                    <div className="text-2xl font-bold">{usageStats.total_logs.toLocaleString()}</div>
+                                    <div className="text-xs text-muted-foreground">Total Logs</div>
+                                </div>
+                                <div className="text-center p-3 rounded-lg bg-muted/50">
+                                    <div className="text-2xl font-bold">{usageStats.total_credits.toLocaleString()}</div>
+                                    <div className="text-xs text-muted-foreground">Total Credits</div>
+                                </div>
+                                <div className="text-center p-3 rounded-lg bg-muted/50">
+                                    <div className="text-2xl font-bold">{usageStats.total_tokens.toLocaleString()}</div>
+                                    <div className="text-xs text-muted-foreground">Total Tokens</div>
+                                </div>
+                                <div className="text-center p-3 rounded-lg bg-muted/50">
+                                    <div className="text-2xl font-bold">${usageStats.total_cost}</div>
+                                    <div className="text-xs text-muted-foreground">Total Cost</div>
+                                </div>
+                                <div className="text-center p-3 rounded-lg bg-muted/50">
+                                    <div className="text-2xl font-bold">{usageStats.this_month_credits.toLocaleString()}</div>
+                                    <div className="text-xs text-muted-foreground">This Month</div>
+                                </div>
+                            </div>
+
+                            {/* Top Actions */}
+                            {usageStats.top_actions && usageStats.top_actions.length > 0 && (
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-medium mb-3">Top Actions by Credits</h4>
+                                    <div className="space-y-2">
+                                        {usageStats.top_actions.map((action, index) => (
+                                            <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                                                <span className="text-sm">{action.action_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-xs text-muted-foreground">{action.count} times</span>
+                                                    <Badge variant="outline">{action.credits.toLocaleString()} credits</Badge>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Recent Usage Logs */}
+                            {recentUsageLogs && recentUsageLogs.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm font-medium mb-3">Recent Usage</h4>
+                                    <div className="rounded-lg border overflow-hidden">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Action</TableHead>
+                                                    <TableHead>Model</TableHead>
+                                                    <TableHead className="text-right">Tokens</TableHead>
+                                                    <TableHead className="text-right">Credits</TableHead>
+                                                    <TableHead>Date</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {recentUsageLogs.map((log) => (
+                                                    <TableRow key={log.id}>
+                                                        <TableCell className="font-medium">
+                                                            {log.action_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {log.model ? (
+                                                                <Badge variant="outline">{log.model}</Badge>
+                                                            ) : (
+                                                                <span className="text-muted-foreground">-</span>
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-mono">
+                                                            {(log.input_tokens + log.output_tokens).toLocaleString()}
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-mono">
+                                                            {log.credits_used.toLocaleString()}
+                                                        </TableCell>
+                                                        <TableCell className="text-sm text-muted-foreground">
+                                                            {new Date(log.created_at).toLocaleDateString()}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {usageStats.total_logs === 0 && (
+                                <div className="flex flex-col items-center justify-center py-8 text-center">
+                                    <ActivityIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
+                                    <p className="text-sm text-muted-foreground">No usage logs yet</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Owned Projects */}
                 <Card>

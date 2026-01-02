@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
+use App\Models\UsageLog;
 use App\Models\User;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\Request;
@@ -106,9 +107,36 @@ class UserController extends Controller
                 'pending_invitations' => $user->pendingProjectInvitations()->count(),
             ];
 
+            // Usage stats for this user
+            $usageStats = [
+                'total_logs' => UsageLog::where('user_id', $user->id)->count(),
+                'total_credits' => UsageLog::where('user_id', $user->id)->sum('credits_used'),
+                'total_tokens' => UsageLog::where('user_id', $user->id)->sum('input_tokens') 
+                    + UsageLog::where('user_id', $user->id)->sum('output_tokens'),
+                'total_cost' => number_format(UsageLog::where('user_id', $user->id)->sum('cost'), 4),
+                'this_month_credits' => UsageLog::where('user_id', $user->id)
+                    ->where('created_at', '>=', now()->startOfMonth())
+                    ->sum('credits_used'),
+                'top_actions' => UsageLog::where('user_id', $user->id)
+                    ->selectRaw('action_type, COUNT(*) as count, SUM(credits_used) as credits')
+                    ->groupBy('action_type')
+                    ->orderByDesc('credits')
+                    ->limit(5)
+                    ->get()
+                    ->toArray(),
+            ];
+
+            // Recent usage logs for this user
+            $recentUsageLogs = UsageLog::where('user_id', $user->id)
+                ->latest('created_at')
+                ->take(5)
+                ->get(['id', 'action_type', 'model', 'credits_used', 'input_tokens', 'output_tokens', 'created_at']);
+
             return Inertia::render('dashboard/users/show', [
                 'user' => $user,
                 'userStats' => $userStats,
+                'usageStats' => $usageStats,
+                'recentUsageLogs' => $recentUsageLogs,
             ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'show', 'user_id' => $user->id]);

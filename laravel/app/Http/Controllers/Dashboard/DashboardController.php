@@ -11,6 +11,7 @@ use App\Models\GithubToken;
 use App\Models\IssueReport;
 use App\Models\Module;
 use App\Models\Project;
+use App\Models\UsageLog;
 use App\Models\User;
 use App\Traits\StructuredLogger;
 use Illuminate\Support\Facades\Http;
@@ -122,6 +123,32 @@ class DashboardController extends Controller
             $feedbackThisWeek = Feedback::where('created_at', '>=', now()->startOfWeek())->count();
             $newFeedback = Feedback::where('status', Feedback::STATUS_NEW)->count();
 
+            // Usage stats
+            $totalUsageLogs = UsageLog::count();
+            $totalCreditsUsed = UsageLog::where('credits_used', '>', 0)->sum('credits_used');
+            $totalTokensUsed = UsageLog::sum('input_tokens') + UsageLog::sum('output_tokens');
+            $totalCost = UsageLog::sum('cost');
+            $usageToday = UsageLog::whereDate('created_at', today())->sum('credits_used');
+            $usageThisWeek = UsageLog::where('created_at', '>=', now()->startOfWeek())->sum('credits_used');
+            $usageThisMonth = UsageLog::where('created_at', '>=', now()->startOfMonth())->sum('credits_used');
+            $usageByActionType = UsageLog::selectRaw('action_type, COUNT(*) as count, SUM(credits_used) as credits')
+                ->groupBy('action_type')
+                ->orderByDesc('credits')
+                ->limit(5)
+                ->get()
+                ->toArray();
+            $usageByModel = UsageLog::selectRaw('model, COUNT(*) as count, SUM(credits_used) as credits')
+                ->whereNotNull('model')
+                ->groupBy('model')
+                ->orderByDesc('credits')
+                ->limit(5)
+                ->get()
+                ->toArray();
+            $recentUsageLogs = UsageLog::with('user:id,name,email')
+                ->latest('created_at')
+                ->take(5)
+                ->get(['id', 'user_id', 'action_type', 'model', 'credits_used', 'created_at']);
+
             // Recent activity
             $recentUsers = User::latest()
                 ->take(5)
@@ -213,6 +240,18 @@ class DashboardController extends Controller
                 'feedback_this_month' => $feedbackThisMonth,
                 'feedback_this_week' => $feedbackThisWeek,
                 'new_feedback' => $newFeedback,
+
+                // Usage metrics
+                'total_usage_logs' => $totalUsageLogs,
+                'total_credits_used' => $totalCreditsUsed,
+                'total_tokens_used' => $totalTokensUsed,
+                'total_cost' => $totalCost,
+                'usage_today' => $usageToday,
+                'usage_this_week' => $usageThisWeek,
+                'usage_this_month' => $usageThisMonth,
+                'usage_by_action_type' => $usageByActionType,
+                'usage_by_model' => $usageByModel,
+                'recent_usage_logs' => $recentUsageLogs,
 
                 // Recent activity
                 'recent_users' => $recentUsers,

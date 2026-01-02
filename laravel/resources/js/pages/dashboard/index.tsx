@@ -11,7 +11,10 @@ import {
     BugIcon,
     CheckCircleIcon,
     ClockIcon,
+    CoinsIcon,
+    CpuIcon,
     DatabaseIcon,
+    DollarSignIcon,
     ExternalLinkIcon,
     FileTextIcon,
     FolderIcon,
@@ -20,6 +23,7 @@ import {
     MessageSquareIcon,
     ScrollTextIcon,
     ShieldIcon,
+    TrendingUpIcon,
     UsersIcon,
     ZapIcon,
 } from 'lucide-react';
@@ -61,6 +65,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                     <QuickLink href="/admin/beta" icon={MailIcon} label="Beta Invitations" badge={stats.beta_pending} iconClassName="text-pink-500" />
                     <QuickLink href="/admin/issues" icon={BugIcon} label="Issues" iconClassName="text-red-500" />
                     <QuickLink href="/admin/feedback" icon={MessageSquareIcon} label="Feedback" iconClassName="text-green-500" />
+                    <QuickLink href="/admin/usage-logs" icon={CoinsIcon} label="Usage Logs" iconClassName="text-amber-500" />
                     <QuickLink href="/admin/logs" icon={ScrollTextIcon} label="FastAPI Logs" iconClassName="text-slate-500" />
 
                 </div>
@@ -133,6 +138,111 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                         subtitle={stats.new_feedback > 0 ? `${stats.new_feedback} new` : undefined}
                     />
                 </div>
+
+                {/* Usage Insights */}
+                <Card className="border border-border/40 bg-gradient-to-br from-card/80 to-card/40 shadow-sm backdrop-blur-sm">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center justify-between text-sm font-medium text-foreground/80">
+                            <div className="flex items-center gap-2">
+                                <div className="rounded-lg bg-amber-500/10 p-1.5">
+                                    <CoinsIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                Usage Insights
+                            </div>
+                            <Link href="/admin/usage-logs" className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                                View All <ExternalLinkIcon className="h-3 w-3" />
+                            </Link>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {/* Usage Stats Row */}
+                        <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-7 mb-6">
+                            <div className="text-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <div className="text-2xl font-bold text-foreground">{stats.total_usage_logs?.toLocaleString() || 0}</div>
+                                <div className="text-xs text-muted-foreground">Total Logs</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.total_credits_used?.toLocaleString() || 0}</div>
+                                <div className="text-xs text-muted-foreground">Total Credits</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total_tokens_used?.toLocaleString() || 0}</div>
+                                <div className="text-xs text-muted-foreground">Total Tokens</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${typeof stats.total_cost === 'number' ? stats.total_cost.toFixed(2) : stats.total_cost || '0.00'}</div>
+                                <div className="text-xs text-muted-foreground">Total Cost</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.usage_today?.toLocaleString() || 0}</div>
+                                <div className="text-xs text-muted-foreground">Today</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.usage_this_week?.toLocaleString() || 0}</div>
+                                <div className="text-xs text-muted-foreground">This Week</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stats.usage_this_month?.toLocaleString() || 0}</div>
+                                <div className="text-xs text-muted-foreground">This Month</div>
+                            </div>
+                        </div>
+
+                        {/* Top Actions & Models */}
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {/* Top Action Types */}
+                            <div>
+                                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                                    <TrendingUpIcon className="h-3 w-3" />
+                                    Top Actions by Credits
+                                </h4>
+                                {stats.usage_by_action_type && stats.usage_by_action_type.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {stats.usage_by_action_type.map((action, index) => (
+                                            <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                                                <span className="text-sm text-foreground/80">
+                                                    {action.action_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                </span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xs text-muted-foreground">{action.count} times</span>
+                                                    <Badge variant="outline" className="border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400 tabular-nums">
+                                                        {action.credits?.toLocaleString() || 0}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground/60 text-center py-4">No usage data yet</p>
+                                )}
+                            </div>
+
+                            {/* Top AI Models */}
+                            <div>
+                                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                                    <CpuIcon className="h-3 w-3" />
+                                    Top Models by Credits
+                                </h4>
+                                {stats.usage_by_model && stats.usage_by_model.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {stats.usage_by_model.map((model, index) => (
+                                            <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                                                <span className="text-sm text-foreground/80 font-mono">{model.model}</span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xs text-muted-foreground">{model.count} calls</span>
+                                                    <Badge variant="outline" className="border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-400 tabular-nums">
+                                                        {model.credits?.toLocaleString() || 0}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground/60 text-center py-4">No model data yet</p>
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Secondary Stats */}
                 <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">

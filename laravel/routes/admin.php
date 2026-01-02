@@ -11,6 +11,7 @@ use App\Http\Controllers\Dashboard\LaravelLogsController;
 use App\Http\Controllers\Dashboard\LogsController;
 use App\Http\Controllers\Dashboard\ModuleController;
 use App\Http\Controllers\Dashboard\ProjectController;
+use App\Http\Controllers\Dashboard\UsageLogController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -85,6 +86,10 @@ Route::middleware('auth:admin')->group(function () {
     Route::put('issues/{issue}', [IssueController::class, 'update'])->name('admin.issues.update');
     Route::delete('issues/{issue}', [IssueController::class, 'destroy'])->name('admin.issues.destroy');
     Route::post('issues/{issue}/comments', [IssueController::class, 'addComment'])->name('admin.issues.comments.store');
+    
+    // Usage Logs Management
+    Route::get('usage-logs', [UsageLogController::class, 'index'])->name('admin.usage-logs.index');
+    Route::get('usage-logs/{usageLog}', [UsageLogController::class, 'show'])->name('admin.usage-logs.show');
     
     // FastAPI Logs Management
     Route::prefix('logs/fastapi')->name('admin.logs.fastapi.')->group(function () {

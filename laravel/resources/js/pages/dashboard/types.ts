@@ -80,6 +80,38 @@ export interface Stats {
     feedback_this_week: number;
     new_feedback: number;
 
+    // Usage metrics
+    total_usage_logs: number;
+    total_credits_used: number;
+    total_tokens_used: number;
+    total_cost: number;
+    usage_today: number;
+    usage_this_week: number;
+    usage_this_month: number;
+    usage_by_action_type: Array<{
+        action_type: string;
+        count: number;
+        credits: number;
+    }>;
+    usage_by_model: Array<{
+        model: string;
+        count: number;
+        credits: number;
+    }>;
+    recent_usage_logs: Array<{
+        id: number;
+        user_id: number;
+        action_type: string;
+        model: string | null;
+        credits_used: number;
+        created_at: string;
+        user: {
+            id: number;
+            name: string;
+            email: string;
+        };
+    }>;
+
     // FastAPI Health Status
     fastapi_health: FastApiHealth;
 

@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
-import { Activity, Briefcase, Bug, FileText, LayoutDashboard, MessageSquare, ScrollText, Shield, Users, Zap } from 'lucide-react';
+import { Activity, Briefcase, Bug, CoinsIcon, FileText, LayoutDashboard, MessageSquare, ScrollText, Shield, Users, Zap } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppearanceToggleDropdown from './appearance-dropdown';
 
@@ -46,6 +46,11 @@ const adminNavItems: NavItem[] = [
         title: 'Feedback',
         href: '/admin/feedback',
         icon: MessageSquare,
+    },
+    {
+        title: 'Usage Logs',
+        href: '/admin/usage-logs',
+        icon: CoinsIcon,
     },
     {
         title: 'FastAPI Logs',
