@@ -105,7 +105,7 @@ async def generate_module_erd(request: ModuleERDRequest) -> tuple[str, UsageMetr
         for m in request.existing_modules
     ] if request.existing_modules else []
     
-    total_usage = UsageMetrics(input_tokens=0, output_tokens=0, cost=0.0)
+    total_usage = UsageMetrics(model_name="gem2.5f", input_tokens=0, output_tokens=0, cost=0.0)
     validation_feedback = None
     
     for attempt in range(MAX_REGENERATION_ATTEMPTS + 1):

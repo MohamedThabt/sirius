@@ -62,7 +62,7 @@ async def generate_c4(request: C4Request) -> tuple[str, UsageMetrics]:
 
     # Retry loop with validation
     max_retries = 2
-    accumulated_usage = UsageMetrics(input_tokens=0, output_tokens=0, cost=0.0)
+    accumulated_usage = UsageMetrics(model_name="accumulated", input_tokens=0, output_tokens=0, cost=0.0)
     previous_errors = []
     last_response = None
 
@@ -184,7 +184,7 @@ async def edit_c4(request: EditC4Request) -> tuple[str, UsageMetrics]:
 
     # Retry loop with validation
     max_retries = 2
-    accumulated_usage = UsageMetrics(input_tokens=0, output_tokens=0, cost=0.0)
+    accumulated_usage = UsageMetrics(model_name="accumulated", input_tokens=0, output_tokens=0, cost=0.0)
     previous_errors = []
     last_response = None
 

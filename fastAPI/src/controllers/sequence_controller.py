@@ -32,7 +32,7 @@ async def generate_feature_sequence(request: SequenceRequest) -> tuple[str, Usag
     }
     
     max_retries = 3
-    accumulated_usage = UsageMetrics(input_tokens=0, output_tokens=0, cost=0.0)
+    accumulated_usage = UsageMetrics(model_name="accumulated", input_tokens=0, output_tokens=0, cost=0.0)
     previous_errors = []
     
     for attempt in range(1, max_retries + 1):
@@ -120,7 +120,7 @@ async def edit_feature_sequence(request: EditSequenceRequest) -> tuple[str, Usag
     }
     
     max_retries = 3
-    accumulated_usage = UsageMetrics(input_tokens=0, output_tokens=0, cost=0.0)
+    accumulated_usage = UsageMetrics(model_name="accumulated", input_tokens=0, output_tokens=0, cost=0.0)
     previous_errors = []
     
     for attempt in range(1, max_retries + 1):
