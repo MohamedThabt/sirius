@@ -222,7 +222,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                         },
                     });
                 },
-                onError: () => toast.error('Failed to edit ERD. Please try again.'),
+                onError: () => {},
                 onFinish: () => setIsGenerating(false),
             },
         );
@@ -620,10 +620,6 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                                     {
                                                         onSuccess: () => {
                                                             setIsDirty(false);
-                                                            toast.success('ERD saved successfully!');
-                                                        },
-                                                        onError: () => {
-                                                            toast.error('Failed to save ERD. Please try again.');
                                                         },
                                                         onFinish: () => setIsSaving(false),
                                                     },

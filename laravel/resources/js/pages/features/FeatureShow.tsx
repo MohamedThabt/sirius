@@ -27,7 +27,6 @@ import {
     ZapIcon,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
 
 interface Props {
     project: Project;
@@ -81,10 +80,6 @@ export default function Show({ project, module, feature }: Props) {
             preserveScroll: true,
             onSuccess: () => {
                 setEditingField(null);
-                toast.success('Feature updated successfully!');
-            },
-            onError: () => {
-                toast.error('Failed to update feature. Please try again.');
             },
         });
     }, [editingField, project.id, module.id, feature.id, put]);

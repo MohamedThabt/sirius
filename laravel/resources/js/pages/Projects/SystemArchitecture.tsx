@@ -202,9 +202,6 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                     setShowGenerationMode(false);
                     setPrompt('');
                 },
-                onError: () => {
-                    toast.error('Failed to generate diagram. Please try again.');
-                },
                 onFinish: () => {
                     setIsConverting(false);
                 },
@@ -223,9 +220,6 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                 onSuccess: () => {
                     setLastSavedContent(content);
                     setIsDirty(false);
-                },
-                onError: () => {
-                    toast.error('Failed to save diagram. Please try again.');
                 },
                 onFinish: () => {
                     setIsConverting(false);

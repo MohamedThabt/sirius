@@ -178,12 +178,10 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
                 },
                 onSuccess: () => {
                     setPrompt('');
-                    toast.success('Sequence diagram updated by AI');
                 },
                 onError: (errors: any) => {
                     const first = (errors && Object.values(errors)[0]) as any;
                     setError(typeof first === 'string' ? first : 'Request failed');
-                    toast.error('Failed to update sequence diagram');
                 },
                 onFinish: () => {
                     setIsSubmitting(false);
@@ -203,10 +201,6 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
                 onSuccess: () => {
                     setLastSavedContent(content);
                     setIsDirty(false);
-                    toast.success('Sequence diagram saved');
-                },
-                onError: () => {
-                    toast.error('Failed to save sequence diagram');
                 },
                 onFinish: () => setIsSaving(false),
             },

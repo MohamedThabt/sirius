@@ -111,10 +111,6 @@ export default function ModuleShow({ project, module }: Props) {
             preserveScroll: true,
             onSuccess: () => {
                 setEditingField(null);
-                toast.success('Module updated successfully!');
-            },
-            onError: () => {
-                toast.error('Failed to update module. Please try again.');
             },
         });
     }, [editingField, project.id, module.id, put]);
@@ -651,11 +647,6 @@ export default function ModuleShow({ project, module }: Props) {
                                         onSuccess: () => {
                                             setIsAddFeatureModalOpen(false);
                                             setNewFeature({ name: '', description: '' });
-                                            toast.success('Feature created successfully!');
-                                        },
-                                        onError: (errors) => {
-                                            const errorMessage = Object.values(errors).flat().join(' ') || 'Failed to create feature.';
-                                            toast.error(errorMessage);
                                         },
                                         onFinish: () => {
                                             setIsCreatingFeature(false);
@@ -706,9 +697,6 @@ export default function ModuleShow({ project, module }: Props) {
                                         preserveScroll: true,
                                         onSuccess: () => {
                                             setFeatureToDelete(null);
-                                        },
-                                        onError: () => {
-                                            toast.error('Failed to delete feature. Please try again.');
                                         },
                                         onFinish: () => {
                                             setIsDeletingFeature(false);

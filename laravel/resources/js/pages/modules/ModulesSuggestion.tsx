@@ -141,11 +141,9 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                     setIsRegenerating(false);
                     setSelectedModules([]);
                     setRegenerateNotes('');
-                    toast.success('Modules regenerated successfully!');
                 },
                 onError: () => {
                     setIsRegenerating(false);
-                    toast.error('Failed to regenerate modules. Please try again.');
                 },
             }
         );
@@ -166,12 +164,10 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
             } as never,
             {
                 onSuccess: () => {
-                    toast.success(`Successfully created ${selectedModules.length} modules!`);
                     setIsSubmitting(false);
                 },
                 onError: (errors) => {
                     console.error('Submission errors:', errors);
-                    toast.error('Failed to submit modules. Please try again.');
                     setIsSubmitting(false);
                 },
                 onFinish: () => {

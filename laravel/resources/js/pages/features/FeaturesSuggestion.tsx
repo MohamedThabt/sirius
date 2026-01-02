@@ -122,11 +122,9 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                     setIsRegenerating(false);
                     setSelectedFeatures([]);
                     setRegenerateNotes('');
-                    toast.success('Features regenerated successfully!');
                 },
                 onError: () => {
                     setIsRegenerating(false);
-                    toast.error('Failed to regenerate features. Please try again.');
                 },
             }
         );
@@ -147,12 +145,10 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
             } as never,
             {
                 onSuccess: () => {
-                    toast.success(`Successfully created ${selectedFeatures.length} feature${selectedFeatures.length !== 1 ? 's' : ''}!`);
                     setIsSubmitting(false);
                 },
                 onError: (errors) => {
                     console.error('Submission errors:', errors);
-                    toast.error('Failed to submit features. Please try again.');
                     setIsSubmitting(false);
                 },
                 onFinish: () => {

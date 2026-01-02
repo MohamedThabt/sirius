@@ -220,7 +220,7 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                         },
                     });
                 },
-                onError: () => toast.error('Failed to edit ERD. Please try again.'),
+                onError: () => {},
                 onFinish: () => setIsGenerating(false),
             },
         );
@@ -615,10 +615,6 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                                                     {
                                                         onSuccess: () => {
                                                             setIsDirty(false);
-                                                            toast.success('Datamodel saved successfully!');
-                                                        },
-                                                        onError: () => {
-                                                            toast.error('Failed to save datamodel. Please try again.');
                                                         },
                                                         onFinish: () => setIsSaving(false),
                                                     },
