@@ -186,31 +186,6 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                 className="mb-10"
                             />
 
-                            {/* Stats Section */}
-                            <div className="mb-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-                                <StatCard
-                                    icon={FolderIcon}
-                                    title="Total Projects"
-                                    value={stats.total}
-                                    subtitle="All your projects"
-                                    colorTheme="blue"
-                                />
-                                <StatCard
-                                    icon={CheckCircleIcon}
-                                    title="Completed"
-                                    value={stats.completed}
-                                    subtitle="Successfully finished"
-                                    colorTheme="emerald"
-                                />
-                                <StatCard
-                                    icon={ClockIcon}
-                                    title="In Progress"
-                                    value={stats.inProgress}
-                                    subtitle="Currently active"
-                                    colorTheme="orange"
-                                />
-                            </div>
-
                             {/* Search Bar */}
                             <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                                 <div className="relative max-w-md">

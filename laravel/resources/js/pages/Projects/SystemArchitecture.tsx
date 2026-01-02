@@ -11,7 +11,7 @@ import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useC4Parser } from '@/hooks/useC4Parser';
 import { type User, type Project, type Sections } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
+import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -113,8 +113,8 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
     ];
 
     const completionPercentage = useMemo(() => {
-        return getCompletionPercentage(sections, [], project);
-    }, [sections, project]);
+        return project?.progress ?? 0;
+    }, [project]);
 
     const health = useMemo(() => {
         return getHealthStatus(completionPercentage);

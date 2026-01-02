@@ -48,8 +48,9 @@ interface FeatureItem {
     name: string;
     summary: string;
     priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
+    status: 'draft' | 'in_progress' | 'completed' | 'archived' | 'done' | 'todo' | 'review';
     order_of_implementation: number;
+    progress?: number;
 }
 
 interface ModuleItem {
@@ -60,6 +61,7 @@ interface ModuleItem {
     order_of_implementation: number;
     metrics?: string | null;
     erd?: string | null;
+    progress?: number;
     features?: FeatureItem[];
 }
 
@@ -243,7 +245,7 @@ const FlowCanvas = ({
                         title: module.name,
                         description: module.description || 'Module details',
                         icon: BoxIcon,
-                        isCompleted: module.status === 'completed',
+                        isCompleted: module.progress === 100 || module.status === 'completed',
                         isCurrent: module.status === 'in_progress',
                         isLocked: false,
                         isHardLocked: false,
@@ -254,6 +256,8 @@ const FlowCanvas = ({
                         outputHandlePosition: hasFeatures ? Position.Bottom : undefined,
                         outputHandleId: hasFeatures ? `module-${module.id}-output` : undefined,
                         showOutputHandle: hasFeatures,
+                        // Progress indicator
+                        progress: module.progress,
                         // Feature expansion props
                         features: module.features,
                         isExpandable: hasFeatures,
@@ -282,12 +286,13 @@ const FlowCanvas = ({
                                 title: feature.name,
                                 description: feature.summary || 'Feature details',
                                 icon: ZapIcon,
-                                isCompleted: feature.status === 'completed',
+                                isCompleted: feature.progress === 100 || feature.status === 'done',
                                 isCurrent: feature.status === 'in_progress',
                                 isLocked: false,
                                 isHardLocked: false,
                                 onClick: () => router.visit(`/projects/${projectId}/modules/${module.id}/features/${feature.id}`),
                                 prerequisiteMessage: undefined,
+                                progress: feature.progress ?? 0,
                                 inputHandlePosition: Position.Top,
                                 inputHandleId: `feature-${feature.id}-input`,
                                 showOutputHandle: false,
@@ -347,7 +352,7 @@ const FlowCanvas = ({
         // Add module edges
         if (isModulesExpanded && modules && modules.length > 0) {
             modules.forEach((module) => {
-                const isCompleted = module.status === 'completed';
+                const isCompleted = module.progress === 100 || module.status === 'completed';
                 const isModuleExpanded = expandedModules[module.id] || false;
                 
                 edges.push({
@@ -373,7 +378,7 @@ const FlowCanvas = ({
                 // Add feature edges when module is expanded
                 if (isModuleExpanded && module.features && module.features.length > 0) {
                     module.features.forEach((feature) => {
-                        const isFeatureCompleted = feature.status === 'completed';
+                        const isFeatureCompleted = feature.progress === 100 || feature.status === 'done';
                         edges.push({
                             id: `edge-module-${module.id}-feature-${feature.id}`,
                             source: `module-${module.id}`,

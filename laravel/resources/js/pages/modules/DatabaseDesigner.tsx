@@ -12,7 +12,7 @@ import { type Project, type SharedData, type User } from '@/types';
 import type { ModuleItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant, Edge, Node } from '@xyflow/react';
-import { ChevronLeft, ChevronRight, Loader2, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, PanelLeftClose, PanelLeftOpen, RefreshCw, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -50,6 +50,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     });
 
     const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
+    const [isRetrying, setIsRetrying] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
@@ -121,38 +122,70 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialIsGenerating, moduleId]);
 
-    // WHY: Using Inertia router instead of manual fetch for proper CSRF handling
-    // and consistent error management across the app
-    const triggerAsyncGeneration = useCallback(() => {
+    // WHY: Using native fetch() for async generation - consistent with other async endpoints (C4, SequenceDiagram)
+    // The backend returns JsonResponse, not Inertia response
+    const triggerAsyncGeneration = useCallback(async () => {
         setIsGenerating(true);
         setGenerationError(null);
         
+        try {
+            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+            const response = await fetch(
+                `/projects/${project.id}/modules/${moduleId}/erd/generate-async`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken || '',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({}),
+                }
+            );
+            
+            const data = await response.json();
+            
+            if (data.success && data.erd) {
+                setContent(data.erd);
+                setIsDirty(false);
+                toast.success(data.message || 'ERD generated successfully!');
+            } else {
+                const errorMessage = data.message || 'Failed to generate ERD. Please try again.';
+                setGenerationError(errorMessage);
+                toast.error(errorMessage);
+            }
+        } catch {
+            const errorMessage = 'Failed to generate ERD. Please try again.';
+            setGenerationError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setIsGenerating(false);
+        }
+    }, [project.id, moduleId]);
+
+    // Handler for regenerating ERD - sets up session and triggers generation
+    const handleRegenerate = useCallback(() => {
+        if (!moduleId) {
+            toast.error('Module not found for generate route.');
+            return;
+        }
+        // Set retrying state for button feedback - keep error visible to show shimmer
+        setIsRetrying(true);
         router.post(
-            `/projects/${project.id}/modules/${moduleId}/erd/generate-async`,
+            `/projects/${project.id}/modules/${moduleId}/erd/generate`,
             {},
             {
                 preserveScroll: true,
-                onSuccess: (page) => {
-                    // Access the response data from the page props or flash
-                    const flash = (page.props as any).flash;
-                    if (flash?.erd) {
-                        setContent(flash.erd);
-                        setIsDirty(false);
-                        toast.success('ERD generated successfully!');
-                    } else if (flash?.error) {
-                        setGenerationError(flash.error);
-                        toast.error(flash.error);
-                    }
+                onSuccess: () => {
+                    // Clear error only on success - page will reload with isGenerating=true
+                    setGenerationError(null);
                 },
-                onError: (errors) => {
-                    const errorMessage = Object.values(errors).flat().join(' ') || 'Failed to generate ERD. Please try again.';
-                    setGenerationError(errorMessage);
-                    toast.error(errorMessage);
+                onError: () => {
+                    setIsRetrying(false);
+                    setGenerationError('Failed to start ERD generation. Please try again.');
+                    toast.error('Failed to start ERD generation. Please try again.');
                 },
-                onFinish: () => {
-                    setIsGenerating(false);
-                },
-            }
+            },
         );
     }, [project.id, moduleId]);
 
@@ -481,7 +514,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                             project={project}
                             navGroups={navGroups}
                             repository={null}
-                            completionPercentage={undefined}
+                            completionPercentage={project.progress}
                             health={undefined}
                             isCollapsed={isSidebarCollapsed}
                             user={auth.user as unknown as User}
@@ -723,33 +756,18 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                                 <h3 className="mb-2 text-xl font-semibold text-foreground">Generation Failed</h3>
                                                 <p className="mb-6 text-sm text-muted-foreground">{generationError}</p>
                                                 <Button
-                                                    onClick={() => {
-                                                        if (!moduleId) {
-                                                            toast.error('Module not found for generate route.');
-                                                            return;
-                                                        }
-                                                        // Clear error state and trigger regeneration
-                                                        setGenerationError(null);
-                                                        setIsGenerating(true);
-                                                        router.post(
-                                                            `/projects/${project.id}/modules/${moduleId}/erd/generate`,
-                                                            {},
-                                                            {
-                                                                preserveScroll: true,
-                                                                onSuccess: () => {
-                                                                    // The page will reload with isGenerating=true, which will trigger generateAsync
-                                                                },
-                                                                onError: () => {
-                                                                    setIsGenerating(false);
-                                                                    setGenerationError('Failed to start ERD generation. Please try again.');
-                                                                },
-                                                            },
-                                                        );
-                                                    }}
+                                                    onClick={handleRegenerate}
+                                                    disabled={isRetrying}
                                                     className="bg-primary text-primary-foreground"
                                                 >
-                                                    <Sparkles className="mr-2 h-4 w-4" />
-                                                    Regenerate ERD
+                                                    {isRetrying ? (
+                                                        <TextShimmer className="text-white">Retrying...</TextShimmer>
+                                                    ) : (
+                                                        <>
+                                                            <RefreshCw className="mr-2 h-4 w-4" />
+                                                            Try Again
+                                                        </>
+                                                    )}
                                                 </Button>
                                             </div>
                                         </div>

@@ -190,6 +190,7 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
+                        completionPercentage={project.progress}
                         isCollapsed={isSidebarCollapsed}
                         user={auth.user}
                     />

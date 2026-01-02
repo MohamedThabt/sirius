@@ -48,20 +48,25 @@ export const featureStatusConfig: Record<FeatureStatus, StatusConfig> = {
         color: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30',
         label: 'Draft',
     },
+    todo: {
+        icon: CircleIcon,
+        color: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30',
+        label: 'To Do',
+    },
     in_progress: {
         icon: ClockIcon,
         color: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30',
         label: 'In Progress',
     },
-    completed: {
+    review: {
+        icon: ClockIcon,
+        color: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/30',
+        label: 'Review',
+    },
+    done: {
         icon: CheckCircle2,
         color: 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30',
-        label: 'Completed',
-    },
-    archived: {
-        icon: CircleIcon,
-        color: 'bg-muted text-muted-foreground border-border',
-        label: 'Archived',
+        label: 'Done',
     },
 };
 

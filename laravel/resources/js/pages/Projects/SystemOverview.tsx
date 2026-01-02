@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
-import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
+import { getHealthStatus } from '@/utils/project-status';
 import { type User, type Project, type Sections, type OverviewVersion, type ChatMessage } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
@@ -70,8 +70,8 @@ export default function SystemOverview({
     ];
 
     const completionPercentage = useMemo(() => {
-        return getCompletionPercentage(sections, features, project);
-    }, [sections, features, project]);
+        return project?.progress ?? 0;
+    }, [project]);
 
     const health = useMemo(() => {
         return getHealthStatus(completionPercentage);

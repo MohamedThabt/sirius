@@ -40,6 +40,7 @@ interface Feature {
     priority: string;
     status: string;
     order_of_implementation: number;
+    progress: number;
 }
 
 interface SiblingModule {
@@ -207,7 +208,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                 <div className="flex gap-3 text-sm">
                                     <div className="flex items-center gap-1.5">
                                         <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                                        <span className="text-muted-foreground">{moduleStats.features_by_status?.completed || 0}</span>
+                                        <span className="text-muted-foreground">{moduleStats.features_by_status?.done || 0}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <div className="h-2 w-2 rounded-full bg-blue-500" />
@@ -428,6 +429,27 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                                         {feature.summary || feature.description}
                                                     </p>
                                                 )}
+                                                {/* Progress Bar */}
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center justify-between text-xs">
+                                                        <span className="text-muted-foreground">Progress</span>
+                                                        <span className={`font-medium ${
+                                                            feature.progress >= 80 ? 'text-emerald-600 dark:text-emerald-400' :
+                                                            feature.progress >= 50 ? 'text-amber-600 dark:text-amber-400' :
+                                                            'text-muted-foreground'
+                                                        }`}>{feature.progress}%</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                                        <div 
+                                                            className={`h-full transition-all duration-300 ${
+                                                                feature.progress >= 80 ? 'bg-emerald-500' :
+                                                                feature.progress >= 50 ? 'bg-amber-500' :
+                                                                'bg-slate-400'
+                                                            }`}
+                                                            style={{ width: `${feature.progress}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
                                                 <div className="flex items-center justify-between pt-2 border-t">
                                                     <Badge variant="outline" className={`${getStatusColor(feature.status)} text-xs`}>
                                                         {feature.status?.replace('_', ' ') || 'draft'}

@@ -108,6 +108,7 @@ export interface Project {
     prd_is_synced?: boolean;
     brainstorming_scene?: unknown;
     user_id?: number;
+    progress?: number;
 }
 
 /**

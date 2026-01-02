@@ -104,7 +104,7 @@ export default function ProjectSidebarPanel({
                 <div
                     className={`sticky top-0 flex h-screen flex-col justify-between py-4 px-3 ${isCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 >
-                    <div className="scrollbar-hide overflow-y-auto">
+                    <div className="overflow-x-hidden overflow-y-auto scrollbar-hide">
                         {/* Linear-style Header */}
                         <div className="mb-4 pb-3 border-b border-border/30">
                             <div className="flex items-center justify-between">
@@ -124,16 +124,6 @@ export default function ProjectSidebarPanel({
                                             {project.name}
                                         </span>
                                     </div>
-                                </div>
-                                
-                                {/* Action Icons */}
-                                <div className="flex items-center gap-0.5">
-                                    <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors">
-                                        <Search className="h-4 w-4" />
-                                    </button>
-                                    <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors">
-                                        <SquarePen className="h-4 w-4" />
-                                    </button>
                                 </div>
                             </div>
                             

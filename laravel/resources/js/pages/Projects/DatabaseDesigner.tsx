@@ -21,7 +21,7 @@ import { useDBMLParser } from '@/hooks/useDBMLParser';
 import { type User, type Project, type Sections } from '@/types';
 import { exportAsSQL } from '@/utils/exportUtils';
 import { convertFormat, detectFormat, DiagramFormat } from '@/utils/formatConverters';
-import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
+import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, CodeIcon, Database as DatabaseIcon, Download, FileCode, FileIcon, FileText, Grid3X3, Layers, Maximize2, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
@@ -74,8 +74,8 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
     ];
 
     const completionPercentage = useMemo(() => {
-        return getCompletionPercentage(sections, [], project);
-    }, [sections, project]);
+        return project?.progress ?? 0;
+    }, [project]);
 
     const health = useMemo(() => {
         return getHealthStatus(completionPercentage);

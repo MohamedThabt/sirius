@@ -49,6 +49,7 @@ interface ModuleItem {
     metrics?: string | null;
     erd?: string | null;
     erd_is_synced?: boolean;
+    progress?: number;
     features?: FeatureItem[];
 }
 
@@ -291,9 +292,10 @@ export default function ProjectShow({
     const completedStepsCount = roadmapSteps.filter((step) => step.isCompleted).length;
     const totalStepsCount = roadmapSteps.length;
 
+    // Use backend-computed project progress for sidebar/health display
     const completionPercentage = useMemo(() => {
-        return Math.round((completedStepsCount / totalStepsCount) * 100);
-    }, [completedStepsCount, totalStepsCount]);
+        return project.progress ?? 0;
+    }, [project.progress]);
 
     const health = useMemo(() => getHealthStatus(completionPercentage), [completionPercentage]);
 

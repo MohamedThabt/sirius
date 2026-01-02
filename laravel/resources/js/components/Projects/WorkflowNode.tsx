@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { BaseNode, BaseNodeContent, BaseNodeFooter, BaseNodeHeader, BaseNodeHeaderTitle } from '@/components/ui/base-node';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { AlertCircleIcon, CheckCircleIcon, ChevronDown, ChevronUp, Loader2, Lock as LockIcon, List } from 'lucide-react';
@@ -39,6 +40,7 @@ interface WorkflowNodeData {
     isOutOfSync?: boolean;
     onClick: () => void;
     prerequisiteMessage?: string;
+    progress?: number;
     features?: FeatureItem[];
     modules?: ModuleItem[];
     isExpandable?: boolean;
@@ -72,6 +74,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
         isOutOfSync = false,
         onClick,
         prerequisiteMessage,
+        progress,
         features,
         modules,
         isExpandable,
@@ -160,6 +163,14 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                 {/* Content */}
                 <BaseNodeContent className="space-y-3">
                     <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">{description}</p>
+
+                    {/* Progress Bar for modules/features */}
+                    {typeof progress === 'number' && (
+                        <div className="flex items-center gap-2">
+                            <Progress value={progress} className="h-1.5 flex-1" />
+                            <span className="text-[10px] font-medium text-muted-foreground">{progress}%</span>
+                        </div>
+                    )}
 
                     {/* Status Badge */}
                     <div className="flex justify-center">

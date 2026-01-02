@@ -31,6 +31,7 @@ class ModuleController extends Controller
             }
 
             $modules = $project->modules()
+                ->with('features')
                 ->orderBy('order_of_implementation')
                 ->get();
 

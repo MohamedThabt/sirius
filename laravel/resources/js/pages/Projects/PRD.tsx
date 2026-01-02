@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
-import { getCompletionPercentage, getHealthStatus } from '@/utils/project-status';
+import { getHealthStatus } from '@/utils/project-status';
 import { type User, type Project, type Sections, type PRDVersion, type ChatMessage } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Toaster } from '@/components/ui/sonner';
@@ -71,8 +71,8 @@ export default function PRD({
         : [{ title: 'PRD', href: '#' }];
 
     const completionPercentage = useMemo(() => {
-        return getCompletionPercentage(sections, [], project);
-    }, [sections, project]);
+        return project?.progress ?? 0;
+    }, [project]);
 
     const health = useMemo(() => {
         return getHealthStatus(completionPercentage);

@@ -171,6 +171,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
+                        completionPercentage={project.progress}
                         isCollapsed={isSidebarCollapsed}
                         user={auth.user}
                     />

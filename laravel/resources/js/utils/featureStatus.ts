@@ -18,9 +18,10 @@ export const PRIORITY_COLORS: Record<FeaturePriority | 'default', string> = {
  */
 export const STATUS_COLORS: Record<FeatureStatus | 'default', string> = {
     draft: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30',
+    todo: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30',
     in_progress: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30',
-    completed: 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30',
-    archived: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30',
+    review: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/30',
+    done: 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30',
     default: 'bg-muted text-muted-foreground border-border',
 };
 
@@ -29,9 +30,10 @@ export const STATUS_COLORS: Record<FeatureStatus | 'default', string> = {
  */
 export const STATUS_ICONS: Record<FeatureStatus | 'default', LucideIcon> = {
     draft: CircleIcon,
+    todo: CircleIcon,
     in_progress: ClockIcon,
-    completed: CheckCircle2,
-    archived: CircleIcon,
+    review: ClockIcon,
+    done: CheckCircle2,
     default: CircleIcon,
 };
 

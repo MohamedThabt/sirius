@@ -44,15 +44,8 @@ export default function Technology({ project, technicalIntake, sections }: Props
     ];
 
     const completionPercentage = useMemo(() => {
-        const total = 5;
-        let done = 0;
-        if (sections?.overview) done++;
-        if (sections?.prd) done++;
-        if (sections?.data_modeling) done++;
-        if (project.c4) done++;
-        if (sections?.non_functional_requirements) done++;
-        return Math.round((done / total) * 100);
-    }, [sections, project.c4]);
+        return project.progress ?? 0;
+    }, [project.progress]);
 
     const navGroups = useMemo(
         () =>

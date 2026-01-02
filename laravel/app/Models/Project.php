@@ -16,6 +16,24 @@ class Project extends Model
     use HasFactory;
 
     /**
+     * Bootstrap the model and its traits.
+     * 
+     * Auto-complete project when progress reaches 100%.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Project $project) {
+            // Calculate progress before saving
+            $progress = $project->progress;
+            
+            // Auto-set status to 'completed' when progress reaches 100%
+            if ($progress === 100 && $project->status !== 'completed') {
+                $project->status = 'completed';
+            }
+        });
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -46,6 +64,84 @@ class Project extends Model
         'prd_is_synced' => 'boolean',
         'prd_last_synced_at' => 'datetime',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = ['progress'];
+
+    /**
+     * Project progress fields for calculation.
+     * Each field contributes equally to the overall progress.
+     */
+    private const PROGRESS_FIELDS = [
+        'brief',
+        'overview',
+        'technical_details',
+        'modules',
+        'prd',
+        'c4', // system architecture
+    ];
+
+    /**
+     * Calculate project progress based on completed fields.
+     * 
+     * Fields considered (each ~16.67%):
+     * - brief: Has content
+     * - overview: Has latest overview version with content
+     * - technical_details: Has content
+     * - modules: All modules have progress === 100 (empty = 0%)
+     * - prd: Has content
+     * - c4: Has system architecture content
+     *
+     * @return int Progress percentage (0-100)
+     */
+    public function getProgressAttribute(): int
+    {
+        $completedCount = 0;
+        $totalFields = count(self::PROGRESS_FIELDS);
+
+        // Check brief
+        if (!empty($this->brief)) {
+            $completedCount++;
+        }
+
+        // Check overview (from latest overview version)
+        $latestOverview = $this->latestOverviewVersion;
+        if ($latestOverview && !empty($latestOverview->overview)) {
+            $completedCount++;
+        }
+
+        // Check technical_details
+        if (!empty($this->technical_details)) {
+            $completedCount++;
+        }
+
+        // Check modules - all modules must have progress === 100
+        // Empty modules = 0% (Option A)
+        $modules = $this->modules;
+        if ($modules->count() > 0) {
+            $allModulesComplete = $modules->every(fn($module) => $module->progress === 100);
+            if ($allModulesComplete) {
+                $completedCount++;
+            }
+        }
+        // If no modules, this field stays incomplete (0%)
+
+        // Check PRD
+        if (!empty($this->prd)) {
+            $completedCount++;
+        }
+
+        // Check system architecture (c4)
+        if (!empty($this->c4)) {
+            $completedCount++;
+        }
+
+        return $totalFields > 0 ? (int) round(($completedCount / $totalFields) * 100) : 0;
+    }
 
     /**
      * Get the user that owns the project.

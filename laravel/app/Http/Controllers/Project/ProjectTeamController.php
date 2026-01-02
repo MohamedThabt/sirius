@@ -126,6 +126,7 @@ class ProjectTeamController extends Controller
                     'name' => $project->name,
                     'status' => $project->status,
                     'user_id' => $project->user_id,
+                    'progress' => $project->progress,
                 ],
                 'members' => $members,
                 'invitations' => $invitations,

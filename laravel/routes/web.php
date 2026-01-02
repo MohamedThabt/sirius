@@ -139,6 +139,7 @@ Route::middleware(['auth', 'share.project'])->group(function () {
     Route::get('/projects/{project}/modules/{module}/features/{feature}', [FeaturesController::class, 'show'])->name('features.show');
     Route::get('/projects/{project}/modules/{module}/features/{feature}/specs', [FeaturesController::class, 'specs'])->name('features.specs.show');
     Route::put('/projects/{project}/modules/{module}/features/{feature}/update', [FeaturesController::class, 'update'])->name('features.update');
+    Route::delete('/projects/{project}/modules/{module}/features/{feature}', [FeaturesController::class, 'destroy'])->name('features.destroy');
     
     // Modules Controller routes
     Route::get('/projects/{project}/modules', [ModuleController::class, 'index'])->name('modules.index');

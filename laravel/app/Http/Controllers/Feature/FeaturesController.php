@@ -651,6 +651,42 @@ class FeaturesController extends Controller
     }
 
     /**
+     * Delete a feature.
+     *
+     * @param Project $project The project containing the module
+     * @param Module $module The module containing the feature
+     * @param Feature $feature The feature to delete
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(Project $project, Module $module, Feature $feature)
+    {
+        try {
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to delete this feature.');
+            }
+
+            // Ensure the feature belongs to the module and project
+            if ($feature->module_id !== $module->id || $module->project_id !== $project->id) {
+                return back()->with('error', 'Feature does not belong to this module.');
+            }
+
+            $featureName = $feature->name;
+            $feature->delete();
+
+            // Mark module ERD as unsynced since features changed
+            if ($module->erd !== null) {
+                $module->update(['erd_is_synced' => false]);
+            }
+
+            return back()->with('success', "Feature '{$featureName}' deleted successfully!");
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'destroy', 'feature_id' => $feature->id]);
+
+            return back()->with('error', 'Failed to delete feature. Please try again.');
+        }
+    }
+
+    /**
      * Sanitize and validate priority value.
      *
      * @param string $priority The priority value to sanitize

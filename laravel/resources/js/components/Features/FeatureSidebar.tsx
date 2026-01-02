@@ -37,7 +37,7 @@ interface FeatureItem {
     name: string;
     summary: string | null;
     priority: 'low' | 'medium' | 'high' | 'critical';
-    status: 'draft' | 'in_progress' | 'completed' | 'archived';
+    status: 'draft' | 'todo' | 'in_progress' | 'review' | 'done';
     order_of_implementation: number;
     progress?: number | null;
     description?: string | null;
@@ -67,24 +67,16 @@ export default function FeatureSidebar({ project, module, feature, activeSection
     const getInitials = useInitials();
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
     const [isRepoManagementOpen, setIsRepoManagementOpen] = useState(false);
-    const calculateProgress = useMemo(() => {
-        const artifacts = [
-            !!(feature.description && feature.acceptance_criteria), // Overview
-            !!feature.erd, // ERD
-            !!feature.sequence_diagram, // Sequence
-            !!feature.user_flows, // User flows (shown in overview)
-            !!feature.wireframe, // Wireframe
-        ];
-        const completed = artifacts.filter(Boolean).length;
-        return Math.round((completed / 5) * 100);
-    }, [feature]);
+    
+    // Use backend-computed progress (considers all 8 artifact fields)
+    const featureProgress = feature.progress ?? 0;
 
     const health = useMemo(() => {
-        if (calculateProgress >= 80) return { label: 'excellent', Icon: CheckCircleIcon, color: 'text-emerald-600 dark:text-emerald-300' };
-        if (calculateProgress >= 60) return { label: 'good', Icon: CheckCircleIcon, color: 'text-blue-600 dark:text-blue-300' };
-        if (calculateProgress >= 40) return { label: 'fair', Icon: AlertCircleIcon, color: 'text-orange-600 dark:text-orange-300' };
+        if (featureProgress >= 80) return { label: 'excellent', Icon: CheckCircleIcon, color: 'text-emerald-600 dark:text-emerald-300' };
+        if (featureProgress >= 60) return { label: 'good', Icon: CheckCircleIcon, color: 'text-blue-600 dark:text-blue-300' };
+        if (featureProgress >= 40) return { label: 'fair', Icon: AlertCircleIcon, color: 'text-orange-600 dark:text-orange-300' };
         return { label: 'needs attention', Icon: AlertCircleIcon, color: 'text-red-600 dark:text-red-300' };
-    }, [calculateProgress]);
+    }, [featureProgress]);
 
     interface NavItem {
         key: string;
@@ -198,10 +190,10 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                         <div className="mt-4">
                             <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                                 <span>Progress</span>
-                                <span>{calculateProgress}%</span>
+                                <span>{featureProgress}%</span>
                             </div>
                             <div className="h-1.5 w-full overflow-hidden rounded bg-muted">
-                                <div className="h-full bg-foreground transition-all" style={{ width: `${calculateProgress}%` }} />
+                                <div className="h-full bg-foreground transition-all" style={{ width: `${featureProgress}%` }} />
                             </div>
                             <div className="mt-2 flex items-center gap-1.5 text-xs">
                                 <health.Icon className={`h-3.5 w-3.5 ${health.color}`} />

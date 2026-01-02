@@ -217,7 +217,7 @@ export default function Team({ project, members, invitations, userInvitations, u
 
             <div className="min-h-screen bg-background">
                 <div className="flex">
-                    <ProjectSidebarPanel project={project} navGroups={navGroups} isCollapsed={isSidebarCollapsed} user={auth.user} />
+                    <ProjectSidebarPanel project={project} navGroups={navGroups} completionPercentage={project.progress} isCollapsed={isSidebarCollapsed} user={auth.user} />
 
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">

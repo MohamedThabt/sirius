@@ -10,12 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useErdOperations } from '@/hooks/useErdOperations';
 import { type Project, type SharedData, type User } from '@/types';
-import type { FeatureItem, ModuleItem, ModuleStatus } from '@/types/modules';
+import type { ModuleItem, ModuleStatus } from '@/types/modules';
 import { getModuleStatusConfig, getFeatureStatusConfig, getFeaturePriorityConfig } from '@/utils/statusHelpers';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
@@ -30,6 +31,7 @@ import {
     PencilIcon,
     Plus,
     Sparkles,
+    Trash2,
     ZapIcon,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -50,6 +52,8 @@ export default function ModuleShow({ project, module }: Props) {
     const [isAddFeatureModalOpen, setIsAddFeatureModalOpen] = useState(false);
     const [isCreatingFeature, setIsCreatingFeature] = useState(false);
     const [newFeature, setNewFeature] = useState({ name: '', description: '' });
+    const [featureToDelete, setFeatureToDelete] = useState<{ id: number; name: string } | null>(null);
+    const [isDeletingFeature, setIsDeletingFeature] = useState(false);
 
     // WHY: Hook encapsulates ERD sync logic, reducing duplication with DatabaseDesigner.tsx
     const { isSyncing, syncErd } = useErdOperations({ projectId: project.id, moduleId: module.id });
@@ -129,21 +133,22 @@ export default function ModuleShow({ project, module }: Props) {
 
     const handleStatusChange = useCallback((newStatus: ModuleStatus) => {
         setData('status', newStatus);
-        put(`/projects/${project.id}/modules/${module.id}/update`, {
+        router.put(`/projects/${project.id}/modules/${module.id}/update`, {
+            ...data,
+            status: newStatus,
+        }, {
             preserveScroll: true,
-            onSuccess: () => toast.success('Status updated successfully!'),
-            onError: () => toast.error('Failed to update status.'),
         });
-    }, [project.id, module.id, put, setData]);
+    }, [project.id, module.id, data, setData]);
 
     // WHY: Helper function to get status config from centralized utilities
     const statusConfig = getModuleStatusConfig(data.status);
 
     const features = module.features || [];
-    const completedFeatures = features.filter((f) => f.status === 'completed').length;
+    const completedFeatures = features.filter((f) => f.progress === 100).length;
 
-    // Calculate module progress based on features
-    const moduleProgress = features.length > 0 ? Math.round((completedFeatures / features.length) * 100) : 0;
+    // Use backend-computed module progress (considers description, metrics, erd, and fully-complete features)
+    const moduleProgress = module.progress ?? 0;
 
     const health = useMemo(() => {
         if (moduleProgress >= 80) return { label: 'excellent', Icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400' };
@@ -164,6 +169,7 @@ export default function ModuleShow({ project, module }: Props) {
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
+                        completionPercentage={project.progress}
                         isCollapsed={isSidebarCollapsed}
                         user={auth.user as User}
                     />
@@ -451,14 +457,17 @@ export default function ModuleShow({ project, module }: Props) {
                                     ) : (
                                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                             {features.map((feature) => {
-                                                const featureStatusConfig = getFeatureStatusConfig(feature.status);
+                                                // Use progress === 100 as the source of truth for completed state
+                                                const isCompleted = feature.progress === 100;
+                                                const effectiveStatus = isCompleted ? 'done' : feature.status;
+                                                const featureStatusConfig = getFeatureStatusConfig(effectiveStatus);
                                                 const FeatureStatusIcon = featureStatusConfig.icon;
                                                 const priorityConfig = getFeaturePriorityConfig(feature.priority);
                                                 
-                                                // Determine icon color based on status
-                                                const iconColorClass = feature.status === 'completed' 
+                                                // Determine icon color based on effective status (progress-based)
+                                                const iconColorClass = isCompleted
                                                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                                    : feature.status === 'in_progress'
+                                                    : effectiveStatus === 'in_progress'
                                                     ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                                                     : 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
                                                 
@@ -477,9 +486,23 @@ export default function ModuleShow({ project, module }: Props) {
                                                             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconColorClass}`}>
                                                                 <ZapIcon className="h-5 w-5" />
                                                             </div>
-                                                            <Badge className={`shrink-0 border text-xs font-medium capitalize ${priorityConfig.color}`}>
-                                                                {priorityConfig.label}
-                                                            </Badge>
+                                                            <div className="flex items-center gap-2">
+                                                                <Badge className={`shrink-0 border text-xs font-medium capitalize ${priorityConfig.color}`}>
+                                                                    {priorityConfig.label}
+                                                                </Badge>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setFeatureToDelete({ id: feature.id, name: feature.name });
+                                                                    }}
+                                                                    aria-label={`Delete feature ${feature.name}`}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                         
                                                         {/* Content */}
@@ -494,20 +517,23 @@ export default function ModuleShow({ project, module }: Props) {
                                                             )}
                                                         </div>
 
-                                                        {/* Footer with status */}
+                                                        {/* Footer with status and progress */}
                                                         <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40">
                                                             <div className="flex items-center gap-1.5">
                                                                 <FeatureStatusIcon className={`h-3.5 w-3.5 ${
-                                                                    feature.status === 'completed' ? 'text-emerald-500' :
-                                                                    feature.status === 'in_progress' ? 'text-blue-500' : 'text-amber-500'
+                                                                    isCompleted ? 'text-emerald-500' :
+                                                                    effectiveStatus === 'in_progress' ? 'text-blue-500' : 'text-amber-500'
                                                                 }`} />
                                                                 <span className="text-xs font-medium text-muted-foreground">
                                                                     {featureStatusConfig.label}
                                                                 </span>
                                                             </div>
-                                                            <span className="text-xs text-muted-foreground/60">
-                                                                #{feature.order_of_implementation}
-                                                            </span>
+                                                            <div className="flex items-center gap-2">
+                                                                <Progress value={feature.progress ?? 0} className="w-12 h-1.5" />
+                                                                <span className="text-xs text-muted-foreground/60">
+                                                                    {feature.progress ?? 0}%
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 );
@@ -646,6 +672,59 @@ export default function ModuleShow({ project, module }: Props) {
                                 </>
                             ) : (
                                 'Create Feature'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Feature Confirmation Dialog */}
+            <Dialog open={!!featureToDelete} onOpenChange={(open) => !open && !isDeletingFeature && setFeatureToDelete(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Feature</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete "{featureToDelete?.name}"? This will also delete all associated data including wireframes, sequence diagrams, and specifications. This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setFeatureToDelete(null)}
+                            disabled={isDeletingFeature}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={() => {
+                                if (!featureToDelete) return;
+                                setIsDeletingFeature(true);
+                                router.delete(
+                                    `/projects/${project.id}/modules/${module.id}/features/${featureToDelete.id}`,
+                                    {
+                                        preserveScroll: true,
+                                        onSuccess: () => {
+                                            setFeatureToDelete(null);
+                                        },
+                                        onError: () => {
+                                            toast.error('Failed to delete feature. Please try again.');
+                                        },
+                                        onFinish: () => {
+                                            setIsDeletingFeature(false);
+                                        },
+                                    }
+                                );
+                            }}
+                            disabled={isDeletingFeature}
+                        >
+                            {isDeletingFeature ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                'Delete Feature'
                             )}
                         </Button>
                     </DialogFooter>

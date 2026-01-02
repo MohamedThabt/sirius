@@ -302,7 +302,7 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                                 <div className="flex gap-3 text-sm">
                                     <div className="flex items-center gap-1.5">
                                         <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                                        <span className="text-muted-foreground">{project.features.filter((f) => f.status === 'completed').length}</span>
+                                        <span className="text-muted-foreground">{project.features.filter((f) => f.status === 'done').length}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <div className="h-2 w-2 rounded-full bg-blue-500" />

@@ -3,6 +3,7 @@ import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { type Project, type SharedData, type User } from '@/types';
 import { type FeatureItem } from '@/types/modules';
 import { getPriorityColor, getStatusColor, getStatusIcon } from '@/utils/featureStatus';
@@ -88,7 +89,7 @@ export default function FeaturesIndex({ project, features }: Props) {
                                         </div>
                                         <div className="text-sm text-muted-foreground">
                                             <span className="font-semibold text-foreground">
-                                                {features.filter((f) => f.status === 'completed').length}
+                                                {features.filter((f) => f.status === 'done').length}
                                             </span>{' '}
                                             completed
                                         </div>
@@ -129,6 +130,14 @@ export default function FeaturesIndex({ project, features }: Props) {
                                                 <Badge variant="outline" className="text-xs">
                                                     #{feature.order_of_implementation}
                                                 </Badge>
+                                            </div>
+
+                                            {/* Progress bar */}
+                                            <div className="mt-4 flex items-center gap-2 pt-3 border-t border-border/40">
+                                                <Progress value={feature.progress ?? 0} className="flex-1 h-1.5" />
+                                                <span className="text-xs text-muted-foreground/60">
+                                                    {feature.progress ?? 0}%
+                                                </span>
                                             </div>
                                         </div>
                                     ))}

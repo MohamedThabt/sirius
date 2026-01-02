@@ -105,38 +105,23 @@ export default function Show({ project, module, feature }: Props) {
     }, [feature, setData]);
 
     const handleStatusChange = useCallback((newStatus: FeatureStatus) => {
-        setData('status', newStatus);
-        router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
-            method: 'put',
-            data: { status: newStatus },
-            preserveScroll: true,
-            onSuccess: () => toast.success('Status updated successfully!'),
-            onError: () => toast.error('Failed to update status.'),
-        });
-    }, [project.id, module.id, feature.id, setData]);
+        router.put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, 
+            { status: newStatus },
+            { preserveScroll: true }
+        );
+    }, [project.id, module.id, feature.id]);
 
     const handlePriorityChange = useCallback((newPriority: FeaturePriority) => {
-        setData('priority', newPriority);
-        router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, {
-            method: 'put',
-            data: { priority: newPriority },
-            preserveScroll: true,
-            onSuccess: () => toast.success('Priority updated successfully!'),
-            onError: () => toast.error('Failed to update priority.'),
-        });
-    }, [project.id, module.id, feature.id, setData]);
+        router.put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, 
+            { priority: newPriority },
+            { preserveScroll: true }
+        );
+    }, [project.id, module.id, feature.id]);
 
-    const calculateProgress = useMemo(() => {
-        const artifacts = [
-            !!(feature.description && feature.acceptance_criteria),
-            !!feature.datamodel,
-            !!feature.sequence_diagram,
-            !!feature.wireframe,
-        ];
-        return Math.round((artifacts.filter(Boolean).length / 4) * 100);
-    }, [feature]);
+    // Use backend-computed progress for consistency with sidebar
+    const featureProgress = feature.progress ?? 0;
 
-    const health = useMemo(() => getHealthIndicator(calculateProgress), [calculateProgress]);
+    const health = useMemo(() => getHealthIndicator(featureProgress), [featureProgress]);
 
     const breadcrumbs = [
         { title: 'Projects', href: '/projects' },
@@ -216,9 +201,10 @@ export default function Show({ project, module, feature }: Props) {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="draft">Draft</SelectItem>
+                                                        <SelectItem value="todo">To Do</SelectItem>
                                                         <SelectItem value="in_progress">In Progress</SelectItem>
-                                                        <SelectItem value="completed">Completed</SelectItem>
-                                                        <SelectItem value="archived">Archived</SelectItem>
+                                                        <SelectItem value="review">Review</SelectItem>
+                                                        <SelectItem value="done">Done</SelectItem>
                                                     </SelectContent>
                                                 </Select>
 
@@ -251,7 +237,7 @@ export default function Show({ project, module, feature }: Props) {
                                             <ZapIcon className="h-5 w-5 text-primary" />
                                         </div>
                                         <div>
-                                            <div className="text-2xl font-semibold text-foreground">{calculateProgress}%</div>
+                                            <div className="text-2xl font-semibold text-foreground">{featureProgress}%</div>
                                             <div className="text-xs text-muted-foreground">Progress</div>
                                         </div>
                                     </div>
@@ -301,7 +287,7 @@ export default function Show({ project, module, feature }: Props) {
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-4">
                                                             <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconColorClass}`}>
-                                                                {item.completed ? <CheckCircle2 className="h-6 w-6" /> : <item.icon className="h-6 w-6" />}
+                                                                <item.icon className="h-6 w-6" />
                                                             </div>
                                                             <div>
                                                                 <span className={`font-medium transition-colors ${item.disabled ? 'text-muted-foreground/50' : 'text-foreground group-hover:text-primary'}`}>

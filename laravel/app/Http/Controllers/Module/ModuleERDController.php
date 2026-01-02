@@ -107,7 +107,7 @@ class ModuleERDController extends Controller
      *
      * @param Project $project The project the module belongs to
      * @param Module $module The module model to generate ERD for
-     * @return JsonResponse JSON response with success status and ERD content
+     * @return JsonResponse JSON response with success status and ERD content or error
      */
     public function generateAsync(Project $project, Module $module): JsonResponse
     {
@@ -130,7 +130,7 @@ class ModuleERDController extends Controller
             if (!$pendingData || ($pendingData['module_id'] ?? null) !== $module->id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No valid pending generation session found. Please refresh and try again.'
+                    'message' => 'Generation session expired. Please try again.'
                 ], 400);
             }
 
@@ -182,9 +182,10 @@ class ModuleERDController extends Controller
 
             // Check response status
             if (!$response->ok()) {
+                session()->forget('pending_module_erd_generation');
                 return response()->json([
                     'success' => false,
-                    'message' => 'ERD generation failed. The AI service returned an error. Please try again later.'
+                    'message' => 'ERD generation failed. The AI service returned an error. Please try again.'
                 ], 502);
             }
 
@@ -192,9 +193,10 @@ class ModuleERDController extends Controller
 
             // Validate and record usage
             if (!isset($responseData['usage'])) {
+                session()->forget('pending_module_erd_generation');
                 return response()->json([
                     'success' => false,
-                    'message' => 'AI usage data missing from response.'
+                    'message' => 'AI usage data missing from response. Please try again.'
                 ], 500);
             }
 
@@ -209,6 +211,7 @@ class ModuleERDController extends Controller
             $erd = data_get($responseData, 'ERD');
 
             if (!is_string($erd) || $erd === '') {
+                session()->forget('pending_module_erd_generation');
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid ERD format received from AI service. Please try again.'
@@ -240,6 +243,7 @@ class ModuleERDController extends Controller
                 'fastapi_endpoint' => '/v1/ERD/generate'
             ]);
 
+            session()->forget('pending_module_erd_generation');
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred during ERD generation. Please try again.'

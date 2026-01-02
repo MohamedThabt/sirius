@@ -13,7 +13,6 @@ import CreateModuleModal from '@/components/Modules/CreateModuleModal';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Progress } from '@/components/ui/progress';
@@ -78,11 +77,12 @@ export default function ModulesIndex({ project, modules }: Props) {
         planned: modules.filter((m) => m.status === 'planned').length,
     }), [modules]);
 
-    const completionPercentage = useMemo(
+    // Calculate average module progress from backend-computed progress values
+    const averageProgress = useMemo(
         () => moduleCounts.total > 0 
-            ? Math.round((moduleCounts.completed / moduleCounts.total) * 100) 
+            ? Math.round(modules.reduce((sum, m) => sum + (m.progress ?? 0), 0) / moduleCounts.total) 
             : 0,
-        [moduleCounts]
+        [modules, moduleCounts.total]
     );
 
     // WHY: useCallback prevents recreating handler on each render.
@@ -101,6 +101,7 @@ export default function ModulesIndex({ project, modules }: Props) {
                     <ProjectSidebarPanel
                         project={project}
                         navGroups={navGroups}
+                        completionPercentage={project.progress}
                         isCollapsed={isSidebarCollapsed}
                         user={auth.user as User}
                     />
@@ -177,15 +178,12 @@ export default function ModulesIndex({ project, modules }: Props) {
                                             <span className="text-muted-foreground">{moduleCounts.planned} planned</span>
                                         </div>
                                     </div>
-                                    {completionPercentage > 0 && (
-                                        <>
-                                            <div className="h-4 w-px bg-border" />
-                                            <div className="flex items-center gap-2">
-                                                <Progress value={completionPercentage} className="w-24 h-1.5" />
-                                                <span className="text-xs font-medium text-muted-foreground">{completionPercentage}%</span>
-                                            </div>
-                                        </>
-                                    )}
+                                    <div className="h-4 w-px bg-border" />
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-muted-foreground">Avg Progress</span>
+                                        <Progress value={averageProgress} className="w-24 h-1.5" />
+                                        <span className="text-xs font-medium text-muted-foreground">{averageProgress}%</span>
+                                    </div>
                                 </div>
 
                                 {/* Module Cards Grid */}
@@ -244,7 +242,7 @@ export default function ModulesIndex({ project, modules }: Props) {
                                                         )}
                                                     </div>
 
-                                                    {/* Footer with status */}
+                                                    {/* Footer with status and progress */}
                                                     <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40">
                                                         <div className="flex items-center gap-1.5">
                                                             <StatusIcon className={`h-3.5 w-3.5 ${
@@ -255,9 +253,12 @@ export default function ModulesIndex({ project, modules }: Props) {
                                                                 {statusConfig.label}
                                                             </span>
                                                         </div>
-                                                        <span className="text-xs text-muted-foreground/60">
-                                                            #{module.order_of_implementation}
-                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            <Progress value={module.progress ?? 0} className="w-12 h-1.5" />
+                                                            <span className="text-xs text-muted-foreground/60">
+                                                                {module.progress ?? 0}%
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

@@ -11,7 +11,7 @@ import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData } from '@/types';
 import { type FeatureItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -50,6 +50,8 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
+    const [generationFailed, setGenerationFailed] = useState(false);
+    const [isRetrying, setIsRetrying] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const [leftWidth, setLeftWidth] = useState(50);
@@ -123,6 +125,7 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
     // Handle initial async generation
     const triggerAsyncGeneration = async () => {
         setIsGenerating(true);
+        setGenerationFailed(false);
         try {
             const response = await fetch(`/features/${featureId}/sequence-diagram/generate-async`, {
                 method: 'POST',
@@ -139,16 +142,23 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
                     setContent(data.sequence);
                     setLastSavedContent(data.sequence);
                     setIsDirty(false);
+                    setGenerationFailed(false);
                     toast.success('Sequence diagram generated successfully!');
                 } else {
+                    setGenerationFailed(true);
+                    setContent('');
                     toast.error(data.message || 'Failed to generate sequence diagram');
                 }
             } else {
                 const errorData = await response.json();
+                setGenerationFailed(true);
+                setContent('');
                 toast.error(errorData.message || 'Failed to generate sequence diagram. Please try again.');
             }
         } catch (error) {
             console.error('Error generating sequence diagram:', error);
+            setGenerationFailed(true);
+            setContent('');
             toast.error('An error occurred while generating the sequence diagram.');
         } finally {
             setIsGenerating(false);
@@ -434,6 +444,45 @@ export default function SequenceDiagram({ project, feature, featureId, initialCo
                                 <div className="text-center">
                                     <TextShimmer className="text-2xl font-semibold">Generating Sequence Diagram...</TextShimmer>
                                     <p className="mt-4 text-sm text-muted-foreground">Please wait while we create your diagram</p>
+                                </div>
+                            </div>
+                        ) : generationFailed && !content ? (
+                            <div className="flex h-full items-center justify-center bg-muted/10">
+                                <div className="max-w-md text-center">
+                                    <div className="mb-4 text-destructive">
+                                        <svg
+                                            className="mx-auto h-16 w-16 opacity-50"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={1.5}
+                                                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <h3 className="mb-2 text-xl font-semibold text-foreground">Generation Failed</h3>
+                                    <p className="mb-6 text-sm text-muted-foreground">Failed to generate the sequence diagram. Please try again.</p>
+                                    <Button
+                                        onClick={() => {
+                                            setIsRetrying(true);
+                                            triggerAsyncGeneration().finally(() => setIsRetrying(false));
+                                        }}
+                                        disabled={isRetrying}
+                                        className="bg-primary text-primary-foreground"
+                                    >
+                                        {isRetrying ? (
+                                            <TextShimmer className="text-white">Retrying...</TextShimmer>
+                                        ) : (
+                                            <>
+                                                <RefreshCw className="mr-2 h-4 w-4" />
+                                                Try Again
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
                             </div>
                         ) : (

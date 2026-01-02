@@ -13,7 +13,7 @@ export type ModuleStatus = 'planned' | 'in_progress' | 'completed';
 /**
  * Feature status enum type.
  */
-export type FeatureStatus = 'draft' | 'in_progress' | 'completed' | 'archived';
+export type FeatureStatus = 'draft' | 'todo' | 'in_progress' | 'review' | 'done';
 
 /**
  * Feature priority enum type.
@@ -33,6 +33,7 @@ export interface ModuleItem {
     erd_is_synced?: boolean;
     status: ModuleStatus;
     order_of_implementation: number;
+    progress?: number;
     features?: FeatureItem[];
 }
 
