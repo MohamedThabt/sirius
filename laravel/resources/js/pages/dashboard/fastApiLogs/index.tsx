@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -161,6 +162,7 @@ const getLevelColor = (level: string) => {
 export default function LogsIndex({ stats, logs, filters, error: serverError }: Props) {
     const [activeTab, setActiveTab] = useState<'app' | 'error'>((filters.log_type as 'app' | 'error') || 'app');
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
 
     // Local filter state
     const [search, setSearch] = useState(filters.search || '');
@@ -436,12 +438,60 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
 
                         {/* Logs Table */}
                         <TabsContent value="app" className="mt-4 flex-1">
-                            <LogsTable logs={entries} isLoading={isLoading} error={serverError} meta={meta} onPageChange={handlePageChange} />
+                            <LogsTable logs={entries} isLoading={isLoading} error={serverError} meta={meta} onPageChange={handlePageChange} onSelectLog={(log) => setSelectedLog(log)} />
                         </TabsContent>
                         <TabsContent value="error" className="mt-4 flex-1">
-                            <LogsTable logs={entries} isLoading={isLoading} error={serverError} meta={meta} onPageChange={handlePageChange} />
+                            <LogsTable logs={entries} isLoading={isLoading} error={serverError} meta={meta} onPageChange={handlePageChange} onSelectLog={(log) => setSelectedLog(log)} />
                         </TabsContent>
                     </Tabs>
+
+                    {/* Log Detail Modal */}
+                    <Dialog open={selectedLog !== null} onOpenChange={(open) => !open && setSelectedLog(null)}>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-3">
+                                    {selectedLog && (() => {
+                                        const LevelIcon = getLevelIcon(selectedLog.level);
+                                        return (
+                                            <>
+                                                <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(selectedLog.level))}>
+                                                    <LevelIcon className="mr-1 h-3 w-3" />
+                                                    {selectedLog.level}
+                                                </Badge>
+                                                <span className="font-mono text-sm text-muted-foreground">
+                                                    {selectedLog.timestamp}
+                                                </span>
+                                                <span className="font-mono text-xs text-muted-foreground/60">
+                                                    Line {selectedLog.line_number}
+                                                </span>
+                                            </>
+                                        );
+                                    })()}
+                                </DialogTitle>
+                            </DialogHeader>
+                            {selectedLog && (
+                                <div className="flex-1 overflow-auto space-y-4">
+                                    {/* Log Message */}
+                                    <div>
+                                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Message</h4>
+                                        <div className="rounded-md border border-border/30 bg-muted/30 p-4">
+                                            <p className="font-mono text-sm whitespace-pre-wrap break-words">
+                                                {selectedLog.message}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Logger */}
+                                    <div className="flex items-center gap-4">
+                                        <div>
+                                            <span className="text-xs text-muted-foreground">Logger:</span>
+                                            <Badge variant="secondary" className="ml-2">{selectedLog.logger || '-'}</Badge>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </AppLayout>
         </>
@@ -455,12 +505,14 @@ function LogsTable({
     error,
     meta,
     onPageChange,
+    onSelectLog,
 }: {
     logs: LogEntry[];
     isLoading: boolean;
     error?: string;
     meta: LogPaginationMeta | null;
     onPageChange: (page: number) => void;
+    onSelectLog: (log: LogEntry) => void;
 }) {
     if (error) {
         return (
@@ -514,7 +566,11 @@ function LogsTable({
                         {logs.map((log, index) => {
                             const LevelIcon = getLevelIcon(log.level);
                             return (
-                                <TableRow key={`${log.line_number}-${index}`} className="border-border/20 hover:bg-muted/30">
+                                <TableRow
+                                    key={`${log.line_number}-${index}`}
+                                    className="border-border/20 cursor-pointer hover:bg-muted/30 transition-colors"
+                                    onClick={() => onSelectLog(log)}
+                                >
                                     <TableCell className="font-mono text-xs text-muted-foreground/80">{log.timestamp || '-'}</TableCell>
                                     <TableCell>
                                         <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(log.level))}>
