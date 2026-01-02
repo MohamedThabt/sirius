@@ -356,6 +356,38 @@ class PRDController extends Controller
     }
 
     /**
+     * Preview the full PRD document in a new tab.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
+     */
+    public function previewPrd(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string',
+            'title' => 'nullable|string',
+        ]);
+
+        try {
+            // Ensure user owns the project
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            return Inertia::render('Projects/PrdPreview', [
+                'content' => $validated['content'],
+                'title' => $validated['title'] ?? 'Product Requirements Document',
+                'projectName' => $project->name,
+                'project' => $project,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'previewPrd', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to preview PRD.');
+        }
+    }
+
+    /**
      * Synchronize PRD with current modules and features.
      *
      * @param Request $request

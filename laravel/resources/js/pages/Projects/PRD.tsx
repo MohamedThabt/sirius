@@ -458,7 +458,7 @@ export default function PRD({
 
                                                                                     if (language === 'mermaid' && !isInline) {
                                                                                         return (
-                                                                                            <MermaidDiagram>
+                                                                                            <MermaidDiagram projectId={project?.id} previewTitle="PRD Diagram">
                                                                                                 {String(children).replace(/\n$/, '')}
                                                                                             </MermaidDiagram>
                                                                                         );
@@ -599,7 +599,7 @@ export default function PRD({
                                                                 const isInline = !className;
 
                                                                 if (isMermaid && !isInline) {
-                                                                    return <MermaidDiagram>{String(children).replace(/\n$/, '')}</MermaidDiagram>;
+                                                                    return <MermaidDiagram projectId={project?.id} previewTitle="PRD Diagram">{String(children).replace(/\n$/, '')}</MermaidDiagram>;
                                                                 }
 
                                                                 return (

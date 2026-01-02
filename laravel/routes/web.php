@@ -116,6 +116,7 @@ Route::middleware(['auth', 'share.project'])->group(function () {
     Route::post('/projects/{project}/system-overview/{overviewVersion}/user-update', [SystemOverviewController::class, 'userUpdate'])->name('system-overview.user-update');
     Route::post('/projects/{project}/system-overview/{overviewVersion}/mark-as-base', [SystemOverviewController::class, 'markAsBase'])->name('system-overview.mark-as-base');
     Route::post('/projects/{project}/system-overview/preview-mermaid', [SystemOverviewController::class, 'previewMermaid'])->name('system-overview.preview-mermaid');
+    Route::post('/projects/{project}/system-overview/preview', [SystemOverviewController::class, 'previewOverview'])->name('system-overview.preview');
 
     // PRD routes
     Route::post('/projects/{project}/prd/generate', [PRDController::class, 'generate'])->name('prd.generate');
@@ -125,6 +126,7 @@ Route::middleware(['auth', 'share.project'])->group(function () {
     Route::post('/projects/{project}/prd/ai-edit', [PRDController::class, 'aiEdit'])->name('prd.ai-edit');
     Route::post('/projects/{project}/prd/sync', [PRDController::class, 'sync'])->name('prd.sync');
     Route::post('/projects/{project}/prd/preview-mermaid', [PRDController::class, 'previewMermaid'])->name('prd.preview-mermaid');
+    Route::post('/projects/{project}/prd/preview', [PRDController::class, 'previewPrd'])->name('prd.preview');
 
     // Features routes (module-based)
     Route::get('/projects/{project}/features', [FeaturesController::class, 'index'])->name('features.index');

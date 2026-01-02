@@ -660,4 +660,36 @@ class SystemOverviewController extends Controller
             return back()->with('error', 'Failed to preview Mermaid diagram.');
         }
     }
+
+    /**
+     * Preview the full System Overview document in a new tab.
+     *
+     * @param Request $request
+     * @param Project $project
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
+     */
+    public function previewOverview(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string',
+            'title' => 'nullable|string',
+        ]);
+
+        try {
+            // Ensure user owns the project
+            if ($project->user_id !== auth()->id()) {
+                return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            return Inertia::render('Projects/OverviewPreview', [
+                'content' => $validated['content'],
+                'title' => $validated['title'] ?? 'System Overview',
+                'projectName' => $project->name,
+                'project' => $project,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'previewOverview', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to preview System Overview.');
+        }
+    }
 }

@@ -14,7 +14,7 @@ import { type User, type Project, type Sections, type OverviewVersion, type Chat
 import { Head, router, usePage } from '@inertiajs/react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { toast } from 'sonner';
-import { ArrowLeft, BotIcon, CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, PencilIcon, SaveIcon, SparklesIcon, StarIcon } from 'lucide-react';
+import { ArrowLeft, BotIcon, CheckIcon, CodeIcon, CopyIcon, ExternalLinkIcon, EyeIcon, FileTextIcon, PencilIcon, SaveIcon, SparklesIcon, StarIcon } from 'lucide-react';
 import mermaid from 'mermaid';
 import { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -55,6 +55,39 @@ export default function SystemOverview({
     const [projectHasModules, setProjectHasModules] = useState(hasModules);
     const [isOpeningModuleSuggestions, setIsOpeningModuleSuggestions] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+    // Helper function to open content in new tab via form POST
+    const openInNewTab = (url: string, content: string, title: string) => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        form.target = '_blank';
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+        }
+
+        const contentInput = document.createElement('input');
+        contentInput.type = 'hidden';
+        contentInput.name = 'content';
+        contentInput.value = content;
+        form.appendChild(contentInput);
+
+        const titleInput = document.createElement('input');
+        titleInput.type = 'hidden';
+        titleInput.name = 'title';
+        titleInput.value = title;
+        form.appendChild(titleInput);
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    };
 
     // WHY: Replaced ~50 lines of resize logic with shared hook
     const { width: leftPaneWidth, isResizing, handleMouseDown, containerRef } = useResizablePanel({
@@ -593,6 +626,36 @@ export default function SystemOverview({
                                                     {isEditing ? <EyeIcon className="mr-2 h-4 w-4" /> : <PencilIcon className="mr-2 h-4 w-4" />}
                                                     {isEditing ? 'Preview' : 'Edit'}
                                                 </Button>
+                                                {currentVersion?.overview && (
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => openInNewTab(
+                                                            `/projects/${project?.id}/system-overview/preview`,
+                                                            currentVersion.overview,
+                                                            'System Overview'
+                                                        )}
+                                                        className="rounded-xl"
+                                                        title="Open System Overview in new tab"
+                                                    >
+                                                        <ExternalLinkIcon className="mr-2 h-4 w-4" />
+                                                        Overview
+                                                    </Button>
+                                                )}
+                                                {sections?.prd && (
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => openInNewTab(
+                                                            `/projects/${project?.id}/prd/preview`,
+                                                            sections.prd!,
+                                                            'Product Requirements Document'
+                                                        )}
+                                                        className="rounded-xl"
+                                                        title="Open PRD in new tab"
+                                                    >
+                                                        <ExternalLinkIcon className="mr-2 h-4 w-4" />
+                                                        PRD
+                                                    </Button>
+                                                )}
                                                 {currentVersion && !currentVersion.is_base_version && (
                                                     <Button
                                                         onClick={() => handleMarkAsBase(currentVersion)}
@@ -681,7 +744,7 @@ export default function SystemOverview({
 
                                                                                 if (language === 'mermaid' && !isInline) {
                                                                                     return (
-                                                                                        <MermaidDiagram>
+                                                                                        <MermaidDiagram projectId={project?.id} previewTitle="System Overview Diagram">
                                                                                             {String(children).replace(/\n$/, '')}
                                                                                         </MermaidDiagram>
                                                                                     );
