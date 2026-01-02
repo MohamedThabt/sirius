@@ -39,9 +39,15 @@ model_list:
   - model_name: "gem2.5f"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyC__H1F_VOFV2r1bPGjS9JGhlXnF68o8Gw""
+      api_key: "AIzaSyC__H1F_VOFV2r1bPGjS9JGhlXnF68o8Gw"
       rpm: 5
-      
+
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyAQigLyjJt22kMmYLJKxwEPfk3fdUlmYzU"
+      rpm: 5
+
   - model_name: "cerebras"
     litellm_params:
       model: "cerebras/llama3.1-8b"
