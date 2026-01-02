@@ -18,6 +18,36 @@ model_list:
       api_key: "AIzaSyDSAST0nEFOt8fPIimsIQfthmsSmDXWLEs"
       rpm: 5
 
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyDFN7AemARIUKw9PmBLKhqoh58ZDRVv94Q"
+      rpm: 5
+      
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyBAWlubCxy4KpRz63mhW-hKTYrRH0sjX_k"
+      rpm: 5
+
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyCC86fJF1gM9p7L-nDQZL-_-voumR5xQtY"
+      rpm: 5
+
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyC__H1F_VOFV2r1bPGjS9JGhlXnF68o8Gw"
+      rpm: 5
+
+  - model_name: "gem2.5f"
+    litellm_params:
+      model: "gemini/gemini-2.5-flash"
+      api_key: "AIzaSyAQigLyjJt22kMmYLJKxwEPfk3fdUlmYzU"
+      rpm: 5
+
   - model_name: "cerebras"
     litellm_params:
       model: "cerebras/llama3.1-8b"
