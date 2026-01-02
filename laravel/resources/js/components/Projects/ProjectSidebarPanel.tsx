@@ -7,7 +7,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { type SharedData, type User } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { AlertCircleIcon, CheckCircleIcon, ChevronDownIcon, CircleIcon, ClockIcon, Github as GithubIcon, TrendingUpIcon } from 'lucide-react';
+import { AlertCircleIcon, CheckCircleIcon, ChevronDownIcon, ChevronLeftIcon, CircleIcon, ClockIcon, Github as GithubIcon, Search, SquarePen, TrendingUpIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 export interface ProjectSidebarProject {
@@ -100,42 +100,66 @@ export default function ProjectSidebarPanel({
 
     return (
         <>
-            <aside className={`${isCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}>
+            <aside className={`${isCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r border-border/30 transition-all duration-300 lg:block`}>
                 <div
-                    className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                    className={`sticky top-0 flex h-screen flex-col justify-between py-4 px-3 ${isCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 >
                     <div className="scrollbar-hide overflow-y-auto">
-                        <div className="mb-6 border-b pb-4">
-                            <a href="/" className="flex items-center text-lg font-bold text-foreground transition-opacity hover:opacity-80">
-                                Sirius
-                            </a>
-                        </div>
-
-                        <div className="mb-6">
-                            <div className="mb-3">
-                                <div className="truncate text-sm font-medium text-foreground">{project.name}</div>
-                                <div className="mt-1 flex items-center gap-2">
-                                    <span
-                                        className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs ${getStatusColor(project.status)}`}
+                        {/* Linear-style Header */}
+                        <div className="mb-4 pb-3 border-b border-border/30">
+                            <div className="flex items-center justify-between">
+                                {/* Back + Project Name */}
+                                <div className="flex items-center gap-1">
+                                    <a 
+                                        href="/projects" 
+                                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
                                     >
-                                        {getStatusIcon(project.status)}
-                                        {project.status.replace('_', ' ')}
-                                    </span>
+                                        <ChevronLeftIcon className="h-4 w-4" />
+                                    </a>
+                                    <div className="flex items-center gap-2 px-1.5 py-1">
+                                        <div className={`flex h-5 w-5 items-center justify-center rounded text-[9px] font-medium ${getStatusColor(project.status).replace('border', 'border-0')}`}>
+                                            {project.name.slice(0, 2).toUpperCase()}
+                                        </div>
+                                        <span className="text-sm font-medium text-foreground truncate max-w-[140px]">
+                                            {project.name}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                {/* Action Icons */}
+                                <div className="flex items-center gap-0.5">
+                                    <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors">
+                                        <Search className="h-4 w-4" />
+                                    </button>
+                                    <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors">
+                                        <SquarePen className="h-4 w-4" />
+                                    </button>
                                 </div>
                             </div>
-
-                            {completionPercentage !== undefined && activeHealth && (
-                                <div className="mt-4">
-                                    <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>Progress</span>
-                                        <span>{completionPercentage}%</span>
-                                    </div>
-                                    <div className="h-1.5 w-full overflow-hidden rounded bg-muted">
-                                        <div className="h-full bg-foreground transition-all" style={{ width: `${completionPercentage}%` }} />
-                                    </div>
-                                    <div className="mt-2 flex items-center gap-1.5 text-xs">
-                                        <activeHealth.Icon className={`h-3.5 w-3.5 ${activeHealth.color}`} />
-                                        <span className={`capitalize ${activeHealth.color}`}>{activeHealth.label}</span>
+                            
+                            {/* Status Badge + Progress */}
+                            <div className="mt-3 flex items-center gap-2">
+                                <span
+                                    className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${getStatusColor(project.status)}`}
+                                >
+                                    {getStatusIcon(project.status)}
+                                    <span className="capitalize">{project.status.replace('_', ' ')}</span>
+                                </span>
+                                {completionPercentage !== undefined && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                        {completionPercentage}% complete
+                                    </span>
+                                )}
+                            </div>
+                            
+                            {/* Progress Bar */}
+                            {completionPercentage !== undefined && (
+                                <div className="mt-2">
+                                    <div className="h-1 w-full overflow-hidden rounded-full bg-muted/50">
+                                        <div 
+                                            className="h-full bg-foreground/70 transition-all duration-500 ease-out rounded-full" 
+                                            style={{ width: `${completionPercentage}%` }} 
+                                        />
                                     </div>
                                 </div>
                             )}
