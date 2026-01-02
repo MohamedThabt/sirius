@@ -7,7 +7,6 @@
       <stop offset="100%" stop-color="#808080" stop-opacity="1"/>
     </linearGradient>
   </defs>
-  <rect width="32" height="32" fill="#000000"/>
   <!-- Four-pointed star (matching brand logo style) -->
   <path d="M16 8 L18 14 L24 16 L18 18 L16 24 L14 18 L8 16 L14 14 Z" fill="url(#starGradient)"/>
   <!-- Center circle for emphasis -->
