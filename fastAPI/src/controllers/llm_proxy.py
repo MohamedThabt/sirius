@@ -1,9 +1,14 @@
 import logging
+import os
 from models.usage import UsageMetrics
 from openai import AsyncOpenAI
 
+# Use localhost when running locally, litellm-proxy when in Docker
+LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://localhost:4000")
+
 client = AsyncOpenAI(
     api_key="any key",
+    # base_url=LITELLM_BASE_URL
     base_url="http://litellm-proxy:4000"
 )
 
