@@ -9,43 +9,43 @@ model_list:
   - model_name: "gem2.5f"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyBYukG9ZsLnPqqNv5PI_UKFBqYuFYmHQ8U"
+      api_key: "os.environ/GEMINI_API_KEY_1"
       rpm: 5
 
   - model_name: "gem2.5f"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyDSAST0nEFOt8fPIimsIQfthmsSmDXWLEs"
+      api_key: "os.environ/GEMINI_API_KEY_2"
       rpm: 5
 
   - model_name: "gem2.5f"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyDFN7AemARIUKw9PmBLKhqoh58ZDRVv94Q"
+      api_key: "os.environ/GEMINI_API_KEY_3"
       rpm: 5
       
   - model_name: "gem2.5f"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyBAWlubCxy4KpRz63mhW-hKTYrRH0sjX_k"
+      api_key: "os.environ/GEMINI_API_KEY_4"
       rpm: 5
 
   - model_name: "gem2.5f"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyCC86fJF1gM9p7L-nDQZL-_-voumR5xQtY"
+      api_key: "os.environ/GEMINI_API_KEY_5"
       rpm: 5
 
   - model_name: "gem2.5f"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyC__H1F_VOFV2r1bPGjS9JGhlXnF68o8Gw"
+      api_key: "os.environ/GEMINI_API_KEY_6"
       rpm: 5
 
   - model_name: "gem2.5f"
     litellm_params:
       model: "gemini/gemini-2.5-flash"
-      api_key: "AIzaSyAQigLyjJt22kMmYLJKxwEPfk3fdUlmYzU"
+      api_key: "os.environ/GEMINI_API_KEY_7"
       rpm: 5
 
   - model_name: "cerebras"
@@ -56,10 +56,10 @@ model_list:
 
 routing_strategy: simple-shuffle
 
-# litellm_settings:
-#   drop_params: true
-#   success_callback: ["langfuse"]
-#   failure_callback: ["langfuse"]
-#   redact_user_api_key_info: true
+litellm_settings:
+  drop_params: true
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+  redact_user_api_key_info: true
 
 
