@@ -12,7 +12,7 @@ LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL")
 
 client = AsyncOpenAI(
     api_key="any key",
-    base_url=LITELLM_BASE_URL
+    base_url="http://litellm-proxy:4000"
 )
 
 logger = logging.getLogger(__name__)
