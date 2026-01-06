@@ -23,7 +23,7 @@ class BetaInvitationMail extends Mailable implements ShouldQueue
         public BetaInvitation $betaInvitation,
         public string $password
     ) {
-        Log::channel('email')->info('Beta invitation mail queued', [
+        Log::channel('info')->info('Beta invitation mail queued', [
             'invitation_id' => $this->betaInvitation->id,
             'email' => $this->betaInvitation->email,
         ]);
