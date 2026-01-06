@@ -40,18 +40,6 @@ Route::bind('invitation', function ($value) {
 });
 
 Route::get('/', function () {
-    // #region agent log
-    \Illuminate\Support\Facades\Log::info('[DEBUG-LANDING] Route executed', [
-        'hypothesisId' => 'A',
-        'request_url' => request()->fullUrl(),
-        'request_scheme' => request()->getScheme(),
-        'is_secure' => request()->isSecure(),
-        'x_forwarded_proto' => request()->header('X-Forwarded-Proto'),
-        'x_forwarded_host' => request()->header('X-Forwarded-Host'),
-        'app_url' => config('app.url'),
-    ]);
-    // #endregion
-
     return Inertia::render('landing', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
