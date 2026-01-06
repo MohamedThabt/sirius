@@ -200,5 +200,82 @@ MSG;
     {
         return $this->enabled;
     }
+
+    /**
+     * Send a notification for email bounce.
+     *
+     * @param string $email The email address that bounced
+     * @param string $reason The bounce reason
+     * @return bool Whether the notification was sent successfully
+     */
+    public function notifyEmailBounced(string $email, string $reason): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $escapedReason = $this->escapeMarkdown($this->truncate($reason, 200));
+
+        $message = <<<MSG
+🔴 *Email Bounced*
+
+*Email:* {$email}
+*Reason:* {$escapedReason}
+
+⚠️ This email address may be invalid or the mailbox is full\\.
+MSG;
+
+        return $this->sendMessage($message);
+    }
+
+    /**
+     * Send a notification for email failure.
+     *
+     * @param string $email The email address that failed
+     * @param string $error The error message
+     * @return bool Whether the notification was sent successfully
+     */
+    public function notifyEmailFailed(string $email, string $error): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $escapedError = $this->escapeMarkdown($this->truncate($error, 200));
+
+        $message = <<<MSG
+🚨 *Email Failed to Send*
+
+*Email:* {$email}
+*Error:* {$escapedError}
+
+🔧 Please check the email configuration and Resend API status\\.
+MSG;
+
+        return $this->sendMessage($message);
+    }
+
+    /**
+     * Send a notification for spam complaint.
+     *
+     * @param string $email The email address that complained
+     * @return bool Whether the notification was sent successfully
+     */
+    public function notifyEmailComplaint(string $email): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $message = <<<MSG
+⚠️ *Spam Complaint Received*
+
+*Email:* {$email}
+
+📌 This user marked our email as spam\\. Consider removing them from future mailings\\.
+MSG;
+
+        return $this->sendMessage($message);
+    }
 }
 
