@@ -6,6 +6,7 @@ use App\Models\BetaInvitation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -23,7 +24,7 @@ class BetaInvitationMail extends Mailable implements ShouldQueue
         public BetaInvitation $betaInvitation,
         public string $password
     ) {
-        Log::channel('info')->info('Beta invitation mail queued', [
+        Log::info('Beta invitation mail queued', [
             'invitation_id' => $this->betaInvitation->id,
             'email' => $this->betaInvitation->email,
         ]);
@@ -62,6 +63,16 @@ class BetaInvitationMail extends Mailable implements ShouldQueue
      */
     public function attachments(): array
     {
+        $logoPath = public_path('images/logo.png');
+        
+        if (file_exists($logoPath)) {
+            return [
+                Attachment::fromPath($logoPath)
+                    ->as('logo.png')
+                    ->withMime('image/png'),
+            ];
+        }
+        
         return [];
     }
 
@@ -70,7 +81,7 @@ class BetaInvitationMail extends Mailable implements ShouldQueue
      */
     public function failed(Throwable $exception): void
     {
-        Log::channel('email')->error('Failed to send beta invitation email', [
+        Log::error('Failed to send beta invitation email', [
             'invitation_id' => $this->betaInvitation->id,
             'email' => $this->betaInvitation->email,
             'error' => $exception->getMessage(),

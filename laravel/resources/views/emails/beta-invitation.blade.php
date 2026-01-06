@@ -107,47 +107,51 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Welcome to Sirius Beta!</h1>
+            @if(file_exists(public_path('images/logo.png')))
+                <img src="{{ $message->embed(public_path('images/logo.png')) }}" alt="Sirius Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;">
+            @endif
+            <h1>Welcome to Sirius Beta!</h1>
         </div>
 
         <div class="greeting">
-            Hello <strong>{{ $invitation->name }}</strong>,
+            Dear <strong>{{ $invitation->name }}</strong>,
         </div>
 
-        <p>Great news! Your account for the Sirius Beta program has been created and is ready to use.</p>
+        <p>We are pleased to inform you that your account for the Sirius Beta program has been successfully created. You now have exclusive access to our advanced AI-powered planning platform.</p>
 
-        <h2>Your Login Details</h2>
+        <h2>Your Account Credentials</h2>
         <div class="credentials">
             <p><strong>Email:</strong> {{ $invitation->email }}</p>
-            <p><strong>Password:</strong> {{ $password }}</p>
+            <p><strong>Temporary Password:</strong> {{ $password }}</p>
         </div>
 
-        <h2>Getting Started</h2>
-        <p>Click the button below to log in and start exploring the Sirius AI Planning Engine:</p>
+        <div class="note">
+            <p><strong>Security Notice:</strong> For your protection, please change your password immediately after your first login. Navigate to your profile settings to update your credentials.</p>
+        </div>
+
+        <h2>Access Your Account</h2>
+        <p>To begin using Sirius, please click the button below to access the platform:</p>
 
         <div class="button-container">
-            <a href="{{ $loginUrl }}" class="button">Log In to Sirius</a>
+            <a href="{{ $loginUrl }}" class="button">Access Sirius Platform</a>
         </div>
 
-        <h2>Important Notes</h2>
-        <div class="note">
-            <p><strong>⚠️ Change Your Password:</strong> Once you log in, we recommend changing your password from your profile settings for security.</p>
-        </div>
-
-        <p><strong>Beta Features:</strong> You now have full access to all Sirius beta features including:</p>
+        <h2>Platform Capabilities</h2>
+        <p>As a beta participant, you have full access to our comprehensive suite of features:</p>
         <ul>
-            <li>PRD Generation</li>
-            <li>Database Design (ERD & C4)</li>
-            <li>Architecture Diagrams</li>
-            <li>User Stories & Feature Breakdown</li>
-            <li>Wireframes & Sequence Diagrams</li>
-            <li>Version Control with Diff History</li>
+            <li>Product Requirements Document (PRD) Generation</li>
+            <li>Database Design & Entity Relationship Diagrams (ERD)</li>
+            <li>C4 Architecture Modeling</li>
+            <li>User Story Development & Feature Breakdown</li>
+            <li>Interactive Wireframes & Prototyping</li>
+            <li>Sequence & Flow Diagrams</li>
+            <li>Version Control with Comprehensive Diff History</li>
         </ul>
 
-        <h2>Need Help?</h2>
-        <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
+        <h2>Support & Assistance</h2>
+        <p>Should you require any assistance or have questions about the platform, our support team is available to help. We value your feedback as it helps us enhance the Sirius experience.</p>
 
-        <p style="margin-top: 30px;">Thank you for being part of the Sirius community! We're excited to have you on board. 🎉</p>
+        <p style="margin-top: 30px;">Thank you for joining us as an early adopter. We look forward to your valuable insights and contributions to the development of Sirius.</p>
 
         <p style="margin-top: 20px;">
             Best regards,<br>
@@ -155,7 +159,7 @@
         </p>
 
         <div class="footer">
-            <p><em>This is a beta version. We appreciate your feedback as we continue to improve the platform.</em></p>
+            <p><em>This email contains confidential information intended solely for the addressee. As a beta participant, we appreciate your feedback to help us refine and improve the platform.</em></p>
         </div>
     </div>
 </body>
