@@ -36,7 +36,7 @@ export function ContainerNode({ node, selectedNodeId, onSelectNode }: BaseNodePr
     };
 
     return (
-        <div className="wireframe-node relative" onClick={handleSelect} style={style} className={node.className}>
+        <div className={`wireframe-node relative ${node.className || ''}`} onClick={handleSelect} style={style}>
             {node.type === 'page' && (
                 <div className="info-overlay absolute -top-5 left-0 rounded bg-blue-500 px-1.5 py-0.5 text-xs text-white opacity-0 transition-opacity">
                     {node.type}: {node.id}
