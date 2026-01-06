@@ -56,10 +56,6 @@ model_list:
 
 routing_strategy: simple-shuffle
 
-litellm_settings:
-  drop_params: true
-  success_callback: ["langfuse"]
-  failure_callback: ["langfuse"]
-  redact_user_api_key_info: true
+
 
 

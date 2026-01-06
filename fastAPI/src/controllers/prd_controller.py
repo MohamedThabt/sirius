@@ -31,7 +31,10 @@ async def generate_prd_with_flow(request: PRDWithFlowRequest) -> tuple[PRDWithFl
         flow_content, flow_usage = await build_flow(features=features_str)
 
         # Combine usage metrics - sum the tokens
+        # use name model from usage
+        model_name = prd_usage.model_name if hasattr(prd_usage, "model_name") else flow_usage.model_name
         combined_usage = UsageMetrics(
+            model_name=model_name,
             input_tokens=prd_usage.input_tokens + flow_usage.input_tokens,
             output_tokens=prd_usage.output_tokens + flow_usage.output_tokens,
             cost=0.0
@@ -221,7 +224,10 @@ async def sync_prd(request: PRDWithFlowRequest, previous_prd: str) -> tuple[PRDW
         flow_content, flow_usage = await build_flow(features=features_str)
 
         # Combine usage metrics
+        # use name model from usage
+        model_name = prd_usage.model_name if hasattr(prd_usage, "model_name") else flow_usage.model_name
         combined_usage = UsageMetrics(
+            model_name=model_name,
             input_tokens=prd_usage.input_tokens + flow_usage.input_tokens,
             output_tokens=prd_usage.output_tokens + flow_usage.output_tokens,
             cost=0.0
