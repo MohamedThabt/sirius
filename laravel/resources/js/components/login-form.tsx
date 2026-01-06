@@ -82,7 +82,8 @@ export function LoginForm({ status, canResetPassword }: LoginFormProps) {
                             </Button>
                         </div>
 
-                        <div className="relative my-2">
+                        {/* CLOSED BETA: OAuth and signup disabled */}
+                        {/* <div className="relative my-2">
                             <div className="absolute inset-0 flex items-center">
                                 <span className="w-full border-t border-[hsl(var(--subtle-border))]" />
                             </div>
@@ -125,6 +126,12 @@ export function LoginForm({ status, canResetPassword }: LoginFormProps) {
                             <TextLink href={register()} tabIndex={5} className="font-medium text-[hsl(var(--text-primary))] hover:underline">
                                 Sign up
                             </TextLink>
+                        </div> */}
+
+                        <div className="mt-4 text-center text-sm text-[hsl(var(--text-tertiary))]">
+                            <p className="rounded-lg border border-[hsl(var(--subtle-border))] bg-[hsl(var(--bg-secondary))] px-4 py-3">
+                                🔒 Closed Beta: Access by invitation from Sirius team only
+                            </p>
                         </div>
                     </>
                 )}
