@@ -166,6 +166,51 @@ const getLevelColor = (level: string) => {
     }
 };
 
+/**
+ * Format timestamp to human-readable format.
+ * Examples: "Today at 2:30 PM", "Yesterday at 10:15 AM", "Jan 5 at 3:45 PM", "Jan 5, 2024 at 3:45 PM"
+ */
+const formatTimestamp = (timestamp: string): string => {
+    if (!timestamp) return '-';
+
+    try {
+        const date = new Date(timestamp.replace(' ', 'T'));
+        if (isNaN(date.getTime())) return timestamp;
+
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        const logDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        const timeStr = date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+
+        if (logDate.getTime() === today.getTime()) {
+            return `Today at ${timeStr}`;
+        } else if (logDate.getTime() === yesterday.getTime()) {
+            return `Yesterday at ${timeStr}`;
+        } else if (date.getFullYear() === now.getFullYear()) {
+            const monthDay = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+            });
+            return `${monthDay} at ${timeStr}`;
+        } else {
+            const fullDate = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            });
+            return `${fullDate} at ${timeStr}`;
+        }
+    } catch {
+        return timestamp;
+    }
+};
+
 export default function LaravelLogsIndex({ stats, logs, filters, error: serverError }: Props) {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
@@ -460,8 +505,8 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
                                                     <LevelIcon className="mr-1 h-3 w-3" />
                                                     {selectedLog.level}
                                                 </Badge>
-                                                <span className="font-mono text-sm text-muted-foreground">
-                                                    {selectedLog.timestamp}
+                                                <span className="font-mono text-sm text-muted-foreground" title={selectedLog.timestamp}>
+                                                    {formatTimestamp(selectedLog.timestamp)}
                                                 </span>
                                                 <span className="font-mono text-xs text-muted-foreground/60">
                                                     Line {selectedLog.line_number}
@@ -585,7 +630,7 @@ function LogsTable({
                                     className="border-border/20 cursor-pointer hover:bg-muted/30 transition-colors"
                                     onClick={() => onSelectLog(log)}
                                 >
-                                    <TableCell className="font-mono text-xs text-muted-foreground/80">{log.timestamp || '-'}</TableCell>
+                                    <TableCell className="font-mono text-xs text-muted-foreground/80" title={log.timestamp}>{formatTimestamp(log.timestamp)}</TableCell>
                                     <TableCell>
                                         <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(log.level))}>
                                             <LevelIcon className="mr-1 h-3 w-3" />
