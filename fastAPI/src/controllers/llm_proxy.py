@@ -1,10 +1,18 @@
 import logging
+import os
+from dotenv import load_dotenv
 from models.usage import UsageMetrics
 from openai import AsyncOpenAI
 
+# Load environment variables from .env file
+load_dotenv()
+
+# Default to Docker service name (production), set LITELLM_BASE_URL=http://localhost:4000 for local dev
+LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://litellm-proxy:4000")
+
 client = AsyncOpenAI(
     api_key="any key",
-    base_url="http://litellm-proxy:4000"
+    base_url=LITELLM_BASE_URL
 )
 
 logger = logging.getLogger(__name__)
