@@ -56,7 +56,7 @@ jobs:
         if: success()
         shell: bash
         run: |
-          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/6o4154MgFhTsHvUloM2om" \
+          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/7MiO8HYdlAzStHPYcwf6t" \
             -H "Content-Type: application/json" \
             -d '{
               "ref": "${{ github.ref }}",
