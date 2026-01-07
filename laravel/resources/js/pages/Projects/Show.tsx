@@ -1,5 +1,4 @@
-﻿import { PromptInput, PromptInputSubmit, PromptInputTextarea, PromptInputToolbar } from '@/components/ai-elements/prompt-input';
-import { Breadcrumbs } from '@/components/breadcrumbs';
+﻿import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
 import ProjectFlowCanvas from '@/components/Projects/ProjectFlowCanvas';
 import ProjectMetricsPanel from '@/components/Projects/ProjectMetricsPanel';
@@ -22,7 +21,6 @@ import {
     Database,
     FileText,
     LayoutGrid,
-    MessageCircleIcon, 
     Network,
     ScrollText,
     Target
@@ -103,11 +101,8 @@ export default function ProjectShow({
         { title: 'Projects', href: '/projects' },
         { title: project.name, href: `/projects/${project.id}` },
     ];
-    const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
     const [isCreateFeatureModalOpen, setIsCreateFeatureModalOpen] = useState(false);
-    const [isFloatingChatOpen, setIsFloatingChatOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isGeneratingModules, setIsGeneratingModules] = useState(false);
     const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
@@ -344,28 +339,6 @@ export default function ProjectShow({
         return filtered.length > 0 ? <>{filtered}</> : null;
     };
 
-    const handleChatSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const message = formData.get('message') as string;
-        if (!message.trim()) return;
-
-        const userMessage = { role: 'user' as const, content: message };
-        setChatMessages((prev) => [...prev, userMessage]);
-        setIsLoading(true);
-
-        setTimeout(() => {
-            const aiResponse = {
-                role: 'assistant' as const,
-                content: `I understand you're asking about "${message}" regarding the project "${project.name}". This is a simulated response.`,
-            };
-            setChatMessages((prev) => [...prev, aiResponse]);
-            setIsLoading(false);
-        }, 1200);
-
-        e.currentTarget.reset();
-    };
-
     const navGroups = useMemo(
         () =>
             buildProjectNavGroups({
@@ -486,51 +459,6 @@ export default function ProjectShow({
                             )}
                         </div>
                     </main>
-                </div>
-
-                <div className="fixed right-4 bottom-4 z-40 sm:right-6 sm:bottom-6">
-                    <Button
-                        onClick={() => setIsFloatingChatOpen(!isFloatingChatOpen)}
-                        className="h-12 w-12 rounded-full border-2 border-border/50 bg-background/80 shadow-md backdrop-blur-sm transition-all hover:bg-background hover:shadow-lg"
-                        size="icon"
-                        variant="outline"
-                        aria-label="Open AI Assistant"
-                    >
-                        <MessageCircleIcon className="h-5 w-5 text-muted-foreground" />
-                    </Button>
-
-                    {isFloatingChatOpen && (
-                        <div className="absolute right-0 bottom-16 w-[calc(100vw-2rem)] rounded border bg-background shadow-lg sm:w-96">
-                            <div className="border-b px-4 py-3 text-sm font-medium">AI Assistant</div>
-                            <div className="space-y-4 p-4">
-                                {chatMessages.length > 0 && (
-                                    <div className="max-h-40 space-y-2 overflow-y-auto">
-                                        {chatMessages.map((message, index) => (
-                                            <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                                <div
-                                                    className={`max-w-xs rounded px-3 py-2 text-sm ${
-                                                        message.role === 'user' ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground'
-                                                    }`}
-                                                >
-                                                    {message.content}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                <PromptInput onSubmit={handleChatSubmit}>
-                                    <PromptInputTextarea
-                                        name="message"
-                                        placeholder="Ask about your project..."
-                                        className="min-h-[80px] resize-none"
-                                    />
-                                    <PromptInputToolbar>
-                                        <PromptInputSubmit disabled={isLoading} />
-                                    </PromptInputToolbar>
-                                </PromptInput>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 <Dialog open={isBriefModalOpen} onOpenChange={setIsBriefModalOpen}>
