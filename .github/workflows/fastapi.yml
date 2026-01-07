@@ -2,7 +2,7 @@ name: Build & Push FastAPI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 env:
@@ -56,8 +56,16 @@ jobs:
       # --- Deployment Trigger (After image push) ---
       - name: Trigger Dokploy deployment
         if: success()
+        shell: bash
         run: |
-          curl -X POST "https://1-dokploy.siriusai.tech/api/compose.redeploy" \
+          curl -X POST "https://1-dokploy.siriusai.tech/api/deploy/compose/nFCrbfzxWWJJk-Wgd8JWs" \
             -H "Content-Type: application/json" \
-            -H "x-api-key: ${{ secrets.DOKPLOY_API_TOKEN }}" \
-            -d '{"composeId": "fPNb4ZR1VP1YJHkQX0DJ_"}'
+            -d '{
+              "ref": "${{ github.ref }}",
+              "sha": "${{ github.sha }}",
+              "repository": "${{ github.repository }}",
+              "pusher": {
+                "name": "${{ github.actor }}",
+                "email": "${{ github.actor }}@users.noreply.github.com"
+              }
+            }'
