@@ -10,8 +10,6 @@ import {
     FolderIcon,
     PlusIcon,
     Mail,
-    Search,
-    SquarePen,
 } from 'lucide-react';
 
 interface ProjectItem {
@@ -93,39 +91,10 @@ export default function ProjectsIndexSidebar({
                 className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             >
                 <div className="overflow-y-auto scrollbar-hide">
-                    {/* Linear-style Header */}
+                    {/* Header with App Logo */}
                     <div className="mb-6 pb-4 border-b border-border/30">
-                        <div className="flex items-center justify-between">
-                            {/* Workspace Selector */}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <button className="flex items-center gap-2 rounded-md px-1.5 py-1 -ml-1.5 hover:bg-muted/50 transition-colors">
-                                        <div className="flex h-6 w-6 items-center justify-center rounded bg-gradient-to-br from-cyan-400 to-blue-500 text-[10px] font-bold text-white">
-                                            {auth.user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                                        </div>
-                                        <span className="text-sm font-medium text-foreground">
-                                            {auth.user.name.split(' ')[0]}'s
-                                        </span>
-                                        <ChevronDownIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                    </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start" className="w-56">
-                                    <UserMenuContent user={auth.user} />
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            
-                            {/* Action Icons */}
-                            <div className="flex items-center gap-0.5">
-                                <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors">
-                                    <Search className="h-4 w-4" />
-                                </button>
-                                <button 
-                                    onClick={onCreateProject}
-                                    className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
-                                >
-                                    <SquarePen className="h-4 w-4" />
-                                </button>
-                            </div>
+                        <div className="flex items-center justify-center">
+                            <AppLogo />
                         </div>
                     </div>
 
