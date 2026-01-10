@@ -28,6 +28,7 @@ const teamMembers: TeamMember[] = [
     {
         name: 'Safinaz Ahmed',
         role: 'Data & AI Engineer',
+        image: '/images/team/safi.png',
         linkedin: 'https://www.linkedin.com/in/safinaz-ahmed/',
         gender: 'female',
     },
@@ -41,12 +42,14 @@ const teamMembers: TeamMember[] = [
     {
         name: 'Dina Mohamed',
         role: 'Software Engineer',
+        image: '/images/team/dina.png',
         linkedin: 'https://www.linkedin.com/in/dina-mohamed-8387aa267/',
         gender: 'female',
     },
     {
         name: 'Marwa Ayman',
         role: 'Software Engineer',
+        image: '/images/team/marwa.png',
         linkedin: 'https://www.linkedin.com/in/marwa-ayman-5a66a7254/',
         gender: 'female',
     },
@@ -60,6 +63,7 @@ const teamMembers: TeamMember[] = [
     {
         name: 'Mera Ashraf',
         role: 'Software Engineer',
+        image: '/images/team/mera.png',
         linkedin: 'https://www.linkedin.com/in/mera-ashraf-019438320/',
         gender: 'female',
     },
