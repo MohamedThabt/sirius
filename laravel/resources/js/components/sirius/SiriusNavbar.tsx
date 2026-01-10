@@ -6,6 +6,14 @@ import { type SharedData } from "@/types";
 export const SiriusNavbar: React.FC = () => {
   const { auth } = usePage<SharedData>().props;
   const isAuthenticated = !!auth?.user;
+  
+  // Check if we're on the landing page
+  const isLandingPage = typeof window !== 'undefined' && window.location.pathname === '/';
+
+  // Handle navigation to sections - if on landing page, scroll; otherwise navigate to landing with hash
+  const getSectionHref = (hash: string) => {
+    return isLandingPage ? hash : `/${hash}`;
+  };
 
   return (
     <motion.header
@@ -26,25 +34,25 @@ export const SiriusNavbar: React.FC = () => {
 
           <div className="hidden md:flex items-center gap-8">
             <a
-              href="#how-it-works"
+              href={getSectionHref("#how-it-works")}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               How it Works
             </a>
             <a
-              href="#features"
+              href={getSectionHref("#features")}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Features
             </a>
             <a
-              href="#teams"
+              href={getSectionHref("#teams")}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               For Teams
             </a>
             <a
-              href="#faq"
+              href={getSectionHref("#faq")}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               FAQ

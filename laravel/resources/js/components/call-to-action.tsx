@@ -4,7 +4,7 @@ import { ctaContent } from "@/lib/sirius/content";
 
 export function CallToAction() {
 	return (
-		<div className="relative mx-auto flex w-[95%] max-w-screen-2xl flex-col justify-between gap-y-4 border-y px-4 py-8 dark:bg-[radial-gradient(35%_80%_at_25%_0%,--theme(--color-foreground/.2),transparent)]">
+		<div className="relative mx-auto flex w-[85%] max-w-screen-lg flex-col justify-between gap-y-4 border-y px-4 py-8 dark:bg-[radial-gradient(35%_80%_at_25%_0%,--theme(--color-foreground/.2),transparent)]">
 			<PlusIcon
 				className="absolute top-[-12.5px] left-[-11.5px] z-1 size-6"
 				strokeWidth={1}
@@ -35,11 +35,6 @@ export function CallToAction() {
 			</p>
 
 			<div className="flex items-center justify-center gap-2">
-				<Button variant="outline" asChild>
-                    <a href={ctaContent.secondaryHref}>
-                        {ctaContent.secondaryLabel}
-                    </a>
-                </Button>
 				<Button asChild>
                     <a href={ctaContent.primaryHref}>
 					    {ctaContent.primaryLabel} <ArrowRightIcon />

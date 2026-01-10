@@ -110,7 +110,7 @@ export const SiriusHero: React.FC = () => {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-                        className="relative flex flex-col items-center order-1 lg:order-2"
+                        className="relative hidden md:flex flex-col items-center order-1 lg:order-2"
                     >
                         {/* Glow effect */}
                         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 blur-3xl rounded-full scale-125 opacity-60" />
