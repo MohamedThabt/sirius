@@ -112,6 +112,43 @@ export const teamCollaboration = {
   ],
 };
 
+export const documentationSuite = {
+  eyebrow: "Complete Documentation Suite",
+  title: "Everything you need to transform a project brief into build-ready documentation.",
+  features: [
+    {
+      title: "PRD Generation",
+      description: "Transform project briefs into comprehensive Product Requirements Documents with stakeholder analysis.",
+      icon: FileText,
+    },
+    {
+      title: "SRS Creation",
+      description: "Generate detailed Software Requirements Specifications with functional and non-functional requirements.",
+      icon: Code,
+    },
+    {
+      title: "User Stories",
+      description: "Break down features into granular user stories with acceptance criteria, ready for sprint planning.",
+      icon: Users,
+    },
+    {
+      title: "ERD Generation",
+      description: "Automatically generate entity-relationship diagrams that aggregate into a unified data model.",
+      icon: Database,
+    },
+    {
+      title: "Sequence Diagrams",
+      description: "Visualize system interactions with auto-generated sequence diagrams for each user story.",
+      icon: Workflow,
+    },
+    {
+      title: "AI Prompt Export",
+      description: "Generate production-ready prompts optimized for AI code assistants with full context.",
+      icon: Zap,
+    },
+  ],
+};
+
 
 
 export const aiGithubWorkflow = {

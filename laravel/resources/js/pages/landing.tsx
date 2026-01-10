@@ -1,11 +1,10 @@
 import { SEO } from '@/components/SEO';
 import DatabaseWithRestApi from '@/components/sirius/DatabaseWithRestApi';
-import SiriusBentoFeatures from '@/components/sirius/SiriusBentoFeatures';
 import SiriusCTASection from '@/components/sirius/SiriusCTASection';
 import SiriusFAQ from '@/components/sirius/SiriusFAQ';
-import SiriusFeatureCard from '@/components/sirius/SiriusFeatureCard';
 import SiriusFooter from '@/components/sirius/SiriusFooter';
 import SiriusHero from '@/components/sirius/SiriusHero';
+import { FeatureCard } from '@/components/ui/grid-feature-card';
 import SiriusNavbar from '@/components/sirius/SiriusNavbar';
 import SiriusPipelineSection from '@/components/sirius/SiriusPipelineSection';
 import SiriusProcessGrid from '@/components/sirius/SiriusProcessGrid';
@@ -14,7 +13,7 @@ import SiriusStakeholderCard from '@/components/sirius/SiriusStakeholderCard';
 import SiriusStepTimeline from '@/components/sirius/SiriusStepTimeline';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { aiGithubWorkflow, ctaContent, howItWorks, teamCollaboration } from '@/lib/sirius/content';
+import { aiGithubWorkflow, ctaContent, documentationSuite, howItWorks, teamCollaboration } from '@/lib/sirius/content';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 
@@ -71,7 +70,20 @@ export default function Landing() {
 
                         <SiriusProcessGrid />
 
-                        <SiriusBentoFeatures />
+                        <SiriusSectionShell
+                            eyebrow={documentationSuite.eyebrow}
+                            title={documentationSuite.title}
+                        >
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {documentationSuite.features.map((feature, index) => (
+                                    <FeatureCard
+                                        key={index}
+                                        feature={feature}
+                                        className="rounded-xl border border-border bg-card/50 h-full"
+                                    />
+                                ))}
+                            </div>
+                        </SiriusSectionShell>
 
                         <section className="sirius-section bg-card/30" id="how-it-works">
                             <div className="sirius-container">
@@ -104,12 +116,10 @@ export default function Landing() {
                         <SiriusSectionShell eyebrow={aiGithubWorkflow.eyebrow} title={aiGithubWorkflow.title} subtitle={aiGithubWorkflow.description}>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                                 {aiGithubWorkflow.features.map((feature, index) => (
-                                    <SiriusFeatureCard
+                                    <FeatureCard
                                         key={index}
-                                        icon={feature.icon}
-                                        title={feature.title}
-                                        description={feature.description}
-                                        delay={index * 0.1}
+                                        feature={feature}
+                                        className="rounded-xl border border-border bg-card/50"
                                     />
                                 ))}
                             </div>
