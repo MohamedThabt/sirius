@@ -65,7 +65,7 @@ export const SiriusStepTimeline: React.FC<SiriusStepTimelineProps> = ({
 
             <div
               className={cn(
-                "sirius-card p-5 md:p-6",
+                "sirius-card p-6 md:p-8",
                 index % 2 === 0 ? "md:order-first" : "md:col-start-2"
               )}
             >

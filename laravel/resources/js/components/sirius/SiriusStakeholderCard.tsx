@@ -24,7 +24,7 @@ export const SiriusStakeholderCard: React.FC<SiriusStakeholderCardProps> = ({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay }}
-      className={cn("sirius-card-hover p-6", className)}
+      className={cn("sirius-card-hover p-6 md:p-8", className)}
     >
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">

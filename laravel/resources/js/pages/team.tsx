@@ -1,13 +1,20 @@
 import { Head } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import SiriusNavbar from '@/components/sirius/SiriusNavbar';
-import SiriusFooter from '@/components/sirius/SiriusFooter';
-import { TeamMemberCard } from '@/components/Team/TeamMemberCard';
-import { Meteors } from '@/components/ui/meteors';
+import { Footer } from '@/components/footer';
+import { Card } from '@/components/ui/card';
+import { GridPattern } from '@/components/ui/shadcn-io/grid-pattern';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import type { TeamMember } from '@/types';
 import { preloadImages } from '@/utils/image-preloader';
-import './landing.css';
+import { Globe, Linkedin } from 'lucide-react';
+
+// Generate DiceBear avatar URL
+const getAvatarUrl = (name: string) => {
+    const seed = encodeURIComponent(name);
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=2d3748&textColor=ffffff`;
+};
 
 // Team members - 7 engineers
 const teamMembers: TeamMember[] = [
@@ -59,8 +66,6 @@ const teamMembers: TeamMember[] = [
 ];
 
 export default function Team() {
-    const [isVisible, setIsVisible] = useState(false);
-
     // Preload team images when component mounts
     useEffect(() => {
         const imageSources = teamMembers.filter((member) => member.image).map((member) => member.image!);
@@ -70,64 +75,105 @@ export default function Team() {
         }
     }, []);
 
-    // Simple entrance animation effect
-    useEffect(() => {
-        setTimeout(() => setIsVisible(true), 50);
-    }, []);
-
     return (
         <>
             <Head title="Team - Sirius" />
 
             <div className="min-h-screen bg-background text-foreground">
                 <SiriusNavbar />
-                
-                <main className="pt-16">
-                    <section className="relative min-h-screen overflow-hidden">
-                        {/* Background */}
-                        <div
-                            className="pointer-events-none absolute inset-0"
-                            style={{
-                                background: `radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
-                            }}
+
+                <main>
+                    <section className="sirius-section relative min-h-screen overflow-hidden">
+                        {/* Grid Pattern Background */}
+                        <GridPattern
+                            width={40}
+                            height={40}
+                            x={-1}
+                            y={-1}
+                            className="absolute inset-0 h-full w-full fill-primary/[0.02] stroke-border/40 [mask-image:radial-gradient(900px_circle_at_center,white,transparent)]"
+                            squares={[
+                                [2, 3], [5, 1], [8, 4], [12, 2], [15, 5],
+                                [3, 8], [7, 6], [10, 9], [14, 7], [18, 3],
+                                [1, 12], [6, 10], [11, 13], [16, 11], [20, 8],
+                                [4, 15], [9, 14], [13, 16], [17, 12], [21, 6],
+                            ]}
                         />
-                        <Meteors number={10} minDuration={5} maxDuration={15} />
+
+                        {/* Subtle radial accent */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.04] rounded-full blur-3xl z-0" />
 
                         {/* Content */}
-                        <div className="relative z-10 mx-auto max-w-5xl px-6 pt-20 pb-16">
+                        <div className="sirius-container relative z-10">
                             {/* Header */}
-                            <div
-                                className="mb-12 text-center"
-                                style={{
-                                    opacity: isVisible ? 1 : 0,
-                                    transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
-                                    transition: 'all 0.8s ease',
-                                }}
-                            >
-                                <h1 className="mb-3 text-3xl font-semibold text-foreground md:text-4xl">The People Behind Sirius</h1>
-                                <p className="text-base text-muted-foreground">7 Engineers · Building the future of project planning</p>
+                            <div className="flex flex-col items-center justify-center mb-12">
+                                <div className="flex flex-col gap-4 max-w-2xl">
+                                    <span className="text-kicker text-center">Our Team</span>
+                                    <h1 className="text-center text-section-title text-foreground">
+                                        The People Behind Sirius
+                                    </h1>
+                                    <p className="text-center text-body text-muted-foreground">
+                                        7 Engineers · Building the future of project planning
+                                    </p>
+                                </div>
                             </div>
 
-                            {/* Team Grid */}
-                            <div
-                                className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
-                                style={{
-                                    opacity: isVisible ? 1 : 0,
-                                    transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-                                    transition: 'all 0.8s ease 0.15s',
-                                }}
-                            >
-                                {teamMembers.map((member) => (
-                                    <TeamMemberCard key={member.name} member={member} />
-                                ))}
+                            {/* Team Cards Grid */}
+                            <div className="flex justify-center items-stretch gap-6 flex-wrap">
+                                {teamMembers.map((member, index) => {
+                                    const primaryLink = member.linkedin || member.website;
+                                    const avatarUrl = member.image || getAvatarUrl(member.name);
+
+                                    return (
+                                        <a
+                                            key={index}
+                                            href={primaryLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block"
+                                        >
+                                            <Card className="w-72 h-auto p-6 relative bg-card/80 backdrop-blur-sm border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg group cursor-pointer">
+                                                {/* Avatar & Info */}
+                                                <div className="flex items-center">
+                                                    <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-border shadow-md transition-transform duration-300 group-hover:scale-105">
+                                                        <OptimizedImage
+                                                            src={avatarUrl}
+                                                            alt={member.name}
+                                                            width={56}
+                                                            height={56}
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col pl-4">
+                                                        <span className="font-semibold text-base text-foreground">
+                                                            {member.name}
+                                                        </span>
+                                                        <span className="text-sm text-muted-foreground">
+                                                            {member.role}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Social Icon */}
+                                                {primaryLink && (
+                                                    <div className="absolute top-5 right-5 p-2 rounded-full bg-accent/50 group-hover:bg-accent transition-colors">
+                                                        {member.linkedin ? (
+                                                            <Linkedin className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                        ) : (
+                                                            <Globe className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </Card>
+                                        </a>
+                                    );
+                                })}
                             </div>
                         </div>
                     </section>
                 </main>
 
-                <SiriusFooter />
+                <Footer />
             </div>
         </>
     );
 }
-

@@ -16,10 +16,10 @@ export default function Register() {
                 visualVariant="register"
             >
                 <div className="flex w-full flex-col gap-6">
-                    <div className="rounded-lg border border-[hsl(var(--subtle-border))] bg-[hsl(var(--bg-secondary))] px-6 py-8 text-center">
+                    <div className="rounded-lg border border-border bg-muted/50 px-6 py-8 text-center">
                         <div className="mb-4 text-4xl">🔒</div>
-                        <h3 className="mb-2 text-lg font-semibold text-[hsl(var(--text-primary))]">Closed Beta</h3>
-                        <p className="mb-6 text-sm text-[hsl(var(--text-secondary))]">
+                        <h3 className="mb-2 text-lg font-semibold text-foreground">Closed Beta</h3>
+                        <p className="mb-6 text-sm text-muted-foreground">
                             Access to Sirius is currently limited to invited users only.
                             <br />
                             Please contact the Sirius team for an invitation.
@@ -27,16 +27,16 @@ export default function Register() {
                         <Link href={login()}>
                             <Button 
                                 variant="outline" 
-                                className="w-full border-[hsl(var(--subtle-border))] bg-[hsl(var(--bg-tertiary))] hover:bg-[hsl(var(--bg-primary))]"
+                                className="w-full"
                             >
                                 Back to Login
                             </Button>
                         </Link>
                     </div>
                     
-                    <div className="text-center text-sm text-[hsl(var(--text-tertiary))]">
+                    <div className="text-center text-sm text-muted-foreground">
                         Interested in joining? Visit our{' '}
-                        <a href="/beta" className="text-[hsl(var(--text-primary))] hover:underline">
+                        <a href="/beta" className="text-primary hover:text-primary/80 hover:underline">
                             waitlist page
                         </a>
                     </div>

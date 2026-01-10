@@ -26,7 +26,7 @@ export const SiriusSectionShell: React.FC<SiriusSectionShellProps> = ({
         {(eyebrow || title || subtitle) && (
           <div
             className={cn(
-              "mb-8 md:mb-10",
+              "mb-10 md:mb-12",
               align === "center" ? "text-center max-w-3xl mx-auto" : "text-left"
             )}
           >
@@ -34,7 +34,7 @@ export const SiriusSectionShell: React.FC<SiriusSectionShellProps> = ({
               <span className="text-kicker mb-2 block">{eyebrow}</span>
             )}
             {title && (
-              <h2 className="text-section-title text-foreground mb-3">
+              <h2 className="text-section-title text-foreground mb-4">
                 {title}
               </h2>
             )}

@@ -7,15 +7,13 @@ import SiriusHero from '@/components/sirius/SiriusHero';
 import { FeatureCard } from '@/components/ui/grid-feature-card';
 import SiriusNavbar from '@/components/sirius/SiriusNavbar';
 
-import SiriusProcessGrid from '@/components/sirius/SiriusProcessGrid';
 import SiriusSectionShell from '@/components/sirius/SiriusSectionShell';
-import SiriusStakeholderCard from '@/components/sirius/SiriusStakeholderCard';
 import SiriusStepTimeline from '@/components/sirius/SiriusStepTimeline';
+import TeamRolesSection from '@/components/sirius/TeamRolesSection';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { aiGithubWorkflow, ctaContent, documentationSuite, howItWorks, teamCollaboration } from '@/lib/sirius/content';
+import { aiGithubWorkflow, documentationSuite, howItWorks } from '@/lib/sirius/content';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -66,10 +64,6 @@ export default function Landing() {
 
                         <SiriusHero />
 
-
-
-                        <SiriusProcessGrid />
-
                         <SiriusSectionShell
                             eyebrow={documentationSuite.eyebrow}
                             title={documentationSuite.title}
@@ -87,10 +81,10 @@ export default function Landing() {
 
                         <section className="sirius-section bg-card/30" id="how-it-works">
                             <div className="sirius-container">
-                                <div className="mb-10 grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12">
+                                <div className="mb-10 md:mb-12 grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12">
                                     <div className="lg:sticky lg:top-24">
                                         <span className="text-kicker mb-2 block">{howItWorks.eyebrow}</span>
-                                        <h2 className="text-section-title mb-3 text-foreground">{howItWorks.title}</h2>
+                                        <h2 className="text-section-title mb-4 text-foreground">{howItWorks.title}</h2>
                                         <p className="text-body mb-6 text-muted-foreground">
                                             Every project follows a structured flow from brief to build-ready documentation.
                                         </p>
@@ -125,54 +119,13 @@ export default function Landing() {
                             </div>
                         </SiriusSectionShell>
 
-                        <section className="sirius-section bg-card/30" id="teams">
-                            <div className="sirius-container">
-                                <div className="mx-auto mb-8 max-w-3xl text-center">
-                                    <span className="text-kicker mb-2 block">{teamCollaboration.eyebrow}</span>
-                                    <h2 className="text-section-title mb-3 text-foreground">{teamCollaboration.title}</h2>
-                                    <p className="text-body text-muted-foreground">{teamCollaboration.description}</p>
-                                </div>
-
-                                <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
-                                    {teamCollaboration.roles.map((role, index) => (
-                                        <SiriusStakeholderCard
-                                            key={index}
-                                            role={role.role}
-                                            description={role.description}
-                                            responsibilities={role.responsibilities}
-                                            delay={index * 0.1}
-                                        />
-                                    ))}
-                                </div>
-
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    className="flex flex-wrap justify-center gap-3"
-                                >
-                                    {teamCollaboration.specializations.map((spec, index) => (
-                                        <motion.div
-                                            key={index}
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            whileInView={{ opacity: 1, scale: 1 }}
-                                            viewport={{ once: true }}
-                                            transition={{ delay: index * 0.05 }}
-                                            className="flex items-center gap-2 rounded-full border border-border bg-accent px-4 py-2"
-                                        >
-                                            <spec.icon className="h-4 w-4 text-primary" />
-                                            <span className="text-sm text-foreground">{spec.name}</span>
-                                        </motion.div>
-                                    ))}
-                                </motion.div>
-                            </div>
-                        </section>
+                        <TeamRolesSection />
 
 
 
 						<FaqsSection />
 
-                        <section className="py-20">
+                        <section className="sirius-section">
                             <CallToAction />
                         </section>
 

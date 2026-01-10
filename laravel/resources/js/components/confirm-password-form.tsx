@@ -12,13 +12,13 @@ export function ConfirmPasswordForm() {
                 {({ processing, errors, hasErrors }) => (
                     <>
                         {hasErrors && (
-                            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm font-medium text-red-400 backdrop-blur-sm">
+                            <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm font-medium text-destructive backdrop-blur-sm">
                                 {errors.password || 'The provided password is incorrect.'}
                             </div>
                         )}
                         <div className="grid gap-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password" className="text-foreground">Password</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -27,12 +27,13 @@ export function ConfirmPasswordForm() {
                                 autoFocus
                                 autoComplete="current-password"
                                 placeholder="Password"
+                                className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                             />
                         </div>
 
                         <Button 
                             type="submit" 
-                            className="w-full h-11 font-semibold rounded-lg bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black transition-all duration-200" 
+                            className="w-full h-11 font-semibold rounded-lg" 
                             disabled={processing}
                         >
                             {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}

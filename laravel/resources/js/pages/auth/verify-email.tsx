@@ -14,7 +14,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
             <Head title="Email verification" />
 
             {status === 'verification-link-sent' && (
-                <div className="mb-4 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-center text-sm font-medium text-green-400 backdrop-blur-sm">
+                <div className="mb-4 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-center text-sm font-medium text-green-600 dark:text-green-400 backdrop-blur-sm">
                     A new verification link has been sent to the email address you provided during registration.
                 </div>
             )}
@@ -24,13 +24,13 @@ export default function VerifyEmail({ status }: { status?: string }) {
                     <>
                         <Button 
                             disabled={processing} 
-                            className="h-11 font-semibold rounded-lg bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black transition-all duration-200"
+                            className="h-11 font-semibold rounded-lg"
                         >
                             {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                             Resend verification email
                         </Button>
 
-                        <TextLink href={logout()} className="mx-auto block text-sm">
+                        <TextLink href={logout()} className="mx-auto block text-sm text-primary hover:text-primary/80">
                             Log out
                         </TextLink>
                     </>

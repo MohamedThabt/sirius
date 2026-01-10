@@ -15,7 +15,7 @@ export function ForgotPasswordForm({ status }: ForgotPasswordFormProps) {
     return (
         <div className="flex w-full max-w-sm flex-col gap-6">
             {status && (
-                <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-center text-sm font-medium text-green-400 backdrop-blur-sm">
+                <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-center text-sm font-medium text-green-600 dark:text-green-400 backdrop-blur-sm">
                     {status}
                 </div>
             )}
@@ -25,18 +25,26 @@ export function ForgotPasswordForm({ status }: ForgotPasswordFormProps) {
                     {({ processing, errors, hasErrors }) => (
                         <>
                             {hasErrors && (
-                                <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm font-medium text-red-400 backdrop-blur-sm">
+                                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm font-medium text-destructive backdrop-blur-sm">
                                     {errors.email || 'An error occurred. Please try again.'}
                                 </div>
                             )}
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input id="email" type="email" name="email" autoComplete="off" autoFocus placeholder="email@example.com" />
+                                <Label htmlFor="email" className="text-foreground">Email address</Label>
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    name="email" 
+                                    autoComplete="off" 
+                                    autoFocus 
+                                    placeholder="email@example.com"
+                                    className="bg-background border-border text-foreground placeholder:text-muted-foreground"
+                                />
                             </div>
 
                             <div className="my-6 flex items-center justify-start">
                                 <Button 
-                                    className="w-full h-11 font-semibold rounded-lg bg-[hsl(var(--text-primary))] text-[hsl(var(--bg-primary))] hover:bg-white hover:text-black transition-all duration-200" 
+                                    className="w-full h-11 font-semibold rounded-lg" 
                                     disabled={processing}
                                 >
                                     {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
@@ -47,9 +55,9 @@ export function ForgotPasswordForm({ status }: ForgotPasswordFormProps) {
                     )}
                 </Form>
 
-                <div className="space-x-1 text-center text-sm text-[hsl(var(--text-secondary))]">
+                <div className="space-x-1 text-center text-sm text-muted-foreground">
                     <span>Or, return to</span>
-                    <TextLink href={login()} className="font-medium text-[hsl(var(--text-primary))] hover:underline">log in</TextLink>
+                    <TextLink href={login()} className="font-medium text-primary hover:text-primary/80 hover:underline">log in</TextLink>
                 </div>
             </div>
         </div>
