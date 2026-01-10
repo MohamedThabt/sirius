@@ -112,25 +112,7 @@ export const teamCollaboration = {
   ],
 };
 
-export const functionalRequirements = [
-  { id: "FR-001", title: "Project Creation", description: "Generate overview, PRD, and SRS from a brief." },
-  { id: "FR-002", title: "Project Decomposition", description: "Break projects into features and user stories." },
-  { id: "FR-003", title: "Documentation Generation", description: "Create ERDs, specs, diagrams, wireframes." },
-  { id: "FR-004", title: "Code Prompt Generation", description: "Export prompts for AI code assistants." },
-  { id: "FR-005", title: "ERD Aggregation", description: "Combine story ERDs into project-level view." },
-  { id: "FR-006", title: "Team Collaboration", description: "Share projects and assign responsibilities." },
-  { id: "FR-007", title: "GitHub Integration", description: "Export docs to structured repositories." },
-];
 
-export const nonFunctionalRequirements = [
-  { id: "NFR-001", title: "Performance", description: "90% of requests complete in under 1.5s.", icon: Gauge },
-  { id: "NFR-002", title: "Security", description: "AES-256 encryption at rest and in transit.", icon: Shield },
-  { id: "NFR-003", title: "Scalability", description: "Support 10,000 concurrent users.", icon: Users },
-  { id: "NFR-004", title: "Reliability", description: "99.9% uptime SLA.", icon: Zap },
-  { id: "NFR-005", title: "Accessibility", description: "WCAG 2.1 AA compliance.", icon: Accessibility },
-  { id: "NFR-006", title: "Usability", description: "Intuitive interface for technical teams.", icon: Layout },
-  { id: "NFR-007", title: "API Compliance", description: "Respect GitHub API rate limits.", icon: GitMerge },
-];
 
 export const aiGithubWorkflow = {
   eyebrow: "Seamless Integration",

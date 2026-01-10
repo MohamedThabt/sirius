@@ -9,13 +9,12 @@ import SiriusHero from '@/components/sirius/SiriusHero';
 import SiriusNavbar from '@/components/sirius/SiriusNavbar';
 import SiriusPipelineSection from '@/components/sirius/SiriusPipelineSection';
 import SiriusProcessGrid from '@/components/sirius/SiriusProcessGrid';
-import SiriusRequirementPill from '@/components/sirius/SiriusRequirementPill';
 import SiriusSectionShell from '@/components/sirius/SiriusSectionShell';
 import SiriusStakeholderCard from '@/components/sirius/SiriusStakeholderCard';
 import SiriusStepTimeline from '@/components/sirius/SiriusStepTimeline';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { aiGithubWorkflow, ctaContent, functionalRequirements, howItWorks, nonFunctionalRequirements, teamCollaboration } from '@/lib/sirius/content';
+import { aiGithubWorkflow, ctaContent, howItWorks, teamCollaboration } from '@/lib/sirius/content';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 
@@ -159,65 +158,7 @@ export default function Landing() {
                             </div>
                         </section>
 
-                        <SiriusSectionShell
-                            eyebrow="Built to Last"
-                            title="Enterprise-ready from day one"
-                            subtitle="Sirius is designed with performance, security, and scalability at its core."
-                        >
-                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
-                                <div>
-                                    <h3 className="mb-6 flex items-center gap-2 font-sirius text-lg font-semibold text-foreground">
-                                        <SiriusRequirementPill label="FR" type="functional" />
-                                        Functional Requirements
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {functionalRequirements.map((req, index) => (
-                                            <motion.div
-                                                key={req.id}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                whileInView={{ opacity: 1, x: 0 }}
-                                                viewport={{ once: true }}
-                                                transition={{ delay: index * 0.05 }}
-                                                className="flex gap-3 rounded-lg border border-border bg-card/50 p-4"
-                                            >
-                                                <span className="font-mono text-xs whitespace-nowrap text-primary">{req.id}</span>
-                                                <div>
-                                                    <h4 className="mb-1 text-sm font-medium text-foreground">{req.title}</h4>
-                                                    <p className="text-xs text-muted-foreground">{req.description}</p>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </div>
 
-                                <div>
-                                    <h3 className="mb-6 flex items-center gap-2 font-sirius text-lg font-semibold text-foreground">
-                                        <SiriusRequirementPill label="NFR" type="non-functional" />
-                                        Non-Functional Requirements
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {nonFunctionalRequirements.map((req, index) => (
-                                            <motion.div
-                                                key={req.id}
-                                                initial={{ opacity: 0, x: 20 }}
-                                                whileInView={{ opacity: 1, x: 0 }}
-                                                viewport={{ once: true }}
-                                                transition={{ delay: index * 0.05 }}
-                                                className="flex gap-3 rounded-lg border border-border bg-card/50 p-4"
-                                            >
-                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent">
-                                                    <req.icon className="h-4 w-4 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="mb-1 text-sm font-medium text-foreground">{req.title}</h4>
-                                                    <p className="text-xs text-muted-foreground">{req.description}</p>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </SiriusSectionShell>
 
                         <section className="sirius-section bg-card/30" id="faq">
                             <div className="sirius-container">
