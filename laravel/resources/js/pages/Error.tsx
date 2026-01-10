@@ -1,12 +1,11 @@
 import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Home, ArrowLeft, AlertTriangle } from 'lucide-react';
-import { useForceTheme } from '@/hooks/use-force-theme';
+
 import './landing.css';
 
 interface ErrorProps {
     status: number;
-    message?: string;
 }
 
 const ERROR_MESSAGES: Record<number, { title: string; description: string }> = {
@@ -28,9 +27,7 @@ const ERROR_MESSAGES: Record<number, { title: string; description: string }> = {
     },
 };
 
-export default function Error({ status, message }: ErrorProps) {
-    useForceTheme('dark');
-
+export default function Error({ status, message }: ErrorProps & { message?: string }) {
     const defaultError = {
         title: 'Error',
         description: message || 'An unexpected error occurred.',

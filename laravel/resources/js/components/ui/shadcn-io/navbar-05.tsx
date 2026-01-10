@@ -13,9 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '@/components/ui/navigation-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
-import { BellIcon, ChevronDownIcon, HelpCircleIcon, Moon, Sun } from 'lucide-react';
+import { BellIcon, ChevronDownIcon, HelpCircleIcon } from 'lucide-react';
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -133,32 +132,6 @@ const NotificationMenu = ({ notificationCount = 3, onItemClick }: { notification
     </DropdownMenu>
 );
 
-// Theme Toggle Component
-const ThemeToggle = ({ onToggle }: { onToggle?: () => void }) => {
-    const { appearance, updateAppearance } = useAppearance();
-
-    const toggleTheme = () => {
-        // Simple toggle between light and dark (no system mode in toggle)
-        const isDarkMode = appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        const nextAppearance = isDarkMode ? 'light' : 'dark';
-        updateAppearance(nextAppearance);
-        onToggle?.();
-    };
-
-    const getIcon = () => {
-        // Show icon based on current effective theme (considering system preference)
-        const isDarkMode = appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        return isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />;
-    };
-
-    return (
-        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme}>
-            {getIcon()}
-            <span className="sr-only">Toggle theme</span>
-        </Button>
-    );
-};
-
 // User Menu Component
 const UserMenu = ({
     userName = 'John Doe',
@@ -233,7 +206,6 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
     onInfoItemClick?: (item: string) => void;
     onNotificationItemClick?: (item: string) => void;
     onUserItemClick?: (item: string) => void;
-    onThemeToggle?: () => void;
 }
 
 // Default navigation links
@@ -257,7 +229,6 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
             onInfoItemClick,
             onNotificationItemClick,
             onUserItemClick,
-            onThemeToggle,
             ...props
         },
         ref,
@@ -374,8 +345,6 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                     {/* Right side */}
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            {/* Theme toggle */}
-                            <ThemeToggle onToggle={onThemeToggle} />
                             {/* Info menu */}
                             <InfoMenu onItemClick={onInfoItemClick} />
                             {/* Notification */}
@@ -392,4 +361,5 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
 
 Navbar05.displayName = 'Navbar05';
 
-export { HamburgerIcon, InfoMenu, Logo, NotificationMenu, ThemeToggle, UserMenu };
+export { HamburgerIcon, InfoMenu, Logo, NotificationMenu, UserMenu };
+

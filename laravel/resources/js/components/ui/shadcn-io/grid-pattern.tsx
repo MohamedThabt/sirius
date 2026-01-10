@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import { useId } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface GridPatternProps {
@@ -8,13 +9,14 @@ interface GridPatternProps {
   height?: number;
   x?: number;
   y?: number;
-  squares?: Array<[number, number]>;
+  squares?: Array<[x: number, y: number]>;
   strokeDasharray?: string;
   className?: string;
-  [key: string]: any;
+  animated?: boolean;
+  [key: string]: unknown;
 }
 
-export function GridPattern({
+function GridPattern({
   width = 40,
   height = 40,
   x = -1,
@@ -22,16 +24,17 @@ export function GridPattern({
   strokeDasharray = "0",
   squares,
   className,
+  animated = true,
   ...props
 }: GridPatternProps) {
-  const id = React.useId();
+  const id = useId();
 
   return (
     <svg
       aria-hidden="true"
       className={cn(
         "pointer-events-none absolute inset-0 h-full w-full fill-gray-400/30 stroke-gray-400/30",
-        className
+        className,
       )}
       {...props}
     >
@@ -54,15 +57,39 @@ export function GridPattern({
       <rect width="100%" height="100%" strokeWidth={0} fill={`url(#${id})`} />
       {squares && (
         <svg x={x} y={y} className="overflow-visible">
-          {squares.map(([x, y], index) => (
-            <rect
-              strokeWidth="0"
-              key={`${x}-${y}-${index}`}
-              width={width - 1}
-              height={height - 1}
-              x={x * width + 1}
-              y={y * height + 1}
-            />
+          {squares.map(([squareX, squareY], index) => (
+            animated ? (
+              <motion.rect
+                key={`${squareX}-${squareY}`}
+                strokeWidth="0"
+                width={width - 1}
+                height={height - 1}
+                x={squareX * width + 1}
+                y={squareY * height + 1}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{
+                  opacity: [0, 1, 0.6, 1],
+                  scale: [0.8, 1.1, 1, 1]
+                }}
+                viewport={{ once: false, margin: "-50px" }}
+                transition={{
+                  duration: 2,
+                  delay: index * 0.15,
+                  repeat: Infinity,
+                  repeatDelay: 3,
+                  ease: "easeInOut"
+                }}
+              />
+            ) : (
+              <rect
+                strokeWidth="0"
+                key={`${squareX}-${squareY}`}
+                width={width - 1}
+                height={height - 1}
+                x={squareX * width + 1}
+                y={squareY * height + 1}
+              />
+            )
           ))}
         </svg>
       )}
@@ -70,5 +97,6 @@ export function GridPattern({
   );
 }
 
+export { GridPattern };
 export type { GridPatternProps };
 

@@ -1,11 +1,10 @@
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
+import SiriusNavbar from '@/components/sirius/SiriusNavbar';
+import SiriusFooter from '@/components/sirius/SiriusFooter';
 import { TeamMemberCard } from '@/components/Team/TeamMemberCard';
-import { Button } from '@/components/ui/button';
 import { Meteors } from '@/components/ui/meteors';
-import { useForceTheme } from '@/hooks/use-force-theme';
 import type { TeamMember } from '@/types';
 import { preloadImages } from '@/utils/image-preloader';
 import './landing.css';
@@ -60,7 +59,6 @@ const teamMembers: TeamMember[] = [
 ];
 
 export default function Team() {
-    useForceTheme('dark');
     const [isVisible, setIsVisible] = useState(false);
 
     // Preload team images when component mounts
@@ -74,8 +72,6 @@ export default function Team() {
 
     // Simple entrance animation effect
     useEffect(() => {
-        // Just trigger the state change on mount for the fade-in classes
-        // Note: Using a timeout to ensure initial render is 0 opacity
         setTimeout(() => setIsVisible(true), 50);
     }, []);
 
@@ -83,58 +79,55 @@ export default function Team() {
         <>
             <Head title="Team - Sirius" />
 
-            <div className="linear-landing dark min-h-screen bg-[#030303] text-foreground">
-                <section className="relative min-h-screen overflow-hidden">
-                    {/* Background */}
-                    <div
-                        className="pointer-events-none absolute inset-0"
-                        style={{
-                            background: `radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
-                        }}
-                    />
-                    <Meteors number={10} minDuration={5} maxDuration={15} />
-
-                    {/* Content */}
-                    <div className="relative z-10 mx-auto max-w-5xl px-6 pt-4 pb-16">
-                        {/* Back button */}
-                        <div style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.6s ease' }}>
-                            <Link href="/">
-                                <Button variant="ghost" size="sm" className="mb-6 -ml-3 text-white/40 hover:bg-transparent hover:text-white/70">
-                                    <ArrowLeft className="mr-1.5 h-5 w-5" />
-                                    Home
-                                </Button>
-                            </Link>
-                        </div>
-
-                        {/* Header */}
+            <div className="min-h-screen bg-background text-foreground">
+                <SiriusNavbar />
+                
+                <main className="pt-16">
+                    <section className="relative min-h-screen overflow-hidden">
+                        {/* Background */}
                         <div
-                            className="mb-12 text-center"
+                            className="pointer-events-none absolute inset-0"
                             style={{
-                                opacity: isVisible ? 1 : 0,
-                                transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
-                                transition: 'all 0.8s ease',
+                                background: `radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 50%)`,
                             }}
-                        >
-                            <h1 className="mb-3 text-3xl font-semibold text-white md:text-4xl">The People Behind Sirius</h1>
-                            <p className="text-base text-white/50">7 Engineers · Building the future of project planning</p>
-                        </div>
+                        />
+                        <Meteors number={10} minDuration={5} maxDuration={15} />
 
-                        {/* Team Grid */}
-                        <div
-                            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
-                            style={{
-                                opacity: isVisible ? 1 : 0,
-                                transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-                                transition: 'all 0.8s ease 0.15s',
-                            }}
-                        >
-                            {teamMembers.map((member) => (
-                                <TeamMemberCard key={member.name} member={member} />
-                            ))}
+                        {/* Content */}
+                        <div className="relative z-10 mx-auto max-w-5xl px-6 pt-20 pb-16">
+                            {/* Header */}
+                            <div
+                                className="mb-12 text-center"
+                                style={{
+                                    opacity: isVisible ? 1 : 0,
+                                    transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+                                    transition: 'all 0.8s ease',
+                                }}
+                            >
+                                <h1 className="mb-3 text-3xl font-semibold text-foreground md:text-4xl">The People Behind Sirius</h1>
+                                <p className="text-base text-muted-foreground">7 Engineers · Building the future of project planning</p>
+                            </div>
+
+                            {/* Team Grid */}
+                            <div
+                                className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+                                style={{
+                                    opacity: isVisible ? 1 : 0,
+                                    transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                                    transition: 'all 0.8s ease 0.15s',
+                                }}
+                            >
+                                {teamMembers.map((member) => (
+                                    <TeamMemberCard key={member.name} member={member} />
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                </main>
+
+                <SiriusFooter />
             </div>
         </>
     );
 }
+

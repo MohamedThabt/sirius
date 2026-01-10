@@ -6,9 +6,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import Navbar from '@/components/landing/Navbar';
-import Footer from '@/components/landing/Footer';
-import { useForceTheme } from '@/hooks/use-force-theme';
+import SiriusNavbar from '@/components/sirius/SiriusNavbar';
+import SiriusFooter from '@/components/sirius/SiriusFooter';
 import './landing.css';
 
 interface BetaSignupProps {
@@ -27,7 +26,6 @@ const fadeInUp: Variants = {
 };
 
 const BetaSignup = ({ message }: BetaSignupProps) => {
-  useForceTheme('dark');
   
   const { data, setData, post, processing, errors } = useForm({
     name: "",
@@ -113,7 +111,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
           <Toaster />
           <Sonner />
           <Head title="Join Sirius Beta" />
-          <Navbar hideBetaNav />
+          <SiriusNavbar />
           <main>
             <section className="sirius-hero relative overflow-hidden min-h-screen flex items-center justify-center p-4">
         <div className="hero-gradient" aria-hidden="true" />
@@ -317,7 +315,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
         </div>
             </section>
           </main>
-          <Footer />
+          <SiriusFooter />
         </TooltipProvider>
       </QueryClientProvider>
     </div>
