@@ -40,3 +40,12 @@ export function useThemeDetection(): 'dark' | 'light' {
 
     return theme;
 }
+
+/**
+ * Hook to detect if dark mode is active.
+ * Returns true if dark mode is enabled.
+ */
+export function useIsDarkMode(): boolean {
+    const theme = useThemeDetection();
+    return theme === 'dark';
+}
