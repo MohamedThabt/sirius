@@ -25,7 +25,7 @@ createInertiaApp({
             <>
                 <App {...props} />
                 <Toaster />
-                <FeedbackWidget />
+                <FeedbackWidget initialComponent={props.initialPage.component} />
             </>,
         );
     },

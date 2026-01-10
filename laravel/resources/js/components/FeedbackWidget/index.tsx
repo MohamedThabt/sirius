@@ -9,9 +9,10 @@ import { FloatingButton } from './FloatingButton';
  *
  * This should be placed in the app layout to be accessible from all pages.
  */
-export function FeedbackWidget() {
+export function FeedbackWidget({ initialComponent }: { initialComponent?: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
+    const [pageComponent, setPageComponent] = useState(initialComponent || '');
 
     const handleOpen = useCallback(() => {
         setIsOpen(true);
@@ -21,29 +22,33 @@ export function FeedbackWidget() {
         setIsOpen(open);
     }, []);
 
-    // Update pathname on navigation
+    // Update pathname and component on navigation
     useEffect(() => {
-        const updatePath = () => setCurrentPath(window.location.pathname);
+        const updateState = (component?: string) => {
+            setCurrentPath(window.location.pathname);
+            if (component) setPageComponent(component);
+        };
 
         // Listen for browser back/forward navigation
-        window.addEventListener('popstate', updatePath);
+        const handlePopState = () => updateState();
+        window.addEventListener('popstate', handlePopState);
 
-        // Listen for Inertia navigation events (if available)
-        let cleanupStart: (() => void) | undefined;
+        // Listen for Inertia navigation events
+        let cleanupNavigate: (() => void) | undefined;
         try {
-            cleanupStart = router.on('start', updatePath);
+            cleanupNavigate = router.on('navigate', (event) => {
+                updateState(event.detail.page.component);
+            });
         } catch {
-            // Router event API might not be available or different
+            // Router event API might not be available
         }
 
-        // Fallback: check periodically for path changes (handles edge cases)
-        const interval = setInterval(updatePath, 500);
+        // Fallback: check periodically for path changes
+        const interval = setInterval(() => setCurrentPath(window.location.pathname), 500);
 
         return () => {
-            window.removeEventListener('popstate', updatePath);
-            if (cleanupStart) {
-                cleanupStart();
-            }
+            window.removeEventListener('popstate', handlePopState);
+            if (cleanupNavigate) cleanupNavigate();
             clearInterval(interval);
         };
     }, []);
@@ -51,6 +56,7 @@ export function FeedbackWidget() {
     // Pages where the feedback widget should be hidden
     // Based on URL paths since we're outside Inertia component tree
     const shouldHide =
+        pageComponent === 'Error' || // Explicitly hide on Error page
         currentPath === '/' || // landing
         currentPath === '/team' || // team
         currentPath === '/beta' || // beta-signup

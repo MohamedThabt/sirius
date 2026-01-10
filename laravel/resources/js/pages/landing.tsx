@@ -1,12 +1,12 @@
 import { SEO } from '@/components/SEO';
 import DatabaseWithRestApi from '@/components/sirius/DatabaseWithRestApi';
-import SiriusCTASection from '@/components/sirius/SiriusCTASection';
-import SiriusFAQ from '@/components/sirius/SiriusFAQ';
-import SiriusFooter from '@/components/sirius/SiriusFooter';
+import { CallToAction } from '@/components/call-to-action';
+import { Footer } from '@/components/footer';
+import { FaqsSection } from '@/components/faqs-section';
 import SiriusHero from '@/components/sirius/SiriusHero';
 import { FeatureCard } from '@/components/ui/grid-feature-card';
 import SiriusNavbar from '@/components/sirius/SiriusNavbar';
-import SiriusPipelineSection from '@/components/sirius/SiriusPipelineSection';
+
 import SiriusProcessGrid from '@/components/sirius/SiriusProcessGrid';
 import SiriusSectionShell from '@/components/sirius/SiriusSectionShell';
 import SiriusStakeholderCard from '@/components/sirius/SiriusStakeholderCard';
@@ -66,7 +66,7 @@ export default function Landing() {
 
                         <SiriusHero />
 
-                        <SiriusPipelineSection />
+
 
                         <SiriusProcessGrid />
 
@@ -170,26 +170,13 @@ export default function Landing() {
 
 
 
-                        <section className="sirius-section bg-card/30" id="faq">
-                            <div className="sirius-container">
-                                <div className="mx-auto mb-8 max-w-3xl text-center">
-                                    <span className="text-kicker mb-2 block">FAQ</span>
-                                    <h2 className="text-section-title mb-3 text-foreground">Questions? Answers.</h2>
-                                </div>
-                                <SiriusFAQ />
-                            </div>
+						<FaqsSection />
+
+                        <section className="py-20">
+                            <CallToAction />
                         </section>
 
-                        <SiriusCTASection
-                            headline={ctaContent.headline}
-                            body={ctaContent.body}
-                            primaryLabel={ctaContent.primaryLabel}
-                            primaryHref={ctaContent.primaryHref}
-                            secondaryLabel={ctaContent.secondaryLabel}
-                            secondaryHref={ctaContent.secondaryHref}
-                        />
-
-                        <SiriusFooter />
+                        <Footer />
                     </main>
                 </TooltipProvider>
             </QueryClientProvider>
