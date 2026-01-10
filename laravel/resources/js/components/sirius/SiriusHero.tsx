@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, ArrowDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { HyperTextParagraph } from '@/components/ui/hyper-text-paragraph';
 import { heroContent } from '@/lib/sirius/content';
 import SiriusCpuArchitecture from './SiriusCpuArchitecture';
 import { cn } from '@/lib/utils';
@@ -52,14 +53,18 @@ export const SiriusHero: React.FC = () => {
                         </motion.h1>
 
                         {/* Subtitle */}
-                        <motion.p
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.25, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-                            className="text-lg lg:text-xl text-muted-foreground max-w-xl mb-8 leading-relaxed mx-auto lg:mx-0"
+                            className="max-w-xl mb-8 mx-auto lg:mx-0"
                         >
-                            {heroContent.subtitle}
-                        </motion.p>
+                            <HyperTextParagraph
+                                text={heroContent.subtitle}
+                                highlightWords={["Sirius", "PRDs", "ERDs", "wireframes", "AI"]}
+                                className="text-lg lg:text-xl text-muted-foreground leading-relaxed"
+                            />
+                        </motion.div>
 
                         {/* CTA Buttons */}
                         <motion.div
