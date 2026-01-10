@@ -339,11 +339,11 @@ const FlowCanvas = ({
                         type: MarkerType.ArrowClosed,
                         width: 20,
                         height: 20,
-                        color: isCompleted ? '#10b981' : '#9ca3af',
+                        color: isCompleted ? '#e05d38' : '#9ca3af',
                     },
                     style: {
                         strokeWidth: 2,
-                        stroke: isCompleted ? '#10b981' : '#9ca3af',
+                        stroke: isCompleted ? '#e05d38' : '#9ca3af',
                     },
                 };
             })
@@ -367,11 +367,11 @@ const FlowCanvas = ({
                         type: MarkerType.ArrowClosed,
                         width: 20,
                         height: 20,
-                        color: isCompleted ? '#10b981' : '#9ca3af',
+                        color: isCompleted ? '#e05d38' : '#9ca3af',
                     },
                     style: {
                         strokeWidth: 2,
-                        stroke: isCompleted ? '#10b981' : '#9ca3af',
+                        stroke: isCompleted ? '#e05d38' : '#9ca3af',
                     },
                 });
 
@@ -391,11 +391,11 @@ const FlowCanvas = ({
                                 type: MarkerType.ArrowClosed,
                                 width: 20,
                                 height: 20,
-                                color: isFeatureCompleted ? '#10b981' : '#9ca3af',
+                                color: isFeatureCompleted ? '#e05d38' : '#9ca3af',
                             },
                             style: {
                                 strokeWidth: 2,
-                                stroke: isFeatureCompleted ? '#10b981' : '#9ca3af',
+                                stroke: isFeatureCompleted ? '#e05d38' : '#9ca3af',
                             },
                         });
                     });
@@ -433,7 +433,7 @@ const FlowCanvas = ({
 
     return (
         <>
-            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg bg-gradient-to-br from-slate-50/50 via-background to-slate-100/30 dark:from-slate-950/50 dark:via-background dark:to-slate-900/30">
+            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900">
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -451,7 +451,8 @@ const FlowCanvas = ({
                         gap={24}
                         size={1.5}
                         variant={BackgroundVariant.Dots}
-                        color={isDarkMode ? '#374151' : '#cbd5e1'}
+                        color={isDarkMode ? '#4a4a4a' : '#b0b0b0'}
+                        bgColor={isDarkMode ? '#1f1f1f' : '#e8e8e8'}
                     />
 
                 </ReactFlow>

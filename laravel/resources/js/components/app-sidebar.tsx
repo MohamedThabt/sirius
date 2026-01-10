@@ -7,7 +7,6 @@ import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
 import { Activity, Briefcase, Bug, CoinsIcon, FileText, LayoutDashboard, MessageSquare, ScrollText, Shield, Users, Zap } from 'lucide-react';
 import AppLogo from './app-logo';
-import AppearanceToggleDropdown from './appearance-dropdown';
 
 const mainNavItems: NavItem[] = [];
 
@@ -119,11 +118,6 @@ export function AppSidebar({ project }: AppSidebarProps = {}) {
             </SidebarContent>
 
             <SidebarFooter className="border-t border-border/40 p-2">
-                <SidebarMenu className="gap-1">
-                    <SidebarMenuItem>
-                        <AppearanceToggleDropdown />
-                    </SidebarMenuItem>
-                </SidebarMenu>
                 <NavUser />
             </SidebarFooter>
             <SidebarRail />

@@ -12,7 +12,6 @@ import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogo from './app-logo';
-import AppearanceToggleDropdown from './appearance-dropdown';
 
 const mainNavItems: NavItem[] = [
     {
@@ -71,11 +70,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             ))}
                                         </div>
 
-                                        <div className="flex flex-col space-y-4">
-                                            <div className="pt-2">
-                                                <AppearanceToggleDropdown />
-                                            </div>
-                                        </div>
+
                                     </div>
                                 </div>
                             </SheetContent>
@@ -117,7 +112,6 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <Button variant="ghost" size="icon" className="group h-9 w-9 cursor-pointer">
                                 <Search className="!size-5 opacity-80 group-hover:opacity-100" />
                             </Button>
-                            <AppearanceToggleDropdown />
                         </div>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

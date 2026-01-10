@@ -1,5 +1,4 @@
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { edit } from '@/routes/profile';
@@ -44,13 +43,6 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <div className="px-2 py-2">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm">Theme</span>
-                    <ThemeToggle />
-                </div>
-            </div>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                 <LogOut className="mr-2" />
                 Log out
@@ -58,3 +50,4 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         </>
     );
 }
+

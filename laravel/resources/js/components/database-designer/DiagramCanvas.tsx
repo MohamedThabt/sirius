@@ -364,7 +364,7 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
         );
 
         return (
-            <div ref={ref} className="diagram-canvas-cursor h-full w-full bg-gradient-to-br from-background via-background to-muted/20">
+            <div ref={ref} className="diagram-canvas-cursor h-full w-full bg-gray-100 dark:bg-gray-900">
                 <ReactFlow
                     nodes={enhancedNodes}
                     edges={filteredEdges}
@@ -389,11 +389,8 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
                         variant={backgroundVariant}
                         gap={backgroundOptions.gap}
                         size={backgroundOptions.size}
-                        color={isDarkMode ? '#4b5563' : '#d1d5db'}
-                        style={{
-                            backgroundColor: 'transparent',
-                            opacity: 0.5,
-                        }}
+                        color={isDarkMode ? '#4a4a4a' : '#b0b0b0'}
+                        bgColor={isDarkMode ? '#1f1f1f' : '#e8e8e8'}
                     />
                     <ReactFlowControls position="bottom-left" className="diagram-canvas-controls" />
                 </ReactFlow>

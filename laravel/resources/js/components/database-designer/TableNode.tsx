@@ -1,15 +1,8 @@
-﻿import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+﻿import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Handle, NodeProps, Position } from '@xyflow/react';
-import { Key, Link, Lock, Edit2, Trash2 } from 'lucide-react';
+import { Key, Link2, Edit2, Trash2 } from 'lucide-react';
 import { memo } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 interface TableField {
     name: string;
@@ -32,165 +25,93 @@ const TableNode = ({ data }: NodeProps<any>) => {
     const { tableName, fields, onEdit, onDelete } = data as TableNodeData;
 
     return (
-        <TooltipProvider delayDuration={300}>
-            <Card className="w-72 border-2 border-border/80 bg-background/95 shadow-xl backdrop-blur-sm group overflow-hidden hover:shadow-2xl hover:border-primary/30 transition-all duration-200">
-                <Handle type="target" position={Position.Top} className="h-3 w-3 !bg-primary !border-2 !border-background" />
+        <Card className="w-64 border border-border/60 bg-card shadow-md group rounded-lg overflow-hidden">
+            <Handle 
+                type="target" 
+                position={Position.Top} 
+                className="!h-2 !w-2 !bg-primary !border-0" 
+            />
 
-                <CardHeader className="pb-2 bg-muted/30">
-                    <div className="flex items-center justify-between gap-2">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <CardTitle 
-                                    className="text-base font-bold text-foreground truncate flex-1 min-w-0 cursor-help" 
-                                >
-                                    {tableName}
-                                </CardTitle>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-sm bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 dark:border-slate-600 shadow-xl">
-                                <div className="space-y-1.5">
-                                    <p className="font-semibold text-sm text-slate-50">{tableName}</p>
-                                    <p className="text-xs text-slate-300">
-                                        {fields.length} field{fields.length !== 1 ? 's' : ''}
-                                    </p>
-                                    <div className="text-xs pt-1.5 border-t border-slate-600">
-                                        <p className="text-slate-300">Primary Keys: <span className="font-medium text-yellow-400">{fields.filter(f => f.isPrimaryKey).length}</span></p>
-                                        <p className="text-slate-300">Foreign Keys: <span className="font-medium text-blue-400">{fields.filter(f => f.isForeignKey).length}</span></p>
-                                    </div>
+            {/* Header */}
+            <CardHeader className="px-3 py-2.5 border-b border-border/40 bg-muted/30">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className="h-2 w-2 rounded-full bg-primary/80 flex-shrink-0" />
+                        <span className="text-sm font-semibold text-foreground truncate">
+                            {tableName}
+                        </span>
+                    </div>
+                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {onEdit && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-muted"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit();
+                                }}
+                            >
+                                <Edit2 className="h-3 w-3 text-muted-foreground" />
+                            </Button>
+                        )}
+                        {onDelete && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-destructive/10"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete();
+                                }}
+                            >
+                                <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </CardHeader>
+
+            {/* Fields */}
+            <CardContent className="p-0">
+                <div className="divide-y divide-border/30">
+                    {fields.map((field: TableField, index: number) => (
+                        <div 
+                            key={index}
+                            className="flex items-center justify-between px-3 py-1.5 hover:bg-muted/30 transition-colors"
+                        >
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                {/* Constraint indicators */}
+                                <div className="flex items-center gap-0.5 flex-shrink-0">
+                                    {field.isPrimaryKey && (
+                                        <Key className="h-3 w-3 text-amber-500" />
+                                    )}
+                                    {field.isForeignKey && (
+                                        <Link2 className="h-3 w-3 text-blue-500" />
+                                    )}
                                 </div>
-                            </TooltipContent>
-                        </Tooltip>
-                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                            {onEdit && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 hover:bg-primary/10"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onEdit();
-                                    }}
-                                >
-                                    <Edit2 className="h-3.5 w-3.5" />
-                                </Button>
-                            )}
-                            {onDelete && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onDelete();
-                                    }}
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                            )}
+                                <span className={`text-xs truncate ${
+                                    field.isPrimaryKey || field.isForeignKey 
+                                        ? 'font-medium text-foreground' 
+                                        : 'text-muted-foreground'
+                                }`}>
+                                    {field.name}
+                                </span>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground/70 font-mono flex-shrink-0 ml-2">
+                                {field.type}
+                            </span>
                         </div>
-                    </div>
-                </CardHeader>
+                    ))}
+                </div>
+            </CardContent>
 
-                <CardContent className="pt-2 pb-3 overflow-hidden">
-                    <div className="space-y-0.5">
-                        {fields.map((field: TableField, index: number) => (
-                            <Tooltip key={index}>
-                                <TooltipTrigger asChild>
-                                    <div 
-                                        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60 min-w-0 cursor-help transition-colors"
-                                    >
-                                        <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
-                                            <span 
-                                                className="font-medium truncate max-w-[110px]"
-                                            >
-                                                {field.name}
-                                            </span>
-                                            <div className="flex items-center gap-1 flex-shrink-0">
-                                                {field.isPrimaryKey && (
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className="border-yellow-300 bg-yellow-100 px-1 py-0 text-xs text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300"
-                                                    >
-                                                        <Key className="mr-1 h-2.5 w-2.5 text-yellow-600 dark:text-yellow-400" />
-                                                        PK
-                                                    </Badge>
-                                                )}
-                                                {field.isForeignKey && (
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="border-blue-300 bg-blue-100 px-1 py-0 text-xs text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
-                                                    >
-                                                        <Link className="mr-1 h-2.5 w-2.5 text-blue-600 dark:text-blue-400" />
-                                                        FK
-                                                    </Badge>
-                                                )}
-                                                {field.isUnique && !field.isPrimaryKey && (
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="border-purple-300 bg-purple-100 px-1 py-0 text-xs text-purple-800 dark:border-purple-700 dark:bg-purple-900/20 dark:text-purple-300"
-                                                    >
-                                                        UQ
-                                                    </Badge>
-                                                )}
-                                                {field.isNotNull && !field.isPrimaryKey && (
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="border-red-300 bg-red-100 px-1 py-0 text-xs text-red-800 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300"
-                                                    >
-                                                        <Lock className="mr-1 h-2.5 w-2.5 text-red-600 dark:text-red-400" />
-                                                        NN
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <span className="text-xs text-muted-foreground flex-shrink-0 truncate max-w-[60px]">
-                                            {field.type}
-                                        </span>
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="max-w-sm bg-slate-900 dark:bg-slate-800 text-slate-50 border-slate-700 dark:border-slate-600 shadow-xl">
-                                    <div className="space-y-2">
-                                        <div>
-                                            <p className="font-semibold text-sm text-slate-50">{field.name}</p>
-                                            <p className="text-xs text-slate-300 mt-0.5">Type: <span className="font-mono text-emerald-400">{field.type}</span></p>
-                                        </div>
-                                        {(field.isPrimaryKey || field.isForeignKey || field.isUnique || field.isNotNull) && (
-                                            <div className="pt-1.5 border-t border-slate-600 space-y-1">
-                                                <p className="text-xs font-semibold mb-1.5 text-slate-200">Constraints:</p>
-                                                {field.isPrimaryKey && (
-                                                    <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2 py-1 rounded">
-                                                        <Key className="h-3 w-3 text-yellow-400" />
-                                                        <span className="text-xs text-yellow-300">Primary Key</span>
-                                                    </div>
-                                                )}
-                                                {field.isForeignKey && (
-                                                    <div className="flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded">
-                                                        <Link className="h-3 w-3 text-blue-400" />
-                                                        <span className="text-xs text-blue-300">Foreign Key</span>
-                                                    </div>
-                                                )}
-                                                {field.isUnique && (
-                                                    <div className="flex items-center gap-1.5 bg-purple-500/10 px-2 py-1 rounded">
-                                                        <span className="text-xs text-purple-300">✓ Unique</span>
-                                                    </div>
-                                                )}
-                                                {field.isNotNull && (
-                                                    <div className="flex items-center gap-1.5 bg-red-500/10 px-2 py-1 rounded">
-                                                        <Lock className="h-3 w-3 text-red-400" />
-                                                        <span className="text-xs text-red-300">Not Null</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        ))}
-                    </div>
-                </CardContent>
-
-                <Handle type="source" position={Position.Bottom} className="h-3 w-3 !bg-primary !border-2 !border-background" />
-            </Card>
-        </TooltipProvider>
+            <Handle 
+                type="source" 
+                position={Position.Bottom} 
+                className="!h-2 !w-2 !bg-primary !border-0" 
+            />
+        </Card>
     );
 };
 
