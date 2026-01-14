@@ -1,5 +1,5 @@
 import { SEO } from '@/components/SEO';
-import DatabaseWithRestApi from '@/components/sirius/DatabaseWithRestApi';
+import SiriusAiFlowCard from '@/components/sirius/SiriusAiFlowCard';
 import { CallToAction } from '@/components/call-to-action';
 import { Footer } from '@/components/footer';
 import { FaqsSection } from '@/components/faqs-section';
@@ -88,11 +88,11 @@ export default function Landing() {
                                         <p className="text-body mb-6 text-muted-foreground">
                                             Every project follows a structured flow from brief to build-ready documentation.
                                         </p>
-                                        <DatabaseWithRestApi
+                                        <SiriusAiFlowCard
                                             className="mt-6"
                                             circleText="Sirius AI"
                                             badgeTexts={{
-                                                first: 'Brief',
+                                                first: 'Diagrams',
                                                 second: 'PRD',
                                                 third: 'Specs',
                                                 fourth: 'ERD',

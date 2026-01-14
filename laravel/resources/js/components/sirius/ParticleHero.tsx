@@ -21,7 +21,7 @@ export const ParticleCanvas: React.FC = () => {
     const particles: Particle[] = [];
     const particleCount = Math.min(80, Math.floor((width * height) / 15000));
 
-    const primaryColor = "rgba(224, 93, 56, 0.5)";
+    const primaryColor = "rgba(100, 149, 237, 0.5)";
     const secondaryColor = "rgba(134, 167, 200, 0.4)";
 
     for (let i = 0; i < particleCount; i++) {

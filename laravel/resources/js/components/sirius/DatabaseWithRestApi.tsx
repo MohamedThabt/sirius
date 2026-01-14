@@ -26,12 +26,12 @@ const DatabaseWithRestApi: React.FC<DatabaseWithRestApiProps> = ({
     badgeTexts = {
         first: 'Brief',
         second: 'PRD',
-        third: 'Specs',
+        third: 'SRS',
         fourth: 'ERD',
     },
     buttonText = 'GitHub Export',
     title = 'From Brief to Build-Ready Docs',
-    lightColor = '#E05D38',
+    lightColor = '#6495ED',
     leftBadgeText = 'Team Sync',
 }) => {
     return (
@@ -56,18 +56,18 @@ const DatabaseWithRestApi: React.FC<DatabaseWithRestApiProps> = ({
                     />
                 </g>
 
-                {/* Orange lights traveling along paths */}
+                {/* Celestial Blue lights traveling along paths */}
                 <g mask="url(#db-mask-1)">
-                    <circle className="database db-light-1" cx="0" cy="0" r="12" fill="url(#db-orange-grad)" />
+                    <circle className="database db-light-1" cx="0" cy="0" r="12" fill="url(#db-blue-grad)" />
                 </g>
                 <g mask="url(#db-mask-2)">
-                    <circle className="database db-light-2" cx="0" cy="0" r="12" fill="url(#db-orange-grad)" />
+                    <circle className="database db-light-2" cx="0" cy="0" r="12" fill="url(#db-blue-grad)" />
                 </g>
                 <g mask="url(#db-mask-3)">
-                    <circle className="database db-light-3" cx="0" cy="0" r="12" fill="url(#db-orange-grad)" />
+                    <circle className="database db-light-3" cx="0" cy="0" r="12" fill="url(#db-blue-grad)" />
                 </g>
                 <g mask="url(#db-mask-4)">
-                    <circle className="database db-light-4" cx="0" cy="0" r="12" fill="url(#db-orange-grad)" />
+                    <circle className="database db-light-4" cx="0" cy="0" r="12" fill="url(#db-blue-grad)" />
                 </g>
 
                 {/* Badge Buttons */}
@@ -88,7 +88,7 @@ const DatabaseWithRestApi: React.FC<DatabaseWithRestApiProps> = ({
                             {badgeTexts.second}
                         </text>
                     </g>
-                    {/* Third Badge - Specs */}
+                    {/* Third Badge - SRS */}
                     <g>
                         <rect fill="var(--card)" x="108" y="5" width="34" height="10" rx="5" stroke="var(--border)" />
                         <LayersIcon x="112" y="7.5" />
@@ -120,8 +120,8 @@ const DatabaseWithRestApi: React.FC<DatabaseWithRestApiProps> = ({
                     <mask id="db-mask-4">
                         <path d="M 170 10 v 15 q 0 5 -5 5 h -60 q -5 0 -5 5 v 10" strokeWidth="0.5" stroke="white" />
                     </mask>
-                    {/* Orange radial gradient */}
-                    <radialGradient id="db-orange-grad" fx="1">
+                    {/* Celestial Blue radial gradient */}
+                    <radialGradient id="db-blue-grad" fx="1">
                         <stop offset="0%" stopColor={lightColor} />
                         <stop offset="100%" stopColor="transparent" />
                     </radialGradient>
