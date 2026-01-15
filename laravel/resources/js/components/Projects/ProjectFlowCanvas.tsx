@@ -339,11 +339,11 @@ const FlowCanvas = ({
                         type: MarkerType.ArrowClosed,
                         width: 20,
                         height: 20,
-                        color: isCompleted ? '#e05d38' : '#9ca3af',
+                        color: isCompleted ? '#6495ED' : '#3d4354',
                     },
                     style: {
                         strokeWidth: 2,
-                        stroke: isCompleted ? '#e05d38' : '#9ca3af',
+                        stroke: isCompleted ? '#6495ED' : '#3d4354',
                     },
                 };
             })
@@ -367,11 +367,11 @@ const FlowCanvas = ({
                         type: MarkerType.ArrowClosed,
                         width: 20,
                         height: 20,
-                        color: isCompleted ? '#e05d38' : '#9ca3af',
+                        color: isCompleted ? '#6495ED' : '#3d4354',
                     },
                     style: {
                         strokeWidth: 2,
-                        stroke: isCompleted ? '#e05d38' : '#9ca3af',
+                        stroke: isCompleted ? '#6495ED' : '#3d4354',
                     },
                 });
 
@@ -391,11 +391,11 @@ const FlowCanvas = ({
                                 type: MarkerType.ArrowClosed,
                                 width: 20,
                                 height: 20,
-                                color: isFeatureCompleted ? '#e05d38' : '#9ca3af',
+                                color: isFeatureCompleted ? '#6495ED' : '#3d4354',
                             },
                             style: {
                                 strokeWidth: 2,
-                                stroke: isFeatureCompleted ? '#e05d38' : '#9ca3af',
+                                stroke: isFeatureCompleted ? '#6495ED' : '#3d4354',
                             },
                         });
                     });
