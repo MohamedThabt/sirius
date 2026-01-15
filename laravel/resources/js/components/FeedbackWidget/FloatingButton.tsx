@@ -1,8 +1,7 @@
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { GripVertical, MessageCircle, X, ChevronUp } from 'lucide-react';
+import { GripVertical, MessageSquareText, X, ChevronUp } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { AstronautLottie } from './AstronautLottie';
 
 interface FloatingButtonProps {
     onClick: () => void;
@@ -156,7 +155,7 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
     return (
         <motion.div
             ref={containerRef}
-            className="fixed bottom-24 right-6 z-50 flex flex-col items-end gap-2 cursor-grab active:cursor-grabbing touch-none"
+            className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2 cursor-grab active:cursor-grabbing touch-none"
             drag={!isMinimized}
             dragMomentum={false}
             dragElastic={0.1}
@@ -165,7 +164,7 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
             style={{ x: position.x, y: position.y }}
-            whileDrag={{ scale: 1.05, cursor: 'grabbing' }}
+            whileDrag={{ scale: 1.02, cursor: 'grabbing' }}
             onHoverStart={() => {
                 setShowDragHint(true);
                 setIsHovered(true);
@@ -177,14 +176,14 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
         >
             {/* Drag Handle Indicator (shows on hover) */}
             <AnimatePresence>
-                {showDragHint && !isDragging && (
+                {showDragHint && !isDragging && !isMinimized && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
-                        className="absolute -left-8 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        className="absolute -left-6 top-1/2 -translate-y-1/2 text-muted-foreground/50"
                     >
-                        <GripVertical className="size-5" />
+                        <GripVertical className="size-4" />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -198,14 +197,14 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                         className={cn(
-                            'px-3 py-1.5 rounded-full',
-                            'bg-card text-card-foreground',
-                            'border border-border shadow-sm',
+                            'px-3 py-1.5 rounded-lg',
+                            'bg-popover text-popover-foreground',
+                            'border border-border shadow-lg',
                             'text-xs font-medium whitespace-nowrap',
                             'select-none pointer-events-none'
                         )}
                     >
-                        Share feedback
+                        Send Feedback
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -217,11 +216,12 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                     className={cn(
                         'group relative',
                         'flex items-center justify-center',
-                        'size-10 md:size-12',
+                        'size-10',
                         'rounded-full',
-                        'bg-primary/80 text-primary-foreground',
-                        'shadow-md shadow-primary/10',
-                        'hover:bg-primary hover:shadow-lg hover:shadow-primary/15',
+                        'bg-card text-foreground',
+                        'border border-border',
+                        'shadow-lg shadow-black/5',
+                        'hover:bg-accent hover:border-primary/30',
                         'transition-all duration-200',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                         'select-none',
@@ -238,7 +238,7 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                     }}
                     aria-label="Expand feedback widget"
                 >
-                    <ChevronUp className="size-5 pointer-events-none" />
+                    <ChevronUp className="size-4 pointer-events-none" />
                 </motion.button>
             ) : (
                 <motion.button
@@ -246,19 +246,20 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                     drag={false}
                     className={cn(
                         'group relative',
-                        'flex items-center justify-center',
-                        'size-14 md:size-16',
+                        'flex items-center gap-2',
+                        'h-10 px-4',
                         'rounded-full',
-                        'bg-primary text-primary-foreground',
-                        'shadow-md shadow-primary/15',
-                        'hover:shadow-lg hover:shadow-primary/20',
+                        'bg-card text-foreground',
+                        'border border-border',
+                        'shadow-lg shadow-black/5',
+                        'hover:bg-accent hover:border-primary/30 hover:shadow-xl',
                         'transition-all duration-200',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                         'select-none',
                         className
                     )}
-                    whileHover={!isDragging ? { scale: 1.05 } : undefined}
-                    whileTap={!isDragging ? { scale: 0.95 } : undefined}
+                    whileHover={!isDragging ? { scale: 1.02, y: -1 } : undefined}
+                    whileTap={!isDragging ? { scale: 0.98 } : undefined}
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ 
                         scale: 1, 
@@ -271,13 +272,11 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                     }}
                     aria-label="Open feedback widget - drag to reposition"
                 >
-                    {/* Astronaut animation on larger screens with Aura */}
-                    <span className="hidden md:block pointer-events-none">
-                        <AstronautLottie size={48} state="idle" showAura={false} />
-                    </span>
+                    {/* Icon */}
+                    <MessageSquareText className="size-4 pointer-events-none text-primary" />
                     
-                    {/* Icon fallback on mobile */}
-                    <MessageCircle className="size-6 md:hidden pointer-events-none" />
+                    {/* Text label */}
+                    <span className="text-sm font-medium pointer-events-none">Feedback</span>
                     
                     {/* Minimize button - appears on hover */}
                     <AnimatePresence>
@@ -289,10 +288,10 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                                 exit={{ opacity: 0, scale: 0.8 }}
                                 transition={{ duration: 0.15 }}
                                 className={cn(
-                                    'absolute -top-1 -right-1',
+                                    'absolute -top-1.5 -right-1.5',
                                     'size-5 rounded-full',
-                                    'bg-muted hover:bg-muted/80',
-                                    'border border-border',
+                                    'bg-muted hover:bg-destructive/10',
+                                    'border border-border hover:border-destructive/30',
                                     'flex items-center justify-center',
                                     'shadow-sm',
                                     'transition-colors duration-150',
@@ -301,7 +300,7 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                                 aria-label="Minimize feedback widget"
                                 onMouseDown={(e) => e.stopPropagation()}
                             >
-                                <X className="size-3 text-muted-foreground" />
+                                <X className="size-3 text-muted-foreground group-hover:text-destructive" />
                             </motion.button>
                         )}
                     </AnimatePresence>

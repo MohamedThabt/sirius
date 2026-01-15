@@ -5,7 +5,7 @@ import { FloatingButton } from './FloatingButton';
 
 /**
  * Main Feedback Widget component.
- * Renders a floating astronaut button and feedback modal.
+ * Renders a floating feedback button and modal.
  *
  * This should be placed in the app layout to be accessible from all pages.
  */
@@ -81,7 +81,6 @@ export function FeedbackWidget({ initialComponent }: { initialComponent?: string
 }
 
 // Named exports for individual components
-export { AstronautLottie } from './AstronautLottie';
 export { FeedbackModal } from './FeedbackModal';
 export { FloatingButton } from './FloatingButton';
 export { StarConfetti } from './StarConfetti';
