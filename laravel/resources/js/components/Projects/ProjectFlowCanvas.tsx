@@ -433,7 +433,7 @@ const FlowCanvas = ({
 
     return (
         <>
-            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900">
+            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg bg-[#e8ebed] dark:bg-[#1c2433]">
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -451,8 +451,8 @@ const FlowCanvas = ({
                         gap={24}
                         size={1.5}
                         variant={BackgroundVariant.Dots}
-                        color={isDarkMode ? '#4a4a4a' : '#b0b0b0'}
-                        bgColor={isDarkMode ? '#1f1f1f' : '#e8e8e8'}
+                        color={isDarkMode ? '#3d4354' : '#dcdfe2'}
+                        bgColor={isDarkMode ? '#1c2433' : '#e8ebed'}
                     />
 
                 </ReactFlow>
