@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Brain, FileText, GitBranch, Code, Database, Layout, Workflow } from "lucide-react";
+import { FileText, Github, Database, Layout, Users, FileCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -13,12 +13,101 @@ interface FeatureNode {
 
 const featureNodes: FeatureNode[] = [
   { id: 1, title: "PRD", icon: FileText, description: "Product Requirements Document - Defines the product vision, features, and success criteria for your project." },
-  { id: 2, title: "SRS", icon: GitBranch, description: "Software Requirements Specification - Detailed technical requirements and system behavior documentation." },
+  { id: 2, title: "GitHub Export", icon: Github, description: "GitHub Export - Push your complete documentation suite to GitHub with a single click." },
   { id: 3, title: "ERD", icon: Database, description: "Entity Relationship Diagram - Visual representation of your database structure and relationships." },
-  { id: 4, title: "Specs", icon: Code, description: "Technical Specifications - Comprehensive API endpoints, data models, and integration details." },
+  { id: 4, title: "Specs", icon: FileCode, description: "Technical Specifications - Comprehensive API endpoints, data models, and integration details." },
   { id: 5, title: "Wireframes", icon: Layout, description: "UI Wireframes - Low-fidelity visual guides showing layout and user interface structure." },
-  { id: 6, title: "Workflows", icon: Workflow, description: "Process Workflows - User journeys and system flows mapped for optimal experience." },
+  { id: 6, title: "Team Sync", icon: Users, description: "Team Sync - Real-time collaboration with your team on project documentation." },
 ];
+
+// Sirius Star Component
+const SiriusStar: React.FC<{ className?: string }> = ({ className }) => (
+  <div className={cn("relative", className)}>
+    {/* Outer bloom glow */}
+    <motion.div
+      className="absolute inset-[-60%] rounded-full"
+      style={{
+        background: 'radial-gradient(circle, rgba(56,189,248,0.35) 0%, rgba(56,189,248,0.1) 40%, transparent 70%)',
+      }}
+      animate={{
+        scale: [1, 1.15, 1],
+        opacity: [0.7, 1, 0.7],
+      }}
+      transition={{
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    />
+
+    {/* Vertical diffraction spike */}
+    <div 
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[2px] h-[220%]"
+      style={{
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.8) 45%, white 50%, rgba(255,255,255,0.8) 55%, rgba(255,255,255,0.1) 80%, transparent 100%)',
+      }}
+    />
+    <div 
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[6px] h-[180%] blur-[2px]"
+      style={{
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(56,189,248,0.2) 25%, rgba(56,189,248,0.5) 45%, rgba(255,255,255,0.7) 50%, rgba(56,189,248,0.5) 55%, rgba(56,189,248,0.2) 75%, transparent 100%)',
+      }}
+    />
+
+    {/* Horizontal diffraction spike */}
+    <div 
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[2px] w-[220%]"
+      style={{
+        background: 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.8) 45%, white 50%, rgba(255,255,255,0.8) 55%, rgba(255,255,255,0.1) 80%, transparent 100%)',
+      }}
+    />
+    <div 
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[6px] w-[180%] blur-[2px]"
+      style={{
+        background: 'linear-gradient(to right, transparent 0%, rgba(56,189,248,0.2) 25%, rgba(56,189,248,0.5) 45%, rgba(255,255,255,0.7) 50%, rgba(56,189,248,0.5) 55%, rgba(56,189,248,0.2) 75%, transparent 100%)',
+      }}
+    />
+
+    {/* Diagonal spikes */}
+    <div 
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-[140%] rotate-45 opacity-50"
+      style={{
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.5) 45%, white 50%, rgba(255,255,255,0.5) 55%, transparent 100%)',
+      }}
+    />
+    <div 
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-[140%] -rotate-45 opacity-50"
+      style={{
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.5) 45%, white 50%, rgba(255,255,255,0.5) 55%, transparent 100%)',
+      }}
+    />
+
+    {/* Central bright core */}
+    <motion.div
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full"
+      style={{
+        background: 'radial-gradient(circle, white 0%, rgba(56,189,248,1) 50%, rgba(56,189,248,0.5) 100%)',
+        boxShadow: '0 0 20px 8px rgba(56,189,248,0.8), 0 0 40px 15px rgba(56,189,248,0.4), 0 0 60px 25px rgba(56,189,248,0.2)',
+      }}
+      animate={{
+        scale: [1, 1.08, 1],
+      }}
+      transition={{
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    />
+
+    {/* Inner white hot core */}
+    <div
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white"
+      style={{
+        boxShadow: '0 0 8px 4px rgba(255,255,255,0.9)',
+      }}
+    />
+  </div>
+);
 
 export default function SiriusOrbitalFeatures() {
   const [rotationAngle, setRotationAngle] = useState(0);
@@ -76,7 +165,7 @@ export default function SiriusOrbitalFeatures() {
         ref={orbitRef}
         className="relative w-full h-full flex items-center justify-center"
       >
-        <div className="absolute w-[300px] h-[300px] rounded-full border border-primary/20 shadow-[0_0_60px_rgba(249,115,22,0.15)]" />
+        <div className="absolute w-[300px] h-[300px] rounded-full border border-primary/20 shadow-[0_0_60px_rgba(56,189,248,0.15)]" />
 
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="absolute w-[280px] h-[280px] rounded-full border border-primary/30" />
@@ -84,12 +173,10 @@ export default function SiriusOrbitalFeatures() {
           <div className="absolute w-[120px] h-[120px] rounded-full border border-primary/10" />
         </div>
 
-        <div className="absolute z-50 flex flex-col items-center justify-center">
-          <div className="relative w-20 h-20 rounded-full bg-card border-2 border-primary flex items-center justify-center">
-            <div className="absolute inset-2 rounded-full bg-primary/10" />
-            <Brain className="w-8 h-8 text-primary relative z-10" />
-          </div>
-          <span className="mt-2 text-xs font-medium text-foreground">
+        {/* Central Sirius Star */}
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center">
+          <SiriusStar className="w-20 h-20" />
+          <span className="mt-8 text-xs font-medium text-foreground">
             Sirius AI
           </span>
         </div>

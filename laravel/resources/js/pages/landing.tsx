@@ -51,8 +51,8 @@ export default function Landing() {
         <div className="min-h-screen bg-background text-foreground">
             <SEO
                 title="Sirius"
-                description="From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators."
-                keywords="AI project planning, PRD generator, ERD generator, wireframe generator, software requirements, project documentation, AI code generation, GitHub integration, sequence diagrams, user stories"
+                description="Build-ready specs for engineering teams. Paste your project brief and Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub."
+                keywords="AI project planning, PRD generator, ERD generator, wireframe generator, software requirements, project documentation, GitHub integration, sequence diagrams, user stories, engineering teams"
                 image="/images/seo/image.png"
                 type="website"
                 structuredData={structuredData}

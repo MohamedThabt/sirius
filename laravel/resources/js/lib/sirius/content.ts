@@ -1,15 +1,15 @@
-import { FileText, GitBranch, Users, Zap, Shield, Database, Code, Workflow, Brain, Layout, Server, Lock, Gauge, Accessibility, CloudCog, GitMerge } from "lucide-react";
+import { FileText, GitBranch, Users, Zap, Shield, Database, Code, Workflow, Brain, Layout, Server, Lock, Gauge, Accessibility, CloudCog, GitMerge, ClipboardList, UsersRound, Shapes, Blocks, ScrollText, RefreshCw } from "lucide-react";
 
 export const heroContent = {
   badge: "Beta Access",
-  title: "From Brief to",
-  titleHighlight: "Build-Ready Docs",
-  subtitle: "Describe your project. Sirius AI generates PRDs, user stories, ERDs, and wireframes—ready for AI code generators.",
-  primaryCta: "Get Early Access",
+  title: "Build-ready specs",
+  titleHighlight: "for engineering teams",
+  subtitle: "Paste your project brief and Sirius AI breaks it into features with complete PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports everything to GitHub.",
+  primaryCta: "Request Early Access",
   secondaryCta: "See How It Works",
   valueProps: [
     "Project brief → Complete documentation",
-    "AI-optimized prompts for Cursor & Copilot",
+    "Unified ERD & sequence diagrams",
     "One-click GitHub export",
   ],
 };
@@ -35,7 +35,7 @@ export const problemSolution = {
     },
   ],
   solutionTitle: "Sirius automates your pre-code phase",
-  solutionDescription: "Input a project brief. Get a structured documentation suite—PRDs, SRSs, ERDs, and production-ready prompts for AI code tools.",
+  solutionDescription: "Input a project brief. Get a structured documentation suite—PRDs, SRSs, ERDs, and wireframes ready for development.",
 };
 
 export const howItWorks = {
@@ -65,10 +65,10 @@ export const howItWorks = {
     },
     {
       id: "FR-004",
-      badge: "AI Integration",
+      badge: "GitHub Export",
       label: "Step 4",
-      title: "Export prompts",
-      description: "Generate production-ready prompts for Cursor, Copilot, or your favorite AI code assistant.",
+      title: "Export to GitHub",
+      description: "Push your complete documentation suite to GitHub with a single click, keeping everything in sync.",
     },
     {
       id: "FR-005",
@@ -87,8 +87,8 @@ export const teamCollaboration = {
   roles: [
     {
       role: "Software Engineers",
-      description: "Get clear specs and AI-ready prompts for every user story.",
-      responsibilities: ["Implement user stories", "Review technical specs", "Use generated prompts"],
+      description: "Get clear specs and complete documentation for every user story.",
+      responsibilities: ["Implement user stories", "Review technical specs", "Use ERDs and diagrams"],
     },
     {
       role: "Team Leads",
@@ -114,37 +114,37 @@ export const teamCollaboration = {
 
 export const documentationSuite = {
   eyebrow: "Complete Documentation Suite",
-  title: "Everything you need to transform a project brief into build-ready documentation.",
+  title: "Brief to build-ready docs, versioned and complete.",
   features: [
     {
-      title: "PRD Generation",
-      description: "Transform project briefs into comprehensive Product Requirements Documents with stakeholder analysis.",
+      title: "PRDs",
+      description: "Transform unstructured project briefs into clear, investor- and stakeholder-ready PRDs. Sirius orchestrates overview creation, refinement, and regeneration, while keeping a versioned history of every change.",
       icon: FileText,
     },
     {
-      title: "SRS Creation",
-      description: "Generate detailed Software Requirements Specifications with functional and non-functional requirements.",
-      icon: Code,
+      title: "Specs",
+      description: "Generate formal Software Requirements Specifications with complete scope, assumptions, functional/non-functional requirements, interfaces, data models, constraints, and traceability matrices—ensuring every stakeholder shares a single, unambiguous source of truth.",
+      icon: ScrollText,
     },
     {
-      title: "User Stories",
-      description: "Break down features into granular user stories with acceptance criteria, ready for sprint planning.",
-      icon: Users,
+      title: "Modules & Features",
+      description: "Break projects into prioritized, implementation-ready user stories. Sirius generates and expands feature ideas, adds acceptance criteria, user flows, and metrics, and applies prioritization frameworks to keep backlogs focused.",
+      icon: Blocks,
     },
     {
-      title: "ERD Generation",
-      description: "Automatically generate entity-relationship diagrams that aggregate into a unified data model.",
-      icon: Database,
+      title: "Team Sync",
+      description: "Built-in role-based access control, real-time updates, and commenting keep engineers, architects, and stakeholders aligned. Track changes, approve specs, and maintain a single source of truth across your entire team.",
+      icon: RefreshCw,
     },
     {
-      title: "Sequence Diagrams",
-      description: "Visualize system interactions with auto-generated sequence diagrams for each user story.",
-      icon: Workflow,
+      title: "ERDs & Diagrams",
+      description: "Automatically generate module- and feature-level ERDs that roll up into a unified, project-wide data model, plus sequence diagrams that visualize component interactions for each user story—all using validated Mermaid syntax that can be safely regenerated as the system evolves.",
+      icon: Shapes,
     },
     {
-      title: "AI Prompt Export",
-      description: "Generate production-ready prompts optimized for AI code assistants with full context.",
-      icon: Zap,
+      title: "GitHub Export",
+      description: "Generate structured technical specs with architecture views, integration points, edge cases, and performance requirements—then export directly to GitHub as markdown files, organized by feature and ready to plug into your delivery process.",
+      icon: GitBranch,
     },
   ],
 };
@@ -153,13 +153,13 @@ export const documentationSuite = {
 
 export const aiGithubWorkflow = {
   eyebrow: "Seamless Integration",
-  title: "AI-powered. GitHub-ready.",
-  description: "Sirius generates structured prompts for AI code tools and exports your entire documentation suite to GitHub with a single click.",
+  title: "AI-powered documentation. GitHub-ready.",
+  description: "Sirius uses AI to generate comprehensive documentation and exports your entire suite to GitHub with a single click.",
   features: [
     {
       icon: Code,
-      title: "AI Prompt Export",
-      description: "Generate context-rich prompts optimized for Cursor, GitHub Copilot, and other AI assistants.",
+      title: "Complete Documentation",
+      description: "Generate comprehensive PRDs, SRSs, ERDs, sequence diagrams, and wireframes for your entire project.",
     },
     {
       icon: GitBranch,
@@ -181,7 +181,7 @@ export const faqItems = [
   },
   {
     question: "How does Sirius use AI?",
-    answer: "Sirius uses large language models to transform your project brief into structured documentation. It generates PRDs, SRSs, user stories, ERDs, sequence diagrams, and wireframes—then creates optimized prompts for AI code assistants like Cursor.",
+    answer: "Sirius uses large language models to transform your project brief into structured documentation. It generates PRDs, SRSs, user stories, ERDs, sequence diagrams, and wireframes automatically.",
   },
   {
     question: "How is my data secured?",
@@ -200,8 +200,8 @@ export const faqItems = [
 export const ctaContent = {
   headline: "Ready to ship faster?",
   body: "Join the closed beta and be among the first to transform your pre-code workflow. Limited seats available for engineering teams.",
-  primaryLabel: "Join the Sirius Beta",
-  primaryHref: "#beta-signup",
+  primaryLabel: "Request Early Access",
+  primaryHref: "/beta",
   secondaryLabel: "Read Sample PRD",
   secondaryHref: "#sample",
 };

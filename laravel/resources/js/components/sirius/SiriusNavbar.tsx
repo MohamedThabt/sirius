@@ -76,7 +76,7 @@ export const SiriusNavbar: React.FC = () => {
               href="/beta"
               className="px-4 py-2 text-sm font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/10 transition-colors"
             >
-              Request Access
+              Request Early Access
             </Link>
           </div>
         </nav>

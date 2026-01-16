@@ -30,7 +30,7 @@ export function SEO({
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const fullTitle = title ? (title === 'Sirius' ? title : `${title} - ${siteName}`) : siteName;
     const defaultDescription =
-        'From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators.';
+        'Build-ready specs for engineering teams. Paste your project brief and Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub.';
     const defaultImage = image || (baseUrl ? `${baseUrl}/images/seo/image.png` : '/images/seo/image.png');
     const canonicalUrl = url || (baseUrl ? `${baseUrl}${currentUrl}` : currentUrl);
 
