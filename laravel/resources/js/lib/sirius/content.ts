@@ -121,14 +121,14 @@ export const documentationSuite = {
   title: "Brief to build-ready docs, versioned and complete.",
   features: [
     {
-      title: "PRDs",
-      description: "Transform unstructured project briefs into clear, investor- and stakeholder-ready PRDs. Sirius orchestrates overview creation, refinement, and regeneration, while keeping a versioned history of every change.",
+      title: "PRDs & Specs",
+      description: "Transform project briefs into investor-ready PRDs and formal Software Requirements Specifications. Get complete scope, requirements, data models, and traceability matrices—all versioned and maintained as your single source of truth.",
       icon: FileText,
     },
     {
-      title: "Specs",
-      description: "Generate formal Software Requirements Specifications with complete scope, assumptions, functional/non-functional requirements, interfaces, data models, constraints, and traceability matrices—ensuring every stakeholder shares a single, unambiguous source of truth.",
-      icon: ScrollText,
+      title: "Brainstorming",
+      description: "Kickstart projects with AI-powered ideation and Excalidraw integration for visual sketching. Explore feature concepts, validate assumptions, and refine your vision before committing to formal specs—turning rough ideas into structured, actionable requirements.",
+      icon: Brain,
     },
     {
       title: "Modules & Features",
