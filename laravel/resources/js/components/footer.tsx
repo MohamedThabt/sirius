@@ -1,88 +1,41 @@
 import AppLogo from "@/components/app-logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-	FacebookIcon,
-	GithubIcon,
-	InstagramIcon,
-	LinkedinIcon,
-	TwitterIcon,
-	YoutubeIcon,
-} from "lucide-react";
+
+// Custom X (formerly Twitter) icon
+const XIcon = ({ className }: { className?: string }) => (
+	<svg
+		viewBox="0 0 24 24"
+		className={className}
+		fill="currentColor"
+		aria-hidden="true"
+	>
+		<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+	</svg>
+);
 
 export function Footer() {
 	const company = [
 		{
-			title: "About Us",
-			href: "#",
-		},
-		{
-			title: "Careers",
-			href: "#",
-		},
-		{
-			title: "Brand assets",
-			href: "#",
-		},
-		{
-			title: "Privacy Policy",
-			href: "#",
-		},
-		{
-			title: "Terms of Service",
-			href: "#",
+			title: "Team",
+			href: "/team",
 		},
 	];
 
 	const resources = [
 		{
-			title: "Blog",
-			href: "#",
-		},
-		{
-			title: "Help Center",
-			href: "#",
-		},
-		{
-			title: "Contact Support",
-			href: "#",
-		},
-		{
-			title: "Community",
-			href: "#",
-		},
-		{
-			title: "Security",
-			href: "#",
+			title: "Beta",
+			href: "/beta",
 		},
 	];
 
 	const socialLinks = [
 		{
-			icon: FacebookIcon,
-			link: "#",
-		},
-		{
-			icon: GithubIcon,
-			link: "#",
-		},
-		{
-			icon: InstagramIcon,
-			link: "#",
-		},
-		{
-			icon: LinkedinIcon,
-			link: "#",
-		},
-		{
-			icon: TwitterIcon,
-			link: "#",
-		},
-		{
-			icon: YoutubeIcon,
-			link: "#",
+			icon: XIcon,
+			link: "https://x.com/SirThabet",
 		},
 	];
+
 	return (
 		<footer className="relative">
 			<div
@@ -94,11 +47,11 @@ export function Footer() {
 				<div className="absolute inset-x-0 h-px w-full bg-border" />
 				<div className="grid max-w-screen-2xl grid-cols-6 gap-6 p-4">
 					<div className="col-span-6 flex flex-col gap-4 pt-5 md:col-span-4">
-						<a className="w-max" href="#">
+						<a className="w-max" href="/">
 							<AppLogo />
 						</a>
 						<p className="max-w-sm text-balance font-mono text-muted-foreground text-sm">
-							A comprehensive financial technology platform.
+							Pre-code documentation for serious engineering teams.
 						</p>
 						<div className="flex gap-2">
 							{socialLinks.map((item, index) => (
@@ -107,7 +60,7 @@ export function Footer() {
 									size="icon-sm"
 									variant="outline"
 								>
-									<a href={item.link} target="_blank">
+									<a href={item.link} target="_blank" rel="noopener noreferrer">
 										<item.icon className="size-3.5" />
 									</a>
 								</Button>
@@ -146,7 +99,7 @@ export function Footer() {
 				<div className="absolute inset-x-0 h-px w-full bg-border" />
 				<div className="flex w-full flex-col justify-between gap-2 py-4">
 					<p className="text-center font-light text-muted-foreground text-sm">
-						&copy; {new Date().getFullYear()} efferd, All rights reserved
+						&copy; {new Date().getFullYear()} Sirius, All rights reserved
 					</p>
 				</div>
 			</div>
