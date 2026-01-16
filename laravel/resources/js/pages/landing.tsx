@@ -9,10 +9,11 @@ import SiriusNavbar from '@/components/sirius/SiriusNavbar';
 
 import SiriusSectionShell from '@/components/sirius/SiriusSectionShell';
 import SiriusStepTimeline from '@/components/sirius/SiriusStepTimeline';
+import ProblemSolutionSection from '@/components/sirius/ProblemSolutionSection';
 import TeamRolesSection from '@/components/sirius/TeamRolesSection';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { aiGithubWorkflow, documentationSuite, howItWorks } from '@/lib/sirius/content';
+import { documentationSuite, howItWorks } from '@/lib/sirius/content';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -32,13 +33,17 @@ export default function Landing() {
         '@type': 'SoftwareApplication',
         name: 'Sirius',
         applicationCategory: 'DeveloperApplication',
+        applicationSubCategory: 'Project Management, Documentation',
         operatingSystem: 'Web',
         description:
-            'From Project Brief to Complete Spec. Describe your project in plain language. Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub for AI code generators.',
+            'AI-powered software documentation generator. Transform project briefs into complete PRDs, SRS, ERDs, sequence diagrams, wireframes, and user stories. Export directly to GitHub for seamless development workflows.',
+        featureList: 'PRD Generation, SRS Generation, ERD Diagrams, Sequence Diagrams, Wireframes, User Stories, GitHub Export, Team Collaboration, AI-Powered Documentation',
         offers: {
             '@type': 'Offer',
             price: '0',
             priceCurrency: 'USD',
+            availability: 'https://schema.org/LimitedAvailability',
+            description: 'Free beta access for early adopters',
         },
         aggregateRating: {
             '@type': 'AggregateRating',
@@ -50,9 +55,9 @@ export default function Landing() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             <SEO
-                title="Sirius"
-                description="Build-ready specs for engineering teams. Paste your project brief and Sirius AI generates PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports to GitHub."
-                keywords="AI project planning, PRD generator, ERD generator, wireframe generator, software requirements, project documentation, GitHub integration, sequence diagrams, user stories, engineering teams"
+                title="Sirius — AI PRD & Software Documentation Generator"
+                description="Generate complete software documentation from a project brief. Sirius AI creates PRDs, SRS, ERDs, sequence diagrams, wireframes, and user stories—then exports to GitHub. Built for engineering teams who want to ship faster."
+                keywords="AI PRD generator, automate software documentation using AI, generate PRD from project brief, AI tool for software requirements, auto generate ERD diagram, AI user story generator, software documentation automation, best documentation tool for startups, generate SRS automatically, AI technical specs generator, pre-code documentation, project planning AI, requirements management software, GitHub documentation exporter"
                 image="/images/seo/image.png"
                 type="website"
                 structuredData={structuredData}
@@ -63,6 +68,8 @@ export default function Landing() {
                         <SiriusNavbar />
 
                         <SiriusHero />
+
+                        <ProblemSolutionSection />
 
                         <SiriusSectionShell
                             eyebrow={documentationSuite.eyebrow}
@@ -106,18 +113,6 @@ export default function Landing() {
                                 </div>
                             </div>
                         </section>
-
-                        <SiriusSectionShell eyebrow={aiGithubWorkflow.eyebrow} title={aiGithubWorkflow.title} subtitle={aiGithubWorkflow.description}>
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                                {aiGithubWorkflow.features.map((feature, index) => (
-                                    <FeatureCard
-                                        key={index}
-                                        feature={feature}
-                                        className="rounded-xl border border-border bg-card/50"
-                                    />
-                                ))}
-                            </div>
-                        </SiriusSectionShell>
 
                         <TeamRolesSection />
 

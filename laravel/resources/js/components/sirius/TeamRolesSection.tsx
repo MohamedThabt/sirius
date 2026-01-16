@@ -9,7 +9,7 @@ import { Users, ChevronDown, Check } from 'lucide-react';
 
 export const TeamRolesSection: React.FC = () => {
     const [showAll, setShowAll] = useState(false);
-    const maxDisplayed = 3;
+    const maxDisplayed = 4;
 
     return (
         <section className="sirius-section relative overflow-hidden" id="teams">
@@ -56,8 +56,9 @@ export const TeamRolesSection: React.FC = () => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: '-50px' }}
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                                className="flex"
                             >
-                                <Card className="w-80 h-auto p-6 relative bg-card/80 backdrop-blur-sm border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
+                                <Card className="w-80 h-full flex flex-col p-6 relative bg-card/80 backdrop-blur-sm border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
                                     {/* Role Icon & Header */}
                                     <div className="flex items-center mb-4">
                                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -71,7 +72,7 @@ export const TeamRolesSection: React.FC = () => {
                                     </div>
 
                                     {/* Description */}
-                                    <p className="text-muted-foreground text-sm mb-5 leading-relaxed">
+                                    <p className="text-muted-foreground text-sm mb-5 leading-relaxed flex-1">
                                         {role.description}
                                     </p>
 
@@ -105,15 +106,17 @@ export const TeamRolesSection: React.FC = () => {
                     )}
                 </div>
 
-                {/* Specializations Pills */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.3 }}
-                    className="flex flex-wrap justify-center gap-3 mt-12"
-                >
-                    {teamCollaboration.specializations.map((spec, index) => (
+                {/* Use Cases Pills */}
+                <div className="mt-12">
+                    <p className="text-center text-sm text-muted-foreground mb-4">Common Use Cases</p>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.3 }}
+                        className="flex flex-wrap justify-center gap-3"
+                    >
+                    {teamCollaboration.useCases.map((spec, index) => (
                         <motion.div
                             key={index}
                             initial={{ opacity: 0, scale: 0.9 }}
@@ -126,7 +129,8 @@ export const TeamRolesSection: React.FC = () => {
                             <span className="text-sm text-foreground font-medium">{spec.name}</span>
                         </motion.div>
                     ))}
-                </motion.div>
+                    </motion.div>
+                </div>
             </div>
         </section>
     );

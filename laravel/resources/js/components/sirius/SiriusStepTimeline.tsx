@@ -53,8 +53,7 @@ export const SiriusStepTimeline: React.FC<SiriusStepTimelineProps> = ({
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className={cn(
-              "relative pl-12 md:pl-0 md:grid md:grid-cols-2 md:gap-8",
-              index % 2 === 0 ? "md:text-right" : ""
+              "relative pl-12 md:pl-0 md:grid md:grid-cols-2 md:gap-8"
             )}
           >
             <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 w-8 h-8 rounded-full bg-background border-2 border-primary flex items-center justify-center z-10">

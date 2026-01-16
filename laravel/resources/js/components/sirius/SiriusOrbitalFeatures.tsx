@@ -176,9 +176,6 @@ export default function SiriusOrbitalFeatures() {
         {/* Central Sirius Star */}
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center">
           <SiriusStar className="w-20 h-20" />
-          <span className="mt-8 text-xs font-medium text-foreground">
-            Sirius AI
-          </span>
         </div>
 
         {featureNodes.map((node, index) => {
