@@ -2,7 +2,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from models.usage import UsageMetrics
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, AuthenticationError
 
 # Load environment variables from .env file
 load_dotenv()
@@ -68,6 +68,9 @@ async def proxy(prompt: str, model: str = "gem2.5f") -> tuple[str, UsageMetrics]
         
         return response_text, metrics
         
+    except AuthenticationError as e:
+        logger.error(f"Authentication failed for model '{model}': Invalid API key")
+        raise
     except Exception as e:
-        logger.error(f"Error calling Gemini via LiteLLM proxy: {str(e)}")
+        logger.error(f"LLM proxy error for model '{model}'")
         raise
