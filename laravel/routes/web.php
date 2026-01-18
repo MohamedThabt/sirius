@@ -55,7 +55,9 @@ Route::get('/beta', function () {
         'message' => session('success'),
     ]);
 })->name('beta.page');
-Route::post('/beta/signup', [BetaController::class, 'store'])->name('beta.store');
+Route::post('/beta/signup', [BetaController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('beta.store');
 
 // Team Page
 Route::get('/team', function () {
@@ -191,12 +193,16 @@ Route::middleware(['auth', 'share.project'])->group(function () {
 Route::middleware(['auth'])->prefix('beta')->name('beta.')->group(function () {
     // Feedback (Suggestions, UX issues)
     Route::get('/feedback', [\App\Http\Controllers\Beta\FeedbackController::class, 'index'])->name('feedback.index');
-    Route::post('/feedback', [\App\Http\Controllers\Beta\FeedbackController::class, 'store'])->name('feedback.store');
+    Route::post('/feedback', [\App\Http\Controllers\Beta\FeedbackController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('feedback.store');
     Route::get('/feedback/{feedback}', [\App\Http\Controllers\Beta\FeedbackController::class, 'show'])->name('feedback.show');
 
     // Issue Reports (Bugs)
     Route::get('/issues', [\App\Http\Controllers\Beta\IssueController::class, 'index'])->name('issues.index');
-    Route::post('/issues', [\App\Http\Controllers\Beta\IssueController::class, 'store'])->name('issues.store');
+    Route::post('/issues', [\App\Http\Controllers\Beta\IssueController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('issues.store');
     Route::get('/issues/{issue}', [\App\Http\Controllers\Beta\IssueController::class, 'show'])->name('issues.show');
 });
 
