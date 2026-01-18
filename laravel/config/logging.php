@@ -127,6 +127,11 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'telegram' => [
+            'driver' => 'custom',
+            'via' => App\Logging\CreateTelegramLogger::class,
+            'level' => env('LOG_TELEGRAM_LEVEL', 'error'),
+        ],
 
     ],
 

@@ -52,6 +52,7 @@ return [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
         'chat_id' => env('TELEGRAM_CHAT_ID'),
         'topic_id' => env('TELEGRAM_TOPIC_ID'), // Optional: for group topics
+        // 'error_topic_id' => env('TELEGRAM_ERROR_TOPIC_ID'), // Optional: separate topic for error logs
     ],
 
 ];
