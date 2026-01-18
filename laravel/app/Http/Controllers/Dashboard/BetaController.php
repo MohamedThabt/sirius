@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\BetaInvitationMail;
 use App\Models\BetaInvitation;
 use App\Models\User;
+use App\Services\Notification\TelegramNotificationService;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -99,11 +100,14 @@ class BetaController extends Controller
             ]);
         try {
 
-            BetaInvitation::create([
+            $betaInvitation = BetaInvitation::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'status' => BetaInvitation::STATUS_PENDING,
             ]);
+
+            // Send Telegram notification
+            app(TelegramNotificationService::class)->notifyNewBetaRequest($betaInvitation);
 
             return back()->with('success', 'Thank you! Your beta invitation request has been received. We\'ll be in touch soon.');
         } catch (Throwable $e) {
@@ -111,6 +115,7 @@ class BetaController extends Controller
             return back()->with('error', 'Failed to submit your beta invitation request. Please try again.');
         }
     }
+
 
     /**
      * Create a new beta invitation manually by an administrator.

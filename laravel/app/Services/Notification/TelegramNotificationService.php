@@ -2,6 +2,7 @@
 
 namespace App\Services\Notification;
 
+use App\Models\BetaInvitation;
 use App\Models\Feedback;
 use App\Models\IssueReport;
 use App\Models\User;
@@ -268,11 +269,38 @@ MSG;
         }
 
         $message = <<<MSG
-⚠️ *Spam Complaint Received*
+⚠️ *Email Complaint Received*
 
 *Email:* {$email}
 
 📌 This user marked our email as spam\\. Consider removing them from future mailings\\.
+MSG;
+
+        return $this->sendMessage($message);
+    }
+
+    /**
+     * Send a notification for new beta invitation request.
+     *
+     * @param BetaInvitation $betaInvitation The beta invitation instance
+     * @return bool Whether the notification was sent successfully
+     */
+    public function notifyNewBetaRequest(BetaInvitation $betaInvitation): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $escapedName = $this->escapeMarkdown($betaInvitation->name);
+        $appUrl = config('app.url');
+
+        $message = <<<MSG
+🚀 *New Beta Request*
+
+*Name:* {$escapedName}
+*Email:* {$betaInvitation->email}
+
+📋 [View Beta Invitations]({$appUrl}/admin/beta)
 MSG;
 
         return $this->sendMessage($message);
