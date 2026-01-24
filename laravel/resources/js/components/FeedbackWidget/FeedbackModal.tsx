@@ -1,6 +1,6 @@
 import { router, useForm } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle, Eye, Loader2, Pencil, Send, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Eye, Loader2, Pencil, Send, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { cn } from '@/lib/utils';
 import { type FeedbackType } from '@/types';
+import { submitFeedbackSchema, bugReportSchema } from '@/lib/validations';
 
 import { StarConfetti } from './StarConfetti';
 
@@ -186,11 +187,35 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
         async (e: React.FormEvent) => {
             e.preventDefault();
 
-            if (!data.message.trim()) {
-                toast.error('Message is required!', {
-                    description: 'Please enter your message.',
+            // Validate with appropriate schema based on type
+            if (data.type === 'bug') {
+                const result = bugReportSchema.safeParse({
+                    type: data.type,
+                    message: data.message,
+                    expected: data.expected,
+                    actual: data.actual,
+                    page_url: data.page_url,
                 });
-                return;
+                if (!result.success) {
+                    const firstError = result.error.errors[0];
+                    toast.error(firstError?.message || 'Validation error', {
+                        description: 'Please fill in all required fields.',
+                    });
+                    return;
+                }
+            } else {
+                const result = submitFeedbackSchema.safeParse({
+                    type: data.type,
+                    message: data.message,
+                    page_url: data.page_url,
+                });
+                if (!result.success) {
+                    const firstError = result.error.errors[0];
+                    toast.error(firstError?.message || 'Validation error', {
+                        description: 'Please enter your message.',
+                    });
+                    return;
+                }
             }
 
             setSubmitting(true);

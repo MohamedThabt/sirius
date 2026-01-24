@@ -9,10 +9,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Node } from '@xyflow/react';
+import { editTableSchema } from '@/lib/validations';
 
 interface ForeignKeyReference {
     referencedTable: string;
@@ -41,10 +42,12 @@ interface EditTableDialogProps {
 export default function EditTableDialog({ open, onOpenChange, tableName: initialTableName, fields: initialFields, onSave, existingTables = [] }: EditTableDialogProps) {
     const [tableName, setTableName] = useState(initialTableName);
     const [fields, setFields] = useState<Field[]>(initialFields);
+    const [errors, setErrors] = useState<{ tableName?: string; fields?: string; fieldErrors?: { [key: number]: string } }>({});
 
     useEffect(() => {
         setTableName(initialTableName);
         setFields(initialFields);
+        setErrors({});
     }, [initialTableName, initialFields, open]);
 
     // Get available tables for FK reference
@@ -74,7 +77,28 @@ export default function EditTableDialog({ open, onOpenChange, tableName: initial
     };
 
     const handleSubmit = () => {
-        if (!tableName.trim() || fields.length === 0) return;
+        // Validate with Zod schema
+        const result = editTableSchema.safeParse({ tableName, fields });
+        if (!result.success) {
+            const newErrors: { tableName?: string; fields?: string; fieldErrors?: { [key: number]: string } } = {};
+            result.error.errors.forEach((err) => {
+                const path = err.path;
+                if (path[0] === 'tableName') {
+                    newErrors.tableName = err.message;
+                } else if (path[0] === 'fields') {
+                    if (path.length === 1) {
+                        newErrors.fields = err.message;
+                    } else if (typeof path[1] === 'number') {
+                        newErrors.fieldErrors = newErrors.fieldErrors || {};
+                        newErrors.fieldErrors[path[1]] = err.message;
+                    }
+                }
+            });
+            setErrors(newErrors);
+            return;
+        }
+        setErrors({});
+        
         onSave(tableName, fields);
         onOpenChange(false);
     };
@@ -94,8 +118,21 @@ export default function EditTableDialog({ open, onOpenChange, tableName: initial
                             id="tableName"
                             placeholder="e.g., users, products, orders"
                             value={tableName}
-                            onChange={(e) => setTableName(e.target.value)}
+                            onChange={(e) => {
+                                setTableName(e.target.value);
+                                if (errors.tableName) {
+                                    setErrors(prev => ({ ...prev, tableName: undefined }));
+                                }
+                            }}
+                            className={errors.tableName ? 'border-red-500' : ''}
+                            maxLength={64}
                         />
+                        {errors.tableName && (
+                            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                                <AlertCircle className="h-4 w-4" />
+                                {errors.tableName}
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-2">

@@ -17,6 +17,7 @@ import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { getRoleBadgeColor } from '@/utils/role-colors';
 import { type User as AuthUser, type Invitation as UserInvitation, type ProjectTeamMember as TeamMember } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
+import { searchUserSchema, teamRoleEnum } from '@/lib/validations';
 import {
     AlertCircle,
     CheckCircle,
@@ -89,6 +90,7 @@ export default function Team({ project, members, invitations, userInvitations, u
     const [searchedUser, setSearchedUser] = useState<SearchedUser | null>(initialSearchedUser);
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState('');
+    const [emailValidationError, setEmailValidationError] = useState('');
     const [inviteRole, setInviteRole] = useState<'admin' | 'developer' | 'viewer'>('viewer');
     const [newRole, setNewRole] = useState<'admin' | 'developer' | 'viewer'>('viewer');
     const [memberSearch, setMemberSearch] = useState('');
@@ -142,6 +144,14 @@ export default function Team({ project, members, invitations, userInvitations, u
 
     const handleSearchUser = () => {
         if (!searchEmail) return;
+
+        // Validate email format with Zod
+        const result = searchUserSchema.safeParse({ email: searchEmail });
+        if (!result.success) {
+            setEmailValidationError(result.error.errors[0]?.message || 'Invalid email');
+            return;
+        }
+        setEmailValidationError('');
 
         setIsSearching(true);
         setSearchError('');
@@ -487,6 +497,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                         setSearchEmail('');
                         setSearchedUser(null);
                         setSearchError('');
+                        setEmailValidationError('');
                         setInviteRole('viewer');
                     }
                 }}
@@ -506,14 +517,19 @@ export default function Team({ project, members, invitations, userInvitations, u
                                         id="search-email"
                                         type="email"
                                         value={searchEmail}
-                                        onChange={(e) => setSearchEmail(e.target.value)}
+                                        onChange={(e) => {
+                                            setSearchEmail(e.target.value);
+                                            if (emailValidationError) setEmailValidationError('');
+                                        }}
                                         placeholder="colleague@example.com"
+                                        className={emailValidationError ? 'border-red-500' : ''}
                                         required
                                     />
                                     <Button type="button" variant="secondary" onClick={handleSearchUser} disabled={isSearching || !searchEmail}>
                                         {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                                     </Button>
                                 </div>
+                                {emailValidationError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{emailValidationError}</p>}
                                 {searchError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{searchError}</p>}
                             </div>
 

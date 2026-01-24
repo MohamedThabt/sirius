@@ -12,6 +12,8 @@ import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type SharedData, type Project, type Invitation } from '@/types';
 import { getStatusColor } from '@/utils/status-colors';
 import { Head, router, usePage } from '@inertiajs/react';
+import { createProjectSchema, updateProjectSchema } from '@/lib/validations';
+import { AlertCircleIcon } from 'lucide-react';
 import {
     CalendarIcon,
     CheckCircleIcon,
@@ -53,6 +55,17 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
         name: '',
         status: 'draft',
     });
+    const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
+
+    const clearValidationError = (field: string) => {
+        if (validationErrors[field]) {
+            setValidationErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            });
+        }
+    };
 
     const handleSearch = () => {
         router.get('/projects', { search: searchTerm }, { preserveState: true });
@@ -69,11 +82,26 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
     };
 
     const handleCreate = () => {
+        // Validate with Zod schema
+        const result = createProjectSchema.safeParse({ name: formData.name });
+        if (!result.success) {
+            const errors: { [key: string]: string } = {};
+            result.error.errors.forEach((err) => {
+                if (err.path[0]) {
+                    errors[err.path[0] as string] = err.message;
+                }
+            });
+            setValidationErrors(errors);
+            return;
+        }
+        setValidationErrors({});
+
         router.post('/projects', formData, {
             onStart: () => setIsCreating(true),
             onSuccess: () => {
                 setIsCreateModalOpen(false);
                 setFormData({ name: '', status: 'draft' });
+                setValidationErrors({});
             },
             onFinish: () => setIsCreating(false),
         });
@@ -81,11 +109,26 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
 
     const handleEdit = () => {
         if (editingProject) {
+            // Validate with Zod schema
+            const result = updateProjectSchema.safeParse(formData);
+            if (!result.success) {
+                const errors: { [key: string]: string } = {};
+                result.error.errors.forEach((err) => {
+                    if (err.path[0]) {
+                        errors[err.path[0] as string] = err.message;
+                    }
+                });
+                setValidationErrors(errors);
+                return;
+            }
+            setValidationErrors({});
+
             router.put(`/projects/${editingProject.id}`, formData, {
                 onSuccess: () => {
                     setIsEditModalOpen(false);
                     setEditingProject(null);
                     setFormData({ name: '', status: 'draft' });
+                    setValidationErrors({});
                 },
             });
         }
@@ -105,6 +148,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
     const openEditModal = (project: Project) => {
         setEditingProject(project);
         setFormData({ name: project.name, status: project.status });
+        setValidationErrors({});
         setIsEditModalOpen(true);
     };
 
@@ -321,7 +365,10 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                             <label className="text-sm font-medium text-foreground mb-2 block">Project Name</label>
                             <Input
                                 value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, name: e.target.value });
+                                    clearValidationError('name');
+                                }}
                                 placeholder="Enter project name"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && formData.name.trim() && !isCreating) {
@@ -329,8 +376,18 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                         handleCreate();
                                     }
                                 }}
-                                className="h-11"
+                                className={`h-11 ${validationErrors.name ? 'border-red-500' : ''}`}
+                                maxLength={255}
                             />
+                            {validationErrors.name && (
+                                <div className="flex items-center gap-2 mt-1 text-sm text-red-600 dark:text-red-400">
+                                    <AlertCircleIcon className="h-4 w-4" />
+                                    {validationErrors.name}
+                                </div>
+                            )}
+                            <div className="text-xs text-muted-foreground mt-1">
+                                {formData.name.length}/255 characters
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>
@@ -360,7 +417,10 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                             <label className="text-sm font-medium text-foreground mb-2 block">Project Name</label>
                             <Input
                                 value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, name: e.target.value });
+                                    clearValidationError('name');
+                                }}
                                 placeholder="Enter project name"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && formData.name.trim()) {
@@ -368,21 +428,41 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                         handleEdit();
                                     }
                                 }}
-                                className="h-11"
+                                className={`h-11 ${validationErrors.name ? 'border-red-500' : ''}`}
+                                maxLength={255}
                             />
+                            {validationErrors.name && (
+                                <div className="flex items-center gap-2 mt-1 text-sm text-red-600 dark:text-red-400">
+                                    <AlertCircleIcon className="h-4 w-4" />
+                                    {validationErrors.name}
+                                </div>
+                            )}
+                            <div className="text-xs text-muted-foreground mt-1">
+                                {formData.name.length}/255 characters
+                            </div>
                         </div>
                         <div>
                             <label className="text-sm font-medium text-foreground mb-2 block">Status</label>
-                            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                                <SelectTrigger className="h-11">
+                            <Select value={formData.status} onValueChange={(value) => {
+                                setFormData({ ...formData, status: value });
+                                clearValidationError('status');
+                            }}>
+                                <SelectTrigger className={`h-11 ${validationErrors.status ? 'border-red-500' : ''}`}>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="draft">Draft</SelectItem>
                                     <SelectItem value="in_progress">In Progress</SelectItem>
                                     <SelectItem value="completed">Completed</SelectItem>
+                                    <SelectItem value="archived">Archived</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {validationErrors.status && (
+                                <div className="flex items-center gap-2 mt-1 text-sm text-red-600 dark:text-red-400">
+                                    <AlertCircleIcon className="h-4 w-4" />
+                                    {validationErrors.status}
+                                </div>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>

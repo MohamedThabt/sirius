@@ -23,4 +23,8 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+    build: {
+        // Suppress chunk size warnings - large libs like mermaid, excalidraw are expected for this app
+        chunkSizeWarningLimit: 2000,
+    },
 });

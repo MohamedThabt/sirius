@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { AlertCircleIcon, Loader2Icon, SparklesIcon } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { createModuleSchema } from '@/lib/validations';
 
 interface CreateModuleModalProps {
     open: boolean;
@@ -48,26 +49,19 @@ export default function CreateModuleModal({
     };
 
     const validateForm = (): boolean => {
-        const newErrors: { [key: string]: string } = {};
-
-        if (!formData.name.trim()) {
-            newErrors.name = 'Module name is required';
-        } else if (formData.name.trim().length < 2) {
-            newErrors.name = 'Module name must be at least 2 characters';
-        } else if (formData.name.trim().length > 255) {
-            newErrors.name = 'Module name cannot exceed 255 characters';
+        const result = createModuleSchema.safeParse(formData);
+        if (!result.success) {
+            const newErrors: { [key: string]: string } = {};
+            result.error.errors.forEach((err) => {
+                if (err.path[0]) {
+                    newErrors[err.path[0] as string] = err.message;
+                }
+            });
+            setErrors(newErrors);
+            return false;
         }
-
-        if (!formData.description.trim()) {
-            newErrors.description = 'Module description is required';
-        } else if (formData.description.trim().length < 10) {
-            newErrors.description = 'Module description must be at least 10 characters';
-        } else if (formData.description.trim().length > 5000) {
-            newErrors.description = 'Module description cannot exceed 5000 characters';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        setErrors({});
+        return true;
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

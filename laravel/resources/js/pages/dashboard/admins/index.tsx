@@ -15,9 +15,10 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
-import { PencilIcon, PlusIcon, TrashIcon, ShieldIcon, ShieldCheckIcon } from 'lucide-react';
+import { PencilIcon, PlusIcon, TrashIcon, ShieldIcon, ShieldCheckIcon, AlertCircleIcon } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
+import { createAdminSchema, updateAdminSchema } from '@/lib/validations';
 
 interface Admin {
     id: number;
@@ -97,6 +98,10 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
         role: 'admin',
     });
 
+    // Frontend validation errors
+    const [createValidationErrors, setCreateValidationErrors] = useState<{ [key: string]: string }>({});
+    const [editValidationErrors, setEditValidationErrors] = useState<{ [key: string]: string }>({});
+
     // Debounced filter function
     const debouncedFilter = useDebouncedCallback((searchValue: string, roleValue: string) => {
         const filterData: { search?: string; role?: string } = {};
@@ -142,6 +147,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
             password: '',
             role: admin.role,
         });
+        setEditValidationErrors({});
         setIsEditModalOpen(true);
     };
 
@@ -152,15 +158,32 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
 
     const openCreateModal = () => {
         createForm.reset();
+        setCreateValidationErrors({});
         setIsCreateModalOpen(true);
     };
 
     const handleCreateSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Validate with Zod
+        const result = createAdminSchema.safeParse(createForm.data);
+        if (!result.success) {
+            const errors: { [key: string]: string } = {};
+            result.error.errors.forEach((err) => {
+                if (err.path[0]) {
+                    errors[err.path[0] as string] = err.message;
+                }
+            });
+            setCreateValidationErrors(errors);
+            return;
+        }
+        setCreateValidationErrors({});
+
         createForm.post('/admin/admins', {
             onSuccess: () => {
                 setIsCreateModalOpen(false);
                 createForm.reset();
+                setCreateValidationErrors({});
             },
         });
     };
@@ -168,10 +191,25 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
     const handleEditSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (selectedAdmin) {
+            // Validate with Zod
+            const result = updateAdminSchema.safeParse(editForm.data);
+            if (!result.success) {
+                const errors: { [key: string]: string } = {};
+                result.error.errors.forEach((err) => {
+                    if (err.path[0]) {
+                        errors[err.path[0] as string] = err.message;
+                    }
+                });
+                setEditValidationErrors(errors);
+                return;
+            }
+            setEditValidationErrors({});
+
             editForm.put(`/admin/admins/${selectedAdmin.id}`, {
                 onSuccess: () => {
                     setIsEditModalOpen(false);
                     setSelectedAdmin(null);
+                    setEditValidationErrors({});
                 },
             });
         }
@@ -332,11 +370,21 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     id="create-name"
                                     type="text"
                                     value={createForm.data.name}
-                                    onChange={(e) => createForm.setData('name', e.target.value)}
+                                    onChange={(e) => {
+                                        createForm.setData('name', e.target.value);
+                                        if (createValidationErrors.name) {
+                                            setCreateValidationErrors(prev => ({ ...prev, name: '' }));
+                                        }
+                                    }}
+                                    className={createValidationErrors.name || createForm.errors.name ? 'border-red-500' : ''}
+                                    maxLength={255}
                                     required
                                 />
-                                {createForm.errors.name && (
-                                    <p className="text-sm text-red-600">{createForm.errors.name}</p>
+                                {(createValidationErrors.name || createForm.errors.name) && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircleIcon className="h-4 w-4" />
+                                        {createValidationErrors.name || createForm.errors.name}
+                                    </div>
                                 )}
                             </div>
 
@@ -346,11 +394,21 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     id="create-email"
                                     type="email"
                                     value={createForm.data.email}
-                                    onChange={(e) => createForm.setData('email', e.target.value)}
+                                    onChange={(e) => {
+                                        createForm.setData('email', e.target.value);
+                                        if (createValidationErrors.email) {
+                                            setCreateValidationErrors(prev => ({ ...prev, email: '' }));
+                                        }
+                                    }}
+                                    className={createValidationErrors.email || createForm.errors.email ? 'border-red-500' : ''}
+                                    maxLength={255}
                                     required
                                 />
-                                {createForm.errors.email && (
-                                    <p className="text-sm text-red-600">{createForm.errors.email}</p>
+                                {(createValidationErrors.email || createForm.errors.email) && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircleIcon className="h-4 w-4" />
+                                        {createValidationErrors.email || createForm.errors.email}
+                                    </div>
                                 )}
                             </div>
 
@@ -360,21 +418,36 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     id="create-password"
                                     type="password"
                                     value={createForm.data.password}
-                                    onChange={(e) => createForm.setData('password', e.target.value)}
+                                    onChange={(e) => {
+                                        createForm.setData('password', e.target.value);
+                                        if (createValidationErrors.password) {
+                                            setCreateValidationErrors(prev => ({ ...prev, password: '' }));
+                                        }
+                                    }}
+                                    className={createValidationErrors.password || createForm.errors.password ? 'border-red-500' : ''}
                                     required
                                 />
-                                {createForm.errors.password && (
-                                    <p className="text-sm text-red-600">{createForm.errors.password}</p>
+                                {(createValidationErrors.password || createForm.errors.password) && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircleIcon className="h-4 w-4" />
+                                        {createValidationErrors.password || createForm.errors.password}
+                                    </div>
                                 )}
+                                <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="create-role">Role</Label>
                                 <Select
                                     value={createForm.data.role}
-                                    onValueChange={(value) => createForm.setData('role', value)}
+                                    onValueChange={(value) => {
+                                        createForm.setData('role', value);
+                                        if (createValidationErrors.role) {
+                                            setCreateValidationErrors(prev => ({ ...prev, role: '' }));
+                                        }
+                                    }}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={createValidationErrors.role || createForm.errors.role ? 'border-red-500' : ''}>
                                         <SelectValue placeholder="Select role" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -382,8 +455,11 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                         <SelectItem value="super_admin">Super Admin</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                {createForm.errors.role && (
-                                    <p className="text-sm text-red-600">{createForm.errors.role}</p>
+                                {(createValidationErrors.role || createForm.errors.role) && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircleIcon className="h-4 w-4" />
+                                        {createValidationErrors.role || createForm.errors.role}
+                                    </div>
                                 )}
                             </div>
 
@@ -416,11 +492,21 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     id="edit-name"
                                     type="text"
                                     value={editForm.data.name}
-                                    onChange={(e) => editForm.setData('name', e.target.value)}
+                                    onChange={(e) => {
+                                        editForm.setData('name', e.target.value);
+                                        if (editValidationErrors.name) {
+                                            setEditValidationErrors(prev => ({ ...prev, name: '' }));
+                                        }
+                                    }}
+                                    className={editValidationErrors.name || editForm.errors.name ? 'border-red-500' : ''}
+                                    maxLength={255}
                                     required
                                 />
-                                {editForm.errors.name && (
-                                    <p className="text-sm text-red-600">{editForm.errors.name}</p>
+                                {(editValidationErrors.name || editForm.errors.name) && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircleIcon className="h-4 w-4" />
+                                        {editValidationErrors.name || editForm.errors.name}
+                                    </div>
                                 )}
                             </div>
 
@@ -430,11 +516,21 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     id="edit-email"
                                     type="email"
                                     value={editForm.data.email}
-                                    onChange={(e) => editForm.setData('email', e.target.value)}
+                                    onChange={(e) => {
+                                        editForm.setData('email', e.target.value);
+                                        if (editValidationErrors.email) {
+                                            setEditValidationErrors(prev => ({ ...prev, email: '' }));
+                                        }
+                                    }}
+                                    className={editValidationErrors.email || editForm.errors.email ? 'border-red-500' : ''}
+                                    maxLength={255}
                                     required
                                 />
-                                {editForm.errors.email && (
-                                    <p className="text-sm text-red-600">{editForm.errors.email}</p>
+                                {(editValidationErrors.email || editForm.errors.email) && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircleIcon className="h-4 w-4" />
+                                        {editValidationErrors.email || editForm.errors.email}
+                                    </div>
                                 )}
                             </div>
 
@@ -444,11 +540,20 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     id="edit-password"
                                     type="password"
                                     value={editForm.data.password}
-                                    onChange={(e) => editForm.setData('password', e.target.value)}
+                                    onChange={(e) => {
+                                        editForm.setData('password', e.target.value);
+                                        if (editValidationErrors.password) {
+                                            setEditValidationErrors(prev => ({ ...prev, password: '' }));
+                                        }
+                                    }}
+                                    className={editValidationErrors.password || editForm.errors.password ? 'border-red-500' : ''}
                                     placeholder="Leave blank to keep current password"
                                 />
-                                {editForm.errors.password && (
-                                    <p className="text-sm text-red-600">{editForm.errors.password}</p>
+                                {(editValidationErrors.password || editForm.errors.password) && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircleIcon className="h-4 w-4" />
+                                        {editValidationErrors.password || editForm.errors.password}
+                                    </div>
                                 )}
                                 <p className="text-sm text-muted-foreground">
                                     Leave blank to keep the current password
@@ -459,9 +564,14 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                 <Label htmlFor="edit-role">Role</Label>
                                 <Select
                                     value={editForm.data.role}
-                                    onValueChange={(value) => editForm.setData('role', value)}
+                                    onValueChange={(value) => {
+                                        editForm.setData('role', value);
+                                        if (editValidationErrors.role) {
+                                            setEditValidationErrors(prev => ({ ...prev, role: '' }));
+                                        }
+                                    }}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={editValidationErrors.role || editForm.errors.role ? 'border-red-500' : ''}>
                                         <SelectValue placeholder="Select role" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -469,8 +579,11 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                         <SelectItem value="super_admin">Super Admin</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                {editForm.errors.role && (
-                                    <p className="text-sm text-red-600">{editForm.errors.role}</p>
+                                {(editValidationErrors.role || editForm.errors.role) && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircleIcon className="h-4 w-4" />
+                                        {editValidationErrors.role || editForm.errors.role}
+                                    </div>
                                 )}
                             </div>
 
