@@ -1,5 +1,4 @@
 import AppLogo from "@/components/app-logo";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Custom X (formerly Twitter) icon
@@ -47,7 +46,7 @@ export function Footer() {
 				<div className="absolute inset-x-0 h-px w-full bg-border" />
 				<div className="grid max-w-screen-2xl grid-cols-6 gap-6 p-4">
 					<div className="col-span-6 flex flex-col gap-4 pt-5 md:col-span-4">
-						<a className="w-max" href="/">
+						<a className="w-max" href="/" aria-label="Sirius - Go to homepage">
 							<AppLogo />
 						</a>
 						<p className="max-w-sm text-balance font-mono text-muted-foreground text-sm">
@@ -55,15 +54,16 @@ export function Footer() {
 						</p>
 						<div className="flex gap-2">
 							{socialLinks.map((item, index) => (
-								<Button
+								<a 
 									key={`social-${item.link}-${index}`}
-									size="icon-sm"
-									variant="outline"
+									href={item.link} 
+									target="_blank" 
+									rel="noopener noreferrer"
+									aria-label="Follow us on X (Twitter)"
+									className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
 								>
-									<a href={item.link} target="_blank" rel="noopener noreferrer">
-										<item.icon className="size-3.5" />
-									</a>
-								</Button>
+									<item.icon className="size-3.5" />
+								</a>
 							))}
 						</div>
 					</div>

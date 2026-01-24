@@ -17,10 +17,12 @@ export function SiriusFooter() {
       <div className="mx-auto max-w-7xl">
         <div className="border-x border-border px-6 py-12 md:py-16">
           <div className="flex flex-col items-center justify-center text-center space-y-6">
-            <a href="/" className="flex items-center group">
+            <a href="/" className="flex items-center group" aria-label="Sirius - Go to homepage">
               <img
                 src="/images/sirius-logo.png"
                 alt="Sirius"
+                width={173}
+                height={70}
                 className="h-10 w-auto"
               />
             </a>
@@ -38,7 +40,7 @@ export function SiriusFooter() {
                   )}
                   asChild
                 >
-                  <a href={item.link} target="_blank" rel="noopener noreferrer">
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" aria-label="Follow us on X (Twitter)">
                     <item.icon className="h-4 w-4" />
                   </a>
                 </Button>
