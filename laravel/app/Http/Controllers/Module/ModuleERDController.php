@@ -88,10 +88,11 @@ class ModuleERDController extends Controller
             }
 
             // Store module data in session for async generation
-            // Use put() to ensure the session is set before the response is sent
+            // Use put() and save() to ensure the session is persisted before the async call
             session()->put('pending_module_erd_generation', [
                 'module_id' => $module->id,
             ]);
+            session()->save();
 
             return Inertia::render('modules/DatabaseDesigner', [
                 'project' => $project,

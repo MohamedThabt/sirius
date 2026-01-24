@@ -525,7 +525,7 @@ class ModuleController extends Controller
                         $project->update(['prd_is_synced' => false]);
                     }
 
-                    return redirect()->route('modules.show', $module)
+                    return redirect()->route('modules.show', ['project' => $project, 'module' => $module])
                         ->with('success', 'Module created and enriched successfully!');
                 }
             }
@@ -549,7 +549,7 @@ class ModuleController extends Controller
                 $project->update(['prd_is_synced' => false]);
             }
 
-            return redirect()->route('modules.show', $module)
+            return redirect()->route('modules.show', ['project' => $project, 'module' => $module])
                 ->with('success', 'Module created successfully! (AI enrichment unavailable)');
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'createSingleModule', 'project_id' => $project->id]);
