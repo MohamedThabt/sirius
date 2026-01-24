@@ -63,7 +63,7 @@ class FeedbackController extends Controller
                     Feedback::TYPE_UX,
                     Feedback::TYPE_CONFUSION,
                 ])],
-                'message' => ['required', 'string', 'min:10', 'max:5000'],
+                'message' => ['required', 'string', 'max:5000'],
                 'page_url' => ['nullable', 'string', 'max:500'],
             ]);
         try {
