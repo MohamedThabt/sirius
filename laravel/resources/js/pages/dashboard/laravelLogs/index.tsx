@@ -38,7 +38,7 @@ import {
     TrashIcon,
     XIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 // Types
@@ -214,6 +214,7 @@ const formatTimestamp = (timestamp: string): string => {
 export default function LaravelLogsIndex({ stats, logs, filters, error: serverError }: Props) {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
+    const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
     // Local filter state
     const [search, setSearch] = useState(filters.search || '');
@@ -223,6 +224,16 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
     // Get entries and meta from logs data
     const entries = logs?.entries || [];
     const meta = logs?.meta || null;
+
+    // Format last refreshed time
+    const formatLastRefreshed = (date: Date): string => {
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true,
+        });
+    };
 
     // Navigate with Inertia
     const navigateWithFilters = (newFilters: Partial<Filters>) => {
@@ -242,7 +253,10 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
         router.get('/admin/logs/laravel', cleanFilters, {
             preserveState: true,
             preserveScroll: true,
-            onFinish: () => setIsLoading(false),
+            onFinish: () => {
+                setIsLoading(false);
+                setLastRefreshed(new Date());
+            },
         });
     };
 
@@ -312,7 +326,10 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
                                 <h1 className="text-2xl font-semibold tracking-tight text-foreground/90">Laravel Logs</h1>
                                 <p className="text-sm text-muted-foreground/60">Monitor and analyze Laravel application logs</p>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-muted-foreground/60">
+                                    Last refreshed: {formatLastRefreshed(lastRefreshed)}
+                                </span>
                                 <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
                                     <RefreshCwIcon className={cn('mr-2 h-4 w-4', isLoading && 'animate-spin')} />
                                     Refresh
