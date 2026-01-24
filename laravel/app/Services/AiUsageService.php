@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\UsageLog;
 use App\Models\User;
 use App\Models\UserCredit;
+use App\Support\AppLogger;
 use Illuminate\Support\Facades\DB;
 
 class AiUsageService
@@ -56,6 +57,15 @@ class AiUsageService
                 'credits_used' => $creditsUsed,
                 'cost' => $cost,
                 'created_at' => now(),
+            ]);
+
+            $userCredit->refresh();
+            AppLogger::business('credits.consumed', [
+                'user_id' => $user->id,
+                'credits_used' => $creditsUsed,
+                'action_type' => $actionType,
+                'model' => $model,
+                'remaining_balance' => $userCredit->credits_balance,
             ]);
         });
     }

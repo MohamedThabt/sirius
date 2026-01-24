@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\AppLogger;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,11 @@ class AdminLoginRequest extends FormRequest
         if (! Auth::guard('admin')->attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey(), $this->getDecaySeconds());
 
+            AppLogger::security('admin.login.failed', [
+                'email' => $this->input('email'),
+                'reason' => 'invalid_credentials',
+            ], 'warning');
+
             throw ValidationException::withMessages([
                 'email' => __('The provided credentials do not match our records.'),
             ]);
@@ -63,6 +69,11 @@ class AdminLoginRequest extends FormRequest
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
             return;
         }
+
+        AppLogger::security('admin.login.lockout', [
+            'email' => $this->input('email'),
+            'ip' => $this->ip(),
+        ], 'warning');
 
         event(new Lockout($this));
 

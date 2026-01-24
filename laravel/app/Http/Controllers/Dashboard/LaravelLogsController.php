@@ -144,6 +144,7 @@ class LaravelLogsController extends Controller
 
             $logFiles[] = [
                 'name' => $fileName,
+                'category' => $this->categorizeLogFile($fileName),
                 'size_bytes' => $size,
                 'size_human' => $this->formatBytes($size),
                 'line_count' => $lineCount,
@@ -152,8 +153,7 @@ class LaravelLogsController extends Controller
             ];
         }
 
-        // Sort by last modified (newest first)
-        usort($logFiles, fn($a, $b) => $b['last_modified'] <=> $a['last_modified']);
+        usort($logFiles, fn ($a, $b) => $b['last_modified'] <=> $a['last_modified']);
 
         return [
             'log_files' => $logFiles,
@@ -296,6 +296,16 @@ class LaravelLogsController extends Controller
         }
 
         return $entries;
+    }
+
+    private function categorizeLogFile(string $fileName): string
+    {
+        return match (true) {
+            str_starts_with($fileName, 'security') => 'Security',
+            str_starts_with($fileName, 'laravel-json') => 'JSON',
+            str_starts_with($fileName, 'laravel') => 'Application',
+            default => 'Other',
+        };
     }
 
     /**

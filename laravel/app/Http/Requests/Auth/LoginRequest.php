@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Support\AppLogger;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,11 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
+            AppLogger::security('user.login.failed', [
+                'email' => $this->input('email'),
+                'reason' => 'invalid_credentials',
+            ], 'warning');
+
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -61,6 +67,11 @@ class LoginRequest extends FormRequest
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
+
+        AppLogger::security('user.login.lockout', [
+            'email' => $this->input('email'),
+            'ip' => $this->ip(),
+        ], 'warning');
 
         event(new Lockout($this));
 

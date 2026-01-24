@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Models\UsageLog;
 use App\Models\UserCredit;
+use App\Support\AppLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -112,6 +113,12 @@ class UsageController extends Controller
                 'created_at' => now(),
             ]);
         });
+
+        AppLogger::business('credits.purchase.completed', [
+            'user_id' => $user->id,
+            'credits' => $package['credits'],
+            'amount' => $package['price'],
+        ]);
 
         return back()->with('success', "Successfully purchased {$package['credits']} credits for \${$package['price']}!");
     }

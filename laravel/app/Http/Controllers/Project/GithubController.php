@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\GithubToken;
 use App\Models\Project;
 use App\Models\ProjectRepository;
+use App\Services\Documentation\ProjectSpecsExportService;
 use App\Services\Github\GithubClient;
 use App\Services\Github\RepoBootstrapService;
-use App\Services\Documentation\ProjectSpecsExportService;
+use App\Support\AppLogger;
+use App\Traits\StructuredLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
-use App\Traits\StructuredLogger;
 use Throwable;
 
 class GithubController extends Controller
@@ -88,19 +89,7 @@ class GithubController extends Controller
     public function callback(Request $request)
     {
         try {
-            \Log::info('GitHub callback started', [
-                'has_code' => $request->has('code'),
-                'has_state' => $request->has('state'),
-                'user_authenticated' => auth()->check(),
-                'user_id' => auth()->id(),
-            ]);
-
             $githubUser = Socialite::driver('github')->user();
-
-            \Log::info('GitHub user retrieved', [
-                'github_id' => $githubUser->id,
-                'github_nickname' => $githubUser->nickname,
-            ]);
 
             $token = GithubToken::updateOrCreate(
                 ['user_id' => auth()->id()],
@@ -116,15 +105,12 @@ class GithubController extends Controller
                 ]
             );
 
-            \Log::info('GitHub token saved', ['token_id' => $token->id]);
-
-            // Redirect back to the project if stored in session
-            $projectId = session()->get('github_oauth_return_project');
-
-            \Log::info('Session check', [
-                'project_id_in_session' => $projectId,
-                'all_session_keys' => array_keys(session()->all()),
+            AppLogger::business('github.connected', [
+                'user_id' => auth()->id(),
+                'github_username' => $githubUser->nickname,
             ]);
+
+            $projectId = session()->get('github_oauth_return_project');
 
             if ($projectId) {
                 session()->forget('github_oauth_return_project');
@@ -139,12 +125,6 @@ class GithubController extends Controller
             return redirect()->route('projects.index')
                 ->with('success', 'GitHub connected successfully!');
         } catch (Throwable $e) {
-            \Log::error('GitHub callback FAILED', [
-                'error_class' => get_class($e),
-                'error_message' => $e->getMessage(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-            ]);
             $this->logException($e, ['action' => 'callback']);
             return redirect()->route('projects.index')
                 ->with('error', 'Failed to connect GitHub. Please try again.');
@@ -269,12 +249,20 @@ class GithubController extends Controller
                 ]
             );
 
-            // Push initial specs to the new repository
+            AppLogger::business('github.repo.created', [
+                'project_id' => $project->id,
+                'repo' => $repo['full_name'],
+            ]);
+
             $specsExportService = app(ProjectSpecsExportService::class);
             $bootstrapService = new RepoBootstrapService($client, $repository, $specsExportService);
             $pushSuccess = $bootstrapService->pushInitialCommit();
 
             if ($pushSuccess) {
+                AppLogger::business('github.push.success', [
+                    'project_id' => $project->id,
+                    'repo' => $repo['full_name'],
+                ]);
                 return back()->with('success', 'Repository created and specs pushed successfully.');
             } else {
                 return back()->with('warning', 'Repository created but failed to push specs. You can sync manually.');
@@ -337,6 +325,11 @@ class GithubController extends Controller
                 ]
             );
 
+            AppLogger::business('github.repo.linked', [
+                'project_id' => $project->id,
+                'repo' => $repo['full_name'],
+            ]);
+
             return back()->with('success', 'Repository linked successfully.');
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'linkExistingRepo', 'project_id' => $project->id]);
@@ -378,6 +371,10 @@ class GithubController extends Controller
             $success = $bootstrapService->pushInitialCommit();
 
             if ($success) {
+                AppLogger::business('github.push.success', [
+                    'project_id' => $project->id,
+                    'repo' => $repository->full_name,
+                ]);
                 return back()->with('success', 'Files have been successfully uploaded to the repository.');
             } else {
                 return back()->with('error', 'Failed to push files to the repository.');
@@ -462,6 +459,11 @@ class GithubController extends Controller
                 $success = $bootstrapService->pushInitialCommit();
 
                 if ($success) {
+                    AppLogger::business('github.repo.synced', [
+                        'project_id' => $project->id,
+                        'repo' => $repository->full_name,
+                        'mode' => 'bootstrapped',
+                    ]);
                     return back()->with('success', 'Specifications synced successfully (bootstrapped).');
                 } else {
                     return back()->with('error', 'Failed to sync specifications to empty repository.');
@@ -477,6 +479,10 @@ class GithubController extends Controller
             );
 
             if ($success) {
+                AppLogger::business('github.repo.synced', [
+                    'project_id' => $project->id,
+                    'repo' => $repository->full_name,
+                ]);
                 return back()->with('success', 'Specifications synced successfully.');
             } else {
                 return back()->with('error', 'Failed to sync specifications to repository.');

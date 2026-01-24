@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectUser;
+use App\Support\AppLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Traits\StructuredLogger;
@@ -58,8 +59,13 @@ class InvitationController extends Controller
                 return back()->withErrors(['user_id' => 'You cannot invite yourself.']);
             }
 
-            // Create invitation
             $project->inviteMember($validated['user_id'], $validated['role'], auth()->id());
+
+            AppLogger::business('team.invitation.sent', [
+                'project_id' => $project->id,
+                'invitee_user_id' => $validated['user_id'],
+                'role' => $validated['role'],
+            ]);
 
             return back()->with('success', 'Invitation sent successfully!');
         } catch (\Throwable $e) {
@@ -96,11 +102,14 @@ class InvitationController extends Controller
                 return back()->with('success', 'You are already a member of this project.');
             }
 
-            // Add user to project with the role specified in the invitation
             $project->addMember(auth()->id(), $invitation->role);
-
-            // Mark invitation as accepted
             $invitation->accept();
+
+            AppLogger::business('team.invitation.accepted', [
+                'project_id' => $project->id,
+                'invitation_id' => $invitation->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with('success', 'You have successfully joined the project!');
         } catch (\Throwable $e) {
@@ -163,8 +172,12 @@ class InvitationController extends Controller
                 return back()->with('error', 'Only project owners and admins can cancel invitations.');
             }
 
-            // Delete the invitation
             $invitation->delete();
+
+            AppLogger::business('team.invitation.cancelled', [
+                'project_id' => $project->id,
+                'invitation_id' => $invitation->id,
+            ]);
 
             return back()->with('success', 'Invitation cancelled successfully.');
         } catch (\Throwable $e) {

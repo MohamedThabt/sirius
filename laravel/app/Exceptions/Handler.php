@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use BadMethodCallException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -10,6 +11,7 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use PDOException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Inertia\Inertia;
 use Throwable;
@@ -36,6 +38,10 @@ class Handler extends ExceptionHandler
         'current_password',
         'password',
         'password_confirmation',
+        'token',
+        'api_token',
+        'secret',
+        'authorization',
     ];
 
     /**
@@ -58,11 +64,17 @@ class Handler extends ExceptionHandler
      */
     public function report(Throwable $e)
     {
+        if ($e instanceof AccessDeniedHttpException) {
+            AppLogger::security('access.forbidden', [
+                'url' => request()?->fullUrl(),
+                'route' => request()?->route()?->getName(),
+            ], 'warning');
+        }
+
         if ($this->shouldntReport($e)) {
             return;
         }
 
-        // Use the StructuredLogger trait to log the exception
         $this->logException($e);
     }
 

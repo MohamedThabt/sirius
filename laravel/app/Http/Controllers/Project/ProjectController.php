@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Support\AppLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -231,6 +232,11 @@ class ProjectController extends Controller
                 'name' => $validated['name'],
             ]);
 
+            AppLogger::business('project.created', [
+                'project_id' => $project->id,
+                'name' => $project->name,
+            ]);
+
             return redirect()->route('projects.prepare', $project)
                 ->with('success', 'Project created successfully!');
         } catch (\Throwable $e) {
@@ -276,12 +282,18 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
         try {
-            // Only owner can delete project
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'Only the project owner can delete this project.');
             }
 
+            $name = $project->name;
+            $id = $project->id;
             $project->delete();
+
+            AppLogger::business('project.deleted', [
+                'project_id' => $id,
+                'name' => $name,
+            ]);
 
             return redirect()->route('projects.index')
                 ->with('success', 'Project deleted successfully!');

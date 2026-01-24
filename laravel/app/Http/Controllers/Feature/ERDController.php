@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Feature;
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
 use App\Services\AiUsageService;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -113,6 +114,12 @@ class ERDController extends Controller
             $retryTimes = config('services.fastapi.retry_times', 2);
             $retryDelay = config('services.fastapi.retry_delay', 2000);
 
+            $endpoint = '/v1/ERD/edit';
+            AppLogger::api('fastapi', $endpoint, [
+                'project_id' => $project->id,
+                'feature_id' => $feature->id,
+            ]);
+
             $attemptCount = 0;
             $response = Http::asJson()
                 ->acceptJson()
@@ -124,16 +131,14 @@ class ERDController extends Controller
                         'feature_id' => $feature->id,
                         'error' => $exception->getMessage(),
                     ]);
-                    return true; // Always retry
+                    return true;
                 })
-                ->post($fastApiBaseUrl . '/v1/ERD/edit', $payload);
+                ->post($fastApiBaseUrl . $endpoint, $payload);
 
-            // Check response status
-            if (!$response->ok()) {
-                $this->logWarning('FastAPI ERD edit failed - invalid response status', [
+            if (! $response->ok()) {
+                AppLogger::apiFailure('fastapi', $endpoint, $response->status(), $response->body(), [
+                    'project_id' => $project->id,
                     'feature_id' => $feature->id,
-                    'status' => $response->status(),
-                    'response_body' => $response->body(),
                 ]);
                 return back()->with('error', 'Failed to edit datamodel. The AI service is currently unavailable. Please try again later.');
             }
@@ -193,25 +198,37 @@ class ERDController extends Controller
             ]);
             throw $e; // Re-throw to let Laravel handle it
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            AppLogger::apiFailure('fastapi', '/v1/ERD/edit', 0, $e->getMessage(), [
+                'feature_id' => $feature->id ?? null,
+                'exception_type' => 'ConnectionException',
+            ]);
             $this->logException($e, [
                 'action' => 'aiEdit',
-                'feature_id' => $feature->id,
+                'feature_id' => $feature->id ?? null,
                 'fastapi_endpoint' => '/v1/ERD/edit',
                 'error_type' => 'ConnectionException',
             ]);
             return back()->with('error', 'Unable to connect to AI service. Please check your connection and try again.');
         } catch (\Illuminate\Http\Client\RequestException $e) {
+            AppLogger::apiFailure('fastapi', '/v1/ERD/edit', $e->response?->status() ?? 0, $e->getMessage(), [
+                'feature_id' => $feature->id ?? null,
+                'exception_type' => 'RequestException',
+            ]);
             $this->logException($e, [
                 'action' => 'aiEdit',
-                'feature_id' => $feature->id,
+                'feature_id' => $feature->id ?? null,
                 'fastapi_endpoint' => '/v1/ERD/edit',
                 'error_type' => 'RequestException',
             ]);
             return back()->with('error', 'AI service returned an error. Please try again later.');
         } catch (Throwable $e) {
+            AppLogger::apiFailure('fastapi', '/v1/ERD/edit', 0, $e->getMessage(), [
+                'feature_id' => $feature->id ?? null,
+                'exception_type' => get_class($e),
+            ]);
             $this->logException($e, [
                 'action' => 'aiEdit',
-                'feature_id' => $feature->id,
+                'feature_id' => $feature->id ?? null,
                 'fastapi_endpoint' => '/v1/ERD/edit',
                 'error_type' => get_class($e),
             ]);

@@ -2,146 +2,116 @@
 
 namespace App\Traits;
 
+use App\Support\AppLogger;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-/**
- * StructuredLogger Trait
- *
- * Provides structured exception logging with comprehensive context capture.
- * Includes failsafe mechanisms to prevent logging failures from breaking application flow.
- */
 trait StructuredLogger
 {
-    /**
-     * Log an exception with structured context data.
-     *
-     * Captures comprehensive information about the exception including:
-     * - Exception details (type, message, file, line, trace)
-     * - Request context (URL, method, IP, user agent, body)
-     * - User information (authenticated user ID if available)
-     * - Custom context passed by the caller
-     *
-     * @param Throwable $e The exception to log
-     * @param array<string, mixed> $context Additional context to include in the log
-     * @return void
-     */
     protected function logException(Throwable $e, array $context = []): void
     {
         try {
-            $structuredData = [
-                'exception_type' => get_class($e),
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-                'url' => request()->fullUrl(),
-                'method' => request()->method(),
-                'ip' => request()->ip(),
-                'request_body' => request()->all(),
-                'user_id' => auth()->check() ? auth()->id() : null,
-                'user_agent' => request()->userAgent(),
-            ];
+            $request = request();
+            $requestBody = $request
+                ? AppLogger::sanitize($request->except(['password', 'password_confirmation', 'current_password', 'token']))
+                : [];
 
-            // Merge custom context with structured data
-            $structuredData = array_merge($structuredData, $context);
+            $data = array_merge([
+                'request_body' => $requestBody,
+                'request_id' => $request?->attributes->get('request_id'),
+            ], AppLogger::sanitize($context));
 
-            Log::error('Exception occurred', $structuredData);
+            AppLogger::error('Exception occurred', $e, $data);
         } catch (Throwable $loggingException) {
-            // Failsafe: If logging itself fails, log an emergency entry
-            Log::emergency('Logging failure', [
-                'original_exception_message' => $e->getMessage(),
-                'logging_exception_message' => $loggingException->getMessage(),
-            ]);
+            try {
+                Log::emergency('Logging failure', [
+                    'original_exception_message' => $e->getMessage(),
+                    'logging_exception_message' => $loggingException->getMessage(),
+                ]);
+            } catch (Throwable) {
+            }
         }
     }
 
-    /**
-     * Log an informational message with structured context data.
-     *
-     * @param string $message The message to log
-     * @param array<string, mixed> $context Additional context to include in the log
-     * @return void
-     */
     protected function logInfo(string $message, array $context = []): void
     {
         try {
+            $request = request();
             $structuredData = [
-                'url' => request()->fullUrl(),
-                'method' => request()->method(),
-                'ip' => request()->ip(),
-                'user_id' => auth()->check() ? auth()->id() : null,
-                'user_agent' => request()->userAgent(),
+                'url' => $request?->fullUrl(),
+                'method' => $request?->method(),
+                'ip' => $request?->ip(),
+                'user_id' => auth()->guard('web')->id(),
+                'admin_id' => auth()->guard('admin')->id(),
+                'user_agent' => $request?->userAgent(),
+                'request_id' => $request?->attributes->get('request_id'),
             ];
-
-            // Merge custom context with structured data
-            $structuredData = array_merge($structuredData, $context);
+            $structuredData = array_merge($structuredData, AppLogger::sanitize($context));
+            $structuredData = array_filter($structuredData, fn ($v) => $v !== null && $v !== '');
 
             Log::info($message, $structuredData);
         } catch (Throwable $loggingException) {
-            Log::emergency('Logging failure', [
-                'original_message' => $message,
-                'logging_exception_message' => $loggingException->getMessage(),
-            ]);
+            try {
+                Log::emergency('Logging failure', [
+                    'original_message' => $message,
+                    'logging_exception_message' => $loggingException->getMessage(),
+                ]);
+            } catch (Throwable) {
+            }
         }
     }
 
-    /**
-     * Log a warning message with structured context data.
-     *
-     * @param string $message The message to log
-     * @param array<string, mixed> $context Additional context to include in the log
-     * @return void
-     */
     protected function logWarning(string $message, array $context = []): void
     {
         try {
+            $request = request();
             $structuredData = [
-                'url' => request()->fullUrl(),
-                'method' => request()->method(),
-                'ip' => request()->ip(),
-                'user_id' => auth()->check() ? auth()->id() : null,
-                'user_agent' => request()->userAgent(),
+                'url' => $request?->fullUrl(),
+                'method' => $request?->method(),
+                'ip' => $request?->ip(),
+                'user_id' => auth()->guard('web')->id(),
+                'admin_id' => auth()->guard('admin')->id(),
+                'user_agent' => $request?->userAgent(),
+                'request_id' => $request?->attributes->get('request_id'),
             ];
-
-            // Merge custom context with structured data
-            $structuredData = array_merge($structuredData, $context);
+            $structuredData = array_merge($structuredData, AppLogger::sanitize($context));
+            $structuredData = array_filter($structuredData, fn ($v) => $v !== null && $v !== '');
 
             Log::warning($message, $structuredData);
         } catch (Throwable $loggingException) {
-            Log::emergency('Logging failure', [
-                'original_message' => $message,
-                'logging_exception_message' => $loggingException->getMessage(),
-            ]);
+            try {
+                Log::emergency('Logging failure', [
+                    'original_message' => $message,
+                    'logging_exception_message' => $loggingException->getMessage(),
+                ]);
+            } catch (Throwable) {
+            }
         }
     }
 
-    /**
-     * Log a debug message with structured context data.
-     *
-     * @param string $message The message to log
-     * @param array<string, mixed> $context Additional context to include in the log
-     * @return void
-     */
     protected function logDebug(string $message, array $context = []): void
     {
         try {
+            $request = request();
             $structuredData = [
-                'url' => request()->fullUrl(),
-                'method' => request()->method(),
-                'ip' => request()->ip(),
-                'user_id' => auth()->check() ? auth()->id() : null,
+                'url' => $request?->fullUrl(),
+                'method' => $request?->method(),
+                'ip' => $request?->ip(),
+                'user_id' => auth()->guard('web')->id(),
+                'request_id' => $request?->attributes->get('request_id'),
             ];
-
-            // Merge custom context with structured data
-            $structuredData = array_merge($structuredData, $context);
+            $structuredData = array_merge($structuredData, AppLogger::sanitize($context));
+            $structuredData = array_filter($structuredData, fn ($v) => $v !== null && $v !== '');
 
             Log::debug($message, $structuredData);
         } catch (Throwable $loggingException) {
-            Log::emergency('Logging failure', [
-                'original_message' => $message,
-                'logging_exception_message' => $loggingException->getMessage(),
-            ]);
+            try {
+                Log::emergency('Logging failure', [
+                    'original_message' => $message,
+                    'logging_exception_message' => $loggingException->getMessage(),
+                ]);
+            } catch (Throwable) {
+            }
         }
     }
 }

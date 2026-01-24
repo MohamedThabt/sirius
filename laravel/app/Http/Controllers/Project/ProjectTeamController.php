@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectUser;
 use App\Models\User;
+use App\Support\AppLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -253,8 +254,12 @@ class ProjectTeamController extends Controller
                 return back()->withErrors(['error' => 'Use the leave project option to remove yourself.']);
             }
 
-            // Remove member
             $project->members()->detach($user->id);
+
+            AppLogger::business('team.member.removed', [
+                'project_id' => $project->id,
+                'removed_user_id' => $user->id,
+            ]);
 
             return back()->with('success', 'Member removed successfully!');
         } catch (\Throwable $e) {

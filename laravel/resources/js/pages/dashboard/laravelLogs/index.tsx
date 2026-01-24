@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
@@ -27,6 +28,7 @@ import {
     BugIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
+    CopyIcon,
     DownloadIcon,
     FileIcon,
     FileTextIcon,
@@ -38,7 +40,8 @@ import {
     TrashIcon,
     XIcon,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { useDebouncedCallback } from 'use-debounce';
 
 // Types
@@ -165,6 +168,210 @@ const getLevelColor = (level: string) => {
             return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20';
     }
 };
+
+function tryParseJson(raw: string): { isJson: true; formatted: string; raw: string; parsed: unknown } | { isJson: false; raw: string } {
+    const trimmed = raw?.trim() ?? '';
+    if (!trimmed) return { isJson: false, raw };
+    try {
+        const parsed = JSON.parse(trimmed);
+        const formatted = JSON.stringify(parsed, null, 2);
+        const minified = JSON.stringify(parsed);
+        return { isJson: true, formatted, raw: minified, parsed };
+    } catch {
+        return { isJson: false, raw };
+    }
+}
+
+type JsonTokenType = 'key' | 'string' | 'number' | 'literal' | 'punctuation' | 'whitespace';
+type JsonToken = { type: JsonTokenType; value: string };
+
+function tokenizeJson(str: string): JsonToken[] {
+    const tokens: JsonToken[] = [];
+    let i = 0;
+    const re = {
+        ws: /^\s+/,
+        key: /^("(?:[^"\\]|\\.)*")\s*:/,
+        string: /^("(?:[^"\\]|\\.)*")/,
+        number: /^(-?\d+\.?\d*)/,
+        literal: /^(true|false|null)\b/,
+        punct: /^([{}\[\]:,])/,
+    };
+    while (i < str.length) {
+        const tail = str.slice(i);
+        let m = tail.match(re.ws);
+        if (m) {
+            const v = m[0];
+            tokens.push({ type: 'whitespace', value: v });
+            i += v.length;
+            continue;
+        }
+        m = tail.match(re.key);
+        if (m) {
+            tokens.push({ type: 'key', value: m[1] });
+            tokens.push({ type: 'punctuation', value: m[0].slice(m[1].length) });
+            i += m[0].length;
+            continue;
+        }
+        m = tail.match(re.string);
+        if (m) {
+            tokens.push({ type: 'string', value: m[1] });
+            i += m[1].length;
+            continue;
+        }
+        m = tail.match(re.number);
+        if (m) {
+            tokens.push({ type: 'number', value: m[1] });
+            i += m[1].length;
+            continue;
+        }
+        m = tail.match(re.literal);
+        if (m) {
+            tokens.push({ type: 'literal', value: m[1] });
+            i += m[1].length;
+            continue;
+        }
+        m = tail.match(re.punct);
+        if (m) {
+            tokens.push({ type: 'punctuation', value: m[1] });
+            i += m[1].length;
+            continue;
+        }
+        tokens.push({ type: 'punctuation', value: str[i] ?? '' });
+        i += 1;
+    }
+    return tokens;
+}
+
+function JsonSyntaxHighlight({ formatted }: { formatted: string }) {
+    const tokens = tokenizeJson(formatted);
+    const tokenClass: Record<JsonTokenType, string> = {
+        key: 'text-sky-500 dark:text-sky-400',
+        string: 'text-emerald-600 dark:text-emerald-400',
+        number: 'text-amber-600 dark:text-amber-400',
+        literal: 'text-violet-500 dark:text-violet-400',
+        punctuation: 'text-muted-foreground/80',
+        whitespace: '',
+    };
+    return (
+        <code className="font-mono text-xs leading-relaxed">
+            {tokens.map((t, idx) => (
+                <span key={idx} className={tokenClass[t.type]}>
+                    {t.value}
+                </span>
+            ))}
+        </code>
+    );
+}
+
+function JsonOrRawBlock({
+    title,
+    content,
+    className,
+    scrollHeight = 280,
+}: {
+    title: string;
+    content: string;
+    className?: string;
+    scrollHeight?: number;
+}) {
+    const result = tryParseJson(content);
+    const [view, setView] = useState<'formatted' | 'raw'>('formatted');
+    const displayText = result.isJson
+        ? view === 'formatted'
+            ? result.formatted
+            : result.raw
+        : result.raw;
+    const isEmpty = !displayText;
+    const eventName = result.isJson && typeof result.parsed === 'object' && result.parsed !== null && 'event' in result.parsed
+        ? String((result.parsed as { event?: unknown }).event)
+        : null;
+
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isEmpty) return;
+        navigator.clipboard.writeText(displayText).then(
+            () => toast.success('Copied to clipboard'),
+            () => toast.error('Failed to copy'),
+        );
+    };
+
+    return (
+        <div className={cn('space-y-2', className)}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
+                    {eventName && (
+                        <Badge variant="secondary" className="font-mono text-xs">
+                            {eventName}
+                        </Badge>
+                    )}
+                </div>
+                <div className="flex items-center gap-2">
+                    {result.isJson && (
+                        <div className="flex rounded-md border border-border/30 bg-muted/30 p-0.5">
+                            <button
+                                type="button"
+                                onClick={() => setView('formatted')}
+                                className={cn(
+                                    'rounded px-2.5 py-1 text-xs font-medium transition-colors',
+                                    view === 'formatted'
+                                        ? 'bg-background text-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground',
+                                )}
+                            >
+                                Formatted
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setView('raw')}
+                                className={cn(
+                                    'rounded px-2.5 py-1 text-xs font-medium transition-colors',
+                                    view === 'raw'
+                                        ? 'bg-background text-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground',
+                                )}
+                            >
+                                Raw
+                            </button>
+                        </div>
+                    )}
+                    {!isEmpty && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1.5 text-xs"
+                            onClick={handleCopy}
+                        >
+                            <CopyIcon className="h-3.5 w-3.5" />
+                            Copy
+                        </Button>
+                    )}
+                </div>
+            </div>
+            <ScrollArea
+                className="w-full rounded-lg border border-border/30 bg-zinc-100 dark:bg-zinc-950/95"
+                style={{ height: scrollHeight }}
+            >
+                <div className="p-4">
+                    <pre className={cn(
+                        'font-mono text-xs leading-relaxed',
+                        result.isJson && view === 'formatted' ? 'whitespace-pre' : 'whitespace-pre-wrap break-words',
+                    )}>
+                        {isEmpty ? (
+                            <span className="italic text-muted-foreground">(empty)</span>
+                        ) : result.isJson && view === 'formatted' ? (
+                            <JsonSyntaxHighlight formatted={result.formatted} />
+                        ) : (
+                            <span className="text-zinc-700 dark:text-zinc-300">{displayText}</span>
+                        )}
+                    </pre>
+                </div>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+        </div>
+    );
+}
 
 /**
  * Format timestamp to human-readable format.
@@ -511,9 +718,9 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
 
                     {/* Log Detail Modal */}
                     <Dialog open={selectedLog !== null} onOpenChange={(open) => !open && setSelectedLog(null)}>
-                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-3">
+                        <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col gap-0">
+                            <DialogHeader className="pb-4">
+                                <DialogTitle className="flex flex-wrap items-center gap-3">
                                     {selectedLog && (() => {
                                         const LevelIcon = getLevelIcon(selectedLog.level);
                                         return (
@@ -534,36 +741,21 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
                                 </DialogTitle>
                             </DialogHeader>
                             {selectedLog && (
-                                <div className="flex-1 overflow-auto space-y-4">
-                                    {/* Log Message */}
-                                    <div>
-                                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Message</h4>
-                                        <div className="rounded-md border border-border/30 bg-muted/30 p-4">
-                                            <p className="font-mono text-sm whitespace-pre-wrap break-words">
-                                                {selectedLog.message}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Environment */}
+                                <div className="flex flex-1 flex-col gap-5 overflow-y-auto pr-1">
                                     <div className="flex items-center gap-4">
-                                        <div>
-                                            <span className="text-xs text-muted-foreground">Environment:</span>
-                                            <Badge variant="secondary" className="ml-2">{selectedLog.environment}</Badge>
-                                        </div>
+                                        <span className="text-xs text-muted-foreground">Environment:</span>
+                                        <Badge variant="secondary">{selectedLog.environment}</Badge>
                                     </div>
 
-                                    {/* Stack Trace / Context */}
-                                    {selectedLog.context && (
-                                        <div>
-                                            <h4 className="text-sm font-medium text-muted-foreground mb-2">Stack Trace / Context</h4>
-                                            <div className="rounded-md border border-border/30 bg-background/80 p-4 max-h-[300px] overflow-auto">
-                                                <pre className="font-mono text-xs whitespace-pre-wrap break-words text-muted-foreground">
-                                                    {selectedLog.context}
-                                                </pre>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <JsonOrRawBlock title="Message" content={selectedLog.message} scrollHeight={200} />
+
+                                    {selectedLog.context ? (
+                                        <JsonOrRawBlock
+                                            title="Context / Stack Trace"
+                                            content={selectedLog.context}
+                                            scrollHeight={320}
+                                        />
+                                    ) : null}
                                 </div>
                             )}
                         </DialogContent>

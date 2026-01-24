@@ -3,8 +3,8 @@
 namespace App\Services\Github;
 
 use App\Models\GithubToken;
+use App\Support\AppLogger;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class GithubClient
 {
@@ -499,12 +499,9 @@ class GithubClient
     {
         $url = $this->baseUrl.$endpoint;
 
-        Log::info('GitHub API request initiated', [
+        AppLogger::api('github', "{$method} {$endpoint}", [
             'method' => $method,
             'endpoint' => $endpoint,
-            'url' => $url,
-            'has_data' => ! empty($data),
-            'github_username' => $this->token->username,
         ]);
 
         $request = Http::withHeaders([
@@ -530,39 +527,18 @@ class GithubClient
                 $response = $request->get($url);
             }
 
-            $duration = round((microtime(true) - $startTime) * 1000, 2);
+            $durationMs = (int) round((microtime(true) - $startTime) * 1000);
 
-            if ($response->successful()) {
-                Log::info('GitHub API request successful', [
-                    'method' => $method,
-                    'endpoint' => $endpoint,
-                    'status_code' => $response->status(),
-                    'duration_ms' => $duration,
-                    'rate_limit_remaining' => $response->header('X-RateLimit-Remaining'),
-                    'rate_limit_reset' => $response->header('X-RateLimit-Reset'),
-                ]);
-            } else {
-                Log::warning('GitHub API request failed', [
-                    'method' => $method,
-                    'endpoint' => $endpoint,
-                    'status_code' => $response->status(),
-                    'duration_ms' => $duration,
-                    'response_body' => $response->body(),
-                    'rate_limit_remaining' => $response->header('X-RateLimit-Remaining'),
+            if (! $response->successful()) {
+                AppLogger::apiFailure('github', "{$method} {$endpoint}", $response->status(), $response->body(), [
+                    'duration_ms' => $durationMs,
                 ]);
             }
 
             return $response;
         } catch (\Exception $e) {
-            Log::error('GitHub API request exception', [
-                'method' => $method,
-                'endpoint' => $endpoint,
-                'url' => $url,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
+            AppLogger::apiFailure('github', "{$method} {$endpoint}", 0, $e->getMessage(), [
+                'exception_type' => get_class($e),
             ]);
 
             throw $e;

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RequestId;
 use App\Http\Middleware\ShareProjectData;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -31,6 +32,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO
         );
+
+        $middleware->prependToGroup('web', RequestId::class);
+        $middleware->prependToGroup('api', RequestId::class);
 
         $middleware->web(append: [
             HandleAppearance::class,
