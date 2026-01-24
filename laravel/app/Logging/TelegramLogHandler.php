@@ -166,7 +166,6 @@ MSG;
             Http::timeout(5)->post($url, $payload);
         } catch (\Throwable $e) {
             // Silently fail to prevent logging loops
-            // In production, you might want to use a fallback mechanism
         }
     }
 
