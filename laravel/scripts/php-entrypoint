@@ -132,7 +132,7 @@ optimize_app() {
     
     # Log before optimize
     echo "OPTIMIZE_START: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
-    echo "BEFORE_APP_URL: $(php artisan tinker --execute='echo config(\"app.url\");' 2>/dev/null || echo 'ERROR')" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "BEFORE_APP_URL: $(php artisan tinker --execute='echo config("app.url");' 2>/dev/null || echo 'ERROR')" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
     
     # Clear any existing caches first
     ./artisan optimize:clear
@@ -140,7 +140,7 @@ optimize_app() {
     ./artisan optimize
     
     # Log after optimize
-    echo "AFTER_APP_URL: $(php artisan tinker --execute='echo config(\"app.url\");' 2>/dev/null || echo 'ERROR')" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
+    echo "AFTER_APP_URL: $(php artisan tinker --execute='echo config("app.url");' 2>/dev/null || echo 'ERROR')" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
     echo "OPTIMIZE_END: $(date -Iseconds)" >> /var/www/storage/logs/entrypoint.log 2>&1 || true
 }
 
