@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Meteors } from '@/components/ui/meteors';
+import { GridPattern } from '@/components/ui/shadcn-io/grid-pattern';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ShieldIcon } from 'lucide-react';
@@ -33,22 +33,22 @@ export default function AdminLogin() {
             <Head title="Admin Login" />
 
             <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
-                {/* Space-themed background effects */}
-                <div className="absolute inset-0 pointer-events-none">
-                    {/* Subtle grid pattern */}
-                    <div
-                        className="absolute inset-0 opacity-[0.02]"
-                        style={{
-                            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-                            backgroundSize: '50px 50px',
-                        }}
-                    />
-                    {/* Gradient orbs */}
-                    <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-indigo-500/5 blur-3xl" />
-                    <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-purple-500/5 blur-3xl" />
-                    {/* Subtle meteors */}
-                    <Meteors number={10} minDuration={3} maxDuration={8} />
-                </div>
+                {/* Grid Pattern Background */}
+                <GridPattern
+                    width={40}
+                    height={40}
+                    x={-1}
+                    y={-1}
+                    className="absolute inset-0 h-full w-full fill-primary/[0.02] stroke-border/40 [mask-image:radial-gradient(700px_circle_at_center,white,transparent)]"
+                    squares={[
+                        [2, 3], [5, 1], [8, 4], [12, 2], [15, 5],
+                        [3, 8], [7, 6], [10, 9], [14, 7], [18, 3],
+                        [1, 12], [6, 10], [11, 13], [16, 11], [20, 8],
+                    ]}
+                />
+
+                {/* Subtle radial accent */}
+                <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.03] rounded-full blur-3xl z-0" />
 
                 <div className="relative z-10 flex min-h-screen items-center justify-center p-4 sm:p-6">
                     <div 
