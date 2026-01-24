@@ -39,6 +39,9 @@ Route::bind('invitation', function ($value) {
     return ProjectInvitation::findOrFail($value);
 });
 
+// Constrain {project} to numeric IDs only (prevents SQL errors on invalid input like '#noise')
+Route::pattern('project', '[0-9]+');
+
 Route::get('/', function () {
     return Inertia::render('landing', [
         'canLogin' => Route::has('login'),
