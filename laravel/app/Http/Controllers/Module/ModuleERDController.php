@@ -51,6 +51,13 @@ class ModuleERDController extends Controller
                 'initialContent' => $module->erd,
                 'moduleId' => $module->id,
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD show', [
+                'module_id' => $module->id,
+                'errors' => $e->errors(),
+            ]);
+            throw $e; // Re-throw to let Laravel handle it
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'show', 'module_id' => $module->id]);
             return back()->with('error', 'Failed to load ERD designer. Please try again.');
@@ -93,6 +100,13 @@ class ModuleERDController extends Controller
                 'moduleId' => $module->id,
                 'isGenerating' => true
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD generate', [
+                'module_id' => $module->id,
+                'errors' => $e->errors(),
+            ]);
+            throw $e; // Re-throw to let Laravel handle it
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'generate', 'module_id' => $module->id]);
             return back()->with('error', 'Failed to prepare ERD generation. Please try again.');
@@ -128,6 +142,12 @@ class ModuleERDController extends Controller
             $pendingData = session('pending_module_erd_generation');
             
             if (!$pendingData || ($pendingData['module_id'] ?? null) !== $module->id) {
+                $this->logWarning('ERD generation session validation failed', [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'session_data' => $pendingData,
+                    'expected_module_id' => $module->id,
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Generation session expired. Please try again.'
@@ -182,6 +202,12 @@ class ModuleERDController extends Controller
 
             // Check response status
             if (!$response->ok()) {
+                $this->logWarning('FastAPI ERD generation failed - invalid response status', [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'status' => $response->status(),
+                    'response_body' => $response->body(),
+                ]);
                 session()->forget('pending_module_erd_generation');
                 return response()->json([
                     'success' => false,
@@ -193,6 +219,11 @@ class ModuleERDController extends Controller
 
             // Validate and record usage
             if (!isset($responseData['usage'])) {
+                $this->logWarning('FastAPI ERD generation failed - missing usage data', [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'response_data' => $responseData,
+                ]);
                 session()->forget('pending_module_erd_generation');
                 return response()->json([
                     'success' => false,
@@ -211,6 +242,13 @@ class ModuleERDController extends Controller
             $erd = data_get($responseData, 'ERD');
 
             if (!is_string($erd) || $erd === '') {
+                $this->logWarning('FastAPI ERD generation failed - invalid ERD format', [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'erd_type' => gettype($erd),
+                    'erd_value' => is_string($erd) ? substr($erd, 0, 200) : $erd,
+                    'response_data_keys' => array_keys($responseData ?? []),
+                ]);
                 session()->forget('pending_module_erd_generation');
                 return response()->json([
                     'success' => false,
@@ -236,11 +274,44 @@ class ModuleERDController extends Controller
                 'message' => 'ERD generated successfully.',
                 'erd' => $erd
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD generateAsync', [
+                'module_id' => $module->id,
+                'errors' => $e->errors(),
+            ]);
+            session()->forget('pending_module_erd_generation');
+            throw $e; // Re-throw to let Laravel handle it
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            $this->logException($e, [
+                'action' => 'generateAsync',
+                'module_id' => $module->id,
+                'fastapi_endpoint' => '/v1/ERD/generate',
+                'error_type' => 'ConnectionException',
+            ]);
+            session()->forget('pending_module_erd_generation');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to connect to AI service. Please check your connection and try again.'
+            ], 500);
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            $this->logException($e, [
+                'action' => 'generateAsync',
+                'module_id' => $module->id,
+                'fastapi_endpoint' => '/v1/ERD/generate',
+                'error_type' => 'RequestException',
+            ]);
+            session()->forget('pending_module_erd_generation');
+            return response()->json([
+                'success' => false,
+                'message' => 'AI service returned an error. Please try again later.'
+            ], 500);
         } catch (Throwable $e) {
             $this->logException($e, [
                 'action' => 'generateAsync',
                 'module_id' => $module->id,
-                'fastapi_endpoint' => '/v1/ERD/generate'
+                'fastapi_endpoint' => '/v1/ERD/generate',
+                'error_type' => get_class($e),
             ]);
 
             session()->forget('pending_module_erd_generation');
@@ -310,6 +381,12 @@ class ModuleERDController extends Controller
 
             // Check response status
             if (!$response->ok()) {
+                $this->logWarning('FastAPI ERD edit failed - invalid response status', [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'status' => $response->status(),
+                    'response_body' => $response->body(),
+                ]);
                 return back()->with('error', 'Failed to edit ERD. The AI service is currently unavailable. Please try again later.');
             }
 
@@ -317,6 +394,12 @@ class ModuleERDController extends Controller
             $erd = data_get($response->json(), 'ERD');
 
             if (!is_string($erd) || $erd === '') {
+                $this->logWarning('FastAPI ERD edit failed - invalid ERD format', [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'erd_type' => gettype($erd),
+                    'erd_value' => is_string($erd) ? substr($erd, 0, 200) : $erd,
+                ]);
                 return back()->with('error', 'Received an invalid ERD response from AI service. Please try again.');
             }
 
@@ -334,11 +417,35 @@ class ModuleERDController extends Controller
                 'success' => 'ERD updated successfully using AI suggestions.',
                 'erd' => $erd
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD aiEdit', [
+                'module_id' => $module->id,
+                'errors' => $e->errors(),
+            ]);
+            throw $e; // Re-throw to let Laravel handle it
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            $this->logException($e, [
+                'action' => 'aiEdit',
+                'module_id' => $module->id,
+                'fastapi_endpoint' => '/v1/ERD/edit',
+                'error_type' => 'ConnectionException',
+            ]);
+            return back()->with('error', 'Unable to connect to AI service. Please check your connection and try again.');
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            $this->logException($e, [
+                'action' => 'aiEdit',
+                'module_id' => $module->id,
+                'fastapi_endpoint' => '/v1/ERD/edit',
+                'error_type' => 'RequestException',
+            ]);
+            return back()->with('error', 'AI service returned an error. Please try again later.');
         } catch (Throwable $e) {
             $this->logException($e, [
                 'action' => 'aiEdit',
                 'module_id' => $module->id,
-                'fastapi_endpoint' => '/v1/ERD/edit'
+                'fastapi_endpoint' => '/v1/ERD/edit',
+                'error_type' => get_class($e),
             ]);
 
             return back()->with('error', 'Failed to edit ERD with AI. Please try again.');
@@ -380,8 +487,19 @@ class ModuleERDController extends Controller
                 'success' => 'ERD saved successfully.',
                 'erd' => $erd
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD edit', [
+                'module_id' => $module->id,
+                'errors' => $e->errors(),
+            ]);
+            throw $e; // Re-throw to let Laravel handle it
         } catch (Throwable $e) {
-            $this->logException($e, ['action' => 'edit', 'module_id' => $module->id]);
+            $this->logException($e, [
+                'action' => 'edit',
+                'module_id' => $module->id,
+                'error_type' => get_class($e),
+            ]);
             
             return back()->with('error', 'Failed to save ERD. Please try again.');
         }
@@ -456,6 +574,12 @@ class ModuleERDController extends Controller
 
             // Check response status
             if (!$response->ok()) {
+                $this->logWarning('FastAPI ERD sync failed - invalid response status', [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'status' => $response->status(),
+                    'response_body' => $response->body(),
+                ]);
                 return back()->with('error', 'Failed to sync ERD. The AI service is currently unavailable. Please try again later.');
             }
 
@@ -463,6 +587,12 @@ class ModuleERDController extends Controller
             $erd = data_get($response->json(), 'ERD');
 
             if (!is_string($erd) || $erd === '') {
+                $this->logWarning('FastAPI ERD sync failed - invalid ERD format', [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'erd_type' => gettype($erd),
+                    'erd_value' => is_string($erd) ? substr($erd, 0, 200) : $erd,
+                ]);
                 return back()->with('error', 'Received an invalid ERD response from AI service. Please try again.');
             }
 
@@ -477,11 +607,35 @@ class ModuleERDController extends Controller
                 'success' => 'Module ERD synced successfully from feature datamodels.',
                 'erd' => $erd
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD syncFromFeatures', [
+                'module_id' => $module->id,
+                'errors' => $e->errors(),
+            ]);
+            throw $e; // Re-throw to let Laravel handle it
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            $this->logException($e, [
+                'action' => 'syncFromFeatures',
+                'module_id' => $module->id,
+                'fastapi_endpoint' => '/v1/ERD/sync',
+                'error_type' => 'ConnectionException',
+            ]);
+            return back()->with('error', 'Unable to connect to AI service. Please check your connection and try again.');
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            $this->logException($e, [
+                'action' => 'syncFromFeatures',
+                'module_id' => $module->id,
+                'fastapi_endpoint' => '/v1/ERD/sync',
+                'error_type' => 'RequestException',
+            ]);
+            return back()->with('error', 'AI service returned an error. Please try again later.');
         } catch (Throwable $e) {
             $this->logException($e, [
                 'action' => 'syncFromFeatures',
                 'module_id' => $module->id,
-                'fastapi_endpoint' => '/v1/ERD/sync'
+                'fastapi_endpoint' => '/v1/ERD/sync',
+                'error_type' => get_class($e),
             ]);
 
             return back()->with('error', 'Failed to sync ERD from features. Please try again.');

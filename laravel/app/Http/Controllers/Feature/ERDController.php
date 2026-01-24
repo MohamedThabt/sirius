@@ -50,8 +50,19 @@ class ERDController extends Controller
                 'initialContent' => $feature->datamodel,
                 'featureId' => $feature->id,
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD show', [
+                'feature_id' => $feature->id,
+                'errors' => $e->errors(),
+            ]);
+            throw $e; // Re-throw to let Laravel handle it
         } catch (Throwable $e) {
-            $this->logException($e, ['action' => 'show', 'feature_id' => $feature->id]);
+            $this->logException($e, [
+                'action' => 'show',
+                'feature_id' => $feature->id,
+                'error_type' => get_class($e),
+            ]);
             return back()->with('error', 'Failed to load database designer. Please try again.');
         }
     }
@@ -102,14 +113,28 @@ class ERDController extends Controller
             $retryTimes = config('services.fastapi.retry_times', 2);
             $retryDelay = config('services.fastapi.retry_delay', 2000);
 
+            $attemptCount = 0;
             $response = Http::asJson()
                 ->acceptJson()
                 ->timeout($httpTimeout)
-                ->retry($retryTimes, $retryDelay)
+                ->retry($retryTimes, $retryDelay, function ($exception, $request) use (&$attemptCount, $feature) {
+                    $attemptCount++;
+                    $this->logWarning('FastAPI ERD edit retry attempt', [
+                        'attempt' => $attemptCount,
+                        'feature_id' => $feature->id,
+                        'error' => $exception->getMessage(),
+                    ]);
+                    return true; // Always retry
+                })
                 ->post($fastApiBaseUrl . '/v1/ERD/edit', $payload);
 
             // Check response status
             if (!$response->ok()) {
+                $this->logWarning('FastAPI ERD edit failed - invalid response status', [
+                    'feature_id' => $feature->id,
+                    'status' => $response->status(),
+                    'response_body' => $response->body(),
+                ]);
                 return back()->with('error', 'Failed to edit datamodel. The AI service is currently unavailable. Please try again later.');
             }
 
@@ -117,6 +142,10 @@ class ERDController extends Controller
 
             // Validate and record usage
             if (!isset($responseData['usage'])) {
+                $this->logWarning('FastAPI ERD edit failed - missing usage data', [
+                    'feature_id' => $feature->id,
+                    'response_data' => $responseData,
+                ]);
                 return back()->with('error', 'AI usage data missing from response.');
             }
 
@@ -131,6 +160,11 @@ class ERDController extends Controller
             $datamodel = data_get($responseData, 'ERD');
 
             if (!is_string($datamodel) || $datamodel === '') {
+                $this->logWarning('FastAPI ERD edit failed - invalid datamodel format', [
+                    'feature_id' => $feature->id,
+                    'datamodel_type' => gettype($datamodel),
+                    'datamodel_value' => is_string($datamodel) ? substr($datamodel, 0, 200) : $datamodel,
+                ]);
                 return back()->with('error', 'Received an invalid datamodel response from AI service. Please try again.');
             }
 
@@ -151,11 +185,35 @@ class ERDController extends Controller
                 'success' => 'Datamodel updated successfully using AI suggestions.',
                 'erd' => $datamodel
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD aiEdit', [
+                'feature_id' => $feature->id,
+                'errors' => $e->errors(),
+            ]);
+            throw $e; // Re-throw to let Laravel handle it
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            $this->logException($e, [
+                'action' => 'aiEdit',
+                'feature_id' => $feature->id,
+                'fastapi_endpoint' => '/v1/ERD/edit',
+                'error_type' => 'ConnectionException',
+            ]);
+            return back()->with('error', 'Unable to connect to AI service. Please check your connection and try again.');
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            $this->logException($e, [
+                'action' => 'aiEdit',
+                'feature_id' => $feature->id,
+                'fastapi_endpoint' => '/v1/ERD/edit',
+                'error_type' => 'RequestException',
+            ]);
+            return back()->with('error', 'AI service returned an error. Please try again later.');
         } catch (Throwable $e) {
             $this->logException($e, [
                 'action' => 'aiEdit',
                 'feature_id' => $feature->id,
-                'fastapi_endpoint' => '/v1/ERD/edit'
+                'fastapi_endpoint' => '/v1/ERD/edit',
+                'error_type' => get_class($e),
             ]);
 
             return back()->with('error', 'Failed to edit datamodel with AI. Please try again.');
@@ -202,8 +260,19 @@ class ERDController extends Controller
             });
 
             return back()->with('success', 'Datamodel saved successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation exceptions are already handled by Laravel, but log for debugging
+            $this->logWarning('Validation failed in ERD edit', [
+                'feature_id' => $feature->id,
+                'errors' => $e->errors(),
+            ]);
+            throw $e; // Re-throw to let Laravel handle it
         } catch (Throwable $e) {
-            $this->logException($e, ['action' => 'edit', 'feature_id' => $feature->id]);
+            $this->logException($e, [
+                'action' => 'edit',
+                'feature_id' => $feature->id,
+                'error_type' => get_class($e),
+            ]);
             
             return back()->with('error', 'Failed to save datamodel. Please try again.');
         }
