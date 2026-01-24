@@ -140,13 +140,38 @@ class AppLogger
 
     private static function context(array $extra = []): array
     {
+        $request = request();
+        $user = auth()->guard('web')->user();
+        $admin = auth()->guard('admin')->user();
+        
         $ctx = [
-            'user_id' => auth()->guard('web')->id(),
-            'admin_id' => auth()->guard('admin')->id(),
-            'ip' => request()?->ip(),
-            'url' => request()?->fullUrl(),
-            'request_id' => request()?->attributes->get('request_id'),
-            'user_agent' => request()?->userAgent(),
+            // User context
+            'user_id' => $user?->id,
+            'user_email' => $user?->email,
+            'user_name' => $user?->name,
+            'admin_id' => $admin?->id,
+            'admin_email' => $admin?->email,
+            
+            // Request context
+            'request_id' => $request?->attributes->get('request_id'),
+            'ip' => $request?->ip(),
+            'url' => $request?->fullUrl(),
+            'method' => $request?->method(),
+            'route_name' => $request?->route()?->getName(),
+            'route_action' => $request?->route()?->getActionName(),
+            'user_agent' => $request?->userAgent(),
+            'referer' => $request?->header('referer'),
+            
+            // Session context
+            'session_id' => $request?->hasSession() ? substr($request->session()->getId(), 0, 8) . '...' : null,
+            
+            // Environment context
+            'environment' => config('app.env'),
+            'app_version' => config('app.version', '1.0.0'),
+            
+            // Memory & performance
+            'memory_usage_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
+            'peak_memory_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
         ];
         $ctx = array_filter($ctx, fn ($v) => $v !== null && $v !== '');
         return $extra === [] ? $ctx : array_merge($ctx, self::sanitize($extra));
