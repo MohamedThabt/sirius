@@ -164,24 +164,44 @@ export const specDrivenDevelopment = {
     description: "Every engineering team faces the same bottleneck: the chaos between idea and implementation.",
     painPoints: [
       {
-        title: "Documentation takes weeks, not minutes",
+        title: "Documentation takes weeks",
         description: "Writing PRDs, specs, and ERDs manually burns engineering time. By the time docs are done, requirements have already changed.",
         icon: FileText,
       },
       {
-        title: "Requirements live in 10 different places",
+        title: "Scattered requirements",
         description: "Slack threads, Notion pages, Jira tickets, email chains. No single source of truth means everyone interprets specs differently.",
         icon: Layers,
       },
       {
-        title: "Devs and PMs speak different languages",
-        description: "Product thinks in features. Engineering thinks in systems. The translation gap causes rework, scope creep, and missed deadlines.",
+        title: "Translation gaps",
+        description: "Product thinks in features. Engineering thinks in systems. The gap causes rework, scope creep, and missed deadlines.",
         icon: Users,
       },
       {
-        title: "Vibe coding doesn't scale",
-        description: "Prompting AI to 'just build it' works for demos—not production. Without specs, you get code that compiles but breaks under real-world load.",
+        title: "Vibe coding fails",
+        description: "Prompting AI to 'just build it' works for demos—not production. Without specs, code breaks under real-world load.",
         icon: AlertTriangle,
+      },
+      {
+        title: "No visual architecture",
+        description: "Teams jump straight into code without ERDs, sequence diagrams, or system overviews. Technical debt starts on day one.",
+        icon: Shapes,
+      },
+      {
+        title: "Onboarding nightmare",
+        description: "New developers spend weeks deciphering tribal knowledge. No documentation means no way to ramp up quickly.",
+        icon: UsersRound,
+      },
+      {
+        title: "Constant rework cycles",
+        description: "Misunderstood requirements lead to building the wrong thing. Every iteration costs time, money, and team morale.",
+        icon: RefreshCw,
+      },
+      {
+        title: "Disconnected stakeholders",
+        description: "Business, design, and engineering operate in silos. Misalignment compounds until launch day reveals the gaps.",
+        icon: GitMerge,
       },
     ],
   },
