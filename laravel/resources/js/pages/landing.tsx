@@ -72,6 +72,7 @@ export default function Landing() {
                         <ProblemSolutionSection />
 
                         <SiriusSectionShell
+                            id="features"
                             eyebrow={documentationSuite.eyebrow}
                             title={documentationSuite.title}
                         >

@@ -119,12 +119,13 @@ export default function SiriusOrbitalFeatures() {
   useEffect(() => {
     if (!autoRotate) return;
 
+    // Reduced from 50ms to 100ms for lower CPU/GPU usage
     const rotationTimer = setInterval(() => {
       setRotationAngle((prev) => {
-        const newAngle = (prev + 0.4) % 360;
+        const newAngle = (prev + 0.8) % 360; // Double step to maintain speed at half frequency
         return Number(newAngle.toFixed(3));
       });
-    }, 50);
+    }, 100);
 
     return () => clearInterval(rotationTimer);
   }, [autoRotate]);

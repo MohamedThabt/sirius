@@ -9,7 +9,7 @@ import { faqItems } from "@/lib/sirius/content";
 
 export function FaqsSection() {
 	return (
-		<section className="sirius-section bg-muted/20">
+		<section id="faq" className="sirius-section bg-muted/20">
 			<div className="sirius-container">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
 					<div className="pt-4 pb-6">

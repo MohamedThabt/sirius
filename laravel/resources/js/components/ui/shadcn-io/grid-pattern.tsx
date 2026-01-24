@@ -68,16 +68,14 @@ function GridPattern({
                 y={squareY * height + 1}
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{
-                  opacity: [0, 1, 0.6, 1],
-                  scale: [0.8, 1.1, 1, 1]
+                  opacity: 1,
+                  scale: 1
                 }}
-                viewport={{ once: false, margin: "-50px" }}
+                viewport={{ once: true, margin: "-50px" }}
                 transition={{
-                  duration: 2,
-                  delay: index * 0.15,
-                  repeat: Infinity,
-                  repeatDelay: 3,
-                  ease: "easeInOut"
+                  duration: 0.6,
+                  delay: index * 0.1,
+                  ease: "easeOut"
                 }}
               />
             ) : (

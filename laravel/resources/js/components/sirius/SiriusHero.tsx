@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, ArrowDown, Check, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HyperTextParagraph } from '@/components/ui/hyper-text-paragraph';
@@ -32,8 +32,10 @@ const generateSpaceDust = (count: number) => {
 };
 
 export const SiriusHero: React.FC = () => {
-    const stars = useMemo(() => generateStars(50), []);
-    const spaceDust = useMemo(() => generateSpaceDust(25), []);
+    const prefersReducedMotion = useReducedMotion();
+    // Reduced particle counts for better mobile performance; skip entirely if user prefers reduced motion
+    const stars = useMemo(() => prefersReducedMotion ? [] : generateStars(20), [prefersReducedMotion]);
+    const spaceDust = useMemo(() => prefersReducedMotion ? [] : generateSpaceDust(8), [prefersReducedMotion]);
 
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">

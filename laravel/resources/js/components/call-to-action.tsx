@@ -1,8 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRightIcon, PlusIcon } from "lucide-react";
 import { ctaContent } from "@/lib/sirius/content";
+import { usePage } from "@inertiajs/react";
+import { type SharedData } from "@/types";
 
 export function CallToAction() {
+	const { auth } = usePage<SharedData>().props;
+	const isAuthenticated = !!auth?.user;
+
 	return (
 		<div className="relative mx-auto flex w-[85%] max-w-screen-lg flex-col justify-between gap-y-4 border-y px-4 py-8 dark:bg-[radial-gradient(35%_80%_at_25%_0%,--theme(--color-foreground/.2),transparent)]">
 			<PlusIcon
@@ -36,8 +41,8 @@ export function CallToAction() {
 
 			<div className="flex items-center justify-center gap-2">
 				<Button asChild>
-                    <a href={ctaContent.primaryHref}>
-					    {ctaContent.primaryLabel} <ArrowRightIcon />
+                    <a href={isAuthenticated ? "/projects" : ctaContent.primaryHref}>
+					    {isAuthenticated ? "Go to Projects" : ctaContent.primaryLabel} <ArrowRightIcon />
                     </a>
 				</Button>
 			</div>

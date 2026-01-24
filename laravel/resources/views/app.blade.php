@@ -52,10 +52,12 @@
         <link rel="icon" href="/favicon.png" type="image/png">
         <link rel="apple-touch-icon" href="/favicon.png">
 
-        {{--  Design System - Inter Font Family --}}
-        <link rel="preconnect" href="https://fonts.googleapis.com">
+        {{--  Design System - Inter Font Family with optimized loading --}}
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        {{-- Load font stylesheet with media="print" then swap to avoid render-blocking --}}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
 
         @viteReactRefresh
         @vite(['resources/js/app.tsx'])
