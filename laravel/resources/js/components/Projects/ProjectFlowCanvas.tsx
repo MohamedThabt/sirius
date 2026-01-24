@@ -433,7 +433,69 @@ const FlowCanvas = ({
 
     return (
         <>
-            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg bg-[#e8ebed] dark:bg-[#1c2433]">
+            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg">
+                {/* Enhanced gradient background */}
+                <div className="pointer-events-none absolute inset-0">
+                    {/* Base gradient - dark sophisticated look */}
+                    <div 
+                        className="absolute inset-0"
+                        style={{
+                            background: isDarkMode 
+                                ? 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 25%, #141b27 50%, #0d1117 75%, #0a0e14 100%)'
+                                : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%)'
+                        }}
+                    />
+                    
+                    {/* Radial glow effects */}
+                    <div 
+                        className="absolute inset-0"
+                        style={{
+                            background: isDarkMode
+                                ? `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                                   radial-gradient(ellipse 50% 30% at 50% 50%, rgba(99, 102, 241, 0.04) 0%, transparent 50%)`
+                                : `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 50%)`
+                        }}
+                    />
+                    
+                    {/* Subtle noise texture overlay for depth */}
+                    <div 
+                        className="absolute inset-0 opacity-[0.015]"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                        }}
+                    />
+                    
+                    {/* Corner accent glows */}
+                    <div 
+                        className="absolute -top-32 -left-32 h-64 w-64 rounded-full blur-3xl"
+                        style={{
+                            background: isDarkMode 
+                                ? 'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)'
+                        }}
+                    />
+                    <div 
+                        className="absolute -right-32 -bottom-32 h-64 w-64 rounded-full blur-3xl"
+                        style={{
+                            background: isDarkMode 
+                                ? 'radial-gradient(circle, rgba(139, 92, 246, 0.10) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 70%)'
+                        }}
+                    />
+                    
+                    {/* Subtle vignette effect */}
+                    <div 
+                        className="absolute inset-0"
+                        style={{
+                            background: isDarkMode
+                                ? 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%)'
+                                : 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.05) 100%)'
+                        }}
+                    />
+                </div>
+                
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -446,16 +508,20 @@ const FlowCanvas = ({
                     nodesConnectable={false}
                     elementsSelectable={true}
                     colorMode={isDarkMode ? 'dark' : 'light'}
+                    style={{ background: 'transparent' }}
                 >
                     <Background
                         gap={24}
-                        size={1.5}
+                        size={2}
                         variant={BackgroundVariant.Dots}
-                        color={isDarkMode ? '#3d4354' : '#dcdfe2'}
-                        bgColor={isDarkMode ? '#1c2433' : '#e8ebed'}
+                        color={isDarkMode ? 'rgba(148, 163, 184, 0.4)' : 'rgba(71, 85, 105, 0.25)'}
                     />
-
                 </ReactFlow>
+                <style>{`
+                    .react-flow__background {
+                        background: transparent !important;
+                    }
+                `}</style>
 
                 {/* Enhanced Progress Badge with PROJECT STATUS */}
                 {completionPercentage !== undefined && completedStepsCount !== undefined && totalStepsCount !== undefined && health && (
