@@ -41,9 +41,10 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $user = $request->user();
+        $admin = $request->user('admin');
         
-        // Load relationships for authenticated user
-        if ($user) {
+        // Load relationships for authenticated user (not admin)
+        if ($user && $user instanceof \App\Models\User) {
             $user->load('plan');
             $user->load('credits');
             
@@ -63,9 +64,9 @@ class HandleInertiaRequests extends Middleware
             }
         }
         
-        // Build user credits data
+        // Build user credits data (only for User model, not Admin)
         $userCredits = null;
-        if ($user && $user->plan && $user->credits) {
+        if ($user && $user instanceof \App\Models\User && $user->plan && $user->credits) {
             $rawBalance = $user->getCreditsBalance();
             $balance = max(0, $rawBalance); // Ensure never negative
             $total = $user->getTotalThisMonth();
@@ -88,7 +89,7 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $user,
-                'admin' => $request->user('admin'),
+                'admin' => $admin,
             ],
             'userCredits' => $userCredits,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
@@ -98,6 +99,8 @@ class HandleInertiaRequests extends Middleware
                 'warning' => $request->session()->get('warning'),
                 'info' => $request->session()->get('info'),
             ],
+            'creditLimitReached' => $request->session()->get('creditLimitReached'),
+            'creditsBalance' => $request->session()->get('creditsBalance'),
         ];
     }
 }
