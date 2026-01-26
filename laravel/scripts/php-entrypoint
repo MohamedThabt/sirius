@@ -124,7 +124,11 @@ run_migrations() {
 
 run_seeders() {
     echo "Running database seeders..."
-    ./artisan db:seed --force
+    if ./artisan db:seed --force; then
+        echo "Database seeders completed successfully"
+    else
+        echo "Warning: Seeders failed, but continuing (may be expected if data already exists)..."
+    fi
 }
 
 optimize_app() {
