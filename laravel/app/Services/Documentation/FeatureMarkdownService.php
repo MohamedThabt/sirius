@@ -136,6 +136,90 @@ class FeatureMarkdownService
 
         return implode("\n", $lines);
     }
+
+    /**
+     * Get enriched features with module context for API payload.
+     * Groups features by module and includes module metadata.
+     *
+     * @param Project $project
+     * @return array
+     */
+    public function getEnrichedFeaturesForAPI(Project $project): array
+    {
+        $project->loadMissing(['modules.features']);
+
+        $result = [];
+
+        // Process features grouped by module
+        foreach ($project->modules as $module) {
+            foreach ($module->features as $feature) {
+                $result[] = [
+                    'name' => $feature->name,
+                    'description' => $feature->description,
+                    'priority' => ucfirst((string) $feature->priority),
+                    'acceptance_criteria' => $feature->acceptance_criteria,
+                    'user_flows' => $feature->user_flows,
+                    'module_name' => $module->name,
+                    'module_description' => $module->description,
+                ];
+            }
+        }
+
+        // Handle features not assigned to any module
+        $orphanFeatures = $project->features->filter(function ($feature) {
+            return is_null($feature->module_id);
+        });
+
+        foreach ($orphanFeatures as $feature) {
+            $result[] = [
+                'name' => $feature->name,
+                'description' => $feature->description,
+                'priority' => ucfirst((string) $feature->priority),
+                'acceptance_criteria' => $feature->acceptance_criteria,
+                'user_flows' => $feature->user_flows,
+                'module_name' => null,
+                'module_description' => null,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get modules with their features for API payload.
+     * Returns structured module data with nested features.
+     *
+     * @param Project $project
+     * @return array
+     */
+    public function getModulesWithFeaturesForAPI(Project $project): array
+    {
+        $project->loadMissing(['modules.features']);
+
+        $modules = [];
+
+        foreach ($project->modules as $module) {
+            $moduleData = [
+                'name' => $module->name,
+                'description' => $module->description,
+                'features' => [],
+            ];
+
+            foreach ($module->features as $feature) {
+                $moduleData['features'][] = [
+                    'name' => $feature->name,
+                    'description' => $feature->description,
+                    'priority' => ucfirst((string) $feature->priority),
+                    'acceptance_criteria' => $feature->acceptance_criteria,
+                    'user_flows' => $feature->user_flows,
+                ];
+            }
+
+            $modules[] = $moduleData;
+        }
+
+        return $modules;
+    }
 }
 
 

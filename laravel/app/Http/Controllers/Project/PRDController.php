@@ -31,7 +31,7 @@ class PRDController extends Controller
                 return back()->with('error', 'You do not have permission to access this project.');
             }
 
-            $project->loadMissing(['features', 'baseOverviewVersion']);
+            $project->loadMissing(['modules.features', 'baseOverviewVersion']);
 
             $overviewText = (string) ($project->baseOverviewVersion?->overview ?? '');
 
@@ -90,15 +90,9 @@ class PRDController extends Controller
 
             $project->loadMissing(['modules.features', 'baseOverviewVersion']);
 
-            $features = $project->features->map(function ($feature) {
-                return [
-                    'name' => $feature->name,
-                    'description' => $feature->description,
-                    'priority' => ucfirst((string) $feature->priority),
-                    'acceptance_criteria' => $feature->acceptance_criteria,
-                    'user_flows' => $feature->user_flows,
-                ];
-            })->values()->all();
+            // Use enriched features with module context
+            $features = $featureMarkdownService->getEnrichedFeaturesForAPI($project);
+            $modules = $featureMarkdownService->getModulesWithFeaturesForAPI($project);
 
             $overviewText = (string) ($project->baseOverviewVersion?->overview ?? '');
 
@@ -108,6 +102,7 @@ class PRDController extends Controller
                 'date' => now()->toDateString(),
                 'version' => '1',
                 'overview' => $overviewText,
+                'modules' => $modules,
                 'features' => [
                     'features' => $features,
                 ],
@@ -194,7 +189,8 @@ class PRDController extends Controller
                 return back()->with('error', 'You do not have permission to access this project.');
             }
 
-            $project->loadMissing(['features']);
+            // Load modules with their features for proper markdown generation
+            $project->loadMissing(['modules.features']);
 
             $prdVersions = [];
             if (! empty($project->prd)) {
@@ -210,6 +206,7 @@ class PRDController extends Controller
                 ];
             }
 
+            // Generate markdown for all modules with their features
             $featuresMarkdown = $featureMarkdownService->formatProjectFeaturesToMarkdown($project);
 
             return Inertia::render('Projects/PRD', [
