@@ -45,28 +45,41 @@ class HandleInertiaRequests extends Middleware
         
         // Load relationships for authenticated user (not admin)
         if ($user && $user instanceof \App\Models\User) {
-            $user->load('plan');
-            $user->load('credits');
-            
-            // Initialize credits if they don't exist and user has a plan
-            if ($user->plan && is_null($user->credits)) {
-                try {
-                    $user->credits()->create([
-                        'credits_balance' => $user->plan->monthly_credits,
-                        'total_this_month' => $user->plan->monthly_credits,
-                        'billing_cycle_start' => now()->startOfMonth(),
-                        'last_reset_at' => now(),
-                    ]);
-                    $user->refresh();
-                } catch (\Exception $e) {
-                    Log::error('Failed to create user credits: ' . $e->getMessage());
+            try {
+                $user->load('credits');
+                $activePlan = $user->activePlan();
+                
+                // Load plan relationship for frontend access (auth.user.plan)
+                if ($activePlan) {
+                    $user->setRelation('plan', $activePlan);
                 }
+                
+                // Initialize credits if they don't exist and user has a plan
+                if ($activePlan && is_null($user->credits)) {
+                    try {
+                        $user->credits()->create([
+                            'credits_balance' => $activePlan->credits_per_cycle,
+                            'total_this_month' => $activePlan->credits_per_cycle,
+                            'billing_cycle_start' => now()->startOfMonth(),
+                            'last_reset_at' => now(),
+                        ]);
+                        $user->refresh();
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create user credits: ' . $e->getMessage());
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to load user relationships in HandleInertiaRequests: ' . $e->getMessage(), [
+                    'user_id' => $user->id,
+                    'exception' => $e,
+                ]);
             }
         }
         
         // Build user credits data (only for User model, not Admin)
         $userCredits = null;
-        if ($user && $user instanceof \App\Models\User && $user->plan && $user->credits) {
+        $activePlan = $user && $user instanceof \App\Models\User ? $user->activePlan() : null;
+        if ($user && $user instanceof \App\Models\User && $activePlan && $user->credits) {
             $rawBalance = $user->getCreditsBalance();
             $balance = max(0, $rawBalance); // Ensure never negative
             $total = $user->getTotalThisMonth();

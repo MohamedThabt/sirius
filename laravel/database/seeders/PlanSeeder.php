@@ -16,8 +16,11 @@ class PlanSeeder extends Seeder
             ['id' => 1],
             [
                 'name' => 'Free',
-                'monthly_price' => 0.00,
-                'monthly_credits' => 10,
+                'slug' => 'free',
+                'price' => 0.00,
+                'credits_per_cycle' => 10,
+                'billing_cycle' => 'monthly',
+                'is_active' => true,
             ]
         );
 
@@ -25,8 +28,11 @@ class PlanSeeder extends Seeder
             ['id' => 2],
             [
                 'name' => 'Pro',
-                'monthly_price' => 20.00,
-                'monthly_credits' => 100,
+                'slug' => 'pro',
+                'price' => 20.00,
+                'credits_per_cycle' => 100,
+                'billing_cycle' => 'monthly',
+                'is_active' => true,
             ]
         );
     }

@@ -19,8 +19,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface Plan {
   id: number;
   name: string;
-  monthly_price: string;
-  monthly_credits: number;
+  slug: string;
+  price: string;
+  credits_per_cycle: number;
+  billing_cycle: string;
+  is_active: boolean;
   users_count: number;
   created_at: string;
 }
@@ -175,8 +178,10 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Monthly Price</TableHead>
-                <TableHead>Monthly Credits</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Credits/Cycle</TableHead>
+                <TableHead>Billing Cycle</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Users</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Actions</TableHead>
@@ -188,10 +193,20 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
                   <TableCell className="font-medium">
                     {plan.name}
                   </TableCell>
-                  <TableCell>{formatPrice(plan.monthly_price)}</TableCell>
+                  <TableCell>{formatPrice(plan.price)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {plan.monthly_credits} credits
+                      {plan.credits_per_cycle} credits
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="capitalize">
+                      {plan.billing_cycle}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={plan.is_active ? "default" : "secondary"}>
+                      {plan.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell>

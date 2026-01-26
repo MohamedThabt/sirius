@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Plan extends Model
 {
@@ -12,20 +13,44 @@ class Plan extends Model
 
     protected $fillable = [
         'name',
-        'monthly_price',
-        'monthly_credits',
+        'slug',
+        'price',
+        'credits_per_cycle',
+        'billing_cycle',
+        'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'monthly_price' => 'decimal:2',
-            'monthly_credits' => 'integer',
+            'price' => 'decimal:2',
+            'credits_per_cycle' => 'integer',
+            'is_active' => 'boolean',
         ];
     }
 
-    public function users(): HasMany
+    /**
+     * Get all subscriptions for this plan.
+     */
+    public function subscriptions(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get users with active subscriptions to this plan.
+     */
+    public function activeSubscribers(): HasManyThrough
+    {
+        return $this->hasManyThrough(User::class, Subscription::class, 'plan_id', 'id', 'id', 'user_id')
+            ->where('subscriptions.status', Subscription::STATUS_ACTIVE);
+    }
+
+    /**
+     * Get the count of active subscribers.
+     */
+    public function getActiveSubscribersCountAttribute(): int
+    {
+        return $this->activeSubscribers()->count();
     }
 }

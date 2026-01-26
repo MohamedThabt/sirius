@@ -1,4 +1,4 @@
-import { type Credits, type UsagePlan, type GraphData, type UsageLog, type PaginatedData, type SharedData } from '@/types';
+import { type Credits, type UsagePlan, type Subscription, type GraphData, type UsageLog, type PaginatedData, type SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useState, useCallback } from 'react';
@@ -16,12 +16,13 @@ declare function route(name: string, params?: any): string;
 interface Props {
     credits: Credits;
     plan: UsagePlan | null;
+    subscription: Subscription | null;
     graphData: GraphData[];
     usageLogs: PaginatedData<UsageLog>;
     totalConsumedCredits: number;
 }
 
-function Usage({ credits, plan, graphData, usageLogs, totalConsumedCredits }: Props) {
+function Usage({ credits, plan, subscription, graphData, usageLogs, totalConsumedCredits }: Props) {
     useFlashToasts();
     const { auth } = usePage<SharedData>().props;
     const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
@@ -63,6 +64,7 @@ function Usage({ credits, plan, graphData, usageLogs, totalConsumedCredits }: Pr
                 <CreditsOverview
                     credits={credits}
                     plan={plan}
+                    subscription={subscription}
                     purchaseDialogOpen={purchaseDialogOpen}
                     setPurchaseDialogOpen={setPurchaseDialogOpen}
                     onPurchase={handlePurchase}

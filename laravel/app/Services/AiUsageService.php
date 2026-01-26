@@ -25,6 +25,8 @@ class AiUsageService
         // 1 credit = 1000 tokens
         $creditsUsed = (int) ceil($totalTokens / 1000);
 
+        $activePlan = $user->activePlan();
+
         DB::transaction(function () use (
             $user,
             $actionType,
@@ -32,14 +34,15 @@ class AiUsageService
             $outputTokens,
             $creditsUsed,
             $cost,
-            $model
+            $model,
+            $activePlan
         ) {
             // Get or create UserCredit record
             $userCredit = UserCredit::firstOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'credits_balance' => $user->plan?->monthly_credits ?? 0,
-                    'total_this_month' => $user->plan?->monthly_credits ?? 0,
+                    'credits_balance' => $activePlan?->credits_per_cycle ?? 0,
+                    'total_this_month' => $activePlan?->credits_per_cycle ?? 0,
                     'billing_cycle_start' => now()->startOfMonth(),
                 ]
             );

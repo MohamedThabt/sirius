@@ -4,7 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -29,16 +28,6 @@ class User extends Authenticatable
         'provider_id',
         'avatar',
         'email_verified_at',
-        'plan_id',
-    ];
-
-    /**
-     * The model's default attribute values.
-     *
-     * @var array<string, mixed>
-     */
-    protected $attributes = [
-        'plan_id' => 1, // Free plan is the default
     ];
 
     /**
@@ -148,11 +137,44 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the plan for the user.
+     * Get all subscriptions for the user.
      */
-    public function plan(): BelongsTo
+    public function subscriptions(): HasMany
     {
-        return $this->belongsTo(Plan::class);
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get the active subscription for the user.
+     */
+    public function activeSubscription(): ?Subscription
+    {
+        return $this->subscriptions()
+            ->where('status', Subscription::STATUS_ACTIVE)
+            ->with('plan')
+            ->first();
+    }
+
+    /**
+     * Get the active plan for the user.
+     */
+    public function activePlan(): ?Plan
+    {
+        return $this->activeSubscription()?->plan;
+    }
+
+    /**
+     * Get the plan relationship (for backward compatibility with frontend).
+     * This is an alias for activePlan() to support auth.user.plan access.
+     */
+    public function getPlanAttribute(): ?Plan
+    {
+        try {
+            return $this->activePlan();
+        } catch (\Exception $e) {
+            \Log::error('Failed to get plan attribute: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -184,7 +206,7 @@ class User extends Authenticatable
      */
     public function getTotalThisMonth(): int
     {
-        return $this->credits?->total_this_month ?? ($this->plan?->monthly_credits ?? 0);
+        return $this->credits?->total_this_month ?? ($this->activePlan()?->credits_per_cycle ?? 0);
     }
 
     /**

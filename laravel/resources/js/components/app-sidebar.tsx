@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
-import { Activity, Briefcase, Bug, CoinsIcon, CreditCard, FileText, LayoutDashboard, MessageSquare, ScrollText, Shield, Users, Zap } from 'lucide-react';
+import { Activity, Briefcase, Bug, CoinsIcon, CreditCard, FileText, LayoutDashboard, MessageSquare, Receipt, ScrollText, Shield, Users, Zap } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [];
@@ -30,6 +30,11 @@ const adminNavItems: NavItem[] = [
         title: 'Plans',
         href: '/admin/plans',
         icon: CreditCard,
+    },
+    {
+        title: 'Subscriptions',
+        href: '/admin/subscriptions',
+        icon: Receipt,
     },
     {
         title: 'Beta',

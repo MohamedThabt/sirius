@@ -16,13 +16,14 @@ class UsageController extends Controller
     public function index(): Response
     {
         $user = auth()->user();
-        $user->load(['plan', 'credits']);
+        $user->load('credits');
+        $activePlan = $user->activePlan();
 
         // Get or create UserCredit if doesn't exist
         $userCredits = $user->credits ?? UserCredit::create([
             'user_id' => $user->id,
-            'credits_balance' => $user->plan?->monthly_credits ?? 0,
-            'total_this_month' => $user->plan?->monthly_credits ?? 0,
+            'credits_balance' => $activePlan?->credits_per_cycle ?? 0,
+            'total_this_month' => $activePlan?->credits_per_cycle ?? 0,
             'billing_cycle_start' => now()->startOfMonth(),
         ]);
 
@@ -33,7 +34,7 @@ class UsageController extends Controller
         $userCredits->refresh();
 
         // Calculate credit statistics
-        $totalCredits = $userCredits->total_this_month ?: ($user->plan?->monthly_credits ?? 0);
+        $totalCredits = $userCredits->total_this_month ?: ($activePlan?->credits_per_cycle ?? 0);
         $remainingCredits = max(0, $userCredits->credits_balance); // Ensure never negative
         $usedCredits = max(0, $totalCredits - $userCredits->credits_balance);
         $percentageUsed = $totalCredits > 0 ? ($usedCredits / $totalCredits) * 100 : 0;
@@ -60,9 +61,15 @@ class UsageController extends Controller
                 'percentage_used' => round(min($percentageUsed, 100), 1), // Cap at 100%
                 'days_until_reset' => $daysUntilReset,
             ],
-            'plan' => $user->plan ? [
-                'name' => $user->plan->name,
-                'monthly_price' => $user->plan->monthly_price,
+            'plan' => $activePlan ? [
+                'name' => $activePlan->name,
+                'price' => $activePlan->price,
+            ] : null,
+            'subscription' => $activeSubscription ? [
+                'id' => $activeSubscription->id,
+                'status' => $activeSubscription->status,
+                'started_at' => $activeSubscription->started_at,
+                'ends_at' => $activeSubscription->ends_at,
             ] : null,
             'graphData' => $graphData,
             'usageLogs' => $usageLogs,
@@ -77,7 +84,8 @@ class UsageController extends Controller
         ]);
 
         $user = auth()->user();
-        $user->load(['credits']);
+        $user->load('credits');
+        $activePlan = $user->activePlan();
 
         // Credit package pricing
         $packages = [
@@ -89,12 +97,12 @@ class UsageController extends Controller
         // TODO: Integrate with payment gateway (Stripe, PayPal, etc.)
         // For now, we'll simulate successful payment
 
-        DB::transaction(function () use ($user, $package) {
+        DB::transaction(function () use ($user, $package, $activePlan) {
             // Get or create UserCredit record
             $userCredits = $user->credits ?? UserCredit::create([
                 'user_id' => $user->id,
-                'credits_balance' => $user->plan?->monthly_credits ?? 0,
-                'total_this_month' => $user->plan?->monthly_credits ?? 0,
+                'credits_balance' => $activePlan?->credits_per_cycle ?? 0,
+                'total_this_month' => $activePlan?->credits_per_cycle ?? 0,
                 'billing_cycle_start' => now()->startOfMonth(),
             ]);
 
@@ -128,9 +136,10 @@ class UsageController extends Controller
         $nextResetDate = $userCredits->billing_cycle_start->copy()->addMonth()->startOfMonth();
 
         if (now()->greaterThanOrEqualTo($nextResetDate)) {
-            $monthlyCredits = $user->plan?->monthly_credits ?? 0;
+            $activePlan = $user->activePlan();
+            $creditsPerCycle = $activePlan?->credits_per_cycle ?? 0;
 
-            $userCredits->resetCredits($monthlyCredits);
+            $userCredits->resetCredits($creditsPerCycle);
 
             // Optional: Log reset for audit trail
             UsageLog::create([

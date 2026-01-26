@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Mail\BetaInvitationMail;
 use App\Models\BetaInvitation;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserCredit;
 use App\Services\Notification\TelegramNotificationService;
@@ -146,13 +147,20 @@ class BetaController extends Controller
 
             // Start database transaction
             DB::transaction(function () use ($betaInvitation, $password) {
-                // Create user account with Pro plan (id: 2)
+                // Create user account
                 $user = User::create([
                     'name' => $betaInvitation->name,
                     'email' => $betaInvitation->email,
                     'password' => Hash::make($password),
                     'email_verified_at' => now(),
+                ]);
+
+                // Create subscription for Pro plan (id: 2)
+                Subscription::create([
+                    'user_id' => $user->id,
                     'plan_id' => 2, // Pro plan
+                    'status' => Subscription::STATUS_ACTIVE,
+                    'started_at' => now(),
                 ]);
 
                 // Create user credit record with Pro plan credits (100)

@@ -1,4 +1,4 @@
-import { type Credits, type UsagePlan } from '@/types';
+import { type Credits, type UsagePlan, type Subscription } from '@/types';
 import {
     SparklesIcon,
     ActivityIcon,
@@ -6,7 +6,11 @@ import {
     CreditCardIcon,
     AlertCircleIcon,
     CoinsIcon,
+    Receipt,
+    CheckCircle,
+    XCircle,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { formatNumber } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +25,7 @@ import {
 interface CreditsOverviewProps {
     credits: Credits;
     plan: UsagePlan | null;
+    subscription: Subscription | null;
     purchaseDialogOpen: boolean;
     setPurchaseDialogOpen: (open: boolean) => void;
     onPurchase: () => void;
@@ -34,6 +39,7 @@ interface CreditsOverviewProps {
 export function CreditsOverview({
     credits,
     plan,
+    subscription,
     purchaseDialogOpen,
     setPurchaseDialogOpen,
     onPurchase,
@@ -127,8 +133,49 @@ export function CreditsOverview({
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-lg font-bold text-foreground">${plan.monthly_price}</p>
+                                <p className="text-lg font-bold text-foreground">
+                                    ${typeof plan.price === 'string' ? parseFloat(plan.price).toFixed(2) : plan.price.toFixed(2)}
+                                </p>
                                 <p className="text-[10px] text-muted-foreground">per month</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Subscription Info */}
+                {subscription && (
+                    <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10">
+                                    <Receipt className="h-3.5 w-3.5 text-blue-500" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-foreground">Active Subscription</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Started {new Date(subscription.started_at).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {subscription.status === 'active' ? (
+                                    <Badge variant="default" className="bg-green-500/10 text-green-600 dark:text-green-400">
+                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        Active
+                                    </Badge>
+                                ) : subscription.status === 'cancelled' ? (
+                                    <Badge variant="secondary">
+                                        <XCircle className="h-3 w-3 mr-1" />
+                                        Cancelled
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="outline">{subscription.status}</Badge>
+                                )}
+                                {subscription.ends_at && (
+                                    <p className="text-[10px] text-muted-foreground">
+                                        Ends {new Date(subscription.ends_at).toLocaleDateString()}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -211,7 +211,17 @@ export interface Credits {
  */
 export interface UsagePlan {
     name: string;
-    monthly_price: number;
+    price: number | string;
+}
+
+/**
+ * User's active subscription details.
+ */
+export interface Subscription {
+    id: number;
+    status: string;
+    started_at: string;
+    ends_at: string | null;
 }
 
 /**

@@ -4,8 +4,8 @@ interface PlanBadgeProps {
     plan: {
         id: number;
         name: string;
-        monthly_price: number;
-        monthly_credits: number;
+        price?: number | string;
+        slug?: string;
     };
     className?: string;
 }

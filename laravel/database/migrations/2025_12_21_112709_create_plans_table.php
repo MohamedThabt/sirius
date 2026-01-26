@@ -14,8 +14,11 @@ return new class extends Migration
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->decimal('monthly_price', 10, 2);
-            $table->integer('monthly_credits');
+            $table->string('slug')->unique();
+            $table->decimal('price', 10, 2);
+            $table->integer('credits_per_cycle');
+            $table->string('billing_cycle');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

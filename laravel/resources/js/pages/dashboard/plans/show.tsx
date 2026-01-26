@@ -10,8 +10,11 @@ import { ArrowLeftIcon, CreditCard, UsersIcon, CalendarIcon, CoinsIcon, Trending
 interface Plan {
   id: number;
   name: string;
-  monthly_price: string;
-  monthly_credits: number;
+  slug: string;
+  price: string;
+  credits_per_cycle: number;
+  billing_cycle: string;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -35,7 +38,7 @@ interface PlanStats {
 
 interface Props {
   plan: Plan;
-  users: {
+  subscribers: {
     data: User[];
     current_page: number;
     last_page: number;
@@ -62,7 +65,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function PlanShow({ plan, users, planStats }: Props) {
+export default function PlanShow({ plan, subscribers, planStats }: Props) {
   const formatPrice = (price: string | number): string => {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     return new Intl.NumberFormat('en-US', {
@@ -159,20 +162,39 @@ export default function PlanShow({ plan, users, planStats }: Props) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CoinsIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Monthly Price</span>
+                    <span className="text-sm">Price</span>
                   </div>
                   <Badge variant="outline" className="text-lg font-semibold">
-                    {formatPrice(plan.monthly_price)}
+                    {formatPrice(plan.price)}
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Monthly Credits</span>
+                    <span className="text-sm">Credits per Cycle</span>
                   </div>
                   <Badge variant="outline" className="text-lg font-semibold">
-                    {plan.monthly_credits} credits
+                    {plan.credits_per_cycle} credits
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Billing Cycle</span>
+                  </div>
+                  <Badge variant="outline" className="capitalize">
+                    {plan.billing_cycle}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Status</span>
+                  </div>
+                  <Badge variant={plan.is_active ? "default" : "secondary"}>
+                    {plan.is_active ? "Active" : "Inactive"}
                   </Badge>
                 </div>
 
@@ -227,7 +249,7 @@ export default function PlanShow({ plan, users, planStats }: Props) {
                 <UserIcon className="h-4 w-4" />
                 Users on This Plan
               </span>
-              <Badge variant="outline">{users.total} total</Badge>
+              <Badge variant="outline">{subscribers?.total || 0} total</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -243,7 +265,7 @@ export default function PlanShow({ plan, users, planStats }: Props) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.data.map((user) => (
+                {subscribers?.data?.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
@@ -281,7 +303,7 @@ export default function PlanShow({ plan, users, planStats }: Props) {
           </CardContent>
         </Card>
 
-        {users.data.length === 0 && (
+        {(!subscribers?.data || subscribers.data.length === 0) && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <UsersIcon className="mb-4 h-12 w-12 text-muted-foreground" />
@@ -291,10 +313,10 @@ export default function PlanShow({ plan, users, planStats }: Props) {
         )}
 
         {/* Pagination info */}
-        {users.total > 0 && (
+        {subscribers?.total && subscribers.total > 0 && (
           <div className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-              Showing {users.from || 0} to {users.to || 0} of {users.total} users
+              Showing {subscribers.from || 0} to {subscribers.to || 0} of {subscribers.total} users
             </p>
           </div>
         )}
