@@ -18,6 +18,7 @@ class UsageController extends Controller
         $user = auth()->user();
         $user->load('credits');
         $activePlan = $user->activePlan();
+        $activeSubscription = $user->activeSubscription();
 
         // Get or create UserCredit if doesn't exist
         $userCredits = $user->credits ?? UserCredit::create([
