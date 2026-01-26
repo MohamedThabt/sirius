@@ -38,22 +38,11 @@ Project: {project_name}
 Prepared by: {author}
 Date: {date}
 
-Revision History
-Version
+## Revision History
 
-Date
-
-Summary
-
-Author
-
-{version}
-
-{date}
-
-Synchronized with current modules and features
-
-{author}
+| Version | Date | Summary | Author |
+| :--- | :--- | :--- | :--- |
+| {version} | {date} | Synchronized with current modules and features | {author} |
 
 ## 1. Why?
 [Maintain the original purpose, value proposition, and business context unless fundamentally changed]

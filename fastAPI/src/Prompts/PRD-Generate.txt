@@ -27,22 +27,11 @@ Project: {project_name}
 Prepared by: {author}
 Date: {date}
 
-Revision History
-Version
+## Revision History
 
-Date
-
-Summary
-
-Author
-
-{version}
-
-{date}
-
-Initial draft
-
-{author}
+| Version | Date | Summary | Author |
+| :--- | :--- | :--- | :--- |
+| {version} | {date} | Initial draft | {author} |
 
 ## 1. Why?
 [High-level purpose, value proposition, business context, and the core problem being solved.]
