@@ -464,16 +464,16 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                                         <ReactFlowDiagram c4Diagram={c4Diagram || undefined} />
                                                     )}
                                                 </div>
-                                            </div>
 
-                                            {/* Error and Warning Display */}
-                                            {!isFullScreen && error && (
-                                                <DiagramErrorPanel
-                                                    error={error ?? 'Unknown error'}
-                                                    onFixRequest={handleFixError}
-                                                    className="absolute right-4 bottom-4 left-4 z-30"
-                                                />
-                                            )}
+                                                {/* Error and Warning Display - Moved inside Right Panel */}
+                                                {!isFullScreen && error && (
+                                                    <DiagramErrorPanel
+                                                        error={error ?? 'Unknown error'}
+                                                        onFixRequest={handleFixError}
+                                                        className="absolute right-4 bottom-4 left-4 z-30"
+                                                    />
+                                                )}
+                                            </div>
 
                                             {!isFullScreen && warnings && warnings.length > 0 && (
                                                 <div className="absolute right-4 bottom-16 left-4 z-30 rounded border p-4">
