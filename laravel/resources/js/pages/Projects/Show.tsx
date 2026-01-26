@@ -106,6 +106,7 @@ export default function ProjectShow({
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isGeneratingModules, setIsGeneratingModules] = useState(false);
     const [isGeneratingTechnicalDetails, setIsGeneratingTechnicalDetails] = useState(false);
+    const [isGeneratingERD, setIsGeneratingERD] = useState(false);
     const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
 
     // getPriorityColor now imported from @/utils/status-colors
@@ -257,10 +258,12 @@ export default function ProjectShow({
                 isCurrent: modulesExist && !erdExists,
                 isLocked: !modulesExist,
                 isHardLocked: !modulesExist,
-                actionType: 'navigate',
-                actionPath: `/projects/${project.id}/erd`,
+                actionType: erdExists ? 'navigate' : 'generate',
+                actionPath: erdExists ? `/projects/${project.id}/erd` : null,
                 prerequisites: ['modules'],
                 prerequisiteMessage: 'Complete System Modules to unlock Database Design',
+                isLoading: isGeneratingERD,
+                currentBadgeLabel: erdExists ? undefined : 'Generate',
             },
         ];
 
@@ -286,6 +289,7 @@ export default function ProjectShow({
             hasTechnicalIntake,
             isGeneratingModules,
             isGeneratingTechnicalDetails,
+            isGeneratingERD,
         ]
     );
     const currentStep = roadmapSteps.find((step) => step.isCurrent);
@@ -387,6 +391,15 @@ export default function ProjectShow({
                         onSuccess: () => {
                             router.reload();
                         },
+                    },
+                );
+            } else if (step.id === 'erd') {
+                setIsGeneratingERD(true);
+                router.post(
+                    `/projects/${project.id}/erd/merge`,
+                    {},
+                    {
+                        onFinish: () => setIsGeneratingERD(false),
                     },
                 );
             }

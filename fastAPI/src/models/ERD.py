@@ -40,3 +40,27 @@ class SyncModuleERDRequest(BaseModel):
     feature_erds: List[str]  # Array of feature ERDs to merge
     module_name: str
     module_description: str
+
+
+# ============================================================
+# Project ERD Models (Merge Module ERDs)
+# ============================================================
+
+class ModuleERDContext(BaseModel):
+    """Context for a module's ERD in project-level merge"""
+    module_name: str
+    module_description: str
+    erd_content: str
+
+
+class MergeProjectERDRequest(BaseModel):
+    """Request model for merging module ERDs into project ERD"""
+    project_name: str
+    project_overview: str
+    module_erds: List[ModuleERDContext]
+
+
+class ProjectERD(BaseModel):
+    """Response model for project-level ERD"""
+    ERD: str
+    usage: Optional[UsageMetrics] = None

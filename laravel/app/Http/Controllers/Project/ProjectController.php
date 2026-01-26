@@ -345,27 +345,7 @@ class ProjectController extends Controller
         }
     }
 
-    /**
-     * Get the ERD for the specified project.
-     *
-     * @param Project $project
-     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
-     */
-    public function getERD(Project $project)
-    {
-        try {
-            // Ensure user has access to the project
-            $this->ensureAccess($project);
 
-            return Inertia::render('Projects/DatabaseDesigner', [
-                'project' => $project,
-                'initialContent' => $project->erd,
-            ]);
-        } catch (\Throwable $e) {
-            $this->logException($e, ['action' => 'getERD', 'project_id' => $project->id]);
-            return back()->with('error', 'Failed to load ERD.');
-        }
-    }
 
 
 

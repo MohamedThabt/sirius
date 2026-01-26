@@ -12,6 +12,7 @@ use App\Http\Controllers\Module\ModuleERDController;
 use App\Http\Controllers\Project\GithubController;
 use App\Http\Controllers\Project\InvitationController;
 use App\Http\Controllers\Project\ProjectController;
+use App\Http\Controllers\Project\ProjectERDController;
 use App\Http\Controllers\Project\ProjectTeamController;
 use App\Http\Controllers\Project\SystemOverviewController;
 use App\Http\Controllers\Project\ArchitectureController;
@@ -77,7 +78,8 @@ Route::middleware(['auth', 'share.project'])->group(function () {
     Route::get('/projects/{project}/technology', [ProjectController::class, 'showTechnology'])->name('projects.technology');
     Route::post('/projects/{project}/technology/generate', [\App\Http\Controllers\Project\TechnicalDetailsController::class, 'generate'])->name('projects.technology.generate');
     Route::post('/projects/{project}/technology', [\App\Http\Controllers\Project\TechnicalDetailsController::class, 'store'])->name('projects.technology.store');
-    Route::get('/projects/{project}/erd', [ProjectController::class, 'getERD'])->name('projects.erd.get');
+    Route::get('/projects/{project}/erd', [ProjectERDController::class, 'show'])->name('projects.erd.get');
+    Route::post('/projects/{project}/erd/merge', [ProjectERDController::class, 'merge'])->name('projects.erd.merge');
 
     // Invitations
     Route::post('/projects/{project}/invitations', [InvitationController::class, 'store'])->name('invitations.store');

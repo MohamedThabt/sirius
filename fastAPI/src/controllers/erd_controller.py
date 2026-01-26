@@ -278,3 +278,52 @@ async def sync_module_erd(request: SyncModuleERDRequest) -> tuple[str, UsageMetr
 
     logger.info("Module ERD synced successfully")
     return clean_mermaid, usage
+
+
+async def merge_project_erd(request) -> tuple[str, UsageMetrics]:
+    """Merge all module ERDs into a unified project-level ERD"""
+    from models.ERD import MergeProjectERDRequest
+    
+    logger.info(f"Starting project ERD merge for: {request.project_name} ({len(request.module_erds)} modules)")
+
+    # Validate input
+    if not request.module_erds:
+        logger.warning("Project ERD merge rejected: no module ERDs provided")
+        raise HTTPException(status_code=400, detail="At least one module ERD is required")
+    
+    if not request.project_name.strip():
+        logger.warning("Project ERD merge rejected: empty project name")
+        raise HTTPException(status_code=400, detail="Project name cannot be empty")
+
+    # Build prompt
+    template = load_prompt("ERD-Merge-Project.txt")
+    template = Template(template)
+    
+    # Format module ERDs for prompt
+    module_erds_text = "\n\n---\n\n".join([
+        f"## Module: {m.module_name}\n**Description:** {m.module_description}\n\n```mermaid\n{m.erd_content}\n```"
+        for m in request.module_erds
+    ])
+    
+    prompt = template.substitute(
+        project_name=request.project_name,
+        project_overview=request.project_overview or "No overview provided",
+        module_erds=module_erds_text
+    )
+    
+    try:
+        logger.info("Calling Gemini API for project ERD merge...")
+        raw_response, usage = await proxy(prompt)
+        clean_mermaid = extract_mermaid_from_response(raw_response)
+        if not clean_mermaid:
+            raise HTTPException(status_code=500, detail="Invalid Mermaid response from AI")
+
+    except HTTPException as e:
+        logger.error(f"HTTP error during project ERD merge: {e.status_code} - {e.detail}")
+        raise e
+    except Exception as e:
+        logger.error(f"Unexpected error during project ERD merge: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    logger.info("Project ERD merged successfully")
+    return clean_mermaid, usage
