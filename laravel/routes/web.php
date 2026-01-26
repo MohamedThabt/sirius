@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Dashboard\BetaController;
+use App\Http\Controllers\Beta\BetaSignupController;
 use App\Http\Controllers\Project\BrainstormingController;
 use App\Http\Controllers\Project\PRDController;
 use App\Http\Controllers\Feature\FeaturesController;
@@ -53,12 +53,8 @@ Route::get('/', function () {
 })->name('landing');
 
 // Public Beta Signup Routes
-Route::get('/beta', function () {
-    return Inertia::render('beta-signup', [
-        'message' => session('success'),
-    ]);
-})->name('beta.page');
-Route::post('/beta/signup', [BetaController::class, 'store'])
+Route::get('/beta', [BetaSignupController::class, 'index'])->name('beta.page');
+Route::post('/beta/signup', [BetaSignupController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('beta.store');
 

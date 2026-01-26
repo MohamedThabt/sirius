@@ -80,8 +80,11 @@ class BetaController extends Controller
         }
     }
 
+
+
+
     /**
-     * Store a new beta invitation request from the public.
+     * Create a new beta invitation manually by an administrator.
      *
      * Expected request data:
      * - name: string (required, max:255)
@@ -99,43 +102,6 @@ class BetaController extends Controller
                 'email.unique' => 'You have already joined the waitlist!',
             ]);
         try {
-
-            $betaInvitation = BetaInvitation::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'status' => BetaInvitation::STATUS_PENDING,
-            ]);
-
-            // Send Telegram notification
-            app(TelegramNotificationService::class)->notifyNewBetaRequest($betaInvitation);
-
-            return back()->with('success', 'Thank you! Your beta invitation request has been received. We\'ll be in touch soon.');
-        } catch (Throwable $e) {
-            $this->logException($e, ['action' => 'store']);
-            return back()->with('error', 'Failed to submit your beta invitation request. Please try again.');
-        }
-    }
-
-
-    /**
-     * Create a new beta invitation manually by an administrator.
-     *
-     * Expected request data:
-     * - name: string (required, max:255)
-     * - email: string (required, email, unique in beta_invitations table)
-     *
-     * @param Request $request The incoming HTTP request
-     * @return RedirectResponse Redirect back with success or error message
-     */
-    public function create(Request $request): RedirectResponse
-    {
-        $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:beta_invitations',
-            ], [
-                'email.unique' => 'You have already joined the waitlist!',
-            ]);
-        try {
             BetaInvitation::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -145,7 +111,7 @@ class BetaController extends Controller
 
             return back()->with('success', 'Beta invitation created successfully.');
         } catch (Throwable $e) {
-            $this->logException($e, ['action' => 'create']);
+            $this->logException($e, ['action' => 'store']);
             return back()->with('error', 'Failed to create beta invitation. Please try again.');
         }
     }
