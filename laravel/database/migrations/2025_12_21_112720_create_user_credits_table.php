@@ -15,12 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->onDelete('cascade');
             $table->integer('credits_balance')->default(0);
-            $table->integer('total_this_month');
-            $table->date('billing_cycle_start');
+            $table->integer('total_this_month')->default(0);
+            $table->date('billing_cycle_start')->useCurrent();
             $table->timestamp('last_reset_at')->nullable();
             $table->timestamps();
-            
-            $table->index('user_id');
         });
     }
 

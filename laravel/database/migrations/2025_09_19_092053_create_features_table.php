@@ -18,7 +18,7 @@ return new class extends Migration
             $table->longText('summary')->nullable();
             $table->longText('description')->nullable();
             $table->longText('acceptance_criteria')->nullable();
-            $table->string('user_flows')->nullable();
+            $table->longText('user_flows')->nullable();
             $table->longText('wireframe')->nullable();
             $table->longText('sequence_diagram')->nullable();
             $table->longText('datamodel')->nullable();

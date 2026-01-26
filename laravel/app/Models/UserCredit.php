@@ -18,6 +18,11 @@ class UserCredit extends Model
         'last_reset_at',
     ];
 
+    protected $attributes = [
+        'credits_balance' => 0,
+        'total_this_month' => 0,
+    ];
+
     protected function casts(): array
     {
         return [

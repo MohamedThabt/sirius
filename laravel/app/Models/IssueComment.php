@@ -12,20 +12,10 @@ class IssueComment extends Model
 
     protected $table = 'issue_comments';
 
-    /**
-     * Indicates if the model should be timestamped.
-     * This model only has created_at, no updated_at.
-     */
-    public $timestamps = false;
-
     protected $fillable = [
         'issue_report_id',
         'admin_id',
         'comment',
-    ];
-
-    protected $casts = [
-        'created_at' => 'datetime',
     ];
 
     /**

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('output_tokens');
             $table->integer('credits_used');
             $table->decimal('cost', 10, 4)->nullable();
-            $table->timestamp('created_at');
+            $table->timestamps();
             
             $table->index(['user_id', 'created_at']);
             $table->index('created_at');

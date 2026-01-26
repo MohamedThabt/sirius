@@ -23,8 +23,8 @@ return new class extends Migration
             $table->string('provider_id')->nullable();
             $table->string('avatar')->nullable();
             
-            // Plan relationship (foreign key added in separate migration after plans table exists)
-            $table->unsignedBigInteger('plan_id')->nullable();
+            // Plan relationship (will be constrained in separate migration)
+            $table->unsignedInteger('plan_id')->nullable();
             
             $table->rememberToken();
             $table->timestamps();

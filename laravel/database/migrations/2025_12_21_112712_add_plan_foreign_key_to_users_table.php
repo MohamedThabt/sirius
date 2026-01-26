@@ -31,9 +31,17 @@ return new class extends Migration
             ->whereNull('plan_id')
             ->update(['plan_id' => 1]);
 
-        // Set default value to 1 (Free plan) for plan_id column
+        // Set default value for plan_id column
         Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('plan_id')->default(1)->change();
+            $table->unsignedInteger('plan_id')->default(1)->change();
+        });
+
+        // Add foreign key constraint
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('plan_id')
+                  ->references('id')
+                  ->on('plans')
+                  ->nullOnDelete();
         });
     }
 
@@ -43,7 +51,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('plan_id')->nullable()->change();
+            $table->dropForeign(['plan_id']);
+            $table->unsignedInteger('plan_id')->nullable()->change();
         });
     }
 };

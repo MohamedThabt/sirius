@@ -10,8 +10,6 @@ class UsageLog extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $fillable = [
         'user_id',
         'action_type',
@@ -20,7 +18,6 @@ class UsageLog extends Model
         'output_tokens',
         'credits_used',
         'cost',
-        'created_at',
     ];
 
     protected function casts(): array
@@ -30,7 +27,6 @@ class UsageLog extends Model
             'output_tokens' => 'integer',
             'credits_used' => 'integer',
             'cost' => 'decimal:4',
-            'created_at' => 'datetime',
         ];
     }
 
