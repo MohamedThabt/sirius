@@ -453,6 +453,34 @@
     transform: translateY(30px);
 }
 
+/* Shimmer - used in plan-badge.tsx for Pro badge */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Shine - used in plan-badge.tsx for Pro badge */
+@keyframes shine {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.animate-shimmer {
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.animate-shine {
+    animation: shine 2.5s ease-in-out infinite;
+}
+
 /* ===== SIRIUS LANDING PAGE STYLES ===== */
 
 /* Sirius Typography */
@@ -1166,7 +1194,9 @@
     .sirius-fade-up,
     .sirius-pulse,
     .database,
-    .loading-spinner-enhanced::before {
+    .loading-spinner-enhanced::before,
+    .animate-shimmer,
+    .animate-shine {
         animation: none;
         opacity: 1;
         transform: none;

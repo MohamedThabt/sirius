@@ -1,6 +1,7 @@
 import AppLogo from '@/components/app-logo';
 import { RepoConnectDialog } from '@/components/github/repo-connect-dialog';
 import { RepoManagementModal } from '@/components/github/repo-management-modal';
+import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
@@ -255,8 +256,15 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                     </nav>
                 </div>
 
-                <div className="shrink-0 border-t pt-3">
-                    <DropdownMenu>
+                <div className="shrink-0 space-y-3">
+                    {/* Usage Bar */}
+                    <div className="border-t pt-3">
+                        <SidebarUsageBar />
+                    </div>
+
+                    {/* User Menu */}
+                    <div className="border-t pt-3">
+                        <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
                                 <Avatar className="h-5 w-5 shrink-0">
@@ -276,6 +284,7 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                             <UserMenuContent user={auth.user} />
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    </div>
                 </div>
             </div>
         </aside>

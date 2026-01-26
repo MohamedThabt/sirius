@@ -40,14 +40,57 @@ class HandleInertiaRequests extends Middleware
 
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $user = $request->user();
+        
+        // Load relationships for authenticated user
+        if ($user) {
+            $user->load('plan');
+            $user->load('credits');
+            
+            // Initialize credits if they don't exist and user has a plan
+            if ($user->plan && is_null($user->credits)) {
+                try {
+                    $user->credits()->create([
+                        'credits_balance' => $user->plan->monthly_credits,
+                        'total_this_month' => $user->plan->monthly_credits,
+                        'billing_cycle_start' => now()->startOfMonth(),
+                        'last_reset_at' => now(),
+                    ]);
+                    $user->refresh();
+                } catch (\Exception $e) {
+                    Log::error('Failed to create user credits: ' . $e->getMessage());
+                }
+            }
+        }
+        
+        // Build user credits data
+        $userCredits = null;
+        if ($user && $user->plan && $user->credits) {
+            $rawBalance = $user->getCreditsBalance();
+            $balance = max(0, $rawBalance); // Ensure never negative
+            $total = $user->getTotalThisMonth();
+            $used = max(0, $total - $rawBalance);
+            
+            $userCredits = [
+                'balance' => $balance,
+                'total' => $total,
+                'used' => $used,
+                'percentage' => $total > 0 
+                    ? round(min(($used / $total) * 100, 100), 1) // Cap at 100%
+                    : 0,
+                'daysUntilReset' => $user->credits->getDaysUntilReset(),
+            ];
+        }
+        
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
                 'admin' => $request->user('admin'),
             ],
+            'userCredits' => $userCredits,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'flash' => [
                 'success' => $request->session()->get('success'),

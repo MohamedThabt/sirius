@@ -1,8 +1,9 @@
-import { type Credits, type UsagePlan, type GraphData, type UsageLog, type PaginatedData } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { type Credits, type UsagePlan, type GraphData, type UsageLog, type PaginatedData, type SharedData } from '@/types';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useState, useCallback } from 'react';
 import SettingsLayout from '@/layouts/settings/layout';
+import { PlanBadge } from '@/components/plan-badge';
 
 // WHY: Extracted components keep this file focused on layout and data flow
 import { CreditsOverview } from './usage/CreditsOverview';
@@ -22,6 +23,7 @@ interface Props {
 
 function Usage({ credits, plan, graphData, usageLogs, totalConsumedCredits }: Props) {
     useFlashToasts();
+    const { auth } = usePage<SharedData>().props;
     const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
 
     const { post, processing } = useForm({
@@ -43,9 +45,17 @@ function Usage({ credits, plan, graphData, usageLogs, totalConsumedCredits }: Pr
             <Head title="Usage & Credits" />
 
             <header className="mb-8">
-                <div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">Usage & Credits</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">Monitor your AI usage and credit consumption</p>
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Usage & Credits</h1>
+                        <p className="mt-1 text-sm text-muted-foreground">Monitor your AI usage and credit consumption</p>
+                    </div>
+                    {auth.user.plan && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Current Plan:</span>
+                            <PlanBadge plan={auth.user.plan} className="text-xs" />
+                        </div>
+                    )}
                 </div>
             </header>
 

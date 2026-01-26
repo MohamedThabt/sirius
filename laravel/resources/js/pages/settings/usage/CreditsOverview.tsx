@@ -39,7 +39,9 @@ export function CreditsOverview({
     onPurchase,
     processing,
 }: CreditsOverviewProps) {
-    const showUpsellBanner = credits.percentage_used >= 80 || credits.remaining <= 0;
+    // Ensure remaining credits are never negative
+    const remainingCredits = Math.max(0, credits.remaining);
+    const showUpsellBanner = credits.percentage_used >= 80 || remainingCredits <= 0;
 
     return (
         <div className="rounded-lg border border-border p-4">
@@ -59,7 +61,7 @@ export function CreditsOverview({
                             </div>
                             <div>
                                 <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Remaining</p>
-                                <p className="text-lg font-bold text-foreground">{formatNumber(credits.remaining)}</p>
+                                <p className="text-lg font-bold text-foreground">{formatNumber(remainingCredits)}</p>
                             </div>
                         </div>
                     </div>
@@ -132,8 +134,8 @@ export function CreditsOverview({
                     </div>
                 )}
 
-                {/* Upsell Banner */}
-                {showUpsellBanner && (
+                {/* Upsell Banner - Commented out during beta phase */}
+                {/* {showUpsellBanner && (
                     <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 dark:border-orange-900/50 dark:bg-orange-950/30">
                         <div className="flex items-start gap-2.5">
                             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-orange-500/10">
@@ -141,7 +143,7 @@ export function CreditsOverview({
                             </div>
                             <div className="flex-1">
                                 <p className="font-semibold text-orange-900 dark:text-orange-100">
-                                    {credits.remaining <= 0
+                                    {remainingCredits <= 0
                                         ? 'Credits exhausted'
                                         : 'Running low on credits'}
                                 </p>
@@ -198,7 +200,7 @@ export function CreditsOverview({
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
             </div>
         </div>
     );

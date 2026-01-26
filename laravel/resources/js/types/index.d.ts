@@ -63,10 +63,19 @@ export interface CurrentProject {
     status: string;
 }
 
+export interface UserCreditsData {
+    balance: number;
+    total: number;
+    used: number;
+    percentage: number;
+    daysUntilReset: number;
+}
+
 export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    userCredits: UserCreditsData | null;
     sidebarOpen: boolean;
     flash: FlashMessages;
     currentProject?: CurrentProject;
@@ -82,6 +91,12 @@ export interface User {
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
+    plan?: {
+        id: number;
+        name: string;
+        monthly_price: number;
+        monthly_credits: number;
+    };
     [key: string]: unknown; // This allows for additional properties...
 }
 

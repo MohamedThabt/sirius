@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlanBadge } from '@/components/plan-badge';
 import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
 
@@ -16,6 +17,7 @@ export function UserInfo({ user, showEmail = false }: { user: User; showEmail?: 
             <div className="grid flex-1 text-left leading-tight">
                 <span className="truncate text-sm font-medium">{user.name}</span>
                 {showEmail && <span className="truncate text-xs text-muted-foreground">{user.email}</span>}
+                {user.plan && <PlanBadge plan={user.plan} />}
             </div>
         </>
     );

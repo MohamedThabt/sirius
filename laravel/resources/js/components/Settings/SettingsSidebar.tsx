@@ -1,4 +1,5 @@
 import AppLogo from '@/components/app-logo';
+import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
@@ -93,6 +94,13 @@ export default function SettingsSidebar({ auth, isSidebarCollapsed, currentPath 
                         </button>
                     ))}
                 </nav>
+
+                {/* Usage Bar */}
+                {!isSidebarCollapsed && (
+                    <div className="border-t p-3">
+                        <SidebarUsageBar />
+                    </div>
+                )}
 
                 {/* User Menu */}
                 <div className="border-t p-3">

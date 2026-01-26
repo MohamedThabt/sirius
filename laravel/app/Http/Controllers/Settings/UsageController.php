@@ -34,8 +34,8 @@ class UsageController extends Controller
 
         // Calculate credit statistics
         $totalCredits = $userCredits->total_this_month ?: ($user->plan?->monthly_credits ?? 0);
-        $remainingCredits = $userCredits->credits_balance;
-        $usedCredits = $totalCredits - $remainingCredits;
+        $remainingCredits = max(0, $userCredits->credits_balance); // Ensure never negative
+        $usedCredits = max(0, $totalCredits - $userCredits->credits_balance);
         $percentageUsed = $totalCredits > 0 ? ($usedCredits / $totalCredits) * 100 : 0;
         $daysUntilReset = $userCredits->getDaysUntilReset();
 
@@ -57,7 +57,7 @@ class UsageController extends Controller
                 'total' => $totalCredits,
                 'remaining' => $remainingCredits,
                 'used' => $usedCredits,
-                'percentage_used' => round($percentageUsed, 1),
+                'percentage_used' => round(min($percentageUsed, 100), 1), // Cap at 100%
                 'days_until_reset' => $daysUntilReset,
             ],
             'plan' => $user->plan ? [

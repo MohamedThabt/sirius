@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { PlanBadge } from '@/components/plan-badge';
 import SettingsLayout from '@/layouts/settings/layout';
 
 function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
@@ -68,7 +69,10 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                 </AvatarFallback>
                             </Avatar>
                             <div className="space-y-1">
-                                <h3 className="text-lg font-medium text-foreground">{auth.user.name}</h3>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-lg font-medium text-foreground">{auth.user.name}</h3>
+                                    {auth.user.plan && <PlanBadge plan={auth.user.plan} />}
+                                </div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <Mail className="h-3.5 w-3.5" />
                                     {auth.user.email}
