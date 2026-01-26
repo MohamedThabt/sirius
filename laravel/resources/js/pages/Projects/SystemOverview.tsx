@@ -1,4 +1,5 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import { ChatInput } from '@/components/Chat/ChatInput';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
@@ -518,7 +519,7 @@ export default function SystemOverview({
                                                                                 )}
                                                                             </div>
                                                                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                                                {new Date(version.created_at).toLocaleDateString()}
+                                                                                <ClientDateTime value={version.created_at} dateStyle="short" />
                                                                             </p>
                                                                         </div>
                                                                     </div>

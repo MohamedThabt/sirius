@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import { UsersIcon, FolderIcon, GitBranchIcon, TrendingUpIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -161,7 +162,7 @@ export default function UsersIndex({ users, filters, summary }: Props) {
                                     <TableCell>
                                         <Badge variant="secondary">{user.projects_count} projects</Badge>
                                     </TableCell>
-                                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                                    <TableCell><ClientDateTime value={user.created_at} dateStyle="short" /></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

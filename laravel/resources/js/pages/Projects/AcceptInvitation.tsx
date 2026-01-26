@@ -51,14 +51,6 @@ export default function AcceptInvitation({ invitation, project }: Props) {
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-    };
-
     return (
         <>
             <Head title="Accept Project Invitation" />
@@ -136,7 +128,7 @@ export default function AcceptInvitation({ invitation, project }: Props) {
                                     <span>Expires</span>
                                 </div>
                                 <span className="text-sm font-medium text-foreground">
-                                    {formatDate(invitation.expires_at)}
+                                    <ClientDateTime value={invitation.expires_at} dateStyle="long" />
                                 </span>
                             </div>
                         </div>

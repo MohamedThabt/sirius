@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon, CoinsIcon, CpuIcon, ActivityIcon } from 'lucide-react';
 
 interface Project {
@@ -231,7 +232,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs 
 
                                 <div className="flex items-center gap-2">
                                     <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm">Joined {new Date(user.created_at).toLocaleDateString()}</span>
+                                    <span className="text-sm">Joined <ClientDateTime value={user.created_at} dateStyle="short" /></span>
                                 </div>
 
                                 {user.provider && (
@@ -358,7 +359,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs 
                                                             {log.credits_used.toLocaleString()}
                                                         </TableCell>
                                                         <TableCell className="text-sm text-muted-foreground">
-                                                            {new Date(log.created_at).toLocaleDateString()}
+                                                            <ClientDateTime value={log.created_at} dateStyle="short" />
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
@@ -411,7 +412,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs 
                                                 <TableCell>
                                                     <Badge variant="outline" className={getStatusColor(project.status)}>{project.status.replace('_', ' ')}</Badge>
                                                 </TableCell>
-                                                <TableCell className="text-sm text-muted-foreground">{new Date(project.created_at).toLocaleDateString()}</TableCell>
+                                                <TableCell className="text-sm text-muted-foreground"><ClientDateTime value={project.created_at} dateStyle="short" /></TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -462,7 +463,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs 
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">
                                                     {project.pivot.joined_at 
-                                                        ? new Date(project.pivot.joined_at).toLocaleDateString()
+                                                        ? <ClientDateTime value={project.pivot.joined_at} dateStyle="short" />
                                                         : '-'}
                                                 </TableCell>
                                             </TableRow>

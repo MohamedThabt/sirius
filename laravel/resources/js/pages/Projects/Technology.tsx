@@ -2,6 +2,7 @@ import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckboxGrid } from '@/components/ui/checkbox-grid';
@@ -512,14 +513,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
             {technicalIntake!.updated_at && (
                 <div className="rounded border p-4">
                     <p className="text-xs text-muted-foreground">
-                        Last updated:{' '}
-                        {new Date(technicalIntake!.updated_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                        })}
+                        Last updated: <ClientDateTime value={technicalIntake!.updated_at} dateStyle="long" timeStyle="short" />
                     </p>
                 </div>
             )}

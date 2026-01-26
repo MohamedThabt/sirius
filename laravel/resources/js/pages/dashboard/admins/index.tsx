@@ -12,6 +12,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -315,7 +316,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                         </Badge>
                                     </TableCell>
                                     <TableCell>{admin.creator ? admin.creator.name : 'System'}</TableCell>
-                                    <TableCell>{new Date(admin.created_at).toLocaleDateString()}</TableCell>
+                                    <TableCell><ClientDateTime value={admin.created_at} dateStyle="short" /></TableCell>
                                     <TableCell>
                                         <div className="flex gap-2">
                                             <Button 

@@ -2,6 +2,7 @@ import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -304,7 +305,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                                             </Badge>
                                                                             <span className="flex items-center gap-1">
                                                                                 <Clock className="h-3 w-3" />
-                                                                                {new Date(invitation.invited_at).toLocaleDateString()}
+                                                                                <ClientDateTime value={invitation.invited_at} dateStyle="short" />
                                                                             </span>
                                                                         </div>
                                                                     </div>
@@ -389,7 +390,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                             <div className="mt-1 text-xs text-muted-foreground">
                                                                 {member.role === 'owner'
                                                                     ? 'Project Owner'
-                                                                    : `Joined ${new Date(member.joined_at).toLocaleDateString()}`}
+                                                                    : <span>Joined <ClientDateTime value={member.joined_at} dateStyle="short" /></span>}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -462,7 +463,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                                 <div className="text-sm text-muted-foreground">{invitation.user.email}</div>
                                                                 <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                                                                     <Clock className="h-3 w-3" />
-                                                                    Invited {new Date(invitation.invited_at).toLocaleDateString()}
+                                                                    Invited <ClientDateTime value={invitation.invited_at} dateStyle="short" />
                                                                     {invitation.invited_by && <span>by {invitation.invited_by.name}</span>}
                                                                 </div>
                                                             </div>

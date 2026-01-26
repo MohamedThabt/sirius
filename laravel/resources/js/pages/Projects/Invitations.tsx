@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -140,7 +141,7 @@ export default function ProjectInvitations({ invitations }: Props) {
                                                                             </Badge>
                                                                             <span className="flex items-center gap-1">
                                                                                 <Clock className="h-3 w-3" />
-                                                                                {new Date(invitation.invited_at).toLocaleDateString()}
+                                                                                <ClientDateTime value={invitation.invited_at} dateStyle="short" />
                                                                             </span>
                                                                         </div>
                                                                     </div>

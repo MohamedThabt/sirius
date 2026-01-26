@@ -8,6 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
+import { ClientDateTime, useIsClient } from '@/components/ClientDateTime';
 import {
     AlertCircleIcon,
     ArrowUpRightIcon,
@@ -73,13 +74,16 @@ function SectionHeader({ title, icon: Icon, description, action }: { title: stri
 
 export default function AdminDashboard({ stats }: DashboardProps) {
     useFlashToasts();
+    const isClient = useIsClient();
 
-    const today = new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    const today = isClient
+        ? new Intl.DateTimeFormat(undefined, {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+          }).format(new Date())
+        : '';
 
     const docCoveragePercent = stats.total_projects > 0
         ? Math.round(((stats.projects_with_prd + stats.projects_with_erd + stats.projects_with_c4) / (stats.total_projects * 3)) * 100)
@@ -596,7 +600,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs tabular-nums text-muted-foreground/50">
-                                                {new Date(user.created_at).toLocaleDateString()}
+                                                <ClientDateTime value={user.created_at} dateStyle="short" />
                                             </span>
                                             <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                                         </div>

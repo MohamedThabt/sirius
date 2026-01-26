@@ -1,4 +1,5 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import { ChatInput } from '@/components/Chat/ChatInput';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
@@ -393,7 +394,9 @@ export default function PRD({
                                         <div className="border-b border-border bg-muted/30 p-3">
                                             {currentVersion && (
                                                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                                                    <span>Last updated: {new Date(currentVersion.updated_at).toLocaleString()}</span>
+                                                    <span>
+                                                        Last updated: <ClientDateTime value={currentVersion.updated_at} dateStyle="medium" timeStyle="short" />
+                                                    </span>
                                                     <span>•</span>
                                                     <span>Words: {currentVersion.prd_content.trim().split(/\s+/).filter(Boolean).length}</span>
                                                     <span>•</span>
@@ -546,7 +549,9 @@ export default function PRD({
                             <div className="border-b border-border bg-muted/30 p-3">
                                 {currentVersion && (
                                     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                                        <span>Last updated: {new Date(currentVersion.updated_at).toLocaleString()}</span>
+                                        <span>
+                                            Last updated: <ClientDateTime value={currentVersion.updated_at} dateStyle="medium" timeStyle="short" />
+                                        </span>
                                         <span>•</span>
                                         <span>Words: {currentVersion.prd_content.trim().split(/\s+/).filter(Boolean).length}</span>
                                         <span>•</span>

@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ClientDateTime } from '@/components/ClientDateTime';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -335,13 +336,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
 
                                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                     <CalendarIcon className="h-3.5 w-3.5" />
-                                                    <span>
-                                                        {new Date(project.created_at).toLocaleDateString('en-US', {
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            year: 'numeric',
-                                                        })}
-                                                    </span>
+                                                    <ClientDateTime value={project.created_at} dateStyle="medium" />
                                                 </div>
                                             </div>
                                         </div>

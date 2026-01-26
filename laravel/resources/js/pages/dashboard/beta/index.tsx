@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
+import { ClientDateTime } from '@/components/ClientDateTime';
 import { Check, X, AlertCircle, UserPlus } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -278,7 +279,7 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
                       </span>
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(invitation.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell><ClientDateTime value={invitation.created_at} dateStyle="short" /></TableCell>
                   <TableCell>{invitation.invited_by?.name || "-"}</TableCell>
                   <TableCell>
                     {invitation.status === "pending" && (

@@ -21,6 +21,7 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import { useIsClient } from '@/components/ClientDateTime';
 import {
     AlertCircleIcon,
     AlertOctagonIcon,
@@ -400,13 +401,13 @@ const formatTimestamp = (timestamp: string): string => {
         } else if (logDate.getTime() === yesterday.getTime()) {
             return `Yesterday at ${timeStr}`;
         } else if (date.getFullYear() === now.getFullYear()) {
-            const monthDay = date.toLocaleDateString('en-US', {
+            const monthDay = date.toLocaleDateString(undefined, {
                 month: 'short',
                 day: 'numeric',
             });
             return `${monthDay} at ${timeStr}`;
         } else {
-            const fullDate = date.toLocaleDateString('en-US', {
+            const fullDate = date.toLocaleDateString(undefined, {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',

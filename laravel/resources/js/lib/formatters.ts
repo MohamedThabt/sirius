@@ -24,7 +24,7 @@ export const formatCurrency = (amount: number | null, currency = 'USD'): string 
 
 /**
  * Format a date string as relative time (e.g., "5m ago", "2d ago").
- * Falls back to absolute date for older dates.
+ * Falls back to absolute date for older dates using user's browser locale.
  */
 export const formatRelativeDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -44,7 +44,7 @@ export const formatRelativeDate = (dateString: string): string => {
     } else if (diffDays < 7) {
         return `${diffDays}d ago`;
     } else {
-        return date.toLocaleDateString('en-US', {
+        return date.toLocaleDateString(undefined, {
             month: 'short',
             day: 'numeric',
             year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
