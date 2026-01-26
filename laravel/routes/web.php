@@ -79,6 +79,8 @@ Route::middleware(['auth', 'share.project'])->group(function () {
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('/projects/{project}/prepare', [ProjectController::class, 'prepare'])->name('projects.prepare');
     Route::get('/projects/{project}/technology', [ProjectController::class, 'showTechnology'])->name('projects.technology');
+    Route::post('/projects/{project}/technology/generate', [\App\Http\Controllers\Project\TechnicalDetailsController::class, 'generate'])->name('projects.technology.generate');
+    Route::post('/projects/{project}/technology', [\App\Http\Controllers\Project\TechnicalDetailsController::class, 'store'])->name('projects.technology.store');
     Route::get('/projects/{project}/erd', [ProjectController::class, 'getERD'])->name('projects.erd.get');
 
     // Invitations

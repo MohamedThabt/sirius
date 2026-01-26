@@ -105,6 +105,7 @@ export default function ProjectShow({
     const [isCreateFeatureModalOpen, setIsCreateFeatureModalOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isGeneratingModules, setIsGeneratingModules] = useState(false);
+    const [isGeneratingTechnicalDetails, setIsGeneratingTechnicalDetails] = useState(false);
     const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
 
     // getPriorityColor now imported from @/utils/status-colors
@@ -127,6 +128,7 @@ export default function ProjectShow({
         prerequisiteMessage?: string;
         isLoading?: boolean;
         isOutOfSync?: boolean;
+        currentBadgeLabel?: string;
     }
 
     const getRoadmapSteps = (): RoadmapStep[] => {
@@ -189,8 +191,9 @@ export default function ProjectShow({
                 actionPath: `/projects/${project.id}/technology`,
                 prerequisites: ['brief'],
                 prerequisiteMessage: 'Complete Project Brief first',
+                currentBadgeLabel: 'Complete',
             },
-            // Stage 3: System Modules (unlocked after Overview + Technical Details)
+            // Stage 3: System Modules (unlocked after Overview)
             {
                 id: 'modules',
                 title: 'System Modules',
@@ -199,14 +202,15 @@ export default function ProjectShow({
                 iconColorClass: 'text-violet-500',
                 iconBgClass: 'bg-violet-100 dark:bg-violet-500/20',
                 isCompleted: modulesExist,
-                isCurrent: overviewExists && technicalDetailsExist && !modulesExist,
-                isLocked: !overviewExists || !technicalDetailsExist,
-                isHardLocked: !overviewExists || !technicalDetailsExist,
+                isCurrent: overviewExists && !modulesExist,
+                isLocked: !overviewExists,
+                isHardLocked: !overviewExists,
                 actionType: modulesExist ? 'navigate' : 'generate',
                 actionPath: modulesExist ? `/projects/${project.id}/modules` : null,
-                prerequisites: ['overview', 'technical_details'],
-                prerequisiteMessage: 'Complete System Overview and Technical Details to generate modules',
+                prerequisites: ['overview'],
+                prerequisiteMessage: 'Complete System Overview to generate modules',
                 isLoading: isGeneratingModules,
+                currentBadgeLabel: 'Generate',
             },
             // Stage 4: PRD, System Architecture, Database (parallel, unlocked after Modules)
             {
@@ -281,6 +285,7 @@ export default function ProjectShow({
             modules.length,
             hasTechnicalIntake,
             isGeneratingModules,
+            isGeneratingTechnicalDetails,
         ]
     );
     const currentStep = roadmapSteps.find((step) => step.isCurrent);
@@ -370,6 +375,18 @@ export default function ProjectShow({
                     {},
                     {
                         onFinish: () => setIsGeneratingModules(false),
+                    },
+                );
+            } else if (step.id === 'technical_details') {
+                setIsGeneratingTechnicalDetails(true);
+                router.post(
+                    `/projects/${project.id}/technology/generate`,
+                    {},
+                    {
+                        onFinish: () => setIsGeneratingTechnicalDetails(false),
+                        onSuccess: () => {
+                            router.reload();
+                        },
                     },
                 );
             }

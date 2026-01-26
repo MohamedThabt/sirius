@@ -55,6 +55,7 @@ interface WorkflowNodeData {
     secondaryOutputHandlePosition?: Position;
     secondaryOutputHandleId?: string;
     showSecondaryOutputHandle?: boolean;
+    currentBadgeLabel?: string; // Custom label for isCurrent state (e.g., 'Complete', 'Generate')
 }
 
 type WorkflowNodeProps = NodeProps<WorkflowNodeData>;
@@ -89,6 +90,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
         secondaryOutputHandlePosition = Position.Right,
         secondaryOutputHandleId,
         showSecondaryOutputHandle = false,
+        currentBadgeLabel = 'Current',
     } = data;
 
     const isClickable = !isHardLocked;
@@ -184,7 +186,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                             </Badge>
                         ) : isCurrent && !isCompleted ? (
                             <Badge variant="default" className="text-[10px] font-semibold">
-                                Current
+                                {currentBadgeLabel}
                             </Badge>
                         ) : isCompleted ? (
                             <Badge

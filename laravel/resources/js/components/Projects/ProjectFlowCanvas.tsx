@@ -35,6 +35,7 @@ interface WorkflowStep {
     isLoading?: boolean;
     isOutOfSync?: boolean;
     onClick: () => void;
+    currentBadgeLabel?: string;
 }
 
 interface Health {
@@ -161,6 +162,7 @@ const FlowCanvas = ({
                     isOutOfSync: step.isOutOfSync,
                     onClick: step.onClick,
                     prerequisiteMessage: step.prerequisiteMessage,
+                    currentBadgeLabel: step.currentBadgeLabel,
                     inputHandlePosition: Position.Left,
                     outputHandlePosition: isModulesNode ? Position.Bottom : Position.Right,
                     outputHandleId: isModulesNode ? 'modules-bottom' : undefined,
