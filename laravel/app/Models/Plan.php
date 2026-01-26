@@ -20,6 +20,7 @@ class Plan extends Model
     {
         return [
             'monthly_price' => 'decimal:2',
+            'monthly_credits' => 'integer',
         ];
     }
 

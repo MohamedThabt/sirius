@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\BetaInvitationMail;
 use App\Models\BetaInvitation;
 use App\Models\User;
+use App\Models\UserCredit;
 use App\Services\Notification\TelegramNotificationService;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\RedirectResponse;
@@ -145,12 +146,21 @@ class BetaController extends Controller
 
             // Start database transaction
             DB::transaction(function () use ($betaInvitation, $password) {
-                // Create user account
+                // Create user account with Pro plan (id: 2)
                 $user = User::create([
                     'name' => $betaInvitation->name,
                     'email' => $betaInvitation->email,
                     'password' => Hash::make($password),
                     'email_verified_at' => now(),
+                    'plan_id' => 2, // Pro plan
+                ]);
+
+                // Create user credit record with Pro plan credits (100)
+                UserCredit::create([
+                    'user_id' => $user->id,
+                    'credits_balance' => 100,
+                    'total_this_month' => 100,
+                    'billing_cycle_start' => now()->startOfMonth(),
                 ]);
 
                 // Update invitation status

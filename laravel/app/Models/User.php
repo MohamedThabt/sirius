@@ -33,6 +33,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * The model's default attribute values.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'plan_id' => 1, // Free plan is the default
+    ];
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>

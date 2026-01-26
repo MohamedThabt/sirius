@@ -10,6 +10,7 @@ use App\Http\Controllers\Dashboard\IssueController;
 use App\Http\Controllers\Dashboard\LaravelLogsController;
 use App\Http\Controllers\Dashboard\LogsController;
 use App\Http\Controllers\Dashboard\ModuleController;
+use App\Http\Controllers\Dashboard\PlanController;
 use App\Http\Controllers\Dashboard\ProjectController;
 use App\Http\Controllers\Dashboard\UsageLogController;
 use App\Http\Controllers\Dashboard\UserController;
@@ -43,6 +44,10 @@ Route::middleware('auth:admin')->group(function () {
     // User Management
     Route::get('users', [UserController::class, 'index'])->name('admin.users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->name('admin.users.show');
+    
+    // Plans Management
+    Route::get('plans', [PlanController::class, 'index'])->name('admin.plans.index');
+    Route::get('plans/{plan}', [PlanController::class, 'show'])->name('admin.plans.show');
     
     // Beta Invitations Management
     Route::get('beta', [BetaController::class, 'index'])->name('admin.beta.index');
