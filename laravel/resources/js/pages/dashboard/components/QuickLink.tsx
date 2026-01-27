@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
@@ -30,12 +29,15 @@ export function QuickLink({
                 <Icon className={cn("mr-2 h-4 w-4 transition-all duration-300 group-hover:scale-110", iconClassName || "opacity-70 group-hover:opacity-100")} />
                 <span className="transition-all duration-200 group-hover:mr-1">{label}</span>
                 {badge !== undefined && badge !== null && badge > 0 && (
-                    <Badge
-                        variant="secondary"
-                        className="ml-2 h-5 min-w-5 animate-pulse bg-destructive/15 px-1.5 text-xs font-semibold tabular-nums text-destructive"
+                    <span 
+                        className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums text-white shadow-md"
+                        style={{ 
+                            backgroundColor: 'rgb(236, 72, 153)',
+                            boxShadow: '0 2px 4px rgba(236, 72, 153, 0.4)'
+                        }}
                     >
                         {badge}
-                    </Badge>
+                    </span>
                 )}
                 <ArrowRightIcon className="ml-0 h-3 w-0 opacity-0 transition-all duration-200 group-hover:ml-1 group-hover:w-3 group-hover:opacity-70" />
             </Button>
