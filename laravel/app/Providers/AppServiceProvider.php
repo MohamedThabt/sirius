@@ -8,6 +8,7 @@ use App\Listeners\HandleEmailDelivered;
 use App\Listeners\HandleEmailFailed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Socialite\Facades\Socialite;
 use Resend\Laravel\Events\EmailBounced;
@@ -48,6 +49,13 @@ class AppServiceProvider extends ServiceProvider
         // Authorize Laravel Pulse access for admin guard only
         Gate::define('viewPulse', function () {
             return auth()->guard('admin')->check();
+        });
+
+        // Register HTTP macro for FastAPI calls with Bearer token
+        Http::macro('fastapi', function () {
+            return Http::asJson()
+                ->acceptJson()
+                ->withToken('sk_sirius_a9f7c2e4b8d1f6a3c5e9d2b7f4a8c1e6d3b9f5a2c8e4d7b1f6a3c9e5d2b8f4a1');
         });
     }
 

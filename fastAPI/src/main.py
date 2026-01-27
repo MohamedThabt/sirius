@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from routes.api_routes import router
 from utils.logger import setup_logger
+from security.auth import verify_bearer_token
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -14,7 +15,8 @@ setup_logger()
 
 app = FastAPI(
     title="Requirements Generator API",
-    version="1.0.0"
+    version="1.0.0",
+    dependencies=[Depends(verify_bearer_token)]
 )
 
 # Configure CORS with environment variable support

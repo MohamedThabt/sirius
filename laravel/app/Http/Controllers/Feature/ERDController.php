@@ -121,8 +121,7 @@ class ERDController extends Controller
             ]);
 
             $attemptCount = 0;
-            $response = Http::asJson()
-                ->acceptJson()
+            $response = Http::fastapi()
                 ->timeout($httpTimeout)
                 ->retry($retryTimes, $retryDelay, function ($exception, $request) use (&$attemptCount, $feature) {
                     $attemptCount++;

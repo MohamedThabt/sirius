@@ -73,7 +73,7 @@ class LogsController extends Controller
                 $queryParams['log_type'] = $validated['log_type'];
             }
 
-            $response = Http::timeout(10)
+            $response = Http::fastapi()->timeout(10)
                 ->delete($this->getBaseUrl() . '/v1/logs/clear', $queryParams);
 
             if ($response->successful()) {
@@ -110,7 +110,7 @@ class LogsController extends Controller
                 return back()->with('error', 'Invalid log type.');
             }
 
-            $response = Http::timeout(30)
+            $response = Http::fastapi()->timeout(30)
                 ->get($this->getBaseUrl() . '/v1/logs/download/' . $logType);
 
             if ($response->successful()) {
@@ -153,7 +153,7 @@ class LogsController extends Controller
                 $queryParams['search'] = $request->input('search');
             }
 
-            $response = Http::timeout(10)
+            $response = Http::fastapi()->timeout(10)
                 ->get($this->getBaseUrl() . '/v1/logs', $queryParams);
 
             if ($response->successful()) {
@@ -180,7 +180,7 @@ class LogsController extends Controller
     private function fetchLogStats(): ?array
     {
         try {
-            $response = Http::timeout(10)
+            $response = Http::fastapi()->timeout(10)
                 ->get($this->getBaseUrl() . '/v1/logs/stats');
 
             if ($response->successful()) {

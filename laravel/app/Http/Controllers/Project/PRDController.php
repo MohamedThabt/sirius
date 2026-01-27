@@ -109,7 +109,7 @@ class PRDController extends Controller
             ];
 
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/PRD/generate', $payload);
 
             if ($response->successful()) {
@@ -284,7 +284,7 @@ class PRDController extends Controller
             ];
 
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/PRD/edit', $payload);
 
             if (! $response->successful()) {
@@ -427,7 +427,7 @@ class PRDController extends Controller
             ];
 
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/PRD/sync', $payload);
 
             if (! $response->successful()) {

@@ -154,7 +154,7 @@ class SequenceDiagramController extends Controller
             ];
 
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/Sequence/generate', $payload);
 
             if (!$response->ok()) {
@@ -237,7 +237,7 @@ class SequenceDiagramController extends Controller
             ];
 
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/Sequence/edit', $payload);
 
             if (!$response->ok()) {

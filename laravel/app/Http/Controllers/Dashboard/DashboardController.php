@@ -282,7 +282,7 @@ class DashboardController extends Controller
         try {
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
             
-            $response = Http::timeout(5)
+            $response = Http::fastapi()->timeout(5)
                 ->get($fastApiBaseUrl . '/v1/health');
 
             if ($response->successful()) {

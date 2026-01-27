@@ -125,7 +125,7 @@ class ArchitectureController extends Controller
             ];
 
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/C4/generate', $payload);
 
             if ($response->successful()) {
@@ -196,7 +196,7 @@ class ArchitectureController extends Controller
             $this->ensureModify($project);
 
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::timeout(120)->post($fastApiBaseUrl . '/v1/C4/edit', [
+            $response = Http::fastapi()->timeout(120)->post($fastApiBaseUrl . '/v1/C4/edit', [
                 'SystemC4' => $project->c4 ?? '',
                 'engineer_notes' => $validated['engineer_notes'],
             ]);

@@ -264,7 +264,7 @@ class SystemOverviewController extends Controller
 
             // Call FastAPI endpoint to generate overview
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/Overview/generate', [
                     'project_description' => $projectDescription,
                 ]);
@@ -433,7 +433,7 @@ class SystemOverviewController extends Controller
 
             // Call FastAPI endpoint to generate overview
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/Overview/generate', [
                     'project_description' => $projectDescription,
                 ]);
@@ -501,7 +501,7 @@ class SystemOverviewController extends Controller
 
             // Call FastAPI endpoint to edit overview
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/Overview/edit', [
                     'system_overview' => $validated['system_overview'],
                     'engineer_notes' => $validated['engineer_notes'],

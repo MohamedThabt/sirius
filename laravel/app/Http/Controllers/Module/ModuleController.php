@@ -101,7 +101,7 @@ class ModuleController extends Controller
 
             // Call the external API to generate modules
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/modules/suggestion/generate', [
                     'project_description' => $baseOverviewVersion->overview,
                 ]);
@@ -180,7 +180,7 @@ class ModuleController extends Controller
 
             // Call the external API to regenerate modules with user feedback
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/modules/suggestion/regenerate', [
                     'project_description' => $baseOverviewVersion->overview,
                     'previous_modules' => $validated['previous_modules'],
@@ -291,7 +291,7 @@ class ModuleController extends Controller
 
             // Call FastAPI to enrich modules with details
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/modules/details/generate', [
                     'project_description' => $baseOverviewVersion->overview,
                     'modules' => $modulesForEnrichment,
@@ -492,7 +492,7 @@ class ModuleController extends Controller
 
             // Call FastAPI dedicated single module endpoint with existing modules context
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(90)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(90)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/modules/single/generate', [
                     'project_description' => $baseOverviewVersion->overview,
                     'new_module_name' => $validated['name'],

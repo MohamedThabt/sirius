@@ -91,7 +91,7 @@ class FeaturesController extends Controller
 
             // Call the external API to generate feature suggestions
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/features/module/suggestion/generate', [
                     'module_context' => $moduleContext,
                     'existing_features' => $existingFeaturesArray,
@@ -204,7 +204,7 @@ class FeaturesController extends Controller
 
             // Call the external API to regenerate features with user feedback
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/features/module/suggestion/regenerate', [
                     'module_context' => $moduleContext,
                     'previous_features' => $validated['previous_features'],
@@ -316,7 +316,7 @@ class FeaturesController extends Controller
 
             // Call FastAPI to enrich features with details
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/features/module/details/generate', [
                     'module_context' => $moduleContext,
                     'features' => $featuresForEnrichment,
@@ -443,7 +443,7 @@ class FeaturesController extends Controller
 
             // Call the external API to generate detailed feature
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::asJson()->acceptJson()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl . '/v1/features/module/single/generate', $payload);
 
             if (!$response->successful()) {

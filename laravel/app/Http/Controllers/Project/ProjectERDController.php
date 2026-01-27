@@ -76,7 +76,7 @@ class ProjectERDController extends Controller
 
             // Call FastAPI endpoint
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::timeout(120)->post($fastApiBaseUrl . '/v1/ERD/merge-project', $payload);
+            $response = Http::fastapi()->timeout(120)->post($fastApiBaseUrl . '/v1/ERD/merge-project', $payload);
 
             if (!$response->successful()) {
                 $this->logError('FastAPI Error', [
