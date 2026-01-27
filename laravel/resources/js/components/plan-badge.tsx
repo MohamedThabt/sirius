@@ -17,19 +17,31 @@ export function PlanBadge({ plan, className }: PlanBadgeProps) {
         return (
             <span
                 className={cn(
-                    'relative mt-1 inline-flex items-center gap-1 overflow-hidden rounded-md',
-                    'bg-gradient-to-r from-zinc-900 to-zinc-800 dark:from-zinc-100 dark:to-zinc-200',
-                    'px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest',
-                    'text-amber-400 dark:text-amber-600',
-                    'ring-1 ring-zinc-700/50 dark:ring-zinc-300/50',
-                    'transition-all duration-300 hover:ring-amber-400/50 dark:hover:ring-amber-500/50',
+                    'group relative mt-1 inline-flex items-center gap-1.5 overflow-hidden',
+                    'rounded-full px-2.5 py-0.5',
+                    'bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15',
+                    'text-[10px] font-semibold uppercase tracking-[0.15em]',
+                    'text-primary',
+                    'ring-1 ring-primary/30',
+                    'backdrop-blur-sm',
+                    'transition-all duration-300',
+                    'hover:ring-primary/50 hover:shadow-[0_0_12px_rgba(100,149,237,0.25)]',
                     className
                 )}
             >
-                <svg className="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+                {/* Subtle shimmer effect */}
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                
+                {/* Sparkle icon */}
+                <svg 
+                    className="h-2.5 w-2.5 fill-current opacity-80" 
+                    viewBox="0 0 24 24" 
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
                 </svg>
-                {plan.name}
+                
+                <span className="relative">{plan.name}</span>
             </span>
         );
     }
@@ -37,7 +49,10 @@ export function PlanBadge({ plan, className }: PlanBadgeProps) {
     return (
         <span
             className={cn(
-                'mt-1 inline-flex items-center justify-center rounded-full border border-muted-foreground/30 bg-transparent px-2 py-0.5 text-[10px] font-medium text-muted-foreground',
+                'mt-1 inline-flex items-center justify-center rounded-full',
+                'border border-muted-foreground/20 bg-muted/30',
+                'px-2 py-0.5 text-[10px] font-medium text-muted-foreground',
+                'transition-colors duration-200 hover:bg-muted/50',
                 className
             )}
         >
