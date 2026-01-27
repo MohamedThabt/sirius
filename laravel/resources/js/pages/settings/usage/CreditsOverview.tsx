@@ -47,6 +47,7 @@ export function CreditsOverview({
 }: CreditsOverviewProps) {
     // Ensure remaining credits are never negative
     const remainingCredits = Math.max(0, credits.remaining);
+    const remainingPercentage = Math.max(0, 100 - credits.percentage_used);
     const showUpsellBanner = credits.percentage_used >= 80 || remainingCredits <= 0;
 
     return (
@@ -101,21 +102,23 @@ export function CreditsOverview({
                     </div>
                 </div>
 
-                {/* Progress Bar */}
+                {/* Progress Bar - Shows remaining credits */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-foreground">Credit Usage</span>
-                        <span className="font-semibold text-primary">{credits.percentage_used.toFixed(1)}%</span>
+                        <span className="font-medium text-foreground">Credits Remaining</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-500">
+                            {remainingPercentage.toFixed(1)}% left
+                        </span>
                     </div>
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
-                            className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
-                            style={{ width: `${Math.min(credits.percentage_used, 100)}%` }}
+                            className="h-full rounded-full bg-emerald-500 transition-all duration-500 ease-out"
+                            style={{ width: `${remainingPercentage}%` }}
                         />
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{formatNumber(credits.used)} used</span>
-                        <span>{formatNumber(credits.total)} total</span>
+                        <span>{formatNumber(remainingCredits)} remaining</span>
+                        <span>{formatNumber(credits.used)} of {formatNumber(credits.total)} used</span>
                     </div>
                 </div>
 

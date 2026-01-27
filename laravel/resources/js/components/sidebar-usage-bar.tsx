@@ -10,13 +10,16 @@ export function SidebarUsageBar() {
 
     if (!userCredits) return null;
 
-    const { balance: rawBalance, total, used, percentage, daysUntilReset } = userCredits;
+    const { balance: rawBalance, total, used, percentage: usedPercentage, daysUntilReset } = userCredits;
     
     // Ensure balance is never negative
     const balance = Math.max(0, rawBalance);
     
-    const isLow = percentage >= 80;
-    const isCritical = percentage >= 95;
+    // Calculate remaining percentage for clearer UX
+    const remainingPercentage = Math.max(0, 100 - usedPercentage);
+    
+    const isLow = usedPercentage >= 80;
+    const isCritical = usedPercentage >= 95;
 
     const handleClick = () => {
         router.visit('/settings/usage');
@@ -46,14 +49,14 @@ export function SidebarUsageBar() {
                                 "text-xs font-semibold transition-colors",
                                 isCritical ? "text-destructive" :
                                 isLow ? "text-amber-600" :
-                                "text-muted-foreground"
+                                "text-emerald-600"
                             )}>
-                                {percentage}%
+                                {remainingPercentage}% left
                             </span>
                         </div>
                         
                         <Progress 
-                            value={percentage} 
+                            value={remainingPercentage} 
                             className={cn(
                                 "h-1.5 transition-all",
                                 "group-hover:h-2"
@@ -62,7 +65,7 @@ export function SidebarUsageBar() {
                                 "transition-colors",
                                 isCritical ? "bg-destructive" :
                                 isLow ? "bg-amber-500" :
-                                "bg-primary"
+                                "bg-emerald-500"
                             )}
                         />
                         
@@ -110,9 +113,9 @@ export function SidebarUsageBar() {
                                     "font-semibold",
                                     isCritical ? "text-destructive" :
                                     isLow ? "text-amber-600" :
-                                    "text-green-600"
+                                    "text-muted-foreground"
                                 )}>
-                                    {percentage}%
+                                    {usedPercentage}%
                                 </span>
                             </div>
                         </div>
