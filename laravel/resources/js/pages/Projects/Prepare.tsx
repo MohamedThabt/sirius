@@ -88,7 +88,7 @@ const frontendFrameworkOptions = [
 ];
 
 const backendOptions = [
-    { value: 'laravel', label: 'PHP (Laravel 11)' },
+    { value: 'laravel', label: 'PHP (Laravel)' },
     { value: 'nodejs', label: 'Node.js (Nest/Express)' },
     { value: 'python_fastapi', label: 'Python (FastAPI)' },
     { value: 'python_django', label: 'Python (Django)' },
