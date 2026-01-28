@@ -1,16 +1,15 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ClientDateTime } from '@/components/ClientDateTime';
-import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon, CoinsIcon, CpuIcon, ActivityIcon, CreditCardIcon, MessageSquareIcon, BugIcon, StarIcon, PlusIcon } from 'lucide-react';
+import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon, CoinsIcon, CpuIcon, ActivityIcon, CreditCardIcon, MessageSquareIcon, BugIcon, StarIcon, PlusIcon, ExternalLinkIcon, CheckCircleIcon, XCircleIcon } from 'lucide-react';
 import { useState } from 'react';
 
 interface Project {
@@ -135,55 +134,56 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
             },
         });
     };
-    const getStatusColor = (status: string) => {
+
+    const getStatusVariant = (status: string): "success" | "info" | "slate" | "warning" | "danger" => {
         switch (status.toLowerCase()) {
             case 'completed':
-                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+                return 'success';
             case 'in_progress':
-                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
+                return 'info';
             case 'draft':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+                return 'slate';
             default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+                return 'slate';
         }
     };
 
-    const getRoleColor = (role: string) => {
+    const getRoleVariant = (role: string): "purple" | "info" | "success" | "slate" => {
         switch (role.toLowerCase()) {
             case 'owner':
-                return 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20';
+                return 'purple';
             case 'admin':
-                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
+                return 'info';
             case 'developer':
-                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+                return 'success';
             case 'viewer':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+                return 'slate';
             default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+                return 'slate';
         }
     };
 
-    const getSubscriptionStatusColor = (status: string) => {
+    const getSubscriptionStatusVariant = (status: string): "success" | "warning" | "danger" | "slate" => {
         switch (status.toLowerCase()) {
             case 'active':
-                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+                return 'success';
             case 'cancelled':
-                return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20';
+                return 'warning';
             case 'expired':
-                return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
+                return 'danger';
             default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+                return 'slate';
         }
     };
 
-    const getPlanBadgeStyle = (slug: string | null) => {
+    const getPlanVariant = (slug: string | null): "purple" | "warning" | "slate" => {
         switch (slug?.toLowerCase()) {
             case 'pro':
-                return 'bg-gradient-to-r from-violet-500/20 to-purple-500/20 text-violet-700 dark:text-violet-400 border-violet-500/30';
+                return 'purple';
             case 'enterprise':
-                return 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30';
+                return 'warning';
             default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+                return 'slate';
         }
     };
 
@@ -191,515 +191,556 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`User Details - ${user.name}`} />
 
-            <div className="w-full max-w-7xl mx-auto space-y-6 p-4 md:p-6">
-                {/* Header */}
-                <div className="flex items-center gap-3">
-                    <Link href="/admin/users">
-                        <Button variant="ghost" size="icon" className="h-9 w-9">
-                            <ArrowLeftIcon className="h-4 w-4" />
-                        </Button>
-                    </Link>
-                    <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">User Details</h1>
-                </div>
+            <FuturisticBackground className="min-h-full" showDots={true}>
+                <div className="w-full max-w-7xl mx-auto space-y-6 p-6">
+                    {/* Header */}
+                    <div className="flex items-center gap-3">
+                        <Link href="/admin/users">
+                            <Button variant="ghost" size="icon" className="h-9 w-9 border border-border/40 bg-card/30 backdrop-blur-sm transition-all hover:bg-card/60">
+                                <ArrowLeftIcon className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                        <PageHeader
+                            title={user.name}
+                            greeting="User Profile"
+                            icon={UserIcon}
+                            iconClassName="text-blue-500"
+                            showDate={false}
+                            quickStats={[
+                                { label: 'Projects', value: userStats.total_owned_projects },
+                                { label: 'Credits', value: creditsInfo.credits_balance },
+                            ]}
+                            className="flex-1"
+                        />
+                    </div>
 
-                {/* Stats Cards */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Owned Projects
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-semibold">{userStats.total_owned_projects}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Team Projects
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-semibold">{userStats.total_team_projects}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Features Created
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-semibold">{userStats.total_features_created}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                GitHub
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Badge variant="outline" className={userStats.has_github ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20'}>
-                                {userStats.has_github ? 'Connected' : 'Not Connected'}
-                            </Badge>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Pending Invites
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-semibold">{userStats.pending_invitations}</div>
-                        </CardContent>
-                    </Card>
-                </div>
+                    {/* Stats Cards */}
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+                        <EnhancedCard variant="gradient" glowColor="blue">
+                            <EnhancedCardHeader className="pb-2">
+                                <EnhancedCardTitle className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                                    Owned Projects
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent>
+                                <div className="text-3xl font-semibold tabular-nums">{userStats.total_owned_projects}</div>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
 
-                {/* Subscription, Credits & Engagement Row */}
-                <div className="grid gap-4 md:grid-cols-3">
-                    {/* Subscription & Plan */}
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                                <CreditCardIcon className="h-4 w-4" />
-                                Subscription & Plan
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {subscriptionInfo ? (
-                                <>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-muted-foreground">Plan</span>
-                                        <Badge variant="outline" className={getPlanBadgeStyle(subscriptionInfo.plan_slug)}>
-                                            {subscriptionInfo.plan_name || 'Unknown'}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-muted-foreground">Status</span>
-                                        <Badge variant="outline" className={getSubscriptionStatusColor(subscriptionInfo.status)}>
-                                            {subscriptionInfo.status}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-muted-foreground">Started</span>
-                                        <span className="text-sm"><ClientDateTime value={subscriptionInfo.started_at} dateStyle="short" /></span>
-                                    </div>
-                                    {subscriptionInfo.ends_at && (
+                        <EnhancedCard variant="gradient" glowColor="purple">
+                            <EnhancedCardHeader className="pb-2">
+                                <EnhancedCardTitle className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                                    Team Projects
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent>
+                                <div className="text-3xl font-semibold tabular-nums">{userStats.total_team_projects}</div>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+
+                        <EnhancedCard variant="gradient" glowColor="emerald">
+                            <EnhancedCardHeader className="pb-2">
+                                <EnhancedCardTitle className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                                    Features Created
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent>
+                                <div className="text-3xl font-semibold tabular-nums">{userStats.total_features_created}</div>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+
+                        <EnhancedCard variant="gradient" glowColor="cyan">
+                            <EnhancedCardHeader className="pb-2">
+                                <EnhancedCardTitle className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                                    GitHub
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent>
+                                <GlowingBadge 
+                                    variant={userStats.has_github ? 'success' : 'slate'} 
+                                    icon={userStats.has_github ? <CheckCircleIcon className="h-3 w-3" /> : <XCircleIcon className="h-3 w-3" />}
+                                >
+                                    {userStats.has_github ? 'Connected' : 'Not Connected'}
+                                </GlowingBadge>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+
+                        <EnhancedCard variant="gradient" glowColor="amber">
+                            <EnhancedCardHeader className="pb-2">
+                                <EnhancedCardTitle className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                                    Pending Invites
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent>
+                                <div className="text-3xl font-semibold tabular-nums">{userStats.pending_invitations}</div>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+                    </div>
+
+                    {/* Subscription, Credits & Engagement Row */}
+                    <div className="grid gap-4 md:grid-cols-3">
+                        {/* Subscription & Plan */}
+                        <EnhancedCard variant="glass">
+                            <EnhancedCardHeader className="pb-3">
+                                <EnhancedCardTitle className="flex items-center gap-2 text-sm font-medium">
+                                    <CreditCardIcon className="h-4 w-4 text-purple-500" />
+                                    Subscription & Plan
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent className="space-y-4">
+                                {subscriptionInfo ? (
+                                    <>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm text-muted-foreground">Ends</span>
-                                            <span className="text-sm"><ClientDateTime value={subscriptionInfo.ends_at} dateStyle="short" /></span>
+                                            <span className="text-sm text-muted-foreground/70">Plan</span>
+                                            <GlowingBadge variant={getPlanVariant(subscriptionInfo.plan_slug)}>
+                                                {subscriptionInfo.plan_name || 'Unknown'}
+                                            </GlowingBadge>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-muted-foreground/70">Status</span>
+                                            <GlowingBadge variant={getSubscriptionStatusVariant(subscriptionInfo.status)}>
+                                                {subscriptionInfo.status}
+                                            </GlowingBadge>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-muted-foreground/70">Started</span>
+                                            <span className="text-sm"><ClientDateTime value={subscriptionInfo.started_at} dateStyle="short" /></span>
+                                        </div>
+                                        {subscriptionInfo.ends_at && (
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-muted-foreground/70">Ends</span>
+                                                <span className="text-sm"><ClientDateTime value={subscriptionInfo.ends_at} dateStyle="short" /></span>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-4 text-center">
+                                        <CreditCardIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
+                                        <p className="text-sm text-muted-foreground/60">No active subscription</p>
+                                    </div>
+                                )}
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+
+                        {/* Credits Balance */}
+                        <EnhancedCard variant="glass">
+                            <EnhancedCardHeader className="pb-3">
+                                <EnhancedCardTitle className="flex items-center justify-between text-sm font-medium">
+                                    <span className="flex items-center gap-2">
+                                        <CoinsIcon className="h-4 w-4 text-amber-500" />
+                                        Credits Balance
+                                    </span>
+                                    <Dialog open={isAddCreditsOpen} onOpenChange={setIsAddCreditsOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm" className="h-7 border-border/40 bg-card/30 px-2 text-xs backdrop-blur-sm">
+                                                <PlusIcon className="h-3 w-3 mr-1" />
+                                                Add Credits
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="border-border/40 bg-card/95 backdrop-blur-xl">
+                                            <DialogHeader>
+                                                <DialogTitle className="flex items-center gap-2">
+                                                    <CoinsIcon className="h-5 w-5 text-amber-500" />
+                                                    Add Credits to {user.name}
+                                                </DialogTitle>
+                                                <DialogDescription>
+                                                    Add credits to this user's account. This action will be logged.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <form onSubmit={handleAddCredits} className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="amount">Amount *</Label>
+                                                    <Input
+                                                        id="amount"
+                                                        type="number"
+                                                        min="1"
+                                                        max="100000"
+                                                        placeholder="Enter credits amount"
+                                                        value={addCreditsForm.data.amount}
+                                                        onChange={(e) => addCreditsForm.setData('amount', e.target.value)}
+                                                        className={`border-border/40 bg-card/50 ${addCreditsForm.errors.amount ? 'border-red-500' : ''}`}
+                                                    />
+                                                    {addCreditsForm.errors.amount && (
+                                                        <p className="text-xs text-red-500">{addCreditsForm.errors.amount}</p>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="reason">Reason (optional)</Label>
+                                                    <Textarea
+                                                        id="reason"
+                                                        placeholder="e.g., Promotional bonus, Customer support credit"
+                                                        value={addCreditsForm.data.reason}
+                                                        onChange={(e) => addCreditsForm.setData('reason', e.target.value)}
+                                                        rows={3}
+                                                        className="border-border/40 bg-card/50"
+                                                    />
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button type="button" variant="outline" className="border-border/40" onClick={() => setIsAddCreditsOpen(false)}>
+                                                        Cancel
+                                                    </Button>
+                                                    <Button type="submit" disabled={addCreditsForm.processing || !addCreditsForm.data.amount} className="bg-gradient-to-r from-primary to-primary/80">
+                                                        {addCreditsForm.processing ? 'Adding...' : 'Add Credits'}
+                                                    </Button>
+                                                </DialogFooter>
+                                            </form>
+                                        </DialogContent>
+                                    </Dialog>
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent className="space-y-4">
+                                <div className="text-center">
+                                    <div className="text-4xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{creditsInfo.credits_balance.toLocaleString()}</div>
+                                    <div className="text-sm text-muted-foreground/60">of {creditsInfo.total_this_month.toLocaleString()} this month</div>
+                                </div>
+                                {creditsInfo.total_this_month > 0 && (
+                                    <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
+                                        <div 
+                                            className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-full h-2 transition-all duration-500" 
+                                            style={{ width: `${Math.min(100, (creditsInfo.credits_balance / creditsInfo.total_this_month) * 100)}%` }}
+                                        />
+                                    </div>
+                                )}
+                                {creditsInfo.billing_cycle_start && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground/60">Cycle Start</span>
+                                        <span><ClientDateTime value={creditsInfo.billing_cycle_start} dateStyle="short" /></span>
+                                    </div>
+                                )}
+                                {creditsInfo.last_reset_at && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground/60">Last Reset</span>
+                                        <span><ClientDateTime value={creditsInfo.last_reset_at} dateStyle="short" /></span>
+                                    </div>
+                                )}
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+
+                        {/* Engagement Stats */}
+                        <EnhancedCard variant="glass">
+                            <EnhancedCardHeader className="pb-3">
+                                <EnhancedCardTitle className="flex items-center gap-2 text-sm font-medium">
+                                    <StarIcon className="h-4 w-4 text-pink-500" />
+                                    Engagement
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent className="space-y-4">
+                                <div className="flex items-center justify-between p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                                    <div className="flex items-center gap-2">
+                                        <MessageSquareIcon className="h-4 w-4 text-blue-500" />
+                                        <span className="text-sm">Feedbacks</span>
+                                    </div>
+                                    <span className="text-2xl font-semibold">{engagementStats.feedbacks_count}</span>
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                                    <div className="flex items-center gap-2">
+                                        <BugIcon className="h-4 w-4 text-amber-500" />
+                                        <span className="text-sm">Issue Reports</span>
+                                    </div>
+                                    <span className="text-2xl font-semibold">{engagementStats.issues_count}</span>
+                                </div>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {/* User Information */}
+                        <EnhancedCard variant="glass">
+                            <EnhancedCardHeader className="pb-3">
+                                <EnhancedCardTitle className="flex items-center gap-2 text-sm font-medium">
+                                    <UserIcon className="h-4 w-4 text-blue-500" />
+                                    User Information
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent className="space-y-4">
+                                <div className="flex items-center gap-4">
+                                    {user.avatar ? (
+                                        <img src={user.avatar} alt={user.name} className="h-16 w-16 rounded-full object-cover ring-2 ring-border/40 transition-all hover:ring-primary/50" />
+                                    ) : (
+                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-xl font-medium ring-2 ring-border/40">
+                                            {user.name.charAt(0).toUpperCase()}
                                         </div>
                                     )}
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-4 text-center">
-                                    <CreditCardIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
-                                    <p className="text-sm text-muted-foreground">No active subscription</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Credits Balance */}
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center justify-between text-sm font-medium">
-                                <span className="flex items-center gap-2">
-                                    <CoinsIcon className="h-4 w-4" />
-                                    Credits Balance
-                                </span>
-                                <Dialog open={isAddCreditsOpen} onOpenChange={setIsAddCreditsOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
-                                            <PlusIcon className="h-3 w-3 mr-1" />
-                                            Add Credits
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Add Credits to {user.name}</DialogTitle>
-                                            <DialogDescription>
-                                                Add credits to this user's account. This action will be logged.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <form onSubmit={handleAddCredits} className="space-y-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="amount">Amount *</Label>
-                                                <Input
-                                                    id="amount"
-                                                    type="number"
-                                                    min="1"
-                                                    max="100000"
-                                                    placeholder="Enter credits amount"
-                                                    value={addCreditsForm.data.amount}
-                                                    onChange={(e) => addCreditsForm.setData('amount', e.target.value)}
-                                                    className={addCreditsForm.errors.amount ? 'border-red-500' : ''}
-                                                />
-                                                {addCreditsForm.errors.amount && (
-                                                    <p className="text-xs text-red-500">{addCreditsForm.errors.amount}</p>
-                                                )}
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="reason">Reason (optional)</Label>
-                                                <Textarea
-                                                    id="reason"
-                                                    placeholder="e.g., Promotional bonus, Customer support credit"
-                                                    value={addCreditsForm.data.reason}
-                                                    onChange={(e) => addCreditsForm.setData('reason', e.target.value)}
-                                                    rows={3}
-                                                />
-                                            </div>
-                                            <DialogFooter>
-                                                <Button type="button" variant="outline" onClick={() => setIsAddCreditsOpen(false)}>
-                                                    Cancel
-                                                </Button>
-                                                <Button type="submit" disabled={addCreditsForm.processing || !addCreditsForm.data.amount}>
-                                                    {addCreditsForm.processing ? 'Adding...' : 'Add Credits'}
-                                                </Button>
-                                            </DialogFooter>
-                                        </form>
-                                    </DialogContent>
-                                </Dialog>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="text-center">
-                                <div className="text-4xl font-bold">{creditsInfo.credits_balance.toLocaleString()}</div>
-                                <div className="text-sm text-muted-foreground">of {creditsInfo.total_this_month.toLocaleString()} this month</div>
-                            </div>
-                            {creditsInfo.total_this_month > 0 && (
-                                <div className="w-full bg-muted rounded-full h-2">
-                                    <div 
-                                        className="bg-primary rounded-full h-2 transition-all" 
-                                        style={{ width: `${Math.min(100, (creditsInfo.credits_balance / creditsInfo.total_this_month) * 100)}%` }}
-                                    />
-                                </div>
-                            )}
-                            {creditsInfo.billing_cycle_start && (
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Cycle Start</span>
-                                    <span><ClientDateTime value={creditsInfo.billing_cycle_start} dateStyle="short" /></span>
-                                </div>
-                            )}
-                            {creditsInfo.last_reset_at && (
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Last Reset</span>
-                                    <span><ClientDateTime value={creditsInfo.last_reset_at} dateStyle="short" /></span>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Engagement Stats */}
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                                <StarIcon className="h-4 w-4" />
-                                Engagement
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                <div className="flex items-center gap-2">
-                                    <MessageSquareIcon className="h-4 w-4 text-blue-500" />
-                                    <span className="text-sm">Feedbacks</span>
-                                </div>
-                                <span className="text-2xl font-semibold">{engagementStats.feedbacks_count}</span>
-                            </div>
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                <div className="flex items-center gap-2">
-                                    <BugIcon className="h-4 w-4 text-amber-500" />
-                                    <span className="text-sm">Issue Reports</span>
-                                </div>
-                                <span className="text-2xl font-semibold">{engagementStats.issues_count}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                    {/* User Information */}
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                                <UserIcon className="h-4 w-4" />
-                                User Information
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                {user.avatar ? (
-                                    <img src={user.avatar} alt={user.name} className="h-16 w-16 rounded-full object-cover" />
-                                ) : (
-                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-xl font-medium">
-                                        {user.name.charAt(0).toUpperCase()}
+                                    <div>
+                                        <h3 className="text-lg font-medium">{user.name}</h3>
+                                        <p className="text-sm text-muted-foreground/70">{user.email}</p>
                                     </div>
-                                )}
-                                <div>
-                                    <h3 className="text-lg font-medium">{user.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <MailIcon className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">Email Status</span>
-                                    </div>
-                                    <Badge variant="outline" className={user.email_verified_at ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20'}>
-                                        {user.email_verified_at ? 'Verified' : 'Unverified'}
-                                    </Badge>
                                 </div>
 
-                                <div className="flex items-center gap-2">
-                                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm">Joined <ClientDateTime value={user.created_at} dateStyle="short" /></span>
-                                </div>
-
-                                {user.provider && (
+                                <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm">Login method</span>
-                                        <Badge variant="outline" className="capitalize">
-                                            {user.provider}
-                                        </Badge>
+                                        <div className="flex items-center gap-2">
+                                            <MailIcon className="h-4 w-4 text-muted-foreground/50" />
+                                            <span className="text-sm">Email Status</span>
+                                        </div>
+                                        <GlowingBadge variant={user.email_verified_at ? 'success' : 'slate'}>
+                                            {user.email_verified_at ? 'Verified' : 'Unverified'}
+                                        </GlowingBadge>
                                     </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
 
-                    {/* Projects by Status */}
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium">Projects by Status</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                {Object.entries(userStats.projects_by_status).map(([status, count]) => (
-                                    <div key={status} className="flex items-center justify-between">
-                                        <Badge variant="outline" className={getStatusColor(status)}>{status.replace('_', ' ')}</Badge>
-                                        <span className="text-2xl font-semibold">{count}</span>
+                                    <div className="flex items-center gap-2">
+                                        <CalendarIcon className="h-4 w-4 text-muted-foreground/50" />
+                                        <span className="text-sm">Joined <ClientDateTime value={user.created_at} dateStyle="short" /></span>
                                     </div>
-                                ))}
-                                {Object.keys(userStats.projects_by_status).length === 0 && (
-                                    <p className="text-sm text-muted-foreground text-center py-4">No projects yet</p>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
 
-                {/* Usage Stats */}
-                {usageStats && (
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center justify-between text-sm font-medium">
-                                <span className="flex items-center gap-2">
-                                    <ActivityIcon className="h-4 w-4" />
-                                    Usage Statistics
-                                </span>
-                                <Link href={`/admin/usage-logs?user_id=${user.id}`}>
-                                    <Button variant="outline" size="sm">View All Logs</Button>
-                                </Link>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid gap-4 grid-cols-2 md:grid-cols-5 mb-6">
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <div className="text-2xl font-bold">{usageStats.total_logs.toLocaleString()}</div>
-                                    <div className="text-xs text-muted-foreground">Total Logs</div>
+                                    {user.provider && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm">Login method</span>
+                                            <GlowingBadge variant="info" className="capitalize">
+                                                {user.provider}
+                                            </GlowingBadge>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <div className="text-2xl font-bold">{usageStats.total_credits.toLocaleString()}</div>
-                                    <div className="text-xs text-muted-foreground">Total Credits</div>
-                                </div>
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <div className="text-2xl font-bold">{usageStats.total_tokens.toLocaleString()}</div>
-                                    <div className="text-xs text-muted-foreground">Total Tokens</div>
-                                </div>
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <div className="text-2xl font-bold">${usageStats.total_cost}</div>
-                                    <div className="text-xs text-muted-foreground">Total Cost</div>
-                                </div>
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <div className="text-2xl font-bold">{usageStats.this_month_credits.toLocaleString()}</div>
-                                    <div className="text-xs text-muted-foreground">This Month</div>
-                                </div>
-                            </div>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
 
-                            {/* Top Actions */}
-                            {usageStats.top_actions && usageStats.top_actions.length > 0 && (
-                                <div className="mb-6">
-                                    <h4 className="text-sm font-medium mb-3">Top Actions by Credits</h4>
-                                    <div className="space-y-2">
-                                        {usageStats.top_actions.map((action, index) => (
-                                            <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                                                <span className="text-sm">{action.action_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-xs text-muted-foreground">{action.count} times</span>
-                                                    <Badge variant="outline">{action.credits.toLocaleString()} credits</Badge>
+                        {/* Projects by Status */}
+                        <EnhancedCard variant="glass">
+                            <EnhancedCardHeader className="pb-3">
+                                <EnhancedCardTitle className="text-sm font-medium">Projects by Status</EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent>
+                                <div className="space-y-3">
+                                    {Object.entries(userStats.projects_by_status).map(([status, count]) => (
+                                        <div key={status} className="flex items-center justify-between p-2 rounded-lg bg-muted/20">
+                                            <GlowingBadge variant={getStatusVariant(status)}>{status.replace('_', ' ')}</GlowingBadge>
+                                            <span className="text-2xl font-semibold">{count}</span>
+                                        </div>
+                                    ))}
+                                    {Object.keys(userStats.projects_by_status).length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-6 text-center">
+                                            <FolderIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
+                                            <p className="text-sm text-muted-foreground/60">No projects yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+                    </div>
+
+                    {/* Usage Stats */}
+                    {usageStats && (
+                        <EnhancedCard variant="glass">
+                            <EnhancedCardHeader className="pb-3">
+                                <EnhancedCardTitle className="flex items-center justify-between text-sm font-medium">
+                                    <span className="flex items-center gap-2">
+                                        <ActivityIcon className="h-4 w-4 text-emerald-500" />
+                                        Usage Statistics
+                                    </span>
+                                    <Link href={`/admin/usage-logs?user_id=${user.id}`}>
+                                        <Button variant="outline" size="sm" className="border-border/40 bg-card/30 backdrop-blur-sm">View All Logs</Button>
+                                    </Link>
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent>
+                                <div className="grid gap-4 grid-cols-2 md:grid-cols-5 mb-6">
+                                    <div className="text-center p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/10">
+                                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{usageStats.total_logs.toLocaleString()}</div>
+                                        <div className="text-xs text-muted-foreground/60">Total Logs</div>
+                                    </div>
+                                    <div className="text-center p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/10">
+                                        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{usageStats.total_credits.toLocaleString()}</div>
+                                        <div className="text-xs text-muted-foreground/60">Total Credits</div>
+                                    </div>
+                                    <div className="text-center p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 border border-cyan-500/10">
+                                        <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">{usageStats.total_tokens.toLocaleString()}</div>
+                                        <div className="text-xs text-muted-foreground/60">Total Tokens</div>
+                                    </div>
+                                    <div className="text-center p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/10">
+                                        <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">${usageStats.total_cost}</div>
+                                        <div className="text-xs text-muted-foreground/60">Total Cost</div>
+                                    </div>
+                                    <div className="text-center p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/10">
+                                        <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{usageStats.this_month_credits.toLocaleString()}</div>
+                                        <div className="text-xs text-muted-foreground/60">This Month</div>
+                                    </div>
+                                </div>
+
+                                {/* Top Actions */}
+                                {usageStats.top_actions && usageStats.top_actions.length > 0 && (
+                                    <div className="mb-6">
+                                        <h4 className="text-sm font-medium mb-3">Top Actions by Credits</h4>
+                                        <div className="space-y-2">
+                                            {usageStats.top_actions.map((action, index) => (
+                                                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/20">
+                                                    <span className="text-sm">{action.action_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-xs text-muted-foreground/60">{action.count} times</span>
+                                                        <GlowingBadge variant="purple" size="sm">{action.credits.toLocaleString()} credits</GlowingBadge>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Recent Usage Logs */}
-                            {recentUsageLogs && recentUsageLogs.length > 0 && (
-                                <div>
-                                    <h4 className="text-sm font-medium mb-3">Recent Usage</h4>
-                                    <div className="rounded-lg border overflow-hidden">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Action</TableHead>
-                                                    <TableHead>Model</TableHead>
-                                                    <TableHead className="text-right">Tokens</TableHead>
-                                                    <TableHead className="text-right">Credits</TableHead>
-                                                    <TableHead>Date</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {recentUsageLogs.map((log) => (
-                                                    <TableRow key={log.id}>
-                                                        <TableCell className="font-medium">
-                                                            {log.action_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {log.model ? (
-                                                                <Badge variant="outline">{log.model}</Badge>
-                                                            ) : (
-                                                                <span className="text-muted-foreground">-</span>
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell className="text-right font-mono">
-                                                            {(log.input_tokens + log.output_tokens).toLocaleString()}
-                                                        </TableCell>
-                                                        <TableCell className="text-right font-mono">
-                                                            {log.credits_used.toLocaleString()}
-                                                        </TableCell>
-                                                        <TableCell className="text-sm text-muted-foreground">
-                                                            <ClientDateTime value={log.created_at} dateStyle="short" />
-                                                        </TableCell>
+                                {/* Recent Usage Logs */}
+                                {recentUsageLogs && recentUsageLogs.length > 0 && (
+                                    <div>
+                                        <h4 className="text-sm font-medium mb-3">Recent Usage</h4>
+                                        <div className="rounded-xl border border-border/30 overflow-hidden">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow className="border-border/40 hover:bg-transparent">
+                                                        <TableHead className="text-muted-foreground/70">Action</TableHead>
+                                                        <TableHead className="text-muted-foreground/70">Model</TableHead>
+                                                        <TableHead className="text-right text-muted-foreground/70">Tokens</TableHead>
+                                                        <TableHead className="text-right text-muted-foreground/70">Credits</TableHead>
+                                                        <TableHead className="text-muted-foreground/70">Date</TableHead>
                                                     </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {recentUsageLogs.map((log) => (
+                                                        <TableRow key={log.id} className="border-border/30 transition-all duration-200 hover:bg-primary/[0.03]">
+                                                            <TableCell className="font-medium">
+                                                                {log.action_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {log.model ? (
+                                                                    <GlowingBadge variant="info" size="sm">{log.model}</GlowingBadge>
+                                                                ) : (
+                                                                    <span className="text-muted-foreground/40">-</span>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell className="text-right font-mono tabular-nums">
+                                                                {(log.input_tokens + log.output_tokens).toLocaleString()}
+                                                            </TableCell>
+                                                            <TableCell className="text-right font-mono tabular-nums">
+                                                                {log.credits_used.toLocaleString()}
+                                                            </TableCell>
+                                                            <TableCell className="text-sm text-muted-foreground/60">
+                                                                <ClientDateTime value={log.created_at} dateStyle="short" />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
                                     </div>
+                                )}
+
+                                {usageStats.total_logs === 0 && (
+                                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                                        <ActivityIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
+                                        <p className="text-sm text-muted-foreground/60">No usage logs yet</p>
+                                    </div>
+                                )}
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+                    )}
+
+                    {/* Owned Projects */}
+                    <EnhancedCard variant="glass">
+                        <EnhancedCardHeader className="pb-3">
+                            <EnhancedCardTitle className="flex items-center gap-2 text-sm font-medium">
+                                <FolderIcon className="h-4 w-4 text-blue-500" />
+                                Owned Projects
+                            </EnhancedCardTitle>
+                        </EnhancedCardHeader>
+                        <EnhancedCardContent>
+                            {user.projects.length > 0 ? (
+                                <div className="rounded-xl border border-border/30 overflow-hidden">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-border/40 hover:bg-transparent">
+                                                <TableHead className="text-muted-foreground/70">Project Name</TableHead>
+                                                <TableHead className="text-muted-foreground/70">Brief</TableHead>
+                                                <TableHead className="text-muted-foreground/70">Features</TableHead>
+                                                <TableHead className="text-muted-foreground/70">Status</TableHead>
+                                                <TableHead className="text-muted-foreground/70">Created</TableHead>
+                                                <TableHead className="w-10"></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {user.projects.map((project) => (
+                                                <TableRow 
+                                                    key={project.id}
+                                                    className="group cursor-pointer border-border/30 transition-all duration-200 hover:bg-primary/[0.03]"
+                                                    onClick={() => window.location.href = `/admin/projects/${project.id}`}
+                                                >
+                                                    <TableCell className="font-medium text-foreground/90">{project.name}</TableCell>
+                                                    <TableCell className="max-w-md truncate text-sm text-muted-foreground/60">{project.brief}</TableCell>
+                                                    <TableCell>
+                                                        <GlowingBadge variant="purple" size="sm">{project.features_count || 0}</GlowingBadge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <GlowingBadge variant={getStatusVariant(project.status)}>{project.status.replace('_', ' ')}</GlowingBadge>
+                                                    </TableCell>
+                                                    <TableCell className="text-sm text-muted-foreground/60 tabular-nums"><ClientDateTime value={project.created_at} dateStyle="short" /></TableCell>
+                                                    <TableCell>
+                                                        <ExternalLinkIcon className="h-4 w-4 text-muted-foreground/30 opacity-0 transition-all duration-200 group-hover:opacity-100" />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                    <FolderIcon className="h-10 w-10 text-muted-foreground/20 mb-3" />
+                                    <p className="text-sm font-medium text-muted-foreground">No owned projects</p>
+                                    <p className="text-xs text-muted-foreground/60 mt-1">This user hasn't created any projects</p>
                                 </div>
                             )}
+                        </EnhancedCardContent>
+                    </EnhancedCard>
 
-                            {usageStats.total_logs === 0 && (
-                                <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <ActivityIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
-                                    <p className="text-sm text-muted-foreground">No usage logs yet</p>
+                    {/* Team Projects */}
+                    {user.team_projects && user.team_projects.length > 0 && (
+                        <EnhancedCard variant="glass">
+                            <EnhancedCardHeader className="pb-3">
+                                <EnhancedCardTitle className="flex items-center gap-2 text-sm font-medium">
+                                    <UsersIcon className="h-4 w-4 text-purple-500" />
+                                    Team Projects
+                                </EnhancedCardTitle>
+                            </EnhancedCardHeader>
+                            <EnhancedCardContent>
+                                <div className="rounded-xl border border-border/30 overflow-hidden">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-border/40 hover:bg-transparent">
+                                                <TableHead className="text-muted-foreground/70">Project Name</TableHead>
+                                                <TableHead className="text-muted-foreground/70">Owner</TableHead>
+                                                <TableHead className="text-muted-foreground/70">Role</TableHead>
+                                                <TableHead className="text-muted-foreground/70">Status</TableHead>
+                                                <TableHead className="text-muted-foreground/70">Joined</TableHead>
+                                                <TableHead className="w-10"></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {user.team_projects.map((project) => (
+                                                <TableRow 
+                                                    key={project.id}
+                                                    className="group cursor-pointer border-border/30 transition-all duration-200 hover:bg-primary/[0.03]"
+                                                    onClick={() => window.location.href = `/admin/projects/${project.id}`}
+                                                >
+                                                    <TableCell className="font-medium text-foreground/90">{project.name}</TableCell>
+                                                    <TableCell className="text-sm text-muted-foreground/60">{project.user.name}</TableCell>
+                                                    <TableCell>
+                                                        <GlowingBadge variant={getRoleVariant(project.pivot.role)}>{project.pivot.role}</GlowingBadge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <GlowingBadge variant={getStatusVariant(project.status)}>{project.status.replace('_', ' ')}</GlowingBadge>
+                                                    </TableCell>
+                                                    <TableCell className="text-sm text-muted-foreground/60 tabular-nums">
+                                                        {project.pivot.joined_at 
+                                                            ? <ClientDateTime value={project.pivot.joined_at} dateStyle="short" />
+                                                            : '-'}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <ExternalLinkIcon className="h-4 w-4 text-muted-foreground/30 opacity-0 transition-all duration-200 group-hover:opacity-100" />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Owned Projects */}
-                <Card>
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium">Owned Projects</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {user.projects.length > 0 ? (
-                            <div className="rounded-lg border overflow-hidden">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Project Name</TableHead>
-                                            <TableHead>Brief</TableHead>
-                                            <TableHead>Features</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Created</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {user.projects.map((project) => (
-                                            <TableRow 
-                                                key={project.id}
-                                                className="cursor-pointer transition-colors hover:bg-muted/50"
-                                                onClick={() => window.location.href = `/admin/projects/${project.id}`}
-                                            >
-                                                <TableCell className="font-medium">{project.name}</TableCell>
-                                                <TableCell className="max-w-md truncate text-sm text-muted-foreground">{project.brief}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline">{project.features_count || 0}</Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className={getStatusColor(project.status)}>{project.status.replace('_', ' ')}</Badge>
-                                                </TableCell>
-                                                <TableCell className="text-sm text-muted-foreground"><ClientDateTime value={project.created_at} dateStyle="short" /></TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <FolderIcon className="h-10 w-10 text-muted-foreground/20 mb-3" />
-                                <p className="text-sm font-medium">No owned projects</p>
-                                <p className="text-xs text-muted-foreground mt-1">This user hasn't created any projects</p>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* Team Projects */}
-                {user.team_projects && user.team_projects.length > 0 && (
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium">Team Projects</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="rounded-lg border overflow-hidden">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Project Name</TableHead>
-                                            <TableHead>Owner</TableHead>
-                                            <TableHead>Role</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Joined</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {user.team_projects.map((project) => (
-                                            <TableRow 
-                                                key={project.id}
-                                                className="cursor-pointer transition-colors hover:bg-muted/50"
-                                                onClick={() => window.location.href = `/admin/projects/${project.id}`}
-                                            >
-                                                <TableCell className="font-medium">{project.name}</TableCell>
-                                                <TableCell className="text-sm text-muted-foreground">{project.user.name}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className={getRoleColor(project.pivot.role)}>{project.pivot.role}</Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className={getStatusColor(project.status)}>{project.status.replace('_', ' ')}</Badge>
-                                                </TableCell>
-                                                <TableCell className="text-sm text-muted-foreground">
-                                                    {project.pivot.joined_at 
-                                                        ? <ClientDateTime value={project.pivot.joined_at} dateStyle="short" />
-                                                        : '-'}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+                            </EnhancedCardContent>
+                        </EnhancedCard>
+                    )}
+                </div>
+            </FuturisticBackground>
         </AppLayout>
     );
 }

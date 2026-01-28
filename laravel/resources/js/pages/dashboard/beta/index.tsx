@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import { ClientDateTime } from '@/components/ClientDateTime';
-import { Check, X, AlertCircle, UserPlus } from "lucide-react";
+import { Check, X, AlertCircle, UserPlus, SearchIcon, FilterIcon, SparklesIcon, ClockIcon, CheckCircleIcon, XCircleIcon } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import {
   Dialog,
   DialogContent,
@@ -153,25 +153,27 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
     }, { preserveState: true });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): "warning" | "success" | "danger" | "slate" => {
     switch (status) {
       case "pending":
-        return "bg-yellow-500/10 text-yellow-600 border-yellow-500/30 dark:text-yellow-400";
+        return "warning";
       case "approved":
-        return "bg-green-500/10 text-green-600 border-green-500/30 dark:text-green-400";
+        return "success";
       case "denied":
-        return "bg-red-500/10 text-red-600 border-red-500/30 dark:text-red-400";
+        return "danger";
       default:
-        return "bg-muted/10 text-muted-foreground border-muted-foreground/30";
+        return "slate";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "approved":
-        return <Check className="h-3 w-3" />;
+        return <CheckCircleIcon className="h-3 w-3" />;
       case "denied":
-        return <X className="h-3 w-3" />;
+        return <XCircleIcon className="h-3 w-3" />;
+      case "pending":
+        return <ClockIcon className="h-3 w-3" />;
       default:
         return null;
     }
@@ -186,174 +188,245 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Beta Invitations" />
-      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Beta Invitations</h1>
-          <div className="flex gap-2">
-            <Button onClick={() => setCreateModalOpen(true)} className="gap-2">
-              <UserPlus className="h-4 w-4" />
-              Create Invitation
-            </Button>
-            <Badge variant="outline">{totalInvitations} Total</Badge>
-            <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
-              {totalPending} Pending
-            </Badge>
-            <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400">
-              {totalApproved} Approved
-            </Badge>
-            <Badge variant="secondary" className="bg-red-500/10 text-red-600 dark:text-red-400">
-              {totalDenied} Denied
-            </Badge>
-            {summary?.this_week !== undefined && (
-              <Badge variant="outline" className="text-muted-foreground">
-                {summary.this_week} this week
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
+      
+      <FuturisticBackground className="min-h-full" showDots={true}>
+        <div className="flex h-full flex-1 flex-col gap-6 p-6">
+          {/* Page Header */}
+          <PageHeader
+            title="Beta Invitations"
+            greeting="Access Management"
+            icon={SparklesIcon}
+            iconClassName="text-purple-500"
+            showDate={false}
+            quickStats={[
+              { label: 'Total', value: totalInvitations },
+              { label: 'Pending', value: totalPending },
+              { label: 'This Week', value: summary?.this_week || 0, highlight: true },
+            ]}
+            actions={
+              <Button 
+                onClick={() => setCreateModalOpen(true)} 
+                className="gap-2 bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30"
+              >
+                <UserPlus className="h-4 w-4" />
+                Create Invitation
+              </Button>
+            }
           />
-          <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              {statuses.map((status) => (
-                <SelectItem key={status.value} value={status.value}>
-                  {status.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button type="submit">Filter</Button>
-          {(search || statusFilter) && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setSearch('');
-                setStatusFilter('');
-                router.get('/admin/beta');
-              }}
-            >
-              Clear
-            </Button>
-          )}
-        </form>
 
-        <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Applied</TableHead>
-                <TableHead>Approved By</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invitations.data.map((invitation) => (
-                <TableRow key={invitation.id}>
-                  <TableCell className="font-medium">
-                    {invitation.name}
-                  </TableCell>
-                  <TableCell>{invitation.email}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={getStatusColor(invitation.status)}
-                    >
-                      {getStatusIcon(invitation.status)}
-                      <span className={getStatusIcon(invitation.status) ? "ml-1" : ""}>
-                        {invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}
-                      </span>
-                    </Badge>
-                  </TableCell>
-                  <TableCell><ClientDateTime value={invitation.created_at} dateStyle="short" /></TableCell>
-                  <TableCell>{invitation.invited_by?.name || "-"}</TableCell>
-                  <TableCell>
-                    {invitation.status === "pending" && (
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleApprove(invitation.id)}
-                          disabled={approveLoading === invitation.id}
-                          variant="outline"
-                          size="sm"
-                          className="bg-green-500/10 text-green-600 hover:bg-green-500/20 dark:text-green-400"
-                        >
-                          <Check className="mr-1 h-4 w-4" />
-                          {approveLoading === invitation.id ? "Approving..." : "Approve"}
-                        </Button>
-                        <Button
-                          onClick={() => openDenyModal(invitation.id)}
-                          disabled={denyLoading === invitation.id}
-                          variant="outline"
-                          size="sm"
-                          className="bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400"
-                        >
-                          <X className="mr-1 h-4 w-4" />
-                          {denyLoading === invitation.id ? "Denying..." : "Deny"}
-                        </Button>
-                      </div>
-                    )}
-                    {invitation.status === "approved" && (
-                      <span className="text-sm text-green-600 dark:text-green-400">
-                        ✓ Approved
-                      </span>
-                    )}
-                    {invitation.status === "denied" && (
-                      <div>
-                        <span className="text-sm text-red-600 dark:text-red-400">
-                          ✗ Denied
-                        </span>
-                        {invitation.note && (
-                          <p
-                            className="mt-1 text-xs text-muted-foreground cursor-help"
-                            title={invitation.note}
-                          >
-                            {invitation.note.substring(0, 30)}...
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+          {/* Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-4">
+            <EnhancedCard variant="gradient" glowColor="blue">
+              <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
+                <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Total Invitations</EnhancedCardTitle>
+                <div className="rounded-xl bg-blue-500/10 p-2.5 shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-500/20">
+                  <SparklesIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+              </EnhancedCardHeader>
+              <EnhancedCardContent>
+                <div className="text-3xl font-bold tabular-nums tracking-tight">{totalInvitations.toLocaleString()}</div>
+                <p className="mt-1 text-xs text-muted-foreground/60">All time requests</p>
+              </EnhancedCardContent>
+            </EnhancedCard>
 
-        {invitations.data.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <AlertCircle className="mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="text-lg font-medium text-muted-foreground">No beta invitations found</p>
-            {(search || statusFilter) && <p className="text-sm text-muted-foreground">Try adjusting your search criteria</p>}
+            <EnhancedCard variant="gradient" glowColor="amber">
+              <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
+                <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Pending</EnhancedCardTitle>
+                <div className="rounded-xl bg-amber-500/10 p-2.5 shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-500/20">
+                  <ClockIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                </div>
+              </EnhancedCardHeader>
+              <EnhancedCardContent>
+                <div className="text-3xl font-bold tabular-nums tracking-tight text-amber-600 dark:text-amber-400">{totalPending.toLocaleString()}</div>
+                <p className="mt-1 text-xs text-muted-foreground/60">Awaiting review</p>
+              </EnhancedCardContent>
+            </EnhancedCard>
+
+            <EnhancedCard variant="gradient" glowColor="emerald">
+              <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
+                <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Approved</EnhancedCardTitle>
+                <div className="rounded-xl bg-emerald-500/10 p-2.5 shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-emerald-500/20">
+                  <CheckCircleIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+              </EnhancedCardHeader>
+              <EnhancedCardContent>
+                <div className="text-3xl font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">{totalApproved.toLocaleString()}</div>
+                <p className="mt-1 text-xs text-muted-foreground/60">Granted access</p>
+              </EnhancedCardContent>
+            </EnhancedCard>
+
+            <EnhancedCard variant="gradient" glowColor="pink">
+              <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
+                <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Denied</EnhancedCardTitle>
+                <div className="rounded-xl bg-red-500/10 p-2.5 shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-red-500/20">
+                  <XCircleIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
+              </EnhancedCardHeader>
+              <EnhancedCardContent>
+                <div className="text-3xl font-bold tabular-nums tracking-tight text-red-600 dark:text-red-400">{totalDenied.toLocaleString()}</div>
+                <p className="mt-1 text-xs text-muted-foreground/60">Declined requests</p>
+              </EnhancedCardContent>
+            </EnhancedCard>
           </div>
-        )}
 
-        {/* Pagination info */}
-        <div className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Showing {invitations.from || 0} to {invitations.to || 0} of {invitations.total} invitations
-          </p>
+          {/* Search and Filter */}
+          <form onSubmit={handleSearch} className="flex flex-wrap gap-3">
+            <div className="relative max-w-md flex-1">
+              <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
+              <Input
+                type="text"
+                placeholder="Search by name or email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border-border/40 bg-card/50 pl-10 backdrop-blur-sm transition-all duration-300 focus:border-primary/50 focus:bg-card/80"
+              />
+            </div>
+            <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
+              <SelectTrigger className="w-[180px] border-border/40 bg-card/50 backdrop-blur-sm">
+                <FilterIcon className="mr-2 h-4 w-4 text-muted-foreground/50" />
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {statuses.map((status) => (
+                  <SelectItem key={status.value} value={status.value}>
+                    {status.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button type="submit" variant="secondary" className="border-border/40 bg-card/50 backdrop-blur-sm">
+              Filter
+            </Button>
+            {(search || statusFilter) && (
+              <Button
+                type="button"
+                variant="outline"
+                className="border-border/40 bg-card/50 backdrop-blur-sm"
+                onClick={() => {
+                  setSearch('');
+                  setStatusFilter('');
+                  router.get('/admin/beta');
+                }}
+              >
+                Clear
+              </Button>
+            )}
+          </form>
+
+          {/* Invitations Table */}
+          <EnhancedCard variant="glass" hoverEffect={false} className="overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/40 hover:bg-transparent">
+                  <TableHead className="text-muted-foreground/70">Name</TableHead>
+                  <TableHead className="text-muted-foreground/70">Email</TableHead>
+                  <TableHead className="text-muted-foreground/70">Status</TableHead>
+                  <TableHead className="text-muted-foreground/70">Applied</TableHead>
+                  <TableHead className="text-muted-foreground/70">Approved By</TableHead>
+                  <TableHead className="text-muted-foreground/70">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invitations.data.map((invitation) => (
+                  <TableRow key={invitation.id} className="group border-border/30 transition-all duration-200 hover:bg-primary/[0.03]">
+                    <TableCell className="font-medium text-foreground/90">
+                      {invitation.name}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground/70">{invitation.email}</TableCell>
+                    <TableCell>
+                      <GlowingBadge
+                        variant={getStatusVariant(invitation.status)}
+                        icon={getStatusIcon(invitation.status)}
+                      >
+                        {invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}
+                      </GlowingBadge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground/60 tabular-nums">
+                      <ClientDateTime value={invitation.created_at} dateStyle="short" />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground/60">{invitation.invited_by?.name || "-"}</TableCell>
+                    <TableCell>
+                      {invitation.status === "pending" && (
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleApprove(invitation.id)}
+                            disabled={approveLoading === invitation.id}
+                            variant="outline"
+                            size="sm"
+                            className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/20 dark:text-emerald-400"
+                          >
+                            <Check className="mr-1 h-4 w-4" />
+                            {approveLoading === invitation.id ? "..." : "Approve"}
+                          </Button>
+                          <Button
+                            onClick={() => openDenyModal(invitation.id)}
+                            disabled={denyLoading === invitation.id}
+                            variant="outline"
+                            size="sm"
+                            className="border-red-500/30 bg-red-500/10 text-red-600 transition-all hover:border-red-500/50 hover:bg-red-500/20 dark:text-red-400"
+                          >
+                            <X className="mr-1 h-4 w-4" />
+                            {denyLoading === invitation.id ? "..." : "Deny"}
+                          </Button>
+                        </div>
+                      )}
+                      {invitation.status === "approved" && (
+                        <GlowingBadge variant="success" size="sm" icon={<Check className="h-3 w-3" />}>
+                          Approved
+                        </GlowingBadge>
+                      )}
+                      {invitation.status === "denied" && (
+                        <div>
+                          <GlowingBadge variant="danger" size="sm" icon={<X className="h-3 w-3" />}>
+                            Denied
+                          </GlowingBadge>
+                          {invitation.note && (
+                            <p
+                              className="mt-1 cursor-help text-xs text-muted-foreground/60"
+                              title={invitation.note}
+                            >
+                              {invitation.note.substring(0, 30)}...
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </EnhancedCard>
+
+          {invitations.data.length === 0 && (
+            <EnhancedCard variant="glass" className="py-16">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="mb-4 rounded-full bg-muted/30 p-4">
+                  <AlertCircle className="h-8 w-8 text-muted-foreground/30" />
+                </div>
+                <p className="text-lg font-medium text-muted-foreground">No beta invitations found</p>
+                {(search || statusFilter) && <p className="mt-1 text-sm text-muted-foreground/60">Try adjusting your search criteria</p>}
+              </div>
+            </EnhancedCard>
+          )}
+
+          {/* Pagination info */}
+          <div className="flex justify-center">
+            <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
+              Showing <span className="font-medium text-foreground/80">{invitations.from || 0}</span> to <span className="font-medium text-foreground/80">{invitations.to || 0}</span> of <span className="font-medium text-foreground/80">{invitations.total}</span> invitations
+            </p>
+          </div>
         </div>
-      </div>
+      </FuturisticBackground>
 
       {/* Create Invitation Modal */}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="border-border/40 bg-card/95 backdrop-blur-xl sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create Beta Invitation</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-primary" />
+              Create Beta Invitation
+            </DialogTitle>
             <DialogDescription>
               Manually create a new beta invitation request. The user will be added to the pending list.
             </DialogDescription>
@@ -367,7 +440,7 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
                   placeholder="John Doe"
                   value={data.name}
                   onChange={(e) => setData("name", e.target.value)}
-                  className={errors.name ? "border-red-500" : ""}
+                  className={`border-border/40 bg-card/50 ${errors.name ? "border-red-500" : ""}`}
                 />
                 {errors.name && (
                   <p className="text-xs text-red-500">{errors.name}</p>
@@ -381,7 +454,7 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
                   placeholder="john@example.com"
                   value={data.email}
                   onChange={(e) => setData("email", e.target.value)}
-                  className={errors.email ? "border-red-500" : ""}
+                  className={`border-border/40 bg-card/50 ${errors.email ? "border-red-500" : ""}`}
                 />
                 {errors.email && (
                   <p className="text-xs text-red-500">{errors.email}</p>
@@ -392,6 +465,7 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
               <Button
                 type="button"
                 variant="outline"
+                className="border-border/40"
                 onClick={() => {
                   setCreateModalOpen(false);
                   reset();
@@ -399,7 +473,7 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={processing}>
+              <Button type="submit" disabled={processing} className="bg-gradient-to-r from-primary to-primary/80">
                 {processing ? "Creating..." : "Create Invitation"}
               </Button>
             </DialogFooter>
@@ -409,9 +483,12 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
 
       {/* Deny Modal */}
       <Dialog open={denyModalOpen} onOpenChange={setDenyModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="border-border/40 bg-card/95 backdrop-blur-xl sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Deny Beta Invitation</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <XCircleIcon className="h-5 w-5" />
+              Deny Beta Invitation
+            </DialogTitle>
             <DialogDescription>
               You are about to deny this beta invitation request. You can optionally add a note explaining the reason.
             </DialogDescription>
@@ -427,7 +504,7 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
                 value={denyNote}
                 onChange={(e) => setDenyNote(e.target.value)}
                 rows={4}
-                className="resize-none"
+                className="resize-none border-border/40 bg-card/50"
               />
               <p className="text-xs text-muted-foreground">
                 This note will be saved for internal reference.
@@ -438,6 +515,7 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
             <Button
               type="button"
               variant="outline"
+              className="border-border/40"
               onClick={() => {
                 setDenyModalOpen(false);
                 setDenyNote("");

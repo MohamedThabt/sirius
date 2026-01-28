@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { ClientDateTime, useIsClient } from '@/components/ClientDateTime';
+import { FuturisticBackground } from '@/components/ui/futuristic';
 import {
     AlertCircleIcon,
     ArrowUpRightIcon,
@@ -92,7 +93,8 @@ export default function AdminDashboard({ stats }: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Dashboard" />
-            <div className="scrollbar-styled flex h-full flex-1 flex-col gap-8 overflow-y-auto p-6">
+            <FuturisticBackground className="min-h-full" showDots={true}>
+                <div className="scrollbar-styled flex h-full flex-1 flex-col gap-8 overflow-y-auto p-6">
                 {/* Enhanced Header Section */}
                 <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card via-card/80 to-card/40 p-6 shadow-sm">
                     <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-primary/5 blur-3xl" />
@@ -763,7 +765,8 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                         />
                     </div>
                 </div>
-            </div>
+                </div>
+            </FuturisticBackground>
         </AppLayout>
     );
 }
