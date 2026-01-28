@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Head, router } from "@inertiajs/react";
-import { AlertCircle, CreditCard, Eye } from "lucide-react";
+import { AlertCircle, CreditCard, Eye, Pencil } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AddPlanModal } from "./components/AddPlanModal";
+import { EditPlanModal } from "./components/EditPlanModal";
 
 interface Plan {
   id: number;
@@ -72,6 +74,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
   const [search, setSearch] = useState(filters.search || "");
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,19 +98,22 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Subscription Plans</h1>
-          <div className="flex gap-2">
-            <Badge variant="outline">{summary.total} Plans</Badge>
-            <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              {summary.total_users} Total Users
-            </Badge>
-            <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400">
-              {summary.users_with_plans} With Plans
-            </Badge>
-            {summary.users_without_plans > 0 && (
-              <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
-                {summary.users_without_plans} Without Plans
+          <div className="flex items-center gap-3">
+            <div className="flex gap-2">
+              <Badge variant="outline">{summary.total} Plans</Badge>
+              <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                {summary.total_users} Total Users
               </Badge>
-            )}
+              <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400">
+                {summary.users_with_plans} With Plans
+              </Badge>
+              {summary.users_without_plans > 0 && (
+                <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+                  {summary.users_without_plans} Without Plans
+                </Badge>
+              )}
+            </div>
+            <AddPlanModal />
           </div>
         </div>
 
@@ -216,15 +223,29 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
                   </TableCell>
                   <TableCell>{new Date(plan.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    <Button
-                      onClick={() => router.visit(`/admin/plans/${plan.id}`)}
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View Details
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setSelectedPlan(plan);
+                          setEditModalOpen(true);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => router.visit(`/admin/plans/${plan.id}`)}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View Details
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -249,6 +270,15 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
           </div>
         )}
       </div>
+
+      {/* Edit Plan Modal */}
+      {selectedPlan && (
+        <EditPlanModal
+          plan={selectedPlan}
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+        />
+      )}
     </AppLayout>
   );
 };

@@ -48,7 +48,9 @@ Route::middleware('auth:admin')->group(function () {
     
     // Plans Management
     Route::get('plans', [PlanController::class, 'index'])->name('admin.plans.index');
+    Route::post('plans', [PlanController::class, 'store'])->name('admin.plans.store');
     Route::get('plans/{plan}', [PlanController::class, 'show'])->name('admin.plans.show');
+    Route::put('plans/{plan}', [PlanController::class, 'update'])->name('admin.plans.update');
     
     // Subscriptions Management
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('admin.subscriptions.index');

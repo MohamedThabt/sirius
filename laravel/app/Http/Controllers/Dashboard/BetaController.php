@@ -163,11 +163,11 @@ class BetaController extends Controller
                     'started_at' => now(),
                 ]);
 
-                // Create user credit record with Pro plan credits (100)
+                // Create user credit record with Pro plan credits (1000 for beta users)
                 UserCredit::create([
                     'user_id' => $user->id,
-                    'credits_balance' => 100,
-                    'total_this_month' => 100,
+                    'credits_balance' => 1000,
+                    'total_this_month' => 1000,
                     'billing_cycle_start' => now()->startOfMonth(),
                 ]);
 

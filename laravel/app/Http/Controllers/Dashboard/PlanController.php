@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Plan\StorePlanRequest;
+use App\Http\Requests\Plan\UpdatePlanRequest;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Traits\StructuredLogger;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -129,6 +132,64 @@ class PlanController extends Controller
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'show', 'plan_id' => $plan->id]);
             return back()->with('error', 'Failed to load plan details. Please try again.');
+        }
+    }
+
+    public function store(StorePlanRequest $request): JsonResponse
+    {
+        try {
+            $plan = Plan::create($request->validated());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Plan created successfully.',
+                'plan' => [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                    'price' => $plan->price,
+                    'credits_per_cycle' => $plan->credits_per_cycle,
+                    'billing_cycle' => $plan->billing_cycle,
+                    'is_active' => $plan->is_active,
+                    'users_count' => 0,
+                    'created_at' => $plan->created_at,
+                ],
+            ]);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'store']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create plan. Please try again.',
+            ], 500);
+        }
+    }
+
+    public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
+    {
+        try {
+            $plan->update($request->validated());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Plan updated successfully.',
+                'plan' => [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                    'price' => $plan->price,
+                    'credits_per_cycle' => $plan->credits_per_cycle,
+                    'billing_cycle' => $plan->billing_cycle,
+                    'is_active' => $plan->is_active,
+                    'users_count' => $plan->active_subscribers_count,
+                    'created_at' => $plan->created_at,
+                ],
+            ]);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'update', 'plan_id' => $plan->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update plan. Please try again.',
+            ], 500);
         }
     }
 }
