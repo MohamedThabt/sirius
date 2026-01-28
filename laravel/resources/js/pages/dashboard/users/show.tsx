@@ -1,12 +1,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ClientDateTime } from '@/components/ClientDateTime';
-import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon, CoinsIcon, CpuIcon, ActivityIcon, CreditCardIcon, MessageSquareIcon, BugIcon, StarIcon } from 'lucide-react';
+import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon, CoinsIcon, CpuIcon, ActivityIcon, CreditCardIcon, MessageSquareIcon, BugIcon, StarIcon, PlusIcon } from 'lucide-react';
+import { useState } from 'react';
 
 interface Project {
     id: number;
@@ -114,6 +119,22 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function UserShow({ user, userStats, usageStats, recentUsageLogs, creditsInfo, subscriptionInfo, engagementStats }: Props) {
+    const [isAddCreditsOpen, setIsAddCreditsOpen] = useState(false);
+    
+    const addCreditsForm = useForm({
+        amount: '',
+        reason: '',
+    });
+
+    const handleAddCredits = (e: React.FormEvent) => {
+        e.preventDefault();
+        addCreditsForm.post(`/admin/users/${user.id}/add-credits`, {
+            onSuccess: () => {
+                setIsAddCreditsOpen(false);
+                addCreditsForm.reset();
+            },
+        });
+    };
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
             case 'completed':
@@ -285,9 +306,63 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
                     {/* Credits Balance */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                                <CoinsIcon className="h-4 w-4" />
-                                Credits Balance
+                            <CardTitle className="flex items-center justify-between text-sm font-medium">
+                                <span className="flex items-center gap-2">
+                                    <CoinsIcon className="h-4 w-4" />
+                                    Credits Balance
+                                </span>
+                                <Dialog open={isAddCreditsOpen} onOpenChange={setIsAddCreditsOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
+                                            <PlusIcon className="h-3 w-3 mr-1" />
+                                            Add Credits
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Add Credits to {user.name}</DialogTitle>
+                                            <DialogDescription>
+                                                Add credits to this user's account. This action will be logged.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <form onSubmit={handleAddCredits} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="amount">Amount *</Label>
+                                                <Input
+                                                    id="amount"
+                                                    type="number"
+                                                    min="1"
+                                                    max="100000"
+                                                    placeholder="Enter credits amount"
+                                                    value={addCreditsForm.data.amount}
+                                                    onChange={(e) => addCreditsForm.setData('amount', e.target.value)}
+                                                    className={addCreditsForm.errors.amount ? 'border-red-500' : ''}
+                                                />
+                                                {addCreditsForm.errors.amount && (
+                                                    <p className="text-xs text-red-500">{addCreditsForm.errors.amount}</p>
+                                                )}
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="reason">Reason (optional)</Label>
+                                                <Textarea
+                                                    id="reason"
+                                                    placeholder="e.g., Promotional bonus, Customer support credit"
+                                                    value={addCreditsForm.data.reason}
+                                                    onChange={(e) => addCreditsForm.setData('reason', e.target.value)}
+                                                    rows={3}
+                                                />
+                                            </div>
+                                            <DialogFooter>
+                                                <Button type="button" variant="outline" onClick={() => setIsAddCreditsOpen(false)}>
+                                                    Cancel
+                                                </Button>
+                                                <Button type="submit" disabled={addCreditsForm.processing || !addCreditsForm.data.amount}>
+                                                    {addCreditsForm.processing ? 'Adding...' : 'Add Credits'}
+                                                </Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">

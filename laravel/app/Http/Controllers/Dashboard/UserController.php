@@ -177,4 +177,50 @@ class UserController extends Controller
             return back()->with('error', 'Failed to load user details. Please try again.');
         }
     }
+
+    /**
+     * Add credits to a user's account.
+     *
+     * @param Request $request The incoming HTTP request
+     * @param User $user The user to add credits to
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function addCredits(Request $request, User $user)
+    {
+        try {
+            $validated = $request->validate([
+                'amount' => 'required|integer|min:1|max:100000',
+                'reason' => 'nullable|string|max:255',
+            ]);
+
+            // Get or create user credits record
+            $userCredit = $user->credits;
+            
+            if (!$userCredit) {
+                $userCredit = $user->credits()->create([
+                    'credits_balance' => 0,
+                    'total_this_month' => 0,
+                    'billing_cycle_start' => now()->startOfMonth(),
+                ]);
+            }
+
+            // Add credits
+            $userCredit->incrementCredits($validated['amount']);
+
+            // Log the action
+            $this->logInfo('Admin added credits to user', [
+                'action' => 'add_credits',
+                'user_id' => $user->id,
+                'amount' => $validated['amount'],
+                'reason' => $validated['reason'] ?? null,
+                'new_balance' => $userCredit->fresh()->credits_balance,
+                'admin_id' => auth('admin')->id(),
+            ]);
+
+            return back()->with('success', "Successfully added {$validated['amount']} credits to {$user->name}'s account.");
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'add_credits', 'user_id' => $user->id]);
+            return back()->with('error', 'Failed to add credits. Please try again.');
+        }
+    }
 }

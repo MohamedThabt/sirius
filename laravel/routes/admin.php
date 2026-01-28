@@ -45,6 +45,7 @@ Route::middleware('auth:admin')->group(function () {
     // User Management
     Route::get('users', [UserController::class, 'index'])->name('admin.users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->name('admin.users.show');
+    Route::post('users/{user}/add-credits', [UserController::class, 'addCredits'])->name('admin.users.add-credits');
     
     // Plans Management
     Route::get('plans', [PlanController::class, 'index'])->name('admin.plans.index');
