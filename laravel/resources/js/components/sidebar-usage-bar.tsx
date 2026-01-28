@@ -10,13 +10,15 @@ export function SidebarUsageBar() {
 
     if (!userCredits) return null;
 
-    const { balance: rawBalance, total, used, percentage: usedPercentage, daysUntilReset } = userCredits;
+    const { balance: rawBalance, total, used, daysUntilReset } = userCredits;
     
     // Ensure balance is never negative
     const balance = Math.max(0, rawBalance);
     
-    // Calculate remaining percentage for clearer UX
-    const remainingPercentage = Math.max(0, 100 - usedPercentage);
+    // Calculate percentages locally - handle cases where balance > total (e.g., bonus credits)
+    const effectiveTotal = Math.max(total, balance);
+    const remainingPercentage = effectiveTotal > 0 ? Math.round((balance / effectiveTotal) * 100) : 0;
+    const usedPercentage = 100 - remainingPercentage;
     
     const isLow = usedPercentage >= 80;
     const isCritical = usedPercentage >= 95;
@@ -51,7 +53,7 @@ export function SidebarUsageBar() {
                                 isLow ? "text-amber-600" :
                                 "text-emerald-600"
                             )}>
-                                {remainingPercentage}% left
+                                {balance.toLocaleString()} left
                             </span>
                         </div>
                         

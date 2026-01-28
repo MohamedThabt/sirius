@@ -89,9 +89,6 @@ class HandleInertiaRequests extends Middleware
                 'balance' => $balance,
                 'total' => $total,
                 'used' => $used,
-                'percentage' => $total > 0 
-                    ? round(min(($used / $total) * 100, 100), 1) // Cap at 100%
-                    : 0,
                 'daysUntilReset' => $user->credits->getDaysUntilReset(),
             ];
         }

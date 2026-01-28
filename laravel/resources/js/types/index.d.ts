@@ -67,7 +67,6 @@ export interface UserCreditsData {
     balance: number;
     total: number;
     used: number;
-    percentage: number;
     daysUntilReset: number;
 }
 
