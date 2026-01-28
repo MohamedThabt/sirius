@@ -89,7 +89,38 @@ class UserController extends Controller
                         ->take(10);
                 },
                 'githubToken',
+                'credits',
+                'subscriptions' => function ($query) {
+                    $query->with('plan')->latest();
+                },
             ]);
+
+            // Get active subscription
+            $activeSubscription = $user->activeSubscription();
+
+            // Credits info
+            $creditsInfo = [
+                'credits_balance' => $user->credits?->credits_balance ?? 0,
+                'total_this_month' => $user->credits?->total_this_month ?? 0,
+                'billing_cycle_start' => $user->credits?->billing_cycle_start,
+                'last_reset_at' => $user->credits?->last_reset_at,
+            ];
+
+            // Subscription info
+            $subscriptionInfo = $activeSubscription ? [
+                'id' => $activeSubscription->id,
+                'status' => $activeSubscription->status,
+                'plan_name' => $activeSubscription->plan?->name,
+                'plan_slug' => $activeSubscription->plan?->slug,
+                'started_at' => $activeSubscription->started_at,
+                'ends_at' => $activeSubscription->ends_at,
+            ] : null;
+
+            // Engagement stats
+            $engagementStats = [
+                'feedbacks_count' => $user->feedbacks()->count(),
+                'issues_count' => $user->issueReports()->count(),
+            ];
 
             // Calculate additional stats
             $userStats = [
@@ -137,6 +168,9 @@ class UserController extends Controller
                 'userStats' => $userStats,
                 'usageStats' => $usageStats,
                 'recentUsageLogs' => $recentUsageLogs,
+                'creditsInfo' => $creditsInfo,
+                'subscriptionInfo' => $subscriptionInfo,
+                'engagementStats' => $engagementStats,
             ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'show', 'user_id' => $user->id]);

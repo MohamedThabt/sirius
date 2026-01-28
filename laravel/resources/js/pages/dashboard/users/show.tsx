@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { ClientDateTime } from '@/components/ClientDateTime';
-import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon, CoinsIcon, CpuIcon, ActivityIcon } from 'lucide-react';
+import { ArrowLeftIcon, CalendarIcon, MailIcon, UserIcon, FolderIcon, UsersIcon, ZapIcon, GitBranchIcon, ClockIcon, CoinsIcon, CpuIcon, ActivityIcon, CreditCardIcon, MessageSquareIcon, BugIcon, StarIcon } from 'lucide-react';
 
 interface Project {
     id: number;
@@ -78,6 +78,24 @@ interface Props {
     userStats: UserStats;
     usageStats: UsageStats;
     recentUsageLogs: UsageLog[];
+    creditsInfo: {
+        credits_balance: number;
+        total_this_month: number;
+        billing_cycle_start: string | null;
+        last_reset_at: string | null;
+    };
+    subscriptionInfo: {
+        id: number;
+        status: string;
+        plan_name: string | null;
+        plan_slug: string | null;
+        started_at: string;
+        ends_at: string | null;
+    } | null;
+    engagementStats: {
+        feedbacks_count: number;
+        issues_count: number;
+    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -95,7 +113,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function UserShow({ user, userStats, usageStats, recentUsageLogs }: Props) {
+export default function UserShow({ user, userStats, usageStats, recentUsageLogs, creditsInfo, subscriptionInfo, engagementStats }: Props) {
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
             case 'completed':
@@ -119,6 +137,30 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs 
                 return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
             case 'viewer':
                 return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+            default:
+                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+        }
+    };
+
+    const getSubscriptionStatusColor = (status: string) => {
+        switch (status.toLowerCase()) {
+            case 'active':
+                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+            case 'cancelled':
+                return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20';
+            case 'expired':
+                return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
+            default:
+                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+        }
+    };
+
+    const getPlanBadgeStyle = (slug: string | null) => {
+        switch (slug?.toLowerCase()) {
+            case 'pro':
+                return 'bg-gradient-to-r from-violet-500/20 to-purple-500/20 text-violet-700 dark:text-violet-400 border-violet-500/30';
+            case 'enterprise':
+                return 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30';
             default:
                 return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
         }
@@ -191,6 +233,114 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs 
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-semibold">{userStats.pending_invitations}</div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Subscription, Credits & Engagement Row */}
+                <div className="grid gap-4 md:grid-cols-3">
+                    {/* Subscription & Plan */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                                <CreditCardIcon className="h-4 w-4" />
+                                Subscription & Plan
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {subscriptionInfo ? (
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-muted-foreground">Plan</span>
+                                        <Badge variant="outline" className={getPlanBadgeStyle(subscriptionInfo.plan_slug)}>
+                                            {subscriptionInfo.plan_name || 'Unknown'}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-muted-foreground">Status</span>
+                                        <Badge variant="outline" className={getSubscriptionStatusColor(subscriptionInfo.status)}>
+                                            {subscriptionInfo.status}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-muted-foreground">Started</span>
+                                        <span className="text-sm"><ClientDateTime value={subscriptionInfo.started_at} dateStyle="short" /></span>
+                                    </div>
+                                    {subscriptionInfo.ends_at && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-muted-foreground">Ends</span>
+                                            <span className="text-sm"><ClientDateTime value={subscriptionInfo.ends_at} dateStyle="short" /></span>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-4 text-center">
+                                    <CreditCardIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
+                                    <p className="text-sm text-muted-foreground">No active subscription</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Credits Balance */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                                <CoinsIcon className="h-4 w-4" />
+                                Credits Balance
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="text-center">
+                                <div className="text-4xl font-bold">{creditsInfo.credits_balance.toLocaleString()}</div>
+                                <div className="text-sm text-muted-foreground">of {creditsInfo.total_this_month.toLocaleString()} this month</div>
+                            </div>
+                            {creditsInfo.total_this_month > 0 && (
+                                <div className="w-full bg-muted rounded-full h-2">
+                                    <div 
+                                        className="bg-primary rounded-full h-2 transition-all" 
+                                        style={{ width: `${Math.min(100, (creditsInfo.credits_balance / creditsInfo.total_this_month) * 100)}%` }}
+                                    />
+                                </div>
+                            )}
+                            {creditsInfo.billing_cycle_start && (
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">Cycle Start</span>
+                                    <span><ClientDateTime value={creditsInfo.billing_cycle_start} dateStyle="short" /></span>
+                                </div>
+                            )}
+                            {creditsInfo.last_reset_at && (
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">Last Reset</span>
+                                    <span><ClientDateTime value={creditsInfo.last_reset_at} dateStyle="short" /></span>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Engagement Stats */}
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                                <StarIcon className="h-4 w-4" />
+                                Engagement
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-2">
+                                    <MessageSquareIcon className="h-4 w-4 text-blue-500" />
+                                    <span className="text-sm">Feedbacks</span>
+                                </div>
+                                <span className="text-2xl font-semibold">{engagementStats.feedbacks_count}</span>
+                            </div>
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-2">
+                                    <BugIcon className="h-4 w-4 text-amber-500" />
+                                    <span className="text-sm">Issue Reports</span>
+                                </div>
+                                <span className="text-2xl font-semibold">{engagementStats.issues_count}</span>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
