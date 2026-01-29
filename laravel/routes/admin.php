@@ -45,6 +45,7 @@ Route::middleware('auth:admin')->group(function () {
     // User Management
     Route::get('users', [UserController::class, 'index'])->name('admin.users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->name('admin.users.show');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::post('users/{user}/add-credits', [UserController::class, 'addCredits'])->name('admin.users.add-credits');
     
     // Plans Management

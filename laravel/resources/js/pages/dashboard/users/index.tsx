@@ -7,8 +7,19 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ClientDateTime } from '@/components/ClientDateTime';
-import { UsersIcon, FolderIcon, GitBranchIcon, TrendingUpIcon, SearchIcon, XIcon, ExternalLinkIcon } from 'lucide-react';
+import { UsersIcon, FolderIcon, GitBranchIcon, TrendingUpIcon, SearchIcon, XIcon, ExternalLinkIcon, Trash2Icon, AlertTriangleIcon } from 'lucide-react';
 import { useState } from 'react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
 
 interface User {
     id: number;
@@ -51,6 +62,40 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function UsersIndex({ users, filters, summary }: Props) {
     const [search, setSearch] = useState(filters.search || '');
+    const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const { toast } = useToast();
+
+    const handleDeleteClick = (user: User, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setUserToDelete(user);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (!userToDelete) return;
+
+        router.delete(`/admin/users/${userToDelete.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsDeleteDialogOpen(false);
+                setUserToDelete(null);
+                toast({
+                    title: "User deleted",
+                    description: `${userToDelete.name} has been successfully deleted.`,
+                    variant: "default",
+                });
+            },
+            onError: () => {
+                setIsDeleteDialogOpen(false);
+                toast({
+                    title: "Error",
+                    description: "Failed to delete user. Please try again.",
+                    variant: "destructive",
+                });
+            }
+        });
+    };
 
     const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
@@ -213,7 +258,17 @@ export default function UsersIndex({ users, filters, summary }: Props) {
                                             <ClientDateTime value={user.created_at} dateStyle="short" />
                                         </TableCell>
                                         <TableCell>
-                                            <ExternalLinkIcon className="h-4 w-4 text-muted-foreground/30 opacity-0 transition-all duration-200 group-hover:opacity-100" />
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-destructive/70 opacity-0 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                                                    onClick={(e) => handleDeleteClick(user, e)}
+                                                >
+                                                    <Trash2Icon className="h-4 w-4" />
+                                                </Button>
+                                                <ExternalLinkIcon className="h-4 w-4 text-muted-foreground/30 opacity-0 transition-all duration-200 group-hover:opacity-100" />
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -241,6 +296,30 @@ export default function UsersIndex({ users, filters, summary }: Props) {
                     </div>
                 </div>
             </FuturisticBackground>
+
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent className="border-destructive/20 bg-background/95 backdrop-blur-xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                            <AlertTriangleIcon className="h-5 w-5" />
+                            Delete User
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-muted-foreground">
+                            Are you sure you want to delete <span className="font-medium text-foreground">{userToDelete?.name}</span>? 
+                            This action cannot be undone and will permanently remove their account, projects, and all associated data.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="border-border/50 bg-transparent hover:bg-muted/50">Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={confirmDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete User
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AppLayout>
     );
 }

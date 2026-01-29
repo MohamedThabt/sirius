@@ -223,4 +223,32 @@ class UserController extends Controller
             return back()->with('error', 'Failed to add credits. Please try again.');
         }
     }
+    /**
+     * Delete a user.
+     *
+     * @param User $user The user to delete
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(User $user)
+    {
+        try {
+            // Check if user is an admin or has some protection if needed,
+            // though for now we assume admins can delete any user.
+            
+            // Log the action before deletion (so we have the user ID)
+            $this->logInfo('Admin deleted user', [
+                'action' => 'delete_user',
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'admin_id' => auth('admin')->id(),
+            ]);
+
+            $user->delete();
+
+            return back()->with('success', 'User deleted successfully.');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'destroy', 'user_id' => $user->id]);
+            return back()->with('error', 'Failed to delete user. Please try again.');
+        }
+    }
 }
