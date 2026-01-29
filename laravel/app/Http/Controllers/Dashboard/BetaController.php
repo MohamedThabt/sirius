@@ -180,43 +180,7 @@ class BetaController extends Controller
             });
 
             // Send welcome email with password (outside transaction for proper queue handling)
-            // #region agent log
-            $logFile = base_path('.cursor/debug.log');
-            $logData = json_encode([
-                'sessionId' => 'debug-session',
-                'runId' => 'run1',
-                'hypothesisId' => 'A',
-                'location' => 'BetaController.php:193',
-                'message' => 'Before Mail::send - checking config',
-                'data' => [
-                    'queue_connection' => config('queue.default'),
-                    'mail_mailer' => config('mail.default'),
-                    'mail_host' => config('mail.mailers.smtp.host'),
-                    'mail_port' => config('mail.mailers.smtp.port'),
-                    'has_mail_username' => !empty(config('mail.mailers.smtp.username')),
-                    'invitation_id' => $betaInvitation->id,
-                    'email' => $betaInvitation->email,
-                ],
-                'timestamp' => (int) (microtime(true) * 1000),
-            ]) . "\n";
-            file_put_contents($logFile, $logData, FILE_APPEND);
-            // #endregion
             Mail::send(new BetaInvitationMail($betaInvitation, $password));
-            // #region agent log
-            $logData2 = json_encode([
-                'sessionId' => 'debug-session',
-                'runId' => 'run1',
-                'hypothesisId' => 'A',
-                'location' => 'BetaController.php:194',
-                'message' => 'After Mail::send - mail dispatched',
-                'data' => [
-                    'invitation_id' => $betaInvitation->id,
-                    'email' => $betaInvitation->email,
-                ],
-                'timestamp' => (int) (microtime(true) * 1000),
-            ]) . "\n";
-            file_put_contents($logFile, $logData2, FILE_APPEND);
-            // #endregion
 
             return back()->with('success', 'User account created and welcome email sent successfully.');
         } catch (Throwable $e) {
