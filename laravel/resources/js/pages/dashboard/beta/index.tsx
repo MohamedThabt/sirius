@@ -94,6 +94,8 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedInvitation, setSelectedInvitation] = useState<number | null>(null);
   const [denyNote, setDenyNote] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     name: "",
@@ -127,6 +129,11 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
     setDenyModalOpen(true);
   };
 
+  const openDeleteModal = (invitationId: number) => {
+    setSelectedInvitation(invitationId);
+    setDeleteModalOpen(true);
+  };
+
   const handleDeny = () => {
     if (selectedInvitation === null) return;
     
@@ -140,6 +147,22 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
           setDenyModalOpen(false);
           setSelectedInvitation(null);
           setDenyNote("");
+        },
+      }
+    );
+  };
+
+  const handleDelete = () => {
+    if (selectedInvitation === null) return;
+
+    setDeleteLoading(selectedInvitation);
+    router.delete(
+      `/admin/beta/${selectedInvitation}`,
+      {
+        onFinish: () => {
+          setDeleteLoading(null);
+          setDeleteModalOpen(false);
+          setSelectedInvitation(null);
         },
       }
     );
@@ -347,50 +370,60 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
                     </TableCell>
                     <TableCell className="text-muted-foreground/60">{invitation.invited_by?.name || "-"}</TableCell>
                     <TableCell>
-                      {invitation.status === "pending" && (
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => handleApprove(invitation.id)}
-                            disabled={approveLoading === invitation.id}
-                            variant="outline"
-                            size="sm"
-                            className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/20 dark:text-emerald-400"
-                          >
-                            <Check className="mr-1 h-4 w-4" />
-                            {approveLoading === invitation.id ? "..." : "Approve"}
-                          </Button>
-                          <Button
-                            onClick={() => openDenyModal(invitation.id)}
-                            disabled={denyLoading === invitation.id}
-                            variant="outline"
-                            size="sm"
-                            className="border-red-500/30 bg-red-500/10 text-red-600 transition-all hover:border-red-500/50 hover:bg-red-500/20 dark:text-red-400"
-                          >
-                            <X className="mr-1 h-4 w-4" />
-                            {denyLoading === invitation.id ? "..." : "Deny"}
-                          </Button>
-                        </div>
-                      )}
-                      {invitation.status === "approved" && (
-                        <GlowingBadge variant="success" size="sm" icon={<Check className="h-3 w-3" />}>
-                          Approved
-                        </GlowingBadge>
-                      )}
-                      {invitation.status === "denied" && (
-                        <div>
-                          <GlowingBadge variant="danger" size="sm" icon={<X className="h-3 w-3" />}>
-                            Denied
-                          </GlowingBadge>
-                          {invitation.note && (
-                            <p
-                              className="mt-1 cursor-help text-xs text-muted-foreground/60"
-                              title={invitation.note}
+                      <div className="flex items-center gap-2">
+                        {invitation.status === "pending" && (
+                          <>
+                            <Button
+                              onClick={() => handleApprove(invitation.id)}
+                              disabled={approveLoading === invitation.id}
+                              variant="outline"
+                              size="sm"
+                              className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/20 dark:text-emerald-400"
                             >
-                              {invitation.note.substring(0, 30)}...
-                            </p>
-                          )}
-                        </div>
-                      )}
+                              <Check className="mr-1 h-4 w-4" />
+                              {approveLoading === invitation.id ? "..." : "Approve"}
+                            </Button>
+                            <Button
+                              onClick={() => openDenyModal(invitation.id)}
+                              disabled={denyLoading === invitation.id}
+                              variant="outline"
+                              size="sm"
+                              className="border-red-500/30 bg-red-500/10 text-red-600 transition-all hover:border-red-500/50 hover:bg-red-500/20 dark:text-red-400"
+                            >
+                              <X className="mr-1 h-4 w-4" />
+                              {denyLoading === invitation.id ? "..." : "Deny"}
+                            </Button>
+                          </>
+                        )}
+                        {/* Always show delete button */}
+                        <Button
+                          onClick={() => openDeleteModal(invitation.id)}
+                          disabled={deleteLoading === invitation.id}
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                          title="Delete Invitation"
+                        >
+                          <svg
+                             xmlns="http://www.w3.org/2000/svg"
+                             width="24"
+                             height="24"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             strokeWidth="2"
+                             strokeLinecap="round"
+                             strokeLinejoin="round"
+                             className="h-4 w-4"
+                           >
+                             <path d="M3 6h18" />
+                             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                             <line x1="10" x2="10" y1="11" y2="17" />
+                             <line x1="14" x2="14" y1="11" y2="17" />
+                           </svg>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -531,6 +564,59 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
               disabled={denyLoading === selectedInvitation}
             >
               {denyLoading === selectedInvitation ? "Denying..." : "Deny Invitation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="border-border/40 bg-card/95 backdrop-blur-xl sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <svg
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 strokeWidth="2"
+                 strokeLinecap="round"
+                 strokeLinejoin="round"
+                 className="h-5 w-5"
+               >
+                 <path d="M3 6h18" />
+                 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                 <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                 <line x1="10" x2="10" y1="11" y2="17" />
+                 <line x1="14" x2="14" y1="11" y2="17" />
+               </svg>
+              Delete Invitation
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this beta invitation? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-border/40"
+              onClick={() => {
+                setDeleteModalOpen(false);
+                setSelectedInvitation(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteLoading === selectedInvitation}
+            >
+              {deleteLoading === selectedInvitation ? "Deleting..." : "Delete Invitation"}
             </Button>
           </DialogFooter>
         </DialogContent>

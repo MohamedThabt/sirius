@@ -62,6 +62,7 @@ Route::middleware('auth:admin')->group(function () {
     Route::post('beta/store', [BetaController::class, 'store'])->name('admin.beta.store');
     Route::post('beta/{betaInvitation}/approve', [BetaController::class, 'approve'])->name('admin.beta.approve');
     Route::post('beta/{betaInvitation}/deny', [BetaController::class, 'deny'])->name('admin.beta.deny');
+    Route::delete('beta/{betaInvitation}', [BetaController::class, 'destroy'])->name('admin.beta.destroy');
     
     // Project Management
     Route::get('projects', [ProjectController::class, 'index'])->name('admin.projects.index');

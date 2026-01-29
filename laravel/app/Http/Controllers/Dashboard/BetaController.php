@@ -223,4 +223,21 @@ class BetaController extends Controller
             return back()->with('error', 'Failed to deny invitation. Please try again.');
         }
     }
+
+    /**
+     * Delete a beta invitation.
+     *
+     * @param BetaInvitation $betaInvitation The beta invitation to delete
+     * @return RedirectResponse Redirect back with success message
+     */
+    public function destroy(BetaInvitation $betaInvitation): RedirectResponse
+    {
+        try {
+            $betaInvitation->delete();
+            return back()->with('success', 'Invitation deleted successfully.');
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'destroy', 'invitation_id' => $betaInvitation->id]);
+            return back()->with('error', 'Failed to delete invitation. Please try again.');
+        }
+    }
 }
