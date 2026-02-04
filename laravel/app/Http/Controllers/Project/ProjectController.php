@@ -37,13 +37,11 @@ class ProjectController extends Controller
                 
                 $ownedProjects->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('overview', 'like', "%{$search}%")
                         ->orWhere('brief', 'like', "%{$search}%");
                 });
                 
                 $teamProjects->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('overview', 'like', "%{$search}%")
                         ->orWhere('brief', 'like', "%{$search}%");
                 });
             }
