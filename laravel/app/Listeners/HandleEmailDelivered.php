@@ -14,7 +14,7 @@ class HandleEmailDelivered
     {
         $payload = $event->payload;
 
-        Log::channel('email')->info('Email delivered successfully', [
+        Log::channel('daily')->info('Email delivered successfully', [
             'email_id' => $payload['data']['email_id'] ?? null,
             'to' => $payload['data']['to'] ?? [],
             'subject' => $payload['data']['subject'] ?? null,
