@@ -32,8 +32,8 @@ A{Text} for decision diamonds
    - Use subgraphs to group related nodes (e.g., `subgraph E-Learning_Platform ... end`).
    - Ensure every `subgraph` has a matching `end` statement.
    - Subgraph labels should use spaces or hyphens instead of underscores.
-   
-6. **General Rules**:
+6. Edge labels must never use colons (:) or quotation marks. Always use the format: A -->|Label Text| B. Any other format is invalid.
+7. **General Rules**:
    - Ensure all referenced nodes in relationships are defined in the diagram.
    - Avoid empty lines or excessive whitespace within the diagram code.
    - Do not include Markdown code block markers (```mermaid or ```).
