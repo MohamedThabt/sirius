@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::firstOrCreate(
+        $user = User::firstOrCreate(
             ['email' => 'user@example.com'],
             [
                 'name' => 'Test User',
@@ -21,5 +21,14 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        // Ensure user has credits initialized
+        if (!$user->credits) {
+            $user->credits()->create([
+                'credits_balance' => 1000,
+                'total_this_month' => 1000,
+                'billing_cycle_start' => now()->startOfMonth(),
+            ]);
+        }
     }
 }

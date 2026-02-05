@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -12,7 +13,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::firstOrCreate(
+        // Seed plans first
+        $this->call([
+            PlanSeeder::class,
+            AdminSeeder::class,
+            // ProjectWithFeaturesSeeder::class,
+            // ProjectTechnicalIntakeSeeder::class,
+        ]);
+
+        // Create main user
+        $user = User::firstOrCreate(
             ['email' => '1@1.com'],
             [
                 'name' => 'Moahmed',
@@ -20,11 +30,26 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $this->call([
-            PlanSeeder::class,
-            AdminSeeder::class,
-            // ProjectWithFeaturesSeeder::class,
-            // ProjectTechnicalIntakeSeeder::class,
-        ]);
+        // Ensure user has credits initialized (1000 credits)
+        if (!$user->credits) {
+            $user->credits()->create([
+                'credits_balance' => 1000,
+                'total_this_month' => 1000,
+                'billing_cycle_start' => now()->startOfMonth(),
+            ]);
+        }
+
+        // Ensure user has a subscription to the Pro plan
+        if (!$user->subscriptions()->exists()) {
+            $proPlan = Plan::where('slug', 'pro')->first();
+            if ($proPlan) {
+                $user->subscriptions()->create([
+                    'plan_id' => $proPlan->id,
+                    'status' => 'active',
+                    'started_at' => now(),
+                    'ends_at' => now()->addMonth(),
+                ]);
+            }
+        }
     }
 }
