@@ -250,7 +250,7 @@ export default function ProjectSidebar({
                                     href="https://t.me/sirius_ai_community"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="group relative flex w-full items-center justify-between overflow-hidden rounded-lg px-2.5 py-2 text-sm transition-all duration-300 hover:scale-[1.02] bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 hover:from-cyan-500/20 hover:via-blue-500/20 hover:to-purple-500/20 border border-cyan-500/20 hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]"
+                                    className="group relative flex items-center justify-between overflow-hidden rounded-lg px-2.5 py-2 text-sm transition-all duration-300 hover:scale-[1.01] bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 hover:from-cyan-500/20 hover:via-blue-500/20 hover:to-purple-500/20 border border-cyan-500/20 hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] mx-0.5"
                                 >
                                     {/* Animated shine effect */}
                                     <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />

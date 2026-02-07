@@ -160,6 +160,37 @@ export default function ProjectsIndexSidebar({
                                 </ul>
                             )}
                         </div>
+                        
+                        {/* Community Link Section */}
+                        <div className="space-y-2">
+                            <div className="px-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Community</div>
+                            <a
+                                href="https://t.me/sirius_ai_community"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative flex items-center justify-between overflow-hidden rounded-lg px-2.5 py-2 text-sm transition-all duration-300 hover:scale-[1.01] bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 hover:from-cyan-500/20 hover:via-blue-500/20 hover:to-purple-500/20 border border-cyan-500/20 hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] mx-0.5"
+                            >
+                                {/* Animated shine effect */}
+                                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                                
+                                <span className="relative inline-flex items-center gap-2">
+                                    <span className="relative">
+                                        <svg className="h-4 w-4 shrink-0 text-cyan-500" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                                        </svg>
+                                        <span className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-ping rounded-full bg-cyan-400/60" />
+                                        <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-cyan-400" />
+                                    </span>
+                                    <span className="font-medium text-foreground">Community</span>
+                                </span>
+                                <span className="relative flex items-center gap-1 text-xs font-semibold text-cyan-500 group-hover:text-cyan-400">
+                                    <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z"/>
+                                    </svg>
+                                    Join
+                                </span>
+                            </a>
+                        </div>
 
                     </nav>
                 </div>
