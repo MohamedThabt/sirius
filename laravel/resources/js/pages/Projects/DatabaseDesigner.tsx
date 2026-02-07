@@ -495,8 +495,8 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
                             </div>
                         </div>
                         <div id="resizable-container" className="relative flex min-h-0 flex-1 overflow-hidden">
-                            {/* Right Panel - Diagram Only */}
-                            <div className="relative flex min-h-0 min-w-0 flex-col" style={{ width: '100%' }}>
+                            {/* Diagram Panel in Fullscreen */}
+                            <div className="relative flex min-h-0 min-w-0 flex-col w-full">
                                 <div className="min-h-0 flex-1">
                                     {content ? (
                                         <DiagramCanvas
