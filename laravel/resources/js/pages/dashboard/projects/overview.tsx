@@ -25,13 +25,9 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
+import { MermaidDiagram } from '@/components/MermaidDiagram';
 
-mermaid.initialize({
-    startOnLoad: true,
-    theme: 'default',
-    securityLevel: 'loose',
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-});
+// Mermaid initialization moved to useEffect for theme awareness
 
 interface User {
     id: number;
@@ -120,11 +116,17 @@ export default function ProjectOverview({
         }
     };
 
+    // Initialize mermaid with theme awareness
     useEffect(() => {
-        if (viewMode === 'preview') {
-            mermaid.run({ querySelector: '.mermaid' }).catch(() => {});
-        }
-    }, [viewMode, currentContent]);
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: isDarkMode ? 'dark' : 'default',
+            securityLevel: 'loose',
+            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+            suppressErrorRendering: true,
+        });
+    }, []);
 
     // Handle initial async generation
     const triggerAsyncGeneration = async () => {
@@ -287,8 +289,14 @@ export default function ProjectOverview({
                                             code({ className, children, ...props }) {
                                                 const match = /language-(\w+)/.exec(className || '');
                                                 const language = match ? match[1] : '';
-                                                if (language === 'mermaid') {
-                                                    return <div className="mermaid">{String(children).replace(/\n$/, '')}</div>;
+                                                const isInline = !className?.includes('language-');
+
+                                                if (language === 'mermaid' && !isInline) {
+                                                    return (
+                                                        <MermaidDiagram projectId={project.id} previewTitle="System Overview Diagram">
+                                                            {String(children).replace(/\n$/, '')}
+                                                        </MermaidDiagram>
+                                                    );
                                                 }
                                                 return (
                                                     <code className={className} {...props}>

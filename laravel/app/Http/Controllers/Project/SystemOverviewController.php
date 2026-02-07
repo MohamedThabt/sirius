@@ -139,10 +139,13 @@ class SystemOverviewController extends Controller
                 );
             }
 
-            // Store the validated data in session for async generation
+            // Store the validated data in session for async generation with unique token
+            $generationToken = \Illuminate\Support\Str::uuid()->toString();
             session([
                 'pending_overview_generation' => [
                     'project_id' => $project->id,
+                    'generation_token' => $generationToken,
+                    'created_at' => now()->toIso8601String(),
                     'why_making' => $validated['why_making'],
                     'who_for' => $validated['who_for'],
                     'what_valuable' => $validated['what_valuable'],
@@ -194,10 +197,61 @@ class SystemOverviewController extends Controller
             $pendingData = session('pending_overview_generation');
 
             if (! $pendingData || $pendingData['project_id'] !== $project->id) {
+                // Check if overview was recently created (idempotency fallback)
+                $recentVersion = $project->overviewVersions()
+                    ->where('created_at', '>=', now()->subSeconds(30))
+                    ->orderByDesc('created_at')
+                    ->first();
+
+                if ($recentVersion) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Overview already generated',
+                        'overviewVersions' => $project->overviewVersions()->get(),
+                        'hasModules' => $project->modules()->exists(),
+                    ]);
+                }
+
                 return response()->json([
                     'success' => false,
                     'message' => 'No pending generation data found',
                 ], 400);
+            }
+
+            // Validate generation token exists and session is not stale (5 minutes max)
+            if (empty($pendingData['generation_token'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid generation request - missing token',
+                ], 400);
+            }
+
+            $sessionCreatedAt = isset($pendingData['created_at'])
+                ? \Carbon\Carbon::parse($pendingData['created_at'])
+                : null;
+
+            if ($sessionCreatedAt && $sessionCreatedAt->lt(now()->subMinutes(5))) {
+                session()->forget('pending_overview_generation');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Generation request expired. Please try again.',
+                ], 400);
+            }
+
+            // Idempotency check: return existing if overview was created in last 30 seconds
+            $recentVersion = $project->overviewVersions()
+                ->where('created_at', '>=', now()->subSeconds(30))
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($recentVersion) {
+                session()->forget('pending_overview_generation');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Overview already generated',
+                    'overviewVersions' => $project->overviewVersions()->get(),
+                    'hasModules' => $project->modules()->exists(),
+                ]);
             }
 
             // Build description from multi-step form data (matching brief format for consistency)
@@ -262,9 +316,12 @@ class SystemOverviewController extends Controller
                 }
             }
 
-            // Call FastAPI endpoint to generate overview
+            // Clear session BEFORE calling FastAPI to prevent duplicate calls from succeeding
+            session()->forget('pending_overview_generation');
+
+            // Call FastAPI endpoint to generate overview (no retry - creation operations should not retry to prevent duplicates)
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
+            $response = Http::fastapi()->timeout(120)
                 ->post($fastApiBaseUrl.'/v1/Overview/generate', [
                     'project_description' => $projectDescription,
                 ]);
@@ -302,9 +359,6 @@ class SystemOverviewController extends Controller
                 $project->overviewVersions()
                     ->where('id', '!=', $overviewVersion->id)
                     ->update(['is_base_version' => false]);
-
-                // Clear pending session data
-                session()->forget('pending_overview_generation');
 
                 return response()->json([
                     'success' => true,
@@ -459,9 +513,19 @@ class SystemOverviewController extends Controller
                     ->where('id', '!=', $overviewVersion->id)
                     ->update(['is_base_version' => false]);
 
-                // Return an Inertia response (or redirect) so Inertia visit succeeds
                 $project->load(['overviewVersions', 'modules']);
 
+                // Return JSON for AJAX requests (async frontend calls)
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Overview regenerated successfully',
+                        'overviewVersions' => $project->overviewVersions()->get(),
+                        'hasModules' => $project->modules()->exists(),
+                    ]);
+                }
+
+                // Return Inertia response for standard navigation
                 return Inertia::render('Projects/SystemOverview', [
                     'project' => $project,
                     'overviewVersions' => $project->overviewVersions()->get(),
@@ -472,6 +536,15 @@ class SystemOverviewController extends Controller
             }
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'regenerate', 'project_id' => $project->id]);
+
+            // Return JSON for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to regenerate system overview. Please try again.',
+                ], 500);
+            }
+
             return back()->with('error', 'Failed to regenerate system overview. Please try again.');
         }
     }

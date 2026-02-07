@@ -304,14 +304,19 @@ class ArchitectureController extends Controller
 
         // Check if user is a team member
         if (!$project->hasMember($userId)) {
-            throw new \Exception('You do not have access to this project.');
+            throw new \Exception(
+                "Access denied: User #{$userId} is not a member of Project #{$project->id}."
+            );
         }
 
         // If specific roles are required, check user's role
         if (!empty($allowedRoles)) {
             $userRole = $project->getMemberRole($userId);
             if (!in_array($userRole, $allowedRoles)) {
-                throw new \Exception('You do not have permission to perform this action.');
+                $allowed = implode(', ', $allowedRoles);
+                throw new \Exception(
+                    "Permission denied: User #{$userId} has role '{$userRole}' on Project #{$project->id}, but this action requires one of [{$allowed}]."
+                );
             }
         }
     }

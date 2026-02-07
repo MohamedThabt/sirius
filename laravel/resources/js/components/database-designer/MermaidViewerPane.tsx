@@ -90,6 +90,7 @@ export const MermaidViewerPane: React.FC<MermaidViewerPaneProps> = React.memo(({
             theme: isDarkMode ? 'dark' : 'default',
             sequence: MERMAID_CONFIG.sequence,
             themeVariables: isDarkMode ? MERMAID_CONFIG.darkTheme : MERMAID_CONFIG.lightTheme,
+            suppressErrorRendering: true,
         });
     };
 

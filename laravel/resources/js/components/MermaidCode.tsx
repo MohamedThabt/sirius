@@ -82,6 +82,7 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
                     theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
                     securityLevel: 'loose',
                     fontFamily: 'inherit',
+                    suppressErrorRendering: true,
                 });
 
                 // Generate unique ID for this diagram (alphanumeric only to avoid CSS selector issues)

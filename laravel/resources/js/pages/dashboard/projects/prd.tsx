@@ -18,6 +18,7 @@ mermaid.initialize({
     theme: 'default',
     securityLevel: 'loose',
     fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    suppressErrorRendering: true,
 });
 
 interface User {

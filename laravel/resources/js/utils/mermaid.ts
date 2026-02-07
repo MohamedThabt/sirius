@@ -99,3 +99,173 @@ export const convertEscapedMermaid = (escapedString: string): string => {
 
     return cleaned;
 };
+
+/**
+ * Valid Mermaid diagram types
+ */
+const VALID_DIAGRAM_TYPES = [
+    'flowchart',
+    'graph',
+    'sequenceDiagram',
+    'classDiagram',
+    'stateDiagram',
+    'stateDiagram-v2',
+    'erDiagram',
+    'journey',
+    'gantt',
+    'pie',
+    'quadrantChart',
+    'requirementDiagram',
+    'gitGraph',
+    'mindmap',
+    'timeline',
+    'zenuml',
+    'sankey',
+    'xychart',
+    'block',
+];
+
+/**
+ * Validation result interface
+ */
+export interface MermaidValidationResult {
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+}
+
+/**
+ * Validates Mermaid syntax before rendering.
+ * Checks for common issues that would cause rendering failures.
+ */
+export const validateMermaidSyntax = (code: string): MermaidValidationResult => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const lines = code.trim().split('\n');
+
+    if (lines.length === 0 || !code.trim()) {
+        errors.push('Empty diagram code');
+        return { valid: false, errors, warnings };
+    }
+
+    // Check for valid diagram type declaration
+    const firstLine = lines[0].trim().toLowerCase();
+    const diagramTypeMatch = firstLine.match(/^(\w+(?:-\w+)?)/);
+    const diagramType = diagramTypeMatch ? diagramTypeMatch[1] : '';
+
+    if (!VALID_DIAGRAM_TYPES.some((type) => firstLine.startsWith(type.toLowerCase()))) {
+        errors.push(
+            `Invalid or missing diagram type declaration. Expected one of: ${VALID_DIAGRAM_TYPES.slice(0, 5).join(', ')}, etc. Found: "${diagramType || 'none'}"`
+        );
+    }
+
+    // Count brackets and braces for balance check
+    let squareBrackets = 0;
+    let roundBrackets = 0;
+    let curlyBraces = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lineNum = i + 1;
+
+        // Count brackets (excluding escaped ones)
+        for (const char of line) {
+            switch (char) {
+                case '[':
+                    squareBrackets++;
+                    break;
+                case ']':
+                    squareBrackets--;
+                    break;
+                case '(':
+                    roundBrackets++;
+                    break;
+                case ')':
+                    roundBrackets--;
+                    break;
+                case '{':
+                    curlyBraces++;
+                    break;
+                case '}':
+                    curlyBraces--;
+                    break;
+            }
+        }
+
+        // Check for common syntax errors
+        if (line.includes('-->') && line.includes('-->>')) {
+            warnings.push(`Line ${lineNum}: Mixed arrow styles (-->, -->>)`);
+        }
+
+        // Check for invalid node ID patterns (starting with numbers)
+        const nodeMatch = line.match(/^\s*(\d+\w*)\s*[\[({]/);
+        if (nodeMatch) {
+            warnings.push(`Line ${lineNum}: Node ID "${nodeMatch[1]}" starts with a number, which may cause issues`);
+        }
+
+        // Check for unclosed quotes in labels
+        const quoteCount = (line.match(/"/g) || []).length;
+        if (quoteCount % 2 !== 0) {
+            errors.push(`Line ${lineNum}: Unclosed quote in label`);
+        }
+    }
+
+    // Report unbalanced brackets
+    if (squareBrackets !== 0) {
+        errors.push(`Unbalanced square brackets: ${squareBrackets > 0 ? `${squareBrackets} unclosed [` : `${Math.abs(squareBrackets)} extra ]`}`);
+    }
+    if (roundBrackets !== 0) {
+        errors.push(`Unbalanced parentheses: ${roundBrackets > 0 ? `${roundBrackets} unclosed (` : `${Math.abs(roundBrackets)} extra )`}`);
+    }
+    if (curlyBraces !== 0) {
+        errors.push(`Unbalanced curly braces: ${curlyBraces > 0 ? `${curlyBraces} unclosed {` : `${Math.abs(curlyBraces)} extra }`}`);
+    }
+
+    return {
+        valid: errors.length === 0,
+        errors,
+        warnings,
+    };
+};
+
+/**
+ * Parses Mermaid error messages to provide user-friendly explanations.
+ */
+export const parseMermaidError = (error: string): string => {
+    // Common error patterns and their user-friendly explanations
+    const errorPatterns: Array<{ pattern: RegExp; message: string }> = [
+        {
+            pattern: /syntax error/i,
+            message: 'Syntax error in diagram code. Check for missing arrows, brackets, or invalid characters.',
+        },
+        {
+            pattern: /unexpected.*token/i,
+            message: 'Unexpected character or symbol found. Verify all nodes and connections are properly formatted.',
+        },
+        {
+            pattern: /lexical error/i,
+            message: 'Invalid character in diagram. Remove special characters or escape them properly.',
+        },
+        {
+            pattern: /parse error/i,
+            message: 'Could not parse diagram structure. Check that the diagram type is correct and syntax follows Mermaid conventions.',
+        },
+        {
+            pattern: /unknown.*diagram.*type/i,
+            message: 'Unknown diagram type. Use flowchart, sequenceDiagram, classDiagram, etc.',
+        },
+        {
+            pattern: /duplicate.*node/i,
+            message: 'Duplicate node ID found. Each node must have a unique identifier.',
+        },
+    ];
+
+    for (const { pattern, message } of errorPatterns) {
+        if (pattern.test(error)) {
+            return message;
+        }
+    }
+
+    // Return original error if no pattern matches
+    return error;
+};
