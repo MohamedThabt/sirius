@@ -91,7 +91,7 @@ export default function ProjectsIndexSidebar({
             <div
                 className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             >
-                <div className="overflow-y-auto scrollbar-hide">
+                <div className="overflow-x-hidden overflow-y-auto scrollbar-hide">
                     {/* Header with App Logo */}
                     <div className="mb-6 pb-4 border-b border-border/30">
                         <div className="flex items-center justify-center">
@@ -109,7 +109,7 @@ export default function ProjectsIndexSidebar({
                                             <button
                                                 onClick={item.onClick}
                                                 className={[
-                                                    'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200',
+                                                    'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200 cursor-pointer',
                                                     item.active
                                                         ? 'bg-gradient-to-r from-primary/15 to-primary/5 font-semibold text-foreground shadow-sm border border-primary/20'
                                                         : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:translate-x-0.5',
@@ -140,13 +140,13 @@ export default function ProjectsIndexSidebar({
                             {projects.length === 0 ? (
                                 <div className="px-3 py-2 text-xs text-muted-foreground italic">No projects loaded</div>
                             ) : (
-                                <ul className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                                <ul className="space-y-1 max-h-64 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                                     {projects.map((p) => (
                                         <li key={p.id}>
                                             <button
                                                 onClick={() => router.visit(`/projects/${p.id}`)}
                                                 className={[
-                                                    'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200',
+                                                    'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200 cursor-pointer',
                                                     currentProjectId === p.id
                                                         ? 'bg-gradient-to-r from-primary/15 to-primary/5 text-foreground font-medium shadow-sm border border-primary/20'
                                                         : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:translate-x-0.5',
@@ -205,7 +205,7 @@ export default function ProjectsIndexSidebar({
                     <div className="border-t border-border/50 pt-4">
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-all duration-200 hover:bg-muted/70">
+                            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-all duration-200 hover:bg-muted/70 cursor-pointer">
                                 <Avatar className="h-8 w-8 shrink-0 ring-2 ring-primary/10">
                                     <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
                                     <AvatarFallback className="text-xs bg-gradient-to-br from-primary/20 to-primary/10 text-foreground font-semibold">

@@ -175,7 +175,7 @@ export default function FeatureSidebar({ project, module, feature, activeSection
             <div
                 className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             >
-                <div className="overflow-y-auto scrollbar-hide">
+                <div className="overflow-x-hidden overflow-y-auto scrollbar-hide">
                     {/* Logo/Brand */}
                     <div className="mb-6 border-b pb-4">
                         <a href="/" className="flex items-center text-lg font-bold text-foreground transition-opacity hover:opacity-80">
@@ -218,8 +218,8 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                                                     item.disabled
                                                         ? 'cursor-not-allowed opacity-50'
                                                         : item.active
-                                                          ? 'bg-muted font-medium text-foreground'
-                                                          : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
+                                                          ? 'bg-muted font-medium text-foreground cursor-pointer'
+                                                          : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground cursor-pointer',
                                                     item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
                                                 ].join(' ')}
                                                 title={item.disabled ? `${item.label} (Not created yet)` : item.label}
@@ -236,7 +236,7 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                         <div className="space-y-2">
                             <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Integrations</div>
                             <button
-                                className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                                className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground cursor-pointer"
                                 onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
                             >
                                 <span className="inline-flex items-center gap-2">
@@ -294,7 +294,7 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                     <div className="border-t pt-3">
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
+                            <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted cursor-pointer">
                                 <Avatar className="h-5 w-5 shrink-0">
                                     <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
                                     <AvatarFallback className="text-[10px] bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">

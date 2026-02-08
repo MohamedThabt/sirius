@@ -572,7 +572,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                                                     setSelectedScreenIndex(index);
                                                     setSelectedNodeId(null);
                                                 }}
-                                                className={`rounded px-2 py-1 text-xs transition-colors ${
+                                                className={`cursor-pointer rounded px-2 py-1 text-xs transition-colors ${
                                                     selectedScreenIndex === index
                                                         ? 'bg-primary text-primary-foreground'
                                                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -593,7 +593,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                                                 <button
                                                     key={crumb}
                                                     onClick={() => setSelectedNodeId(id)}
-                                                    className={`rounded px-1.5 py-0.5 text-xs ${isLast ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                                                    className={`cursor-pointer rounded px-1.5 py-0.5 text-xs ${isLast ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                                                     title={`${type} • ${id}`}
                                                 >
                                                     {type}

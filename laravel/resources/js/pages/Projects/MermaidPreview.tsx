@@ -344,8 +344,8 @@ export default function MermaidPreview({
                                                                     item.disabled
                                                                         ? 'cursor-not-allowed opacity-50'
                                                                         : item.active
-                                                                            ? 'bg-muted font-medium text-foreground'
-                                                                            : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
+                                                                            ? 'bg-muted font-medium text-foreground cursor-pointer'
+                                                                            : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground cursor-pointer',
                                                                     item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
                                                                 ].join(' ')}
                                                                 title={item.disabled ? 'Not available yet' : item.label}
@@ -364,7 +364,7 @@ export default function MermaidPreview({
                                 <div className="shrink-0 border-t pt-3">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
+                                            <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted cursor-pointer">
                                                 <Avatar className="h-5 w-5 shrink-0">
                                                     <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
                                                     <AvatarFallback className="text-[10px] bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
