@@ -8,6 +8,7 @@ use App\Services\AiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 
 class ArchitectureController extends Controller
@@ -154,6 +155,10 @@ class ArchitectureController extends Controller
                 // Clear pending session data
                 session()->forget('pending_c4_generation');
 
+                AppLogger::business('c4.generated', [
+                    'project_id' => $project->id,
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'C4 diagram generated successfully',
@@ -256,6 +261,11 @@ class ArchitectureController extends Controller
 
             $project->update([
                 'c4' => $validated['c4_content'],
+            ]);
+
+            AppLogger::business('c4.saved.manual', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
             ]);
 
             return back()->with('success', 'C4 diagram saved successfully!');

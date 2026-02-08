@@ -7,6 +7,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 
 class BrainstormingController extends Controller
@@ -57,6 +58,11 @@ class BrainstormingController extends Controller
 
             $project->brainstorming_scene = $data['scene'];
             $project->save();
+
+            AppLogger::business('brainstorming.saved', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with('success', 'Brainstorming saved successfully!');
         } catch (\Throwable $e) {

@@ -160,6 +160,98 @@ const getLevelColor = (level: string) => {
 };
 
 /**
+ * Try to parse a string as JSON
+ */
+function tryParseJson(raw: string): { isJson: true; parsed: unknown } | { isJson: false } {
+    const trimmed = raw?.trim() ?? '';
+    if (!trimmed) return { isJson: false };
+    try {
+        const parsed = JSON.parse(trimmed);
+        return { isJson: true, parsed };
+    } catch {
+        return { isJson: false };
+    }
+}
+
+/**
+ * Extract summary fields from FastAPI log entry for display in table row
+ */
+function extractFastApiLogSummary(log: LogEntry): {
+    mainMessage: string;
+    routeInfo: string | null;
+    exceptionInfo: string | null;
+    requestId: string | null;
+} {
+    // Try to parse message as JSON (our structured logs)
+    const result = tryParseJson(log.message);
+    
+    if (result.isJson && typeof result.parsed === 'object' && result.parsed !== null) {
+        const data = result.parsed as Record<string, unknown>;
+        
+        // Extract fields from structured log
+        const event = data.event as string | null;
+        const route = data.route as string | null;
+        const method = data.method as string | null;
+        const exceptionType = data.exception_type as string | null;
+        const exceptionMessage = data.exception_message as string | null;
+        const exceptionFile = data.exception_file as string | null;
+        const exceptionLine = data.exception_line as number | null;
+        const requestId = data.request_id as string | null;
+        
+        // Build summary strings
+        let routeInfo: string | null = null;
+        if (route) {
+            routeInfo = method ? `${method} ${route}` : route;
+        }
+        
+        let exceptionInfo: string | null = null;
+        if (exceptionType || exceptionFile) {
+            const parts: string[] = [];
+            if (exceptionType) {
+                parts.push(exceptionType);
+            }
+            if (exceptionFile && exceptionLine) {
+                const shortFile = exceptionFile.split('/').pop()?.split('\\').pop() || exceptionFile;
+                parts.push(`${shortFile}:${exceptionLine}`);
+            }
+            exceptionInfo = parts.join(' @ ');
+        }
+        
+        // Main message is the event or exception message
+        const mainMessage = exceptionMessage || event || log.message;
+        
+        return {
+            mainMessage,
+            routeInfo,
+            exceptionInfo,
+            requestId,
+        };
+    }
+    
+    // Fallback: parse from non-JSON message (e.g., "Request completed: GET /api/v1/...")
+    const requestMatch = log.message.match(/Request completed: (\w+)\s+([^|]+)/);
+    if (requestMatch) {
+        return {
+            mainMessage: 'Request completed',
+            routeInfo: `${requestMatch[1]} ${requestMatch[2].trim()}`,
+            exceptionInfo: null,
+            requestId: null,
+        };
+    }
+    
+    // Check for exception patterns in the message
+    const exceptionMatch = log.message.match(/\[(\w+Error|\w+Exception)\]:/);
+    const exceptionInfo = exceptionMatch ? exceptionMatch[1] : null;
+    
+    return {
+        mainMessage: log.message,
+        routeInfo: null,
+        exceptionInfo,
+        requestId: null,
+    };
+}
+
+/**
  * Format timestamp to human-readable format.
  * Examples: "Today at 2:30 PM", "Yesterday at 10:15 AM", "Jan 5 at 3:45 PM", "Jan 5, 2024 at 3:45 PM"
  */
@@ -492,7 +584,7 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
 
                     {/* Log Detail Modal */}
                     <Dialog open={selectedLog !== null} onOpenChange={(open) => !open && setSelectedLog(null)}>
-                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                        <DialogContent className="max-w-[95vw] w-full max-h-[90vh] overflow-hidden flex flex-col">
                             <DialogHeader>
                                 <DialogTitle className="flex items-center gap-3">
                                     {selectedLog && (() => {
@@ -514,27 +606,204 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
                                     })()}
                                 </DialogTitle>
                             </DialogHeader>
-                            {selectedLog && (
-                                <div className="flex-1 overflow-auto space-y-4">
-                                    {/* Log Message */}
-                                    <div>
-                                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Message</h4>
-                                        <div className="rounded-md border border-border/30 bg-muted/30 p-4">
-                                            <p className="font-mono text-sm whitespace-pre-wrap break-words">
-                                                {selectedLog.message}
-                                            </p>
-                                        </div>
-                                    </div>
+                            {selectedLog && (() => {
+                                // Try to parse message as structured JSON
+                                const msgResult = tryParseJson(selectedLog.message);
+                                let structuredData: Record<string, unknown> | null = null;
+                                
+                                if (msgResult.isJson && typeof msgResult.parsed === 'object' && msgResult.parsed !== null) {
+                                    structuredData = msgResult.parsed as Record<string, unknown>;
+                                }
 
-                                    {/* Logger */}
-                                    <div className="flex items-center gap-4">
-                                        <div>
-                                            <span className="text-xs text-muted-foreground">Logger:</span>
-                                            <Badge variant="secondary" className="ml-2">{selectedLog.logger || '-'}</Badge>
+                                // Extract structured fields
+                                const event = structuredData?.event as string || null;
+                                const route = structuredData?.route as string || null;
+                                const method = structuredData?.method as string || null;
+                                const requestId = structuredData?.request_id as string || null;
+                                const exceptionType = structuredData?.exception_type as string || null;
+                                const exceptionMessage = structuredData?.exception_message as string || null;
+                                const exceptionFile = structuredData?.exception_file as string || null;
+                                const exceptionLine = structuredData?.exception_line as number || null;
+
+                                // Detect Python Traceback
+                                const isTraceback = selectedLog.message.includes('Traceback (most recent call last):');
+                                let errorMessage = selectedLog.message;
+                                let tracebackLines: string[] = [];
+
+                                if (isTraceback) {
+                                    const parts = selectedLog.message.split('Traceback (most recent call last):');
+                                    const prefix = parts[0].trim();
+                                    const traceContent = 'Traceback (most recent call last):' + parts.slice(1).join('Traceback (most recent call last):');
+                                    const lines = traceContent.split('\n');
+                                    const errorLine = lines[lines.length - 1].trim();
+                                    if (errorLine) {
+                                        errorMessage = `${prefix ? prefix + '\n' : ''}${errorLine}`;
+                                    }
+                                    tracebackLines = lines;
+                                }
+
+                                const isError = selectedLog.level === 'ERROR' || selectedLog.level === 'CRITICAL';
+
+                                return (
+                                    <div className="flex-1 overflow-auto space-y-5 pr-1">
+                                        {/* Error Banner for structured errors */}
+                                        {isError && (exceptionMessage || exceptionType) && (
+                                            <div className="rounded-lg border border-red-300 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-5">
+                                                <div className="flex items-start gap-3">
+                                                    <AlertCircleIcon className="h-6 w-6 text-red-500 mt-0.5 shrink-0" />
+                                                    <div className="flex-1 min-w-0 space-y-3">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            {exceptionType && (
+                                                                <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-800 font-mono text-xs">
+                                                                    {exceptionType}
+                                                                </Badge>
+                                                            )}
+                                                            <span className="text-sm font-semibold text-red-800 dark:text-red-200">
+                                                                {event || 'Error'}
+                                                            </span>
+                                                        </div>
+                                                        {exceptionMessage && (
+                                                            <div className="rounded-md bg-white dark:bg-zinc-950 border border-red-200 dark:border-red-900/40 p-4">
+                                                                <p className="font-mono text-sm leading-relaxed text-red-900 dark:text-red-200 whitespace-pre-wrap break-words">
+                                                                    {exceptionMessage}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        {exceptionFile && (
+                                                            <div className="flex items-center gap-2 font-mono text-sm">
+                                                                <span className="text-red-600/60 dark:text-red-400/50">📍</span>
+                                                                <span className="text-red-700 dark:text-red-300">{exceptionFile}</span>
+                                                                {exceptionLine && (
+                                                                    <Badge variant="secondary" className="font-mono text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                                                                        Line {exceptionLine}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Non-structured error (traceback or plain) */}
+                                        {!structuredData && isError && !isTraceback && (
+                                            <div className="rounded-lg border border-red-300 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-5">
+                                                <div className="flex items-start gap-3">
+                                                    <AlertCircleIcon className="h-5 w-5 text-red-600 mt-0.5" />
+                                                    <div className="space-y-1">
+                                                        <h4 className="font-medium text-red-900 dark:text-red-200">Error Details</h4>
+                                                        <p className="font-mono text-sm text-red-800 dark:text-red-300 whitespace-pre-wrap break-words">
+                                                            {errorMessage}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Request Context Grid (for structured logs) */}
+                                        {structuredData && (route || method || requestId) && (
+                                            <div className="rounded-lg border border-border/30 bg-muted/10">
+                                                <div className="p-3 border-b border-border/20 bg-muted/20">
+                                                    <h4 className="text-sm font-medium text-muted-foreground">Request Context</h4>
+                                                </div>
+                                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-border/20">
+                                                    {method && (
+                                                        <div className="bg-background p-3">
+                                                            <div className="text-xs text-muted-foreground/70 mb-1">📡 Method</div>
+                                                            <div className="font-mono text-xs text-foreground/90">{method}</div>
+                                                        </div>
+                                                    )}
+                                                    {route && (
+                                                        <div className="bg-background p-3 col-span-2">
+                                                            <div className="text-xs text-muted-foreground/70 mb-1">🛣️ Route</div>
+                                                            <div className="font-mono text-xs text-foreground/90">{route}</div>
+                                                        </div>
+                                                    )}
+                                                    {requestId && (
+                                                        <div className="bg-background p-3">
+                                                            <div className="text-xs text-muted-foreground/70 mb-1">🔖 Request ID</div>
+                                                            <div className="font-mono text-xs text-foreground/90">{requestId}</div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Traceback */}
+                                        {isTraceback && (
+                                            <>
+                                                {!isError && (
+                                                    <div className="rounded-md border border-red-500/30 bg-red-500/5 p-4">
+                                                        <div className="flex items-start gap-3">
+                                                            <AlertCircleIcon className="h-5 w-5 text-red-600 mt-0.5" />
+                                                            <div className="space-y-1">
+                                                                <h4 className="font-medium text-red-900 dark:text-red-200">Error Details</h4>
+                                                                <p className="font-mono text-sm text-red-800 dark:text-red-300 whitespace-pre-wrap break-words">
+                                                                    {errorMessage}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className="rounded-md border border-border/30">
+                                                    <div className="p-3 bg-muted/20 border-b border-border/30 font-medium text-sm flex items-center gap-2">
+                                                        <BugIcon className="h-4 w-4 text-muted-foreground" />
+                                                        Python Traceback
+                                                    </div>
+                                                    <div className="max-h-[400px] overflow-auto bg-slate-950 p-4 text-xs font-mono text-slate-300">
+                                                        {tracebackLines.map((line, i) => {
+                                                            if (line.trim().startsWith('File "')) {
+                                                                return <div key={i} className="pl-2 text-blue-400">{line}</div>;
+                                                            }
+                                                            if (i === tracebackLines.length - 1 && line.trim()) {
+                                                                return <div key={i} className="font-bold text-red-400 mt-2">{line}</div>;
+                                                            }
+                                                            return <div key={i} className="pl-4 border-l-2 border-slate-800 ml-1">{line}</div>;
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Plain Message (non-traceback, non-error, non-structured) */}
+                                        {!isTraceback && !structuredData && !isError && (
+                                            <div>
+                                                <h4 className="text-sm font-medium text-muted-foreground mb-2">Message</h4>
+                                                <div className="rounded-md border border-border/30 bg-muted/30 p-4">
+                                                    <p className="font-mono text-sm whitespace-pre-wrap break-words">{selectedLog.message}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Full Structured Log Data */}
+                                        {structuredData && (
+                                            <div className="space-y-2">
+                                                <h4 className="text-sm font-medium text-muted-foreground">
+                                                    {event && !exceptionMessage ? `Event: ${event}` : 'Full Log Data'}
+                                                </h4>
+                                                <div className="rounded-md border border-border/30 bg-zinc-100 dark:bg-zinc-950/95 p-4 max-h-[300px] overflow-auto">
+                                                    <pre className="font-mono text-xs leading-relaxed whitespace-pre text-foreground/90">
+                                                        {JSON.stringify(structuredData, null, 2)}
+                                                    </pre>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Logger Info */}
+                                        <div className="flex items-center gap-4 pt-4 border-t border-border/30">
+                                            <div>
+                                                <span className="text-xs text-muted-foreground">Logger:</span>
+                                                <Badge variant="secondary" className="ml-2 font-mono">{selectedLog.logger || '-'}</Badge>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </DialogContent>
                     </Dialog>
                 </div>
@@ -600,38 +869,73 @@ function LogsTable({
                 <Table>
                     <TableHeader>
                         <TableRow className="border-border/30 hover:bg-transparent">
-                            <TableHead className="w-[180px]">Timestamp</TableHead>
-                            <TableHead className="w-[100px]">Level</TableHead>
-                            <TableHead className="w-[200px]">Logger</TableHead>
+                            <TableHead className="w-[160px]">Timestamp</TableHead>
+                            <TableHead className="w-[90px]">Level</TableHead>
                             <TableHead>Message</TableHead>
-                            <TableHead className="w-[80px] text-right">Line</TableHead>
+                            <TableHead className="w-[70px] text-right">Line</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {logs.map((log, index) => {
                             const LevelIcon = getLevelIcon(log.level);
+                            const summary = extractFastApiLogSummary(log);
+                            
                             return (
                                 <TableRow
                                     key={`${log.line_number}-${index}`}
                                     className="border-border/20 cursor-pointer hover:bg-muted/30 transition-colors"
                                     onClick={() => onSelectLog(log)}
                                 >
-                                    <TableCell className="font-mono text-xs text-muted-foreground/80" title={log.timestamp}>{formatTimestamp(log.timestamp)}</TableCell>
-                                    <TableCell>
+                                    <TableCell className="align-top font-mono text-xs text-muted-foreground/80" title={log.timestamp}>
+                                        {formatTimestamp(log.timestamp)}
+                                    </TableCell>
+                                    <TableCell className="align-top">
                                         <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(log.level))}>
                                             <LevelIcon className="mr-1 h-3 w-3" />
                                             {log.level}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="max-w-[200px] truncate font-mono text-xs text-muted-foreground/70">
-                                        {log.logger || '-'}
-                                    </TableCell>
-                                    <TableCell className="max-w-[400px] font-mono text-xs">
-                                        <div className="truncate" title={log.message}>
-                                            {log.message}
+                                    <TableCell className="max-w-[600px]">
+                                        <div className="flex flex-col gap-1.5">
+                                            {/* Main message */}
+                                            <div className="font-mono text-xs text-foreground/90 line-clamp-2" title={summary.mainMessage}>
+                                                {summary.mainMessage}
+                                            </div>
+                                            
+                                            {/* Structured summary line */}
+                                            {(summary.routeInfo || summary.exceptionInfo || summary.requestId) && (
+                                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                                    {summary.routeInfo && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/70">
+                                                            <span className="text-muted-foreground/50">🛣️</span>
+                                                            <span className="font-mono">{summary.routeInfo}</span>
+                                                        </span>
+                                                    )}
+                                                    {summary.exceptionInfo && (
+                                                        <span className="inline-flex items-center gap-1 text-amber-600/80 dark:text-amber-500/70">
+                                                            <span>📍</span>
+                                                            <span className="font-mono text-xs">{summary.exceptionInfo}</span>
+                                                        </span>
+                                                    )}
+                                                    {summary.requestId && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/60">
+                                                            <span className="text-muted-foreground/40">🔖</span>
+                                                            <span className="font-mono text-[10px]">{summary.requestId.substring(0, 8)}</span>
+                                                        </span>
+                                                    )}
+                                                    {log.logger && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/50">
+                                                            <span className="text-muted-foreground/30">📦</span>
+                                                            <span className="font-mono text-[10px]">{log.logger}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-right font-mono text-xs text-muted-foreground/60">{log.line_number}</TableCell>
+                                    <TableCell className="align-top text-right font-mono text-xs text-muted-foreground/60">
+                                        {log.line_number}
+                                    </TableCell>
                                 </TableRow>
                             );
                         })}

@@ -6,6 +6,7 @@ use App\Models\BetaInvitation;
 use App\Models\Feedback;
 use App\Models\IssueReport;
 use App\Models\User;
+use App\Support\AppLogger;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -137,21 +138,26 @@ MSG;
                 $payload['message_thread_id'] = $this->topicId;
             }
 
+            AppLogger::api('telegram', 'POST /sendMessage', $payload);
+
+            $startTime = microtime(true);
             $response = Http::timeout(10)->post($url, $payload);
+            $durationMs = (int) round((microtime(true) - $startTime) * 1000);
 
             if ($response->successful()) {
-                Log::info('Telegram notification sent successfully');
+                // Log::info('Telegram notification sent successfully'); // Optional: redundant with api success log if we wanted to log success too, but api() logs request. 
+                // We might want to log success response too? AppLogger::api doesn't log response by default unless we add another call.
+                // Usually AppLogger::api logs the request. Failures are logged with apiFailure.
                 return true;
             }
 
-            Log::warning('Telegram notification failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
+            AppLogger::apiFailure('telegram', 'POST /sendMessage', $response->status(), $response->body(), [
+                'duration_ms' => $durationMs,
             ]);
             return false;
         } catch (Throwable $e) {
-            Log::error('Telegram notification error', [
-                'message' => $e->getMessage(),
+            AppLogger::apiFailure('telegram', 'POST /sendMessage', 0, $e->getMessage(), [
+                'exception_type' => get_class($e),
                 'trace' => $e->getTraceAsString(),
             ]);
             return false;

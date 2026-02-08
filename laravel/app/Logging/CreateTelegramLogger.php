@@ -17,10 +17,19 @@ class CreateTelegramLogger
      */
     public function __invoke(array $config): Logger
     {
+        // Safely retrieve config values, ensuring they're strings
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.chat_id');
+        
+        // If Telegram is not configured, return a logger without handlers
+        // This prevents the logger from throwing exceptions when config is missing
+        if (empty($botToken) || empty($chatId)) {
+            return new Logger('telegram', []);
+        }
+
         $handler = new TelegramLogHandler(
-            botToken: config('services.telegram.bot_token', ''),
-            chatId: config('services.telegram.chat_id', ''),
-            // replace it with topic_id of errors topic 
+            botToken: (string) $botToken,
+            chatId: (string) $chatId,
             topicId: config('services.telegram.topic_id') 
                 ? (int) config('services.telegram.topic_id') 
                 : null,

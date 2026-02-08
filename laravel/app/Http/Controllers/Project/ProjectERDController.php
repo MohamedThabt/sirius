@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -101,6 +102,11 @@ class ProjectERDController extends Controller
                 // Assuming usage logging service exists, otherwise skip for now
                  // App\Services\AiUsageService::log($data['usage'], $project);
             }
+
+            AppLogger::business('project.erd.merged', [
+                'project_id' => $project->id,
+                'module_count' => count($modules),
+            ]);
 
             return redirect()->route('projects.erd.get', $project)
                 ->with('success', 'Project ERD successfully created from modules.');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectOverviewVersion;
 use App\Services\AiUsageService;
+use App\Support\AppLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -138,6 +139,11 @@ class SystemOverviewController extends Controller
                     ],
                 );
             }
+
+            AppLogger::business('project.overview.created', [
+                'project_id' => $project->id,
+                'has_technical_details' => $hasTechnicalDetails,
+            ]);
 
             // Store the validated data in session for async generation with unique token
             $generationToken = \Illuminate\Support\Str::uuid()->toString();
@@ -512,6 +518,11 @@ class SystemOverviewController extends Controller
                 $project->overviewVersions()
                     ->where('id', '!=', $overviewVersion->id)
                     ->update(['is_base_version' => false]);
+
+                AppLogger::business('project.overview.regenerated', [
+                    'project_id' => $project->id,
+                    'version_number' => $nextVersionNumber,
+                ]);
 
                 $project->load(['overviewVersions', 'modules']);
 

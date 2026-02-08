@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feedback;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -142,6 +143,13 @@ class FeedbackController extends Controller
 
             if (!empty($data)) {
                 $feedback->update($data);
+
+                AppLogger::business('admin.feedback.updated', [
+                    'feedback_id' => $feedback->id,
+                    'user_id' => $feedback->user_id,
+                    'status' => $feedback->status,
+                    'admin_id' => auth('admin')->id(),
+                ]);
             }
 
             return back()->with('success', 'Feedback updated successfully.');
@@ -159,6 +167,12 @@ class FeedbackController extends Controller
     {
         try {
             $feedback->delete();
+
+            AppLogger::business('admin.feedback.deleted', [
+                'feedback_id' => $feedback->id,
+                'user_id' => $feedback->user_id,
+                'admin_id' => auth('admin')->id(),
+            ]);
 
             return back()->with('success', 'Feedback deleted successfully.');
         } catch (Throwable $e) {

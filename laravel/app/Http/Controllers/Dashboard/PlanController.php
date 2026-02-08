@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Plan\StorePlanRequest;
 use App\Http\Requests\Plan\UpdatePlanRequest;
 use App\Models\Plan;
+use App\Support\AppLogger;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Traits\StructuredLogger;
@@ -140,6 +141,15 @@ class PlanController extends Controller
         try {
             $plan = Plan::create($request->validated());
 
+            AppLogger::business('admin.plan.created', [
+                'plan_id' => $plan->id,
+                'name' => $plan->name,
+                'slug' => $plan->slug,
+                'price' => $plan->price,
+                'credits_per_cycle' => $plan->credits_per_cycle,
+                'admin_id' => auth('admin')->id(),
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Plan created successfully.',
@@ -168,6 +178,13 @@ class PlanController extends Controller
     {
         try {
             $plan->update($request->validated());
+
+            AppLogger::business('admin.plan.updated', [
+                'plan_id' => $plan->id,
+                'name' => $plan->name,
+                'changes' => $plan->getChanges(),
+                'admin_id' => auth('admin')->id(),
+            ]);
 
             return response()->json([
                 'success' => true,

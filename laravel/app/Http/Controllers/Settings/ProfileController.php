@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Support\AppLogger;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    use \App\Traits\StructuredLogger;
     /**
      * Show the user's profile settings page.
      */
@@ -29,11 +31,25 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        try {
+            $request->user()->fill($request->validated());
 
-        $request->user()->save();
+            if ($request->user()->isDirty('email')) {
+                $request->user()->email_verified_at = null;
+            }
 
-        return to_route('profile.edit');
+            $request->user()->save();
+
+            AppLogger::business('user.profile.updated', [
+                'user_id' => $request->user()->id,
+                'changed_attributes' => array_keys($request->user()->getChanges()),
+            ]);
+
+            return to_route('profile.edit');
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'profile_update']);
+            throw $e;
+        }
     }
 
     /**
@@ -41,15 +57,27 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
+            $userId = $user->id;
+            $userEmail = $user->email;
 
-        Auth::logout();
+            Auth::logout();
 
-        $user->delete();
+            $user->delete();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+            AppLogger::security('user.account.deleted', [
+                'user_id' => $userId,
+                'email' => $userEmail,
+            ], 'warning');
 
-        return redirect('/');
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect('/');
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'account_delete']);
+            throw $e;
+        }
     }
 }

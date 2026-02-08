@@ -54,7 +54,7 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', env('LOG_STACK', 'daily,telegram')),
+            'channels' => explode(',', env('LOG_STACK', 'daily,telegram,json')),
             'ignore_exceptions' => false,
         ],
 

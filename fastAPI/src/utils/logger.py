@@ -95,3 +95,97 @@ def setup_logger():
 def get_logger(name: str = None):
     """Get a logger for your module"""
     return logging.getLogger(name or __name__)
+
+
+def log_structured(
+    logger: logging.Logger,
+    level: int,
+    event: str,
+    **fields
+) -> None:
+    """
+    Log a structured message as JSON within the message field.
+    This keeps the pipe-delimited format intact while adding structured data.
+    
+    Args:
+        logger: Logger instance from get_logger()
+        level: Log level (logging.INFO, logging.ERROR, etc.)
+        event: Event name/description
+        **fields: Additional structured fields (route, method, exception_type, etc.)
+    
+    Example:
+        log_structured(
+            logger, logging.ERROR, 
+            "Database connection failed",
+            route="/api/users",
+            method="POST",
+            exception_type="ConnectionError",
+            exception_message=str(e)
+        )
+    """
+    import json
+    
+    # Build structured payload
+    payload = {
+        "event": event,
+        **fields
+    }
+    
+    # Remove None values
+    payload = {k: v for k, v in payload.items() if v is not None}
+    
+    # Convert to compact JSON string
+    message = json.dumps(payload, ensure_ascii=False)
+    
+    # Log with the specified level
+    logger.log(level, message)
+
+
+def log_error_structured(
+    logger: logging.Logger, 
+    event: str,
+    exception: Exception = None,
+    **context
+) -> None:
+    """
+    Log an error with structured context.
+    
+    Args:
+        logger: Logger instance
+        event: Error event description
+        exception: Optional exception object
+        **context: Additional context (route, method, request_id, etc.)
+    """
+    fields = {**context}
+    
+    if exception:
+        fields["exception_type"] = type(exception).__name__
+        fields["exception_message"] = str(exception)
+        
+        # Add file/line info if available
+        import traceback
+        tb = traceback.extract_tb(exception.__traceback__)
+        if tb:
+            last_frame = tb[-1]
+            fields["exception_file"] = last_frame.filename
+            fields["exception_line"] = last_frame.lineno
+    
+    log_structured(logger, logging.ERROR, event, **fields)
+
+
+def log_info_structured(
+    logger: logging.Logger,
+    event: str,
+    **context
+) -> None:
+    """Log info with structured context."""
+    log_structured(logger, logging.INFO, event, **context)
+
+
+def log_warning_structured(
+    logger: logging.Logger,
+    event: str,
+    **context
+) -> None:
+    """Log warning with structured context."""
+    log_structured(logger, logging.WARNING, event, **context)

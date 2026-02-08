@@ -217,6 +217,12 @@ class ProjectTeamController extends Controller
                 'role' => $validated['role'],
             ]);
 
+            AppLogger::business('team.member.role_updated', [
+                'project_id' => $project->id,
+                'target_user_id' => $validated['user_id'],
+                'new_role' => $validated['role'],
+            ]);
+
             return back()->with('success', 'Member role updated successfully!');
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'updateRole', 'project_id' => $project->id]);
@@ -290,6 +296,11 @@ class ProjectTeamController extends Controller
 
             // Remove user from project
             $project->members()->detach(auth()->id());
+
+            AppLogger::business('team.member.left', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return redirect()->route('projects.index')->with('success', 'You have left the project.');
         } catch (\Throwable $e) {

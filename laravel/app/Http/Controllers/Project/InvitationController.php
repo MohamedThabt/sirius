@@ -141,6 +141,12 @@ class InvitationController extends Controller
             // Mark invitation as declined
             $invitation->decline();
 
+            AppLogger::business('team.invitation.declined', [
+                'project_id' => $invitation->project_id,
+                'invitation_id' => $invitation->id,
+                'user_id' => auth()->id(),
+            ]);
+
             return back()->with('success', 'Invitation declined successfully.');
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'decline', 'invitation_id' => $invitation->id]);

@@ -12,6 +12,7 @@ use Inertia\Response;
 
 class PasswordResetLinkController extends Controller
 {
+    use \App\Traits\StructuredLogger;
     /**
      * Show the password reset link request page.
      */
@@ -29,18 +30,23 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
+        try {
+            $request->validate([
+                'email' => 'required|email',
+            ]);
 
-        AppLogger::security('user.password_reset.requested', [
-            'email' => $request->input('email'),
-        ], 'info');
+            AppLogger::security('user.password_reset.requested', [
+                'email' => $request->input('email'),
+            ], 'info');
 
-        Password::sendResetLink(
-            $request->only('email')
-        );
+            Password::sendResetLink(
+                $request->only('email')
+            );
 
-        return back()->with('status', __('A reset link will be sent if the account exists.'));
+            return back()->with('status', __('A reset link will be sent if the account exists.'));
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'password_reset_request']);
+            throw $e;
+        }
     }
 }

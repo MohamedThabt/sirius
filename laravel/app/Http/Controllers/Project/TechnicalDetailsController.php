@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Services\AiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 
 class TechnicalDetailsController extends Controller
@@ -53,6 +54,11 @@ class TechnicalDetailsController extends Controller
             // Also update the project's technical_details field for progress calculation
             $project->update([
                 'technical_details' => json_encode($validated),
+            ]);
+
+            AppLogger::business('technical_details.updated.manual', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
             ]);
 
             return redirect()->route('projects.technology', $project)
@@ -138,6 +144,10 @@ class TechnicalDetailsController extends Controller
                 // Also update the project's technical_details field for progress calculation
                 $project->update([
                     'technical_details' => json_encode($technicalDetails),
+                ]);
+
+                AppLogger::business('technical_details.generated', [
+                    'project_id' => $project->id,
                 ]);
 
                 return response()->json([

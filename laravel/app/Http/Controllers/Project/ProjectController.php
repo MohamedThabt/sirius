@@ -263,6 +263,12 @@ class ProjectController extends Controller
 
             $project->update($validated);
 
+            AppLogger::business('project.updated', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+                'status' => $validated['status'] ?? $project->status,
+            ]);
+
             return redirect()->route('projects.index')
                 ->with('success', 'Project updated successfully!');
         } catch (\Throwable $e) {

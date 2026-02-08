@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\IssueComment;
 use App\Models\IssueReport;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -163,6 +164,13 @@ class IssueController extends Controller
 
             if (!empty($data)) {
                 $issue->update($data);
+
+                AppLogger::business('admin.issue.updated', [
+                    'issue_id' => $issue->id,
+                    'status' => $issue->status,
+                    'severity' => $issue->severity,
+                    'admin_id' => auth('admin')->id(),
+                ]);
             }
 
             return back()->with('success', 'Issue updated successfully.');
@@ -187,6 +195,11 @@ class IssueController extends Controller
             }
 
             $issue->delete();
+
+            AppLogger::business('admin.issue.deleted', [
+                'issue_id' => $issue->id,
+                'admin_id' => auth('admin')->id(),
+            ]);
 
             return back()->with('success', 'Issue deleted successfully.');
         } catch (Throwable $e) {
@@ -217,6 +230,11 @@ class IssueController extends Controller
                 'admin_id' => auth('admin')->id(),
                 'comment' => trim($validated['comment']),
                 'created_at' => now(),
+            ]);
+
+            AppLogger::business('admin.issue.commented', [
+                'issue_id' => $issue->id,
+                'admin_id' => auth('admin')->id(),
             ]);
 
             return back()->with('success', 'Comment added successfully.');

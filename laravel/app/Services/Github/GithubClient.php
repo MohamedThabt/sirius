@@ -162,6 +162,14 @@ class GithubClient
 
         $this->lastError = null;
 
+        $this->lastError = null;
+
+        AppLogger::business('github.repo.created', [
+            'type' => 'user',
+            'name' => $name,
+            'private' => $isPrivate,
+        ], 'info');
+
         return $response->json();
     }
 
@@ -192,6 +200,15 @@ class GithubClient
         }
 
         $this->lastError = null;
+
+        $this->lastError = null;
+
+        AppLogger::business('github.repo.created', [
+            'type' => 'org',
+            'org' => $org,
+            'name' => $name,
+            'private' => $isPrivate,
+        ], 'info');
 
         return $response->json();
     }
@@ -476,7 +493,7 @@ class GithubClient
             $response = $this->request('DELETE', "/repos/{$fullName}");
 
             if ($response->status() === 204) {
-                Log::info('Repository deleted successfully', [
+                AppLogger::business('github.repo.deleted', [
                     'repo' => $fullName,
                 ]);
 

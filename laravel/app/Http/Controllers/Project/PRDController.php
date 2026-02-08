@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 
 class PRDController extends Controller
@@ -139,6 +140,11 @@ class PRDController extends Controller
                 // Clear pending session data
                 session()->forget('pending_prd_generation');
 
+                AppLogger::business('prd.generated', [
+                    'project_id' => $project->id,
+                    'version' => 1,
+                ]);
+
                 // Prepare PRD versions
                 $prdVersions = [];
                 if (! empty($project->prd)) {
@@ -245,6 +251,11 @@ class PRDController extends Controller
                 'prd_last_synced_at' => now(),
             ]);
 
+            AppLogger::business('prd.updated.manual', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
+
             return back()->with('success', 'PRD saved successfully.');
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'edit', 'project_id' => $project->id]);
@@ -313,6 +324,11 @@ class PRDController extends Controller
                     'prd_last_synced_at' => now(),
                 ]);
             }
+
+            AppLogger::business('prd.updated.ai', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with('success', 'PRD updated successfully.');
         } catch (\Throwable $e) {
@@ -456,6 +472,11 @@ class PRDController extends Controller
                     'prd_last_synced_at' => now(),
                 ]);
             }
+
+            AppLogger::business('prd.synced', [
+                'project_id' => $project->id,
+                'version' => 2,
+            ]);
 
             return back()->with('success', 'PRD synchronized successfully with current modules and features.');
         } catch (\Throwable $e) {

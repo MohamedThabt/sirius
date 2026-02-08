@@ -429,6 +429,12 @@ class GithubController extends Controller
             // Only delete from database, do NOT delete from GitHub
             $repository->delete();
 
+            AppLogger::business('github.repo.unlinked', [
+                'project_id' => $project->id,
+                'repo' => $repository->full_name,
+                'user_id' => auth()->id(),
+            ]);
+
             return back()->with('success', 'Repository unlinked successfully.');
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'deleteRepo', 'project_id' => $project->id]);

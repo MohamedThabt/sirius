@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Support\AppLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +13,7 @@ use Inertia\Response;
 
 class PasswordController extends Controller
 {
+    use \App\Traits\StructuredLogger;
     /**
      * Show the user's password settings page.
      */
@@ -25,15 +27,24 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'current_password' => ['required', 'current_password'],
+                'password' => ['required', Password::defaults(), 'confirmed'],
+            ]);
 
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
+            $request->user()->update([
+                'password' => Hash::make($validated['password']),
+            ]);
 
-        return back();
+            AppLogger::security('user.password.updated', [
+                'user_id' => $request->user()->id,
+            ], 'info');
+
+            return back();
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'password_update']);
+            throw $e;
+        }
     }
 }
