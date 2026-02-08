@@ -11,13 +11,13 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useErdOperations } from '@/hooks/useErdOperations';
 import { type Project, type SharedData, type User } from '@/types';
 import type { ModuleItem, ModuleStatus } from '@/types/modules';
 import { getModuleStatusConfig, getFeatureStatusConfig, getFeaturePriorityConfig } from '@/utils/statusHelpers';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
     AlertCircleIcon,
@@ -127,16 +127,6 @@ export default function ModuleShow({ project, module }: Props) {
         });
     }, [module, setData]);
 
-    const handleStatusChange = useCallback((newStatus: ModuleStatus) => {
-        setData('status', newStatus);
-        router.put(`/projects/${project.id}/modules/${module.id}/update`, {
-            ...data,
-            status: newStatus,
-        }, {
-            preserveScroll: true,
-        });
-    }, [project.id, module.id, data, setData]);
-
     // WHY: Helper function to get status config from centralized utilities
     const statusConfig = getModuleStatusConfig(data.status);
 
@@ -201,18 +191,37 @@ export default function ModuleShow({ project, module }: Props) {
                                                 <PencilIcon className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                                             </div>
                                             <div className="mt-3 flex flex-wrap items-center gap-3">
-                                                <Select value={data.status} onValueChange={handleStatusChange} disabled={processing}>
-                                                    <SelectTrigger
-                                                        className={`h-7 w-auto border-0 px-2.5 text-xs font-medium shadow-none ring-1 ring-inset ${statusConfig.color}`}
-                                                    >
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="planned">Planned</SelectItem>
-                                                        <SelectItem value="in_progress">In Progress</SelectItem>
-                                                        <SelectItem value="completed">Completed</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Badge 
+                                                                variant="outline" 
+                                                                className={`h-7 cursor-help border-0 px-2.5 text-xs font-medium shadow-none ring-1 ring-inset ${statusConfig.color}`}
+                                                            >
+                                                                <statusConfig.icon className="mr-1.5 h-3.5 w-3.5" />
+                                                                {statusConfig.label}
+                                                            </Badge>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="bottom" className="max-w-[280px] p-0 border-border/40 bg-zinc-950 shadow-2xl">
+                                                            <div className="space-y-2 p-3">
+                                                                <div className="flex items-center gap-2">
+                                                                    <statusConfig.icon className={`h-4 w-4 ${statusConfig.color}`} />
+                                                                    <p className="font-semibold text-sm">{statusConfig.label}</p>
+                                                                </div>
+                                                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                                                    {data.status === 'planned' && 'Module created but no features have been generated yet. Add features to start development.'}
+                                                                    {data.status === 'in_progress' && `Active development with ${features.length} feature${features.length !== 1 ? 's' : ''}. Complete all features to mark as done.`}
+                                                                    {data.status === 'completed' && 'All features have been completed with 100% progress. Module is ready for deployment.'}
+                                                                </p>
+                                                                <div className="border-t border-border/40 pt-2 mt-2">
+                                                                    <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium">
+                                                                        Auto-managed
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
 
                                                 <Badge variant="outline" className="h-7 border-border/50 bg-background text-muted-foreground">
                                                     Order #{data.order_of_implementation}

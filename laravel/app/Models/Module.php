@@ -14,18 +14,13 @@ class Module extends Model
     /**
      * Bootstrap the model and its traits.
      * 
-     * Auto-complete module when progress reaches 100%.
+     * Auto-update module status based on features and progress.
      */
     protected static function booted(): void
     {
         static::saving(function (Module $module) {
-            // Calculate progress before saving
-            $progress = $module->progress;
-            
-            // Auto-set status to 'completed' when progress reaches 100%
-            if ($progress === 100 && $module->status !== 'completed') {
-                $module->status = 'completed';
-            }
+            // Update status based on features before saving
+            $module->updateModuleStatus();
         });
     }
 
@@ -208,5 +203,46 @@ class Module extends Model
                 'features_total' => $totalFeatures,
             ],
         ];
+    }
+
+    /**
+     * Update the module status based on features.
+     * 
+     * Status logic:
+     * - 'planned': Module has no features yet
+     * - 'in_progress': Module has at least one feature
+     * - 'completed': All features are 100% complete
+     * 
+     * Note: This is called automatically during model saving.
+     * Manual status changes are allowed but may be overridden by this logic.
+     * 
+     * @return void
+     */
+    public function updateModuleStatus(): void
+    {
+        // Load features if not already loaded
+        if (!$this->relationLoaded('features')) {
+            $this->load('features');
+        }
+
+        $features = $this->features;
+        $featureCount = $features->count();
+
+        // No features = planned
+        if ($featureCount === 0) {
+            $this->status = 'planned';
+            return;
+        }
+
+        // Check if all features are 100% complete
+        $allFeaturesComplete = $features->every(function ($feature) {
+            return $feature->progress === 100;
+        });
+
+        if ($allFeaturesComplete) {
+            $this->status = 'completed';
+        } else {
+            $this->status = 'in_progress';
+        }
     }
 }

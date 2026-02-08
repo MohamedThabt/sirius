@@ -396,12 +396,13 @@ class ModuleController extends Controller
                 return back()->with('error', 'You do not have permission to update this module.');
             }
 
+            // Note: Status is automatically managed based on features and cannot be manually changed.
+            // It transitions automatically: 'planned' (no features) → 'in_progress' (has features) → 'completed' (all features 100%)
             $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
                 'description' => 'sometimes|nullable|string',
                 'metrics' => 'sometimes|nullable|string',
                 'erd' => 'sometimes|nullable|string',
-                'status' => 'sometimes|in:planned,in_progress,completed',
                 'order_of_implementation' => 'sometimes|integer|min:1',
             ]);
 

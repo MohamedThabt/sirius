@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Progress } from '@/components/ui/progress';
 import { SyncIndicator } from '@/components/SyncIndicator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData, type User } from '@/types';
 import type { ModuleItem } from '@/types/modules';
@@ -164,20 +165,52 @@ export default function ModulesIndex({ project, modules }: Props) {
                                         <span className="text-muted-foreground">modules</span>
                                     </div>
                                     <div className="h-4 w-px bg-border" />
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                                            <span className="text-muted-foreground">{moduleCounts.completed} done</span>
+                                        <div className="flex items-center gap-4">
+                                            <TooltipProvider delayDuration={200}>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex items-center gap-1.5 cursor-help transition-opacity hover:opacity-80">
+                                                            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                                                            <span className="text-muted-foreground">{moduleCounts.completed} completed</span>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="bottom" className="max-w-xs border-border/40 bg-zinc-950 shadow-2xl p-3">
+                                                        <p className="font-semibold text-xs mb-1">Completed Modules</p>
+                                                        <p className="text-xs text-muted-foreground">Modules where all features are 100% complete.</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+
+                                            <TooltipProvider delayDuration={200}>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex items-center gap-1.5 cursor-help transition-opacity hover:opacity-80">
+                                                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                                            <span className="text-muted-foreground">{moduleCounts.inProgress} in progress</span>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="bottom" className="max-w-xs border-border/40 bg-zinc-950 shadow-2xl p-3">
+                                                        <p className="font-semibold text-xs mb-1">Active Modules</p>
+                                                        <p className="text-xs text-muted-foreground">Modules with at least one feature currently being worked on.</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+
+                                            <TooltipProvider delayDuration={200}>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div className="flex items-center gap-1.5 cursor-help transition-opacity hover:opacity-80">
+                                                            <div className="h-2 w-2 rounded-full bg-amber-500" />
+                                                            <span className="text-muted-foreground">{moduleCounts.planned} planned</span>
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="bottom" className="max-w-xs border-border/40 bg-zinc-950 shadow-2xl p-3">
+                                                        <p className="font-semibold text-xs mb-1">Planned Modules</p>
+                                                        <p className="text-xs text-muted-foreground">Modules that have been created but have no features yet.</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="h-2 w-2 rounded-full bg-blue-500" />
-                                            <span className="text-muted-foreground">{moduleCounts.inProgress} active</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="h-2 w-2 rounded-full bg-amber-500" />
-                                            <span className="text-muted-foreground">{moduleCounts.planned} planned</span>
-                                        </div>
-                                    </div>
                                     <div className="h-4 w-px bg-border" />
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs text-muted-foreground">Avg Progress</span>
@@ -244,15 +277,39 @@ export default function ModulesIndex({ project, modules }: Props) {
 
                                                     {/* Footer with status and progress */}
                                                     <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <StatusIcon className={`h-3.5 w-3.5 ${
-                                                                module.status === 'completed' ? 'text-emerald-500' :
-                                                                module.status === 'in_progress' ? 'text-blue-500' : 'text-amber-500'
-                                                            }`} />
-                                                            <span className="text-xs font-medium text-muted-foreground">
-                                                                {statusConfig.label}
-                                                            </span>
-                                                        </div>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <div className="flex items-center gap-1.5 cursor-help">
+                                                                        <StatusIcon className={`h-3.5 w-3.5 ${
+                                                                            module.status === 'completed' ? 'text-emerald-500' :
+                                                                            module.status === 'in_progress' ? 'text-blue-500' : 'text-amber-500'
+                                                                        }`} />
+                                                                        <span className="text-xs font-medium text-muted-foreground">
+                                                                            {statusConfig.label}
+                                                                        </span>
+                                                                    </div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent side="top" align="start" className="max-w-[280px] p-0 border-border/40 bg-zinc-950 shadow-2xl">
+                                                                    <div className="space-y-2 p-3">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <statusConfig.icon className={`h-4 w-4 ${statusConfig.color}`} />
+                                                                            <p className="font-semibold text-sm">{statusConfig.label}</p>
+                                                                        </div>
+                                                                        <p className="text-xs text-muted-foreground leading-relaxed">
+                                                                            {module.status === 'planned' && 'Module created but no features have been generated yet. Add features to start development.'}
+                                                                            {module.status === 'in_progress' && `Active development with ${module.features?.length || 0} feature${(module.features?.length || 0) !== 1 ? 's' : ''}. Complete all features to mark as done.`}
+                                                                            {module.status === 'completed' && 'All features have been completed with 100% progress. Module is ready for deployment.'}
+                                                                        </p>
+                                                                        <div className="border-t border-border/40 pt-2 mt-2">
+                                                                            <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium">
+                                                                                Auto-managed
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
                                                         <div className="flex items-center gap-2">
                                                             <Progress value={module.progress ?? 0} className="w-12 h-1.5" />
                                                             <span className="text-xs text-muted-foreground/60">
