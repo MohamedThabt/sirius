@@ -3,9 +3,14 @@
 namespace App\Services\Feature;
 
 use App\Models\Feature;
+use App\Services\Documentation\MermaidSanitizerService;
 
 class FeatureSpecService
 {
+    public function __construct(
+        protected MermaidSanitizerService $mermaidSanitizer
+    ) {}
+
     public function generateSpecsMarkdown(Feature $feature): string
     {
         $lines = [];
@@ -81,7 +86,8 @@ class FeatureSpecService
             $lines[] = '## Database Schema';
             $lines[] = '';
             $lines[] = '```mermaid';
-            $lines[] = $datamodel;
+            // Sanitize for GitHub compatibility
+            $lines[] = $this->mermaidSanitizer->sanitizeForGithub($datamodel);
             $lines[] = '```';
         }
 

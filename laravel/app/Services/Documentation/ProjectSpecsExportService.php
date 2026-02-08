@@ -6,13 +6,15 @@ use App\Models\Module;
 use App\Models\Project;
 use App\Services\Feature\FeatureSpecService;
 use App\Services\Documentation\FeatureMarkdownService;
+use App\Services\Documentation\MermaidSanitizerService;
 use Illuminate\Support\Str;
 
 class ProjectSpecsExportService
 {
     public function __construct(
         protected FeatureSpecService $featureSpecService,
-        protected FeatureMarkdownService $featureMarkdownService
+        protected FeatureMarkdownService $featureMarkdownService,
+        protected MermaidSanitizerService $mermaidSanitizer
     ) {}
 
     public function build(Project $project): array
@@ -91,7 +93,8 @@ class ProjectSpecsExportService
         } else {
             $content .= "## Entity-Relationship Diagram\n\n";
             $content .= "```mermaid\n";
-            $content .= $erd."\n";
+            // Sanitize ERD for GitHub compatibility
+            $content .= $this->mermaidSanitizer->sanitizeForGithub($erd)."\n";
             $content .= "```\n\n";
         }
 
