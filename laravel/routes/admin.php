@@ -40,7 +40,7 @@ Route::middleware('auth:admin')->group(function () {
         'edit' => 'admin.admins.edit',
         'update' => 'admin.admins.update',
         'destroy' => 'admin.admins.destroy',
-    ])->except(['show']);
+    ])->except(['show'])->middleware('super.admin');
     
     // User Management
     Route::get('users', [UserController::class, 'index'])->name('admin.users.index');

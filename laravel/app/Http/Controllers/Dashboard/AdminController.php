@@ -189,6 +189,16 @@ class AdminController extends Controller
                 'password' => 'nullable|string|min:6',
             ]);
 
+            // Prevent self-demotion: super admins cannot change their own role
+            if ($admin->id === auth('admin')->id() && $request->role !== $admin->role) {
+                return back()->with('error', 'You cannot change your own role. Another super admin must change your role.');
+            }
+
+            // Prevent demoting the last super admin to avoid system lockout
+            if ($admin->isLastSuperAdmin() && $request->role === Admin::ROLE_ADMIN) {
+                return back()->with('error', 'Cannot demote the last super administrator. Promote another admin first.');
+            }
+
             $data = [
                 'name' => $request->name,
                 'email' => $request->email,
@@ -227,6 +237,11 @@ class AdminController extends Controller
 
             if ($admin->id === auth('admin')->id()) {
                 return back()->with('error', 'You cannot delete yourself.');
+            }
+
+            // Prevent deleting the last super admin to avoid system lockout
+            if ($admin->isLastSuperAdmin()) {
+                return back()->with('error', 'Cannot delete the last super administrator. Promote another admin first.');
             }
 
             $admin->delete();

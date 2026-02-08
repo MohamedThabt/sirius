@@ -45,6 +45,19 @@ class Admin extends Authenticatable
         return $this->role === self::ROLE_ADMIN;
     }
 
+    /**
+     * Check if this admin is the last remaining super admin.
+     *
+     * Used to prevent system lockout by deleting or demoting the last super admin.
+     *
+     * @return bool
+     */
+    public function isLastSuperAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUPER_ADMIN
+            && self::where('role', self::ROLE_SUPER_ADMIN)->count() === 1;
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'created_by');

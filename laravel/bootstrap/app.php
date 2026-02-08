@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckSuperAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequestId;
@@ -45,6 +46,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'share.project' => ShareProjectData::class,
             'check.credits' => \App\Http\Middleware\CheckCredits::class,
+            'super.admin' => CheckSuperAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
