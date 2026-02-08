@@ -799,11 +799,6 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
                                     </div>
                                 );
                             })()}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
                         </DialogContent>
                     </Dialog>
                 </div>
