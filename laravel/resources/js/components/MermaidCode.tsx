@@ -79,7 +79,7 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
                 // Initialize mermaid with theme settings
                 mermaid.initialize({
                     startOnLoad: false,
-                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                    theme: 'dark',
                     securityLevel: 'loose',
                     fontFamily: 'inherit',
                     suppressErrorRendering: true,

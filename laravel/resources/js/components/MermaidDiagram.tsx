@@ -66,7 +66,7 @@ function MermaidDiagramComponent({
                 const isDarkMode = document.documentElement.classList.contains('dark');
                 mermaid.initialize({
                     startOnLoad: false,
-                    theme: isDarkMode ? 'dark' : 'default',
+                    theme: 'dark',
                     securityLevel: 'loose',
                     fontFamily: 'ui-sans-serif, system-ui, sans-serif',
                     suppressErrorRendering: true,

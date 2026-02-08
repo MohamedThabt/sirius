@@ -220,7 +220,7 @@ export default function MermaidPreview({
     useEffect(() => {
         mermaid.initialize({
             startOnLoad: false,
-            theme: isDarkMode ? 'dark' : 'default',
+            theme: 'dark',
             securityLevel: 'loose',
             fontFamily: 'inherit',
             fontSize: 18,
