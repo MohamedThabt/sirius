@@ -202,7 +202,7 @@ export default function Team({ project, members, invitations, userInvitations, u
     };
 
     const handleCancelInvitation = (invitationId: number) => {
-        router.delete(`/projects/${project.id}/team/invitations/${invitationId}`);
+        router.delete(`/projects/${project.id}/invitations/${invitationId}`);
     };
 
     const handleApproveInvitation = (invitationId: number) => {
