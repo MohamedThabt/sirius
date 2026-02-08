@@ -109,6 +109,7 @@ Route::middleware('auth:admin')->group(function () {
     // FastAPI Logs Management
     Route::prefix('logs/fastapi')->name('admin.logs.fastapi.')->group(function () {
         Route::get('/', [LogsController::class, 'index'])->name('index');
+        Route::get('/show/{logType}/{lineNumber}', [LogsController::class, 'show'])->name('show');
         Route::delete('/clear', [LogsController::class, 'clearLogs'])->name('clear');
         Route::get('/download/{logType}', [LogsController::class, 'downloadLog'])->name('download');
     });
@@ -116,6 +117,7 @@ Route::middleware('auth:admin')->group(function () {
     // Laravel Logs Management
     Route::prefix('logs/laravel')->name('admin.logs.laravel.')->group(function () {
         Route::get('/', [LaravelLogsController::class, 'index'])->name('index');
+        Route::get('/show/{logFile}/{lineNumber}', [LaravelLogsController::class, 'show'])->name('show');
         Route::delete('/clear', [LaravelLogsController::class, 'clearLogs'])->name('clear');
         Route::get('/download/{logFile}', [LaravelLogsController::class, 'downloadLog'])->name('download');
     });

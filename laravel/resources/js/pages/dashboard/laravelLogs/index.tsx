@@ -12,16 +12,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { useIsClient } from '@/components/ClientDateTime';
 import {
     AlertCircleIcon,
     AlertOctagonIcon,
@@ -29,7 +26,6 @@ import {
     BugIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
-    CopyIcon,
     DownloadIcon,
     FileIcon,
     FileTextIcon,
@@ -42,7 +38,6 @@ import {
     XIcon,
 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { useDebouncedCallback } from 'use-debounce';
 
 // Types
@@ -170,23 +165,6 @@ const getLevelColor = (level: string) => {
     }
 };
 
-function tryParseJson(raw: string): { isJson: true; formatted: string; raw: string; parsed: unknown } | { isJson: false; raw: string } {
-    const trimmed = raw?.trim() ?? '';
-    if (!trimmed) return { isJson: false, raw };
-    try {
-        const parsed = JSON.parse(trimmed);
-        const formatted = JSON.stringify(parsed, null, 2);
-        const minified = JSON.stringify(parsed);
-        return { isJson: true, formatted, raw: minified, parsed };
-    } catch {
-        return { isJson: false, raw };
-    }
-}
-
-/**
- * Extract embedded JSON from a log message string.
- * e.g. "Exception occurred {\"key\":\"value\"}" → { prefix: "Exception occurred", json: {...}, formatted: "..." }
- */
 function extractJsonFromMessage(message: string): {
     prefix: string;
     json: Record<string, unknown> | null;
@@ -208,197 +186,6 @@ function extractJsonFromMessage(message: string): {
     }
 }
 
-type JsonTokenType = 'key' | 'string' | 'number' | 'literal' | 'punctuation' | 'whitespace';
-type JsonToken = { type: JsonTokenType; value: string };
-
-function tokenizeJson(str: string): JsonToken[] {
-    const tokens: JsonToken[] = [];
-    let i = 0;
-    const re = {
-        ws: /^\s+/,
-        key: /^("(?:[^"\\]|\\.)*")\s*:/,
-        string: /^("(?:[^"\\]|\\.)*")/,
-        number: /^(-?\d+\.?\d*)/,
-        literal: /^(true|false|null)\b/,
-        punct: /^([{}\[\]:,])/,
-    };
-    while (i < str.length) {
-        const tail = str.slice(i);
-        let m = tail.match(re.ws);
-        if (m) {
-            const v = m[0];
-            tokens.push({ type: 'whitespace', value: v });
-            i += v.length;
-            continue;
-        }
-        m = tail.match(re.key);
-        if (m) {
-            tokens.push({ type: 'key', value: m[1] });
-            tokens.push({ type: 'punctuation', value: m[0].slice(m[1].length) });
-            i += m[0].length;
-            continue;
-        }
-        m = tail.match(re.string);
-        if (m) {
-            tokens.push({ type: 'string', value: m[1] });
-            i += m[1].length;
-            continue;
-        }
-        m = tail.match(re.number);
-        if (m) {
-            tokens.push({ type: 'number', value: m[1] });
-            i += m[1].length;
-            continue;
-        }
-        m = tail.match(re.literal);
-        if (m) {
-            tokens.push({ type: 'literal', value: m[1] });
-            i += m[1].length;
-            continue;
-        }
-        m = tail.match(re.punct);
-        if (m) {
-            tokens.push({ type: 'punctuation', value: m[1] });
-            i += m[1].length;
-            continue;
-        }
-        tokens.push({ type: 'punctuation', value: str[i] ?? '' });
-        i += 1;
-    }
-    return tokens;
-}
-
-function JsonSyntaxHighlight({ formatted }: { formatted: string }) {
-    const tokens = tokenizeJson(formatted);
-    const tokenClass: Record<JsonTokenType, string> = {
-        key: 'text-sky-500 dark:text-sky-400',
-        string: 'text-emerald-600 dark:text-emerald-400',
-        number: 'text-amber-600 dark:text-amber-400',
-        literal: 'text-violet-500 dark:text-violet-400',
-        punctuation: 'text-muted-foreground/80',
-        whitespace: '',
-    };
-    return (
-        <code className="font-mono text-xs leading-relaxed">
-            {tokens.map((t, idx) => (
-                <span key={idx} className={tokenClass[t.type]}>
-                    {t.value}
-                </span>
-            ))}
-        </code>
-    );
-}
-
-function JsonOrRawBlock({
-    title,
-    content,
-    className,
-    scrollHeight = 280,
-}: {
-    title: string;
-    content: string;
-    className?: string;
-    scrollHeight?: number;
-}) {
-    const result = tryParseJson(content);
-    const [view, setView] = useState<'formatted' | 'raw'>('formatted');
-    const displayText = result.isJson
-        ? view === 'formatted'
-            ? result.formatted
-            : result.raw
-        : result.raw;
-    const isEmpty = !displayText;
-    const eventName = result.isJson && typeof result.parsed === 'object' && result.parsed !== null && 'event' in result.parsed
-        ? String((result.parsed as { event?: unknown }).event)
-        : null;
-
-    const handleCopy = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isEmpty) return;
-        navigator.clipboard.writeText(displayText).then(
-            () => toast.success('Copied to clipboard'),
-            () => toast.error('Failed to copy'),
-        );
-    };
-
-    return (
-        <div className={cn('space-y-2', className)}>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
-                    {eventName && (
-                        <Badge variant="secondary" className="font-mono text-xs">
-                            {eventName}
-                        </Badge>
-                    )}
-                </div>
-                <div className="flex items-center gap-2">
-                    {result.isJson && (
-                        <div className="flex rounded-md border border-border/30 bg-muted/30 p-0.5">
-                            <button
-                                type="button"
-                                onClick={() => setView('formatted')}
-                                className={cn(
-                                    'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                                    view === 'formatted'
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground',
-                                )}
-                            >
-                                Formatted
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setView('raw')}
-                                className={cn(
-                                    'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                                    view === 'raw'
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground',
-                                )}
-                            >
-                                Raw
-                            </button>
-                        </div>
-                    )}
-                    {!isEmpty && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 gap-1.5 text-xs"
-                            onClick={handleCopy}
-                        >
-                            <CopyIcon className="h-3.5 w-3.5" />
-                            Copy
-                        </Button>
-                    )}
-                </div>
-            </div>
-            <ScrollArea
-                className="w-full rounded-lg border border-border/30 bg-zinc-100 dark:bg-zinc-950/95"
-                style={{ height: scrollHeight }}
-            >
-                <div className="p-4">
-                    <pre className={cn(
-                        'font-mono text-xs leading-relaxed',
-                        result.isJson && view === 'formatted' ? 'whitespace-pre' : 'whitespace-pre-wrap break-words',
-                    )}>
-                        {isEmpty ? (
-                            <span className="italic text-muted-foreground">(empty)</span>
-                        ) : result.isJson && view === 'formatted' ? (
-                            <JsonSyntaxHighlight formatted={result.formatted} />
-                        ) : (
-                            <span className="text-zinc-700 dark:text-zinc-300">{displayText}</span>
-                        )}
-                    </pre>
-                </div>
-                <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-        </div>
-    );
-}
-
 /**
  * Extract summary fields from log entry for display in table row
  */
@@ -410,23 +197,30 @@ function extractLogSummary(log: LogEntry): {
     requestId: string | null;
 } {
     // Try to parse context as JSON
-    const contextResult = tryParseJson(log.context);
+    const contextTrimmed = log.context?.trim() ?? '';
     let contextData: Record<string, unknown> | null = null;
     
-    if (contextResult.isJson && typeof contextResult.parsed === 'object' && contextResult.parsed !== null) {
-        contextData = contextResult.parsed as Record<string, unknown>;
+    if (contextTrimmed) {
+        try {
+            const parsed = JSON.parse(contextTrimmed);
+            if (typeof parsed === 'object' && parsed !== null) {
+                contextData = parsed as Record<string, unknown>;
+            }
+        } catch {
+            // Not JSON, ignore
+        }
     }
     
     // Try to extract embedded JSON from message
     const msgExtract = extractJsonFromMessage(log.message);
-    let messageData: Record<string, unknown> | null = msgExtract.json;
+    const messageData: Record<string, unknown> | null = msgExtract.json;
     
     // Extract system context — check data.sys nesting (AppLogger format), then top-level sys, then top-level keys
-    const msgDataSys = (messageData?.data && typeof messageData.data === 'object' && 'sys' in (messageData.data as any))
-        ? (messageData.data as any).sys as Record<string, unknown>
+    const msgDataSys = (messageData?.data && typeof messageData.data === 'object' && 'sys' in (messageData.data as Record<string, unknown>))
+        ? (messageData.data as Record<string, unknown>).sys as Record<string, unknown>
         : {};
-    const ctxDataSys = (contextData?.data && typeof contextData.data === 'object' && 'sys' in (contextData.data as any))
-        ? (contextData.data as any).sys as Record<string, unknown>
+    const ctxDataSys = (contextData?.data && typeof contextData.data === 'object' && 'sys' in (contextData.data as Record<string, unknown>))
+        ? (contextData.data as Record<string, unknown>).sys as Record<string, unknown>
         : {};
     const ctxSys = (contextData?.sys as Record<string, unknown>) || {};
     const msgSys = (messageData?.sys as Record<string, unknown>) || {};
@@ -548,7 +342,6 @@ const formatTimestamp = (timestamp: string): string => {
 
 export default function LaravelLogsIndex({ stats, logs, filters, error: serverError }: Props) {
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
     const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
     // Local filter state
@@ -841,370 +634,17 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
                         error={serverError}
                         meta={meta}
                         onPageChange={handlePageChange}
-                        onSelectLog={(log) => setSelectedLog(log)}
+                        onSelectLog={(log) => {
+                            // Navigate to detail page
+                            const queryParams = new URLSearchParams();
+                            queryParams.set('log_file', selectedLogFile);
+                            if (levelFilter !== 'all') queryParams.set('level', levelFilter);
+                            if (search) queryParams.set('search', search);
+                            if (meta?.current_page) queryParams.set('page', meta.current_page.toString());
+                            
+                            router.visit(`/admin/logs/laravel/show/${encodeURIComponent(selectedLogFile)}/${log.line_number}?${queryParams.toString()}`);
+                        }}
                     />
-
-                    {/* Log Detail Modal */}
-                    <Dialog open={selectedLog !== null} onOpenChange={(open) => !open && setSelectedLog(null)}>
-                        <DialogContent className="max-w-[95vw] w-full max-h-[92vh] overflow-hidden flex flex-col gap-0">
-                            <DialogHeader className="pb-4">
-                                <DialogTitle className="flex flex-wrap items-center gap-3">
-                                    {selectedLog && (() => {
-                                        const LevelIcon = getLevelIcon(selectedLog.level);
-                                        return (
-                                            <>
-                                                <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(selectedLog.level))}>
-                                                    <LevelIcon className="mr-1 h-3 w-3" />
-                                                    {selectedLog.level}
-                                                </Badge>
-                                                <span className="font-mono text-sm text-muted-foreground" title={selectedLog.timestamp}>
-                                                    {formatTimestamp(selectedLog.timestamp)}
-                                                </span>
-                                                <span className="font-mono text-xs text-muted-foreground/60">
-                                                    Line {selectedLog.line_number}
-                                                </span>
-                                            </>
-                                        );
-                                    })()}
-                                </DialogTitle>
-                            </DialogHeader>
-                            {selectedLog && (() => {
-                                // Parse context
-                                const result = tryParseJson(selectedLog.context);
-                                let businessContext: Record<string, unknown> | null = null;
-                                let systemContext: Record<string, unknown> | null = null;
-                                let exceptionObj: any = null;
-
-                                if (result.isJson && typeof result.parsed === 'object' && result.parsed !== null) {
-                                    const parsed = { ...(result.parsed as Record<string, unknown>) };
-                                    
-                                    // Extract exception
-                                    if ('exception' in parsed) {
-                                        exceptionObj = parsed.exception;
-                                        delete parsed.exception;
-                                    }
-
-                                    // Extract system data
-                                    if ('sys' in parsed && typeof parsed.sys === 'object') {
-                                        systemContext = parsed.sys as Record<string, unknown>;
-                                        delete parsed.sys;
-                                    }
-
-                                    // Check for legacy top-level system keys
-                                    const legacySysKeys = ['url', 'method', 'ip', 'user_agent', 'request_id', 'request_body'];
-                                    const foundLegacy = legacySysKeys.filter(k => k in parsed);
-                                    if (foundLegacy.length > 0) {
-                                        systemContext = systemContext || {};
-                                        foundLegacy.forEach(k => {
-                                            systemContext![k] = parsed[k];
-                                            delete parsed[k];
-                                        });
-                                    }
-
-                                    businessContext = parsed;
-                                }
-
-                                // Also try to extract embedded JSON from the message itself
-                                const msgExtract = extractJsonFromMessage(selectedLog.message);
-                                let messagePrefix = selectedLog.message;
-                                let messageJson: Record<string, unknown> | null = null;
-                                let messageFormatted: string | null = null;
-                                let msgExceptionMessage: string | null = null;
-                                let msgExceptionType: string | null = null;
-                                let msgExceptionFile: string | null = null;
-                                let msgExceptionLine: number | null = null;
-                                let msgExceptionTrace: string | null = null;
-                                let msgSystemContext: Record<string, unknown> | null = null;
-                                let msgBusinessData: Record<string, unknown> | null = null;
-
-                                if (msgExtract.json) {
-                                    messagePrefix = msgExtract.prefix;
-                                    const mj = { ...msgExtract.json };
-
-                                    // Extract exception_* keys from message JSON
-                                    if (mj.exception_message || mj.exception_type) {
-                                        msgExceptionMessage = mj.exception_message as string || null;
-                                        msgExceptionType = mj.exception_type as string || null;
-                                        msgExceptionFile = mj.exception_file as string || null;
-                                        msgExceptionLine = mj.exception_line as number || null;
-                                        msgExceptionTrace = mj.exception_trace as string || null;
-                                        delete mj.exception_message;
-                                        delete mj.exception_type;
-                                        delete mj.exception_file;
-                                        delete mj.exception_line;
-                                        delete mj.exception_trace;
-                                    }
-
-                                    // Keys that belong in system context (not business data)
-                                    const sysKeys = ['url', 'method', 'ip', 'user_agent', 'request_id', 'request_body', 'route', 'action',
-                                                      'user_id', 'user_name', 'user_email', 'route_name', 'route_action', 'referer',
-                                                      'session_id', 'admin_id', 'admin_email'];
-
-                                    // Extract data.sys if exists (AppLogger format: data -> { sys: {...}, ...businessKeys })
-                                    if (mj.data && typeof mj.data === 'object') {
-                                        const dataObj = mj.data as Record<string, unknown>;
-                                        if ('sys' in dataObj && typeof dataObj.sys === 'object') {
-                                            msgSystemContext = { ...(dataObj.sys as Record<string, unknown>) };
-                                            delete dataObj.sys;
-                                        }
-                                        // Remaining data keys are business data
-                                        const remaining = { ...dataObj };
-                                        if (Object.keys(remaining).length > 0) {
-                                            msgBusinessData = remaining;
-                                        }
-                                        delete mj.data;
-                                    }
-
-                                    // Also pull top-level sys-like keys into system context
-                                    const topSys: Record<string, unknown> = {};
-                                    sysKeys.forEach(k => {
-                                        if (k in mj) {
-                                            topSys[k] = mj[k];
-                                            delete mj[k];
-                                        }
-                                    });
-                                    if (Object.keys(topSys).length > 0) {
-                                        msgSystemContext = { ...(msgSystemContext || {}), ...topSys };
-                                    }
-
-                                    // Remove metadata keys we display elsewhere
-                                    const metaKeys = ['event', 'message', 'timestamp', 'environment', 'app_version',
-                                                      'memory_usage_mb', 'peak_memory_mb'];
-                                    metaKeys.forEach(k => delete mj[k]);
-
-                                    if (Object.keys(mj).length > 0) {
-                                        messageJson = mj;
-                                        messageFormatted = JSON.stringify(mj, null, 2);
-                                    }
-                                }
-
-                                // Merge message-derived contexts if context didn't already have them
-                                if (!exceptionObj && msgExceptionMessage) {
-                                    exceptionObj = {
-                                        message: msgExceptionMessage,
-                                        class: msgExceptionType,
-                                        file: msgExceptionFile,
-                                        line: msgExceptionLine,
-                                        trace: msgExceptionTrace,
-                                    };
-                                }
-                                if (!systemContext && msgSystemContext) {
-                                    systemContext = msgSystemContext;
-                                } else if (systemContext && msgSystemContext) {
-                                    // Merge, msg system fields fill gaps
-                                    Object.entries(msgSystemContext).forEach(([k, v]) => {
-                                        if (!(k in systemContext!) || systemContext![k] === null || systemContext![k] === undefined) {
-                                            systemContext![k] = v;
-                                        }
-                                    });
-                                }
-                                if (!businessContext && msgBusinessData) {
-                                    businessContext = msgBusinessData;
-                                } else if (businessContext && msgBusinessData) {
-                                    Object.entries(msgBusinessData).forEach(([k, v]) => {
-                                        if (!(k in businessContext!)) {
-                                            businessContext![k] = v;
-                                        }
-                                    });
-                                }
-
-                                // Determine if this is an error-level log
-                                const isError = ['ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'].includes(selectedLog.level);
-
-                                return (
-                                    <div className="flex flex-1 flex-col gap-5 overflow-y-auto pr-1 py-2">
-                                        {/* Error Banner — prominent for errors */}
-                                        {isError && exceptionObj && (
-                                            <div className="rounded-lg border border-red-300 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-5">
-                                                <div className="flex items-start gap-3">
-                                                    <AlertCircleIcon className="h-6 w-6 text-red-500 mt-0.5 shrink-0" />
-                                                    <div className="flex-1 min-w-0 space-y-3">
-                                                        {/* Exception type badge + title */}
-                                                        <div className="flex flex-wrap items-center gap-2">
-                                                            {exceptionObj.class && (
-                                                                <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-800 font-mono text-xs">
-                                                                    {String(exceptionObj.class).split('\\').pop()}
-                                                                </Badge>
-                                                            )}
-                                                            <span className="text-sm font-semibold text-red-800 dark:text-red-200">
-                                                                {messagePrefix || 'Exception Occurred'}
-                                                            </span>
-                                                        </div>
-                                                        {/* Exception message */}
-                                                        <div className="rounded-md bg-white dark:bg-zinc-950 border border-red-200 dark:border-red-900/40 p-4">
-                                                            <p className="font-mono text-sm leading-relaxed text-red-900 dark:text-red-200 whitespace-pre-wrap break-words">
-                                                                {exceptionObj.message || String(selectedLog.message)}
-                                                            </p>
-                                                        </div>
-                                                        {/* File + Line */}
-                                                        {exceptionObj.file && (
-                                                            <div className="flex items-center gap-2 font-mono text-sm">
-                                                                <span className="text-red-600/60 dark:text-red-400/50">📍</span>
-                                                                <span className="text-red-700 dark:text-red-300">{String(exceptionObj.file)}</span>
-                                                                {exceptionObj.line && (
-                                                                    <Badge variant="secondary" className="font-mono text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
-                                                                        Line {String(exceptionObj.line)}
-                                                                    </Badge>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Non-error exception display */}
-                                        {!isError && exceptionObj && (
-                                            <div className="rounded-lg border border-border/30 bg-muted/30 p-5 space-y-3">
-                                                <div className="flex items-center gap-2 text-foreground">
-                                                    <AlertCircleIcon className="h-5 w-5 text-muted-foreground" />
-                                                    <span className="text-base font-semibold">{messagePrefix || 'Exception Occurred'}</span>
-                                                    {exceptionObj.class && (
-                                                        <Badge variant="outline" className="ml-2 font-mono text-xs">{exceptionObj.class}</Badge>
-                                                    )}
-                                                </div>
-                                                <div className="rounded-md bg-background p-4 font-mono text-sm leading-relaxed border border-border/30 whitespace-pre-wrap break-words">
-                                                    {exceptionObj.message || String(selectedLog.message)}
-                                                </div>
-                                                {exceptionObj.file && (
-                                                    <div className="text-sm text-muted-foreground font-mono flex items-center gap-2">
-                                                        <span>📍</span>
-                                                        <span>{String(exceptionObj.file)}</span>
-                                                        {exceptionObj.line && <Badge variant="secondary" className="font-mono text-xs">Line {String(exceptionObj.line)}</Badge>}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {/* Non-exception message (when no exception) */}
-                                        {!exceptionObj && (
-                                            <div className="rounded-lg border border-border/30 bg-muted/30 p-5">
-                                                <p className="font-mono text-sm leading-relaxed whitespace-pre-wrap break-words">{selectedLog.message}</p>
-                                            </div>
-                                        )}
-
-                                        {/* Request & User Context Info Grid */}
-                                        {systemContext && Object.keys(systemContext).length > 0 && (
-                                            <div className="rounded-lg border border-border/30 bg-muted/10">
-                                                <div className="p-3 border-b border-border/20 bg-muted/20">
-                                                    <h4 className="text-sm font-medium text-muted-foreground">Request Context</h4>
-                                                </div>
-                                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-border/20">
-                                                    {(() => {
-                                                        // Render system context as a clean grid
-                                                        const displayOrder = [
-                                                            { key: 'request_id', label: 'Request ID', icon: '🔖' },
-                                                            { key: 'method', label: 'Method', icon: '📡' },
-                                                            { key: 'url', label: 'URL', icon: '🔗' },
-                                                            { key: 'route', label: 'Route', icon: '🛣️' },
-                                                            { key: 'action', label: 'Action', icon: '⚡' },
-                                                            { key: 'user_id', label: 'User ID', icon: '👤' },
-                                                            { key: 'user_name', label: 'User', icon: '👤' },
-                                                            { key: 'user_email', label: 'Email', icon: '📧' },
-                                                            { key: 'ip', label: 'IP', icon: '🌐' },
-                                                            { key: 'user_agent', label: 'User Agent', icon: '🖥️' },
-                                                        ];
-                                                        return displayOrder
-                                                            .filter(({ key }) => systemContext![key] !== null && systemContext![key] !== undefined && systemContext![key] !== '')
-                                                            .map(({ key, label, icon }) => {
-                                                                const val = String(systemContext![key]);
-                                                                // url/user_agent span full width
-                                                                const isWide = key === 'url' || key === 'user_agent' || key === 'action';
-                                                                return (
-                                                                    <div key={key} className={cn('bg-background p-3', isWide && 'col-span-2 md:col-span-3 lg:col-span-4')}>
-                                                                        <div className="text-xs text-muted-foreground/70 mb-1">{icon} {label}</div>
-                                                                        <div className="font-mono text-xs text-foreground/90 break-all" title={val}>
-                                                                            {val.length > 120 ? val.substring(0, 120) + '…' : val}
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            });
-                                                    })()}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Stack Trace */}
-                                        {exceptionObj?.trace && (
-                                            <div className="rounded-lg border border-border/30">
-                                                <div className="p-3 bg-muted/20 border-b border-border/30 font-medium text-sm flex items-center gap-2">
-                                                    <FilterIcon className="h-4 w-4 text-muted-foreground" />
-                                                    Stack Trace
-                                                </div>
-                                                <div className="max-h-[400px] overflow-auto p-0">
-                                                    {Array.isArray(exceptionObj.trace) ? (
-                                                        <Table>
-                                                            <TableHeader>
-                                                                <TableRow>
-                                                                    <TableHead className="w-[50px] text-center">#</TableHead>
-                                                                    <TableHead>File / Function</TableHead>
-                                                                    <TableHead className="w-[80px] text-right">Line</TableHead>
-                                                                </TableRow>
-                                                            </TableHeader>
-                                                            <TableBody>
-                                                                {exceptionObj.trace.map((item: any, idx: number) => (
-                                                                    <TableRow key={idx} className="hover:bg-muted/10">
-                                                                        <TableCell className="font-mono text-xs text-muted-foreground text-center">
-                                                                            {idx + 1}
-                                                                        </TableCell>
-                                                                        <TableCell className="font-mono text-xs">
-                                                                            <div className="font-medium text-foreground/80 mb-0.5 break-all">
-                                                                                {item.file ? (item.file.split(/[\\/]/).slice(-3).join('/')) : 'internal'}
-                                                                            </div>
-                                                                            <div className="text-muted-foreground/60">
-                                                                                {item.class ? `${item.class}${item.type}${item.function}` : item.function}
-                                                                            </div>
-                                                                        </TableCell>
-                                                                        <TableCell className="text-right font-mono text-xs text-orange-500/80">
-                                                                            {item.line || '-'}
-                                                                        </TableCell>
-                                                                    </TableRow>
-                                                                ))}
-                                                            </TableBody>
-                                                        </Table>
-                                                    ) : (
-                                                        <ScrollArea className="w-full" style={{ height: 350 }}>
-                                                            <pre className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words text-foreground/80">
-                                                                {String(exceptionObj.trace)}
-                                                            </pre>
-                                                            <ScrollBar orientation="horizontal" />
-                                                        </ScrollArea>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Business Context */}
-                                        {businessContext && Object.keys(businessContext).length > 0 && (
-                                            <JsonOrRawBlock 
-                                                title="Business Context" 
-                                                content={JSON.stringify(businessContext, null, 2)} 
-                                                scrollHeight={240} 
-                                            />
-                                        )}
-
-                                        {/* Remaining message JSON (non-exception, non-system keys) */}
-                                        {messageJson && messageFormatted && (
-                                            <JsonOrRawBlock
-                                                title="Additional Data"
-                                                content={messageFormatted}
-                                                scrollHeight={260}
-                                            />
-                                        )}
-
-                                        {/* Raw Context Fallback */}
-                                        {!businessContext && !systemContext && !messageJson && selectedLog.context && (
-                                            <JsonOrRawBlock
-                                                title="Raw Context"
-                                                content={selectedLog.context}
-                                                scrollHeight={350}
-                                            />
-                                        )}
-                                    </div>
-                                );
-                            })()}
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </AppLayout>
         </>

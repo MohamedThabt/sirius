@@ -56,6 +56,40 @@ class LogsController extends Controller
     }
 
     /**
+     * Display a specific log entry.
+     *
+     * @param Request $request
+     * @param string $logType
+     * @param int $lineNumber
+     * @return Response
+     */
+    public function show(Request $request, string $logType, int $lineNumber): Response
+    {
+        try {
+            if (!in_array($logType, ['app', 'error'])) {
+                abort(404, 'Invalid log type.');
+            }
+
+            // Fetch the specific log entry
+            $logEntry = $this->fetchLogByLine($logType, $lineNumber);
+
+            if (!$logEntry) {
+                abort(404, 'Log entry not found.');
+            }
+
+            return Inertia::render('dashboard/fastApiLogs/show', [
+                'log' => $logEntry,
+                'log_type' => $logType,
+                'filters' => $request->only(['log_type', 'level', 'search', 'page']),
+            ]);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'logs.show', 'log_type' => $logType, 'line_number' => $lineNumber]);
+
+            abort(500, 'Failed to load log entry.');
+        }
+    }
+
+    /**
      * Clear logs and redirect back with status.
      *
      * @param Request $request
@@ -194,6 +228,49 @@ class LogsController extends Controller
             return null;
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'fetchLogStats']);
+            return null;
+        }
+    }
+
+    /**
+     * Fetch a specific log entry by line number from FastAPI.
+     *
+     * @param string $logType
+     * @param int $lineNumber
+     * @return array|null
+     */
+    private function fetchLogByLine(string $logType, int $lineNumber): ?array
+    {
+        try {
+            // Fetch logs with search for the specific line number
+            $response = Http::fastapi()->timeout(10)
+                ->get($this->getBaseUrl() . '/v1/logs', [
+                    'log_type' => $logType,
+                    'page' => 1,
+                    'per_page' => 100, // Get enough entries around the target
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $entries = $data['entries'] ?? [];
+                
+                // Find the entry with the matching line number
+                foreach ($entries as $entry) {
+                    if (isset($entry['line_number']) && $entry['line_number'] == $lineNumber) {
+                        return $entry;
+                    }
+                }
+            }
+
+            $this->logWarning('Failed to fetch log entry from FastAPI', [
+                'status' => $response->status(),
+                'log_type' => $logType,
+                'line_number' => $lineNumber,
+            ]);
+
+            return null;
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'fetchLogByLine', 'log_type' => $logType, 'line_number' => $lineNumber]);
             return null;
         }
     }

@@ -50,6 +50,31 @@ class LaravelLogsController extends Controller
     }
 
     /**
+     * Display a specific log entry.
+     */
+    public function show(Request $request, string $logFile, int $lineNumber): Response
+    {
+        try {
+            // Fetch the specific log entry
+            $logEntry = $this->fetchLogByLine($logFile, $lineNumber);
+
+            if (!$logEntry) {
+                abort(404, 'Log entry not found.');
+            }
+
+            return Inertia::render('dashboard/laravelLogs/show', [
+                'log' => $logEntry,
+                'log_file' => $logFile,
+                'filters' => $request->only(['log_file', 'level', 'search', 'page']),
+            ]);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'laravel-logs.show', 'log_file' => $logFile, 'line_number' => $lineNumber]);
+
+            abort(500, 'Failed to load log entry: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Clear logs and redirect back with status.
      */
     public function clearLogs(Request $request): RedirectResponse
@@ -301,6 +326,39 @@ class LaravelLogsController extends Controller
         }
 
         return $entries;
+    }
+
+    /**
+     * Fetch a specific log entry by line number.
+     */
+    private function fetchLogByLine(string $logFile, int $lineNumber): ?array
+    {
+        try {
+            $logsPath = $this->getLogsPath();
+            $filePath = $logsPath . '/' . basename($logFile);
+
+            if (!File::exists($filePath)) {
+                return null;
+            }
+
+            $content = File::get($filePath);
+            
+            // Detect if this is a JSON log file and use appropriate parser
+            $isJsonLog = str_starts_with(basename($logFile), 'laravel-json');
+            $entries = $isJsonLog ? $this->parseJsonLogEntries($content) : $this->parseLogEntries($content);
+
+            // Find the entry with the matching line number
+            foreach ($entries as $entry) {
+                if (isset($entry['line_number']) && $entry['line_number'] == $lineNumber) {
+                    return $entry;
+                }
+            }
+
+            return null;
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'fetchLogByLine', 'log_file' => $logFile, 'line_number' => $lineNumber]);
+            return null;
+        }
     }
 
     /**
