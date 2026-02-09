@@ -1,3 +1,4 @@
+import { PaginationControls } from '@/components/PaginationControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -288,12 +289,20 @@ export default function UsersIndex({ users, filters, summary }: Props) {
                         </EnhancedCard>
                     )}
 
-                    {/* Pagination info */}
-                    <div className="flex justify-center">
-                        <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-                            Showing <span className="font-medium text-foreground/80">{users.data.length}</span> of <span className="font-medium text-foreground/80">{users.meta?.total || 0}</span> users
-                        </p>
-                    </div>
+                    {/* Pagination */}
+                    <PaginationControls
+                        data={{
+                            current_page: users.meta?.current_page || 1,
+                            last_page: users.meta?.last_page || 1,
+                            from: users.meta?.from,
+                            to: users.meta?.to,
+                            total: users.meta?.total || 0,
+                        }}
+                        baseUrl="/admin/users"
+                        preserveFilters={{
+                            search: search || undefined,
+                        }}
+                    />
                 </div>
             </FuturisticBackground>
 

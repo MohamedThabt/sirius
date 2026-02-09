@@ -1,3 +1,4 @@
+import { PaginationControls } from '@/components/PaginationControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -377,12 +378,25 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
                     </div>
                 )}
 
-                {/* Pagination info */}
-                <div className="flex justify-center">
-                    <p className="text-sm text-muted-foreground">
-                        Showing {logs.data.length} of {logs.meta?.total || 0} usage logs
-                    </p>
-                </div>
+                {/* Pagination */}
+                <PaginationControls
+                    data={{
+                        current_page: logs.meta?.current_page || 1,
+                        last_page: logs.meta?.last_page || 1,
+                        from: logs.meta?.from,
+                        to: logs.meta?.to,
+                        total: logs.meta?.total || 0,
+                    }}
+                    baseUrl="/admin/usage-logs"
+                    preserveFilters={{
+                        search: search || undefined,
+                        action_type: (filters.action_type && filters.action_type !== 'all') ? filters.action_type : undefined,
+                        model: (filters.model && filters.model !== 'all') ? filters.model : undefined,
+                        date_from: dateFrom || undefined,
+                        date_to: dateTo || undefined,
+                        user_id: filters.user_id || undefined,
+                    }}
+                />
             </div>
         </AppLayout>
     );

@@ -1,3 +1,4 @@
+import { PaginationControls } from '@/components/PaginationControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -263,20 +264,16 @@ export default function ModulesIndex({ modules, stats }: Props) {
                 </div>
 
                 {/* Pagination */}
-                {modules.meta && modules.meta.last_page > 1 && (
-                    <div className="flex items-center justify-center gap-2">
-                        {modules.links.map((link: PaginationLink, index: number) => (
-                            <Button
-                                key={index}
-                                variant={link.active ? 'default' : 'outline'}
-                                size="sm"
-                                disabled={!link.url}
-                                onClick={() => link.url && router.visit(link.url)}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        ))}
-                    </div>
-                )}
+                <PaginationControls
+                    data={{
+                        current_page: modules.meta?.current_page || 1,
+                        last_page: modules.meta?.last_page || 1,
+                        from: modules.meta?.from,
+                        to: modules.meta?.to,
+                        total: modules.meta?.total || 0,
+                    }}
+                    baseUrl="/admin/modules"
+                />
             </div>
         </AppLayout>
     );

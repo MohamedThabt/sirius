@@ -8,6 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
+import { PaginationControls } from '@/components/PaginationControls';
 import { ClientDateTime, useIsClient } from '@/components/ClientDateTime';
 import { FuturisticBackground } from '@/components/ui/futuristic';
 import {
@@ -577,125 +578,177 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                     />
                     <div className="grid gap-6 lg:grid-cols-2">
                         {/* Recent Users */}
-                        <RecentActivityCard
-                            title="Recent Users"
-                            icon={UsersIcon}
-                            iconBgClassName="bg-blue-500/10"
-                            iconClassName="text-blue-600 dark:text-blue-400"
-                            viewAllHref="/admin/users"
-                            items={stats.recent_users}
-                            renderItem={(user) => (
-                                <Link href={`/admin/users/${user.id}`}>
-                                    <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
-                                        <div className="flex items-center gap-3">
-                                            {user.avatar ? (
-                                                <img src={user.avatar} alt={user.name} className="h-9 w-9 rounded-full opacity-90" />
-                                            ) : (
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 text-sm font-medium text-blue-600/70 dark:text-blue-400/70">
-                                                    {user.name.charAt(0).toUpperCase()}
+                        <div className="space-y-3">
+                            <RecentActivityCard
+                                title="Recent Users"
+                                icon={UsersIcon}
+                                iconBgClassName="bg-blue-500/10"
+                                iconClassName="text-blue-600 dark:text-blue-400"
+                                viewAllHref="/admin/users"
+                                items={stats.recent_users.data}
+                                renderItem={(user) => (
+                                    <Link href={`/admin/users/${user.id}`}>
+                                        <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
+                                            <div className="flex items-center gap-3">
+                                                {user.avatar ? (
+                                                    <img src={user.avatar} alt={user.name} className="h-9 w-9 rounded-full opacity-90" />
+                                                ) : (
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 text-sm font-medium text-blue-600/70 dark:text-blue-400/70">
+                                                        {user.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p className="text-sm font-medium leading-none text-foreground/80">{user.name}</p>
+                                                    <p className="mt-1 text-xs text-muted-foreground/60">{user.email}</p>
                                                 </div>
-                                            )}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs tabular-nums text-muted-foreground/50">
+                                                    <ClientDateTime value={user.created_at} dateStyle="short" />
+                                                </span>
+                                                <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                                            </div>
+                                        </div>
+                                    </Link>
+                                )}
+                            />
+                            <PaginationControls 
+                                data={{
+                                    current_page: stats.recent_users.current_page,
+                                    last_page: stats.recent_users.last_page,
+                                    from: stats.recent_users.from,
+                                    to: stats.recent_users.to,
+                                    total: stats.recent_users.total,
+                                }}
+                                baseUrl="/admin/dashboard"
+                                preserveFilters={{}}
+                            />
+                        </div>
+
+                        {/* Recent Projects */}
+                        <div className="space-y-3">
+                            <RecentActivityCard
+                                title="Recent Projects"
+                                icon={FolderIcon}
+                                iconBgClassName="bg-amber-500/10"
+                                iconClassName="text-amber-600 dark:text-amber-400"
+                                viewAllHref="/admin/projects"
+                                items={stats.recent_projects.data}
+                                renderItem={(project) => (
+                                    <Link href={`/admin/projects/${project.id}`}>
+                                        <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
                                             <div>
-                                                <p className="text-sm font-medium leading-none text-foreground/80">{user.name}</p>
-                                                <p className="mt-1 text-xs text-muted-foreground/60">{user.email}</p>
+                                                <p className="text-sm font-medium leading-none text-foreground/80">{project.name}</p>
+                                                <p className="mt-1 text-xs text-muted-foreground/60">by {project.user.name}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className={cn('border text-xs', getStatusColor(project.status))}>
+                                                    {project.status.replace('_', ' ')}
+                                                </Badge>
+                                                <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                                            </div>
+                                        </div>
+                                    </Link>
+                                )}
+                            />
+                            <PaginationControls 
+                                data={{
+                                    current_page: stats.recent_projects.current_page,
+                                    last_page: stats.recent_projects.last_page,
+                                    from: stats.recent_projects.from,
+                                    to: stats.recent_projects.to,
+                                    total: stats.recent_projects.total,
+                                }}
+                                baseUrl="/admin/dashboard"
+                                preserveFilters={{}}
+                            />
+                        </div>
+
+                        {/* Recent Admins */}
+                        <div className="space-y-3">
+                            <RecentActivityCard
+                                title="Recent Admins"
+                                icon={ShieldIcon}
+                                iconBgClassName="bg-violet-500/10"
+                                iconClassName="text-violet-600 dark:text-violet-400"
+                                viewAllHref="/admin/admins"
+                                items={stats.recent_admins.data}
+                                renderItem={(admin) => (
+                                    <div className="flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-violet-600/10 text-sm font-medium text-violet-600/70 dark:text-violet-400/70">
+                                                {admin.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium leading-none text-foreground/80">{admin.name}</p>
+                                                <p className="mt-1 text-xs text-muted-foreground/60">{admin.email}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs tabular-nums text-muted-foreground/50">
-                                                <ClientDateTime value={user.created_at} dateStyle="short" />
-                                            </span>
-                                            <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                                        </div>
-                                    </div>
-                                </Link>
-                            )}
-                        />
-
-                        {/* Recent Projects */}
-                        <RecentActivityCard
-                            title="Recent Projects"
-                            icon={FolderIcon}
-                            iconBgClassName="bg-amber-500/10"
-                            iconClassName="text-amber-600 dark:text-amber-400"
-                            viewAllHref="/admin/projects"
-                            items={stats.recent_projects}
-                            renderItem={(project) => (
-                                <Link href={`/admin/projects/${project.id}`}>
-                                    <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
-                                        <div>
-                                            <p className="text-sm font-medium leading-none text-foreground/80">{project.name}</p>
-                                            <p className="mt-1 text-xs text-muted-foreground/60">by {project.user.name}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Badge variant="outline" className={cn('border text-xs', getStatusColor(project.status))}>
-                                                {project.status.replace('_', ' ')}
+                                            <Badge
+                                                variant="secondary"
+                                                className={cn(
+                                                    'text-xs',
+                                                    admin.role === 'super_admin' ? 'bg-primary/10 text-primary/70' : 'bg-muted/50 text-muted-foreground/70',
+                                                )}
+                                            >
+                                                {admin.role === 'super_admin' ? 'Super' : 'Admin'}
                                             </Badge>
-                                            <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                                         </div>
                                     </div>
-                                </Link>
-                            )}
-                        />
-
-                        {/* Recent Admins */}
-                        <RecentActivityCard
-                            title="Recent Admins"
-                            icon={ShieldIcon}
-                            iconBgClassName="bg-violet-500/10"
-                            iconClassName="text-violet-600 dark:text-violet-400"
-                            viewAllHref="/admin/admins"
-                            items={stats.recent_admins}
-                            renderItem={(admin) => (
-                                <div className="flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-violet-600/10 text-sm font-medium text-violet-600/70 dark:text-violet-400/70">
-                                            {admin.name.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium leading-none text-foreground/80">{admin.name}</p>
-                                            <p className="mt-1 text-xs text-muted-foreground/60">{admin.email}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Badge
-                                            variant="secondary"
-                                            className={cn(
-                                                'text-xs',
-                                                admin.role === 'super_admin' ? 'bg-primary/10 text-primary/70' : 'bg-muted/50 text-muted-foreground/70',
-                                            )}
-                                        >
-                                            {admin.role === 'super_admin' ? 'Super' : 'Admin'}
-                                        </Badge>
-                                    </div>
-                                </div>
-                            )}
-                        />
+                                )}
+                            />
+                            <PaginationControls 
+                                data={{
+                                    current_page: stats.recent_admins.current_page,
+                                    last_page: stats.recent_admins.last_page,
+                                    from: stats.recent_admins.from,
+                                    to: stats.recent_admins.to,
+                                    total: stats.recent_admins.total,
+                                }}
+                                baseUrl="/admin/dashboard"
+                                preserveFilters={{}}
+                            />
+                        </div>
 
                         {/* Recent Beta Invitations */}
-                        <RecentActivityCard
-                            title="Recent Beta Invitations"
-                            icon={MailIcon}
-                            iconBgClassName="bg-pink-500/10"
-                            iconClassName="text-pink-600 dark:text-pink-400"
-                            viewAllHref="/admin/beta"
-                            items={stats.recent_beta_invitations}
-                            renderItem={(invitation) => (
-                                <div className="flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10 text-sm font-medium text-amber-600/70 dark:text-amber-400/70">
-                                            {invitation.name.charAt(0).toUpperCase()}
+                        <div className="space-y-3">
+                            <RecentActivityCard
+                                title="Recent Beta Invitations"
+                                icon={MailIcon}
+                                iconBgClassName="bg-pink-500/10"
+                                iconClassName="text-pink-600 dark:text-pink-400"
+                                viewAllHref="/admin/beta"
+                                items={stats.recent_beta_invitations.data}
+                                renderItem={(invitation) => (
+                                    <div className="flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10 text-sm font-medium text-amber-600/70 dark:text-amber-400/70">
+                                                {invitation.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium leading-none text-foreground/80">{invitation.name}</p>
+                                                <p className="mt-1 text-xs text-muted-foreground/60">{invitation.email}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium leading-none text-foreground/80">{invitation.name}</p>
-                                            <p className="mt-1 text-xs text-muted-foreground/60">{invitation.email}</p>
-                                        </div>
+                                        <Badge variant="outline" className={cn('border text-xs', getStatusColor(invitation.status))}>
+                                            {invitation.status}
+                                        </Badge>
                                     </div>
-                                    <Badge variant="outline" className={cn('border text-xs', getStatusColor(invitation.status))}>
-                                        {invitation.status}
-                                    </Badge>
-                                </div>
-                            )}
-                        />
+                                )}
+                            />
+                            <PaginationControls 
+                                data={{
+                                    current_page: stats.recent_beta_invitations.current_page,
+                                    last_page: stats.recent_beta_invitations.last_page,
+                                    from: stats.recent_beta_invitations.from,
+                                    to: stats.recent_beta_invitations.to,
+                                    total: stats.recent_beta_invitations.total,
+                                }}
+                                baseUrl="/admin/dashboard"
+                                preserveFilters={{}}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -708,61 +761,87 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                     />
                     <div className="grid gap-6 lg:grid-cols-2">
                         {/* Recent Issues */}
-                        <RecentActivityCard
-                            title="Recent Issues"
-                            icon={BugIcon}
-                            iconBgClassName="bg-red-500/10"
-                            iconClassName="text-red-600 dark:text-red-400"
-                            viewAllHref="/admin/issues"
-                            items={stats.recent_issues}
-                            renderItem={(issue) => (
-                                <Link href={`/admin/issues/${issue.id}`}>
-                                    <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-medium leading-none text-foreground/80">{issue.title}</p>
-                                            <p className="mt-1 text-xs text-muted-foreground/60">by {issue.user.name}</p>
+                        <div className="space-y-3">
+                            <RecentActivityCard
+                                title="Recent Issues"
+                                icon={BugIcon}
+                                iconBgClassName="bg-red-500/10"
+                                iconClassName="text-red-600 dark:text-red-400"
+                                viewAllHref="/admin/issues"
+                                items={stats.recent_issues.data}
+                                renderItem={(issue) => (
+                                    <Link href={`/admin/issues/${issue.id}`}>
+                                        <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium leading-none text-foreground/80">{issue.title}</p>
+                                                <p className="mt-1 text-xs text-muted-foreground/60">by {issue.user.name}</p>
+                                            </div>
+                                            <div className="flex shrink-0 items-center gap-2">
+                                                <Badge variant="outline" className={cn('border text-xs', getStatusColor(issue.status))}>
+                                                    {issue.status.replace('_', ' ')}
+                                                </Badge>
+                                                <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                                            </div>
                                         </div>
-                                        <div className="flex shrink-0 items-center gap-2">
-                                            <Badge variant="outline" className={cn('border text-xs', getStatusColor(issue.status))}>
-                                                {issue.status.replace('_', ' ')}
-                                            </Badge>
-                                            <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                                        </div>
-                                    </div>
-                                </Link>
-                            )}
-                        />
+                                    </Link>
+                                )}
+                            />
+                            <PaginationControls 
+                                data={{
+                                    current_page: stats.recent_issues.current_page,
+                                    last_page: stats.recent_issues.last_page,
+                                    from: stats.recent_issues.from,
+                                    to: stats.recent_issues.to,
+                                    total: stats.recent_issues.total,
+                                }}
+                                baseUrl="/admin/dashboard"
+                                preserveFilters={{}}
+                            />
+                        </div>
 
                         {/* Recent Feedback */}
-                        <RecentActivityCard
-                            title="Recent Feedback"
-                            icon={MessageSquareIcon}
-                            iconBgClassName="bg-green-500/10"
-                            iconClassName="text-green-600 dark:text-green-400"
-                            viewAllHref="/admin/feedback"
-                            items={stats.recent_feedback}
-                            renderItem={(feedback) => (
-                                <Link href={`/admin/feedback/${feedback.id}`}>
-                                    <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-medium leading-none text-foreground/80">
-                                                {feedback.message.slice(0, 50)}
-                                                {feedback.message.length > 50 ? '...' : ''}
-                                            </p>
-                                            <p className="mt-1 text-xs text-muted-foreground/60">
-                                                by {feedback.user.name} • {feedback.type}
-                                            </p>
+                        <div className="space-y-3">
+                            <RecentActivityCard
+                                title="Recent Feedback"
+                                icon={MessageSquareIcon}
+                                iconBgClassName="bg-green-500/10"
+                                iconClassName="text-green-600 dark:text-green-400"
+                                viewAllHref="/admin/feedback"
+                                items={stats.recent_feedback.data}
+                                renderItem={(feedback) => (
+                                    <Link href={`/admin/feedback/${feedback.id}`}>
+                                        <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/30">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium leading-none text-foreground/80">
+                                                    {feedback.message.slice(0, 50)}
+                                                    {feedback.message.length > 50 ? '...' : ''}
+                                                </p>
+                                                <p className="mt-1 text-xs text-muted-foreground/60">
+                                                    by {feedback.user.name} • {feedback.type}
+                                                </p>
+                                            </div>
+                                            <div className="flex shrink-0 items-center gap-2">
+                                                <Badge variant="outline" className={cn('border text-xs', getStatusColor(feedback.status))}>
+                                                    {feedback.status}
+                                                </Badge>
+                                                <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                                            </div>
                                         </div>
-                                        <div className="flex shrink-0 items-center gap-2">
-                                            <Badge variant="outline" className={cn('border text-xs', getStatusColor(feedback.status))}>
-                                                {feedback.status}
-                                            </Badge>
-                                            <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                                        </div>
-                                    </div>
-                                </Link>
-                            )}
-                        />
+                                    </Link>
+                                )}
+                            />
+                            <PaginationControls 
+                                data={{
+                                    current_page: stats.recent_feedback.current_page,
+                                    last_page: stats.recent_feedback.last_page,
+                                    from: stats.recent_feedback.from,
+                                    to: stats.recent_feedback.to,
+                                    total: stats.recent_feedback.total,
+                                }}
+                                baseUrl="/admin/dashboard"
+                                preserveFilters={{}}
+                            />
+                        </div>
                     </div>
                 </div>
                 </div>

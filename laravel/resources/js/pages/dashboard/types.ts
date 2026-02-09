@@ -115,77 +115,119 @@ export interface Stats {
     // FastAPI Health Status
     fastapi_health: FastApiHealth;
 
-    // Recent activity
-    recent_users: Array<{
-        id: number;
-        name: string;
-        email: string;
-        avatar?: string;
-        created_at: string;
-    }>;
-    recent_projects: Array<{
-        id: number;
-        name: string;
-        user_id: number;
-        status: string;
-        created_at: string;
-        updated_at: string;
-        user: {
+    // Recent activity (paginated)
+    recent_users: {
+        data: Array<{
             id: number;
             name: string;
             email: string;
-        };
-    }>;
-    recent_admins: Array<{
-        id: number;
-        name: string;
-        email: string;
-        role: string;
-        created_by?: number;
-        created_at: string;
-        creator?: {
+            avatar?: string;
+            created_at: string;
+        }>;
+        current_page: number;
+        last_page: number;
+        from?: number;
+        to?: number;
+        total: number;
+    };
+    recent_projects: {
+        data: Array<{
             id: number;
             name: string;
-        };
-    }>;
-    recent_beta_invitations: Array<{
-        id: number;
-        name: string;
-        email: string;
-        status: string;
-        invited_by?: number;
-        created_at: string;
-        invited_by_admin?: {
-            id: number;
-            name: string;
-        };
-    }>;
-    recent_issues: Array<{
-        id: number;
-        title: string;
-        status: string;
-        severity: string;
-        user_id: number;
-        created_at: string;
-        user: {
+            user_id: number;
+            status: string;
+            created_at: string;
+            updated_at: string;
+            user: {
+                id: number;
+                name: string;
+                email: string;
+            };
+        }>;
+        current_page: number;
+        last_page: number;
+        from?: number;
+        to?: number;
+        total: number;
+    };
+    recent_admins: {
+        data: Array<{
             id: number;
             name: string;
             email: string;
-        };
-    }>;
-    recent_feedback: Array<{
-        id: number;
-        type: string;
-        message: string;
-        status: string;
-        user_id: number;
-        created_at: string;
-        user: {
+            role: string;
+            created_by?: number;
+            created_at: string;
+            creator?: {
+                id: number;
+                name: string;
+            };
+        }>;
+        current_page: number;
+        last_page: number;
+        from?: number;
+        to?: number;
+        total: number;
+    };
+    recent_beta_invitations: {
+        data: Array<{
             id: number;
             name: string;
             email: string;
-        };
-    }>;
+            status: string;
+            invited_by?: number;
+            created_at: string;
+            invited_by_admin?: {
+                id: number;
+                name: string;
+            };
+        }>;
+        current_page: number;
+        last_page: number;
+        from?: number;
+        to?: number;
+        total: number;
+    };
+    recent_issues: {
+        data: Array<{
+            id: number;
+            title: string;
+            status: string;
+            severity: string;
+            user_id: number;
+            created_at: string;
+            user: {
+                id: number;
+                name: string;
+                email: string;
+            };
+        }>;
+        current_page: number;
+        last_page: number;
+        from?: number;
+        to?: number;
+        total: number;
+    };
+    recent_feedback: {
+        data: Array<{
+            id: number;
+            type: string;
+            message: string;
+            status: string;
+            user_id: number;
+            created_at: string;
+            user: {
+                id: number;
+                name: string;
+                email: string;
+            };
+        }>;
+        current_page: number;
+        last_page: number;
+        from?: number;
+        to?: number;
+        total: number;
+    };
 }
 
 export interface DashboardProps {
