@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface BetaInvitation {
   id: number;
@@ -443,12 +444,15 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
             </EnhancedCard>
           )}
 
-          {/* Pagination info */}
-          <div className="flex justify-center">
-            <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-              Showing <span className="font-medium text-foreground/80">{invitations.from || 0}</span> to <span className="font-medium text-foreground/80">{invitations.to || 0}</span> of <span className="font-medium text-foreground/80">{invitations.total}</span> invitations
-            </p>
-          </div>
+          {/* Pagination */}
+          <PaginationControls 
+            data={invitations} 
+            baseUrl="/admin/beta"
+            preserveFilters={{
+              search: search || undefined,
+              status: statusFilter || undefined,
+            }}
+          />
         </div>
       </FuturisticBackground>
 

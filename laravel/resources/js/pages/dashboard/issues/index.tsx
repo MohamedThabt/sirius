@@ -9,6 +9,7 @@ import { Head, router } from '@inertiajs/react';
 import { AlertTriangleIcon, BugIcon, CheckCircleIcon, ClockIcon, XCircleIcon, SearchIcon, XIcon, ExternalLinkIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface User {
     id: number;
@@ -340,12 +341,22 @@ export default function IssuesIndex({ issues, severities, statuses, filters, sum
                         </EnhancedCard>
                     )}
 
-                    {/* Pagination info */}
-                    <div className="flex justify-center">
-                        <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-                            Showing <span className="font-medium text-foreground/80">{issues.data.length}</span> of <span className="font-medium text-foreground/80">{issues.meta?.total || 0}</span> issues
-                        </p>
-                    </div>
+                    {/* Pagination */}
+                    <PaginationControls 
+                        data={{
+                            current_page: issues.meta?.current_page || 1,
+                            last_page: issues.meta?.last_page || 1,
+                            from: issues.meta?.from,
+                            to: issues.meta?.to,
+                            total: issues.meta?.total || 0,
+                        }}
+                        baseUrl="/admin/issues"
+                        preserveFilters={{
+                            search: search || undefined,
+                            severity: filters.severity || undefined,
+                            status: filters.status || undefined,
+                        }}
+                    />
                 </div>
             </FuturisticBackground>
         </AppLayout>

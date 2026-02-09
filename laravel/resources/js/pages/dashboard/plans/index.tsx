@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { AddPlanModal } from "./components/AddPlanModal";
 import { EditPlanModal } from "./components/EditPlanModal";
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface Plan {
   id: number;
@@ -296,14 +297,14 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
             </EnhancedCard>
           )}
 
-          {/* Pagination info */}
-          {plans.total > 0 && (
-            <div className="flex justify-center">
-              <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-                Showing <span className="font-medium text-foreground/80">{plans.from || 0}</span> to <span className="font-medium text-foreground/80">{plans.to || 0}</span> of <span className="font-medium text-foreground/80">{plans.total}</span> plans
-              </p>
-            </div>
-          )}
+          {/* Pagination */}
+          <PaginationControls 
+            data={plans} 
+            baseUrl="/admin/plans"
+            preserveFilters={{
+              search: search || undefined,
+            }}
+          />
         </div>
       </FuturisticBackground>
 

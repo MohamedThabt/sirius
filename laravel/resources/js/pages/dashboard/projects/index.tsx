@@ -8,6 +8,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { DatabaseIcon, FileTextIcon, FolderIcon, NetworkIcon, SearchIcon, XIcon, ExternalLinkIcon, AlertCircleIcon, GitBranchIcon } from 'lucide-react';
 import { useState } from 'react';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface User {
     id: number;
@@ -301,12 +302,21 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                         </EnhancedCard>
                     )}
 
-                    {/* Pagination info */}
-                    <div className="flex justify-center">
-                        <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-                            Showing <span className="font-medium text-foreground/80">{projects.data.length}</span> of <span className="font-medium text-foreground/80">{projects.meta?.total || 0}</span> projects
-                        </p>
-                    </div>
+                    {/* Pagination */}
+                    <PaginationControls 
+                        data={{
+                            current_page: projects.meta?.current_page || 1,
+                            last_page: projects.meta?.last_page || 1,
+                            from: projects.meta?.from,
+                            to: projects.meta?.to,
+                            total: projects.meta?.total || 0,
+                        }}
+                        baseUrl="/admin/projects"
+                        preserveFilters={{
+                            search: search || undefined,
+                            status: filters.status || undefined,
+                        }}
+                    />
                 </div>
             </FuturisticBackground>
         </AppLayout>

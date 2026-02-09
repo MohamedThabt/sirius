@@ -20,6 +20,7 @@ import { PencilIcon, PlusIcon, TrashIcon, ShieldIcon, ShieldCheckIcon, AlertCirc
 import { useState, useEffect, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { createAdminSchema, updateAdminSchema } from '@/lib/validations';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface Admin {
     id: number;
@@ -351,12 +352,21 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                     </div>
                 )}
 
-                {/* Pagination info */}
-                <div className="flex justify-center">
-                    <p className="text-sm text-muted-foreground">
-                        Showing {admins.data.length} of {admins.meta?.total || 0} admins
-                    </p>
-                </div>
+                {/* Pagination */}
+                <PaginationControls 
+                    data={{
+                        current_page: admins.meta?.current_page || 1,
+                        last_page: admins.meta?.last_page || 1,
+                        from: admins.meta?.from,
+                        to: admins.meta?.to,
+                        total: admins.meta?.total || 0,
+                    }}
+                    baseUrl="/admin/admins"
+                    preserveFilters={{
+                        search: search || undefined,
+                        role: (roleFilter && roleFilter !== 'all') ? roleFilter : undefined,
+                    }}
+                />
 
                 {/* Create Admin Modal */}
                 <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>

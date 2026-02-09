@@ -9,6 +9,7 @@ import { Head, router } from '@inertiajs/react';
 import { MessageSquareIcon, CheckCircleIcon, ClockIcon, LightbulbIcon, EyeIcon, AlertCircleIcon, SearchIcon, XIcon, ExternalLinkIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface User {
     id: number;
@@ -341,12 +342,22 @@ export default function FeedbackIndex({ feedbacks, types, statuses, filters, sum
                         </EnhancedCard>
                     )}
 
-                    {/* Pagination info */}
-                    <div className="flex justify-center">
-                        <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-                            Showing <span className="font-medium text-foreground/80">{feedbacks.data.length}</span> of <span className="font-medium text-foreground/80">{feedbacks.meta?.total || 0}</span> feedback
-                        </p>
-                    </div>
+                    {/* Pagination */}
+                    <PaginationControls 
+                        data={{
+                            current_page: feedbacks.meta?.current_page || 1,
+                            last_page: feedbacks.meta?.last_page || 1,
+                            from: feedbacks.meta?.from,
+                            to: feedbacks.meta?.to,
+                            total: feedbacks.meta?.total || 0,
+                        }}
+                        baseUrl="/admin/feedback"
+                        preserveFilters={{
+                            search: search || undefined,
+                            type: filters.type || undefined,
+                            status: filters.status || undefined,
+                        }}
+                    />
                 </div>
             </FuturisticBackground>
         </AppLayout>
