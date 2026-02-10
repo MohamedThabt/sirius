@@ -728,7 +728,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                             id="frontend_additional"
                             value={frontendAdditional}
                             onChange={(e) => setFrontendAdditional(e.target.value)}
-                            placeholder="Example:\nUI: Tailwind, shadcn/ui, Material UI\nState: TanStack Query, Redux, Context API\ni18n: English, French, Spanish\nAccessibility: WCAG 2.1 AA"
+                            placeholder={"Example:\nUI: Tailwind / MUI\nState: Query / Redux / Context API\ni18n & A11y: EN , FR , SP"}
                             className="min-h-[100px]"
                             rows={4}
                             maxLength={2000}
@@ -767,7 +767,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                             id="backend_additional"
                             value={backendAdditional}
                             onChange={(e) => setBackendAdditional(e.target.value)}
-                            placeholder="Example:\nDatabase: PostgreSQL with Eloquent ORM\nAPI Style: REST + JSON, GraphQL for analytics\nAuth: OAuth2 (Auth0), JWT tokens\nJobs/Queues: Redis + Laravel Horizon\nCache: Redis"
+                            placeholder={"Example:\nDatabase: PostgreSQL with Eloquent ORM\nAPI Style: REST / GraphQL \nAuth: OAuth2 / JWT\nQueue & Cache: Redis "}
                             className="min-h-[120px]"
                             rows={5}
                             maxLength={2000}
@@ -806,7 +806,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                             id="database_additional"
                             value={databaseAdditional}
                             onChange={(e) => setDatabaseAdditional(e.target.value)}
-                            placeholder="Example:\nSharding strategy: Hash-based\nReplication: Multi-master\nCache: Redis with TTL\nBackup: Daily snapshots\nIndexing strategy for common queries"
+                            placeholder={"Example:\nSharding & Replication \nCache & Backup \nIndexing strategy "}
                             className="min-h-[100px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                             rows={4}
                             maxLength={2000}
@@ -846,7 +846,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                                 id="ai_additional"
                                 value={aiAdditional}
                                 onChange={(e) => setAiAdditional(e.target.value)}
-                                placeholder="Example:\nProvider: Azure OpenAI (GPT-4o)\nRAG: Yes, using pgvector for embeddings\nSafety: Content moderation, PII redaction, guardrails\nData retention: 30 days, training opt-out enabled"
+                                placeholder={"Example:\nProvider: Azure OpenAI (GPT-4o)\nRAG: Yes, using pgvector for embeddings\nSafety: Content moderation, PII redaction, guardrails\nData retention: 30 days, training opt-out enabled"}
                                 className="min-h-[100px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                                 rows={4}
                                 maxLength={2000}
@@ -886,7 +886,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                             id="services_additional"
                             value={servicesAdditional}
                             onChange={(e) => setServicesAdditional(e.target.value)}
-                            placeholder="Example:\nNotifications: Push (FCM/APNs), SMS via Twilio\nMonitoring: Sentry for errors, DataDog for metrics\nCRM: Salesforce integration\nOther: Slack webhooks, Jira API"
+                            placeholder={"Example:\nNotifications: Push , SMS \nMonitoring: errors, metrics \nintegration: CRM, Slack, Jira "}
                             className="min-h-[100px]"
                             rows={4}
                             maxLength={2000}
