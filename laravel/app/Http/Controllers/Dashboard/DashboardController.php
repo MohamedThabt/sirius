@@ -149,35 +149,29 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get(['id', 'user_id', 'action_type', 'model', 'credits_used', 'created_at']);
 
-            // Recent activity
+            // Recent activity (paginated)
             $recentUsers = User::latest()
-                ->take(5)
-                ->get(['id', 'name', 'email', 'avatar', 'created_at']);
+                ->paginate(5, ['id', 'name', 'email', 'avatar', 'created_at'], 'users_page');
 
             $recentProjects = Project::with('user:id,name,email')
                 ->latest()
-                ->take(5)
-                ->get(['id', 'name', 'user_id', 'status', 'created_at', 'updated_at']);
+                ->paginate(5, ['id', 'name', 'user_id', 'status', 'created_at', 'updated_at'], 'projects_page');
 
             $recentAdmins = Admin::with('creator:id,name')
                 ->latest()
-                ->take(5)
-                ->get(['id', 'name', 'email', 'role', 'created_by', 'created_at']);
+                ->paginate(5, ['id', 'name', 'email', 'role', 'created_by', 'created_at'], 'admins_page');
 
             $recentBetaInvitations = BetaInvitation::with('invitedBy:id,name')
                 ->latest()
-                ->take(5)
-                ->get(['id', 'name', 'email', 'status', 'invited_by', 'created_at']);
+                ->paginate(5, ['id', 'name', 'email', 'status', 'invited_by', 'created_at'], 'beta_page');
 
             $recentIssues = IssueReport::with('user:id,name,email')
                 ->latest()
-                ->take(5)
-                ->get(['id', 'title', 'status', 'severity', 'user_id', 'created_at']);
+                ->paginate(5, ['id', 'title', 'status', 'severity', 'user_id', 'created_at'], 'issues_page');
 
             $recentFeedback = Feedback::with('user:id,name,email')
                 ->latest()
-                ->take(5)
-                ->get(['id', 'type', 'message', 'status', 'user_id', 'created_at']);
+                ->paginate(5, ['id', 'type', 'message', 'status', 'user_id', 'created_at'], 'feedback_page');
 
             // FastAPI Health Check
             $fastApiHealth = $this->getFastApiHealthStatus();
