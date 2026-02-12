@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -140,7 +140,6 @@ export default function FeedbackIndex({ feedbacks, types, statuses, filters, sum
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Feedback Management" />
 
-            <FuturisticBackground className="min-h-full" showDots={true}>
                 <div className="flex h-full flex-1 flex-col gap-6 p-6">
                     {/* Page Header */}
                     <PageHeader
@@ -359,7 +358,6 @@ export default function FeedbackIndex({ feedbacks, types, statuses, filters, sum
                         }}
                     />
                 </div>
-            </FuturisticBackground>
         </AppLayout>
     );
 }

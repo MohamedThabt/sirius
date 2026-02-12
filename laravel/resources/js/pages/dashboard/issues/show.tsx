@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { FuturisticBackground } from '@/components/ui/futuristic';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -160,7 +159,6 @@ export default function IssueShow({ issue, severities, statuses }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Issue: ${issue.title}`} />
 
-            <FuturisticBackground className="min-h-full" showDots={true}>
                 <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
@@ -434,7 +432,6 @@ export default function IssueShow({ issue, severities, statuses }: Props) {
                     </Dialog>
                 )}
                 </div>
-            </FuturisticBackground>
         </AppLayout>
     );
 }

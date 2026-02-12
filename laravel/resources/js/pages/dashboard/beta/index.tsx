@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import {
   Dialog,
   DialogContent,
@@ -213,7 +213,6 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Beta Invitations" />
       
-      <FuturisticBackground className="min-h-full" showDots={true}>
         <div className="flex h-full flex-1 flex-col gap-6 p-6">
           {/* Page Header */}
           <PageHeader
@@ -454,7 +453,6 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
             }}
           />
         </div>
-      </FuturisticBackground>
 
       {/* Create Invitation Modal */}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>

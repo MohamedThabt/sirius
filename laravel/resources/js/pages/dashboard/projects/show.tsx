@@ -10,7 +10,6 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, SettingsIcon, UserIcon, GitBranchIcon, DatabaseIcon, Code2Icon, UsersIcon, MailIcon, BoxIcon, CheckCircleIcon, TrendingUpIcon, AlertCircleIcon, ZapIcon, Github, ExternalLink, LayersIcon, ServerIcon, BrainCircuitIcon, PlugIcon, EyeIcon, ClockIcon, ActivityIcon, FolderGitIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { FuturisticBackground } from '@/components/ui/futuristic';
 
 interface User {
     id: number;
@@ -234,7 +233,6 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Project: ${project.name}`} />
 
-            <FuturisticBackground className="min-h-full" showDots={true}>
                 <div className="w-full max-w-7xl mx-auto space-y-6 p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
@@ -1088,7 +1086,6 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                     </DialogContent>
                 </Dialog>
                 </div>
-            </FuturisticBackground>
         </AppLayout>
     );
 }

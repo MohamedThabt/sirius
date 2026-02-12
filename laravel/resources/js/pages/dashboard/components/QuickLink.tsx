@@ -24,22 +24,16 @@ export function QuickLink({
             <Button
                 variant="outline"
                 size="sm"
-                className="group relative overflow-hidden border-border/40 bg-gradient-to-r from-card/60 to-card/30 text-muted-foreground shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-border/60 hover:bg-card/80 hover:text-foreground hover:shadow-md"
+                className="group relative h-9 gap-2 border-border bg-card text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:shadow-sm"
             >
-                <Icon className={cn("mr-2 h-4 w-4 transition-all duration-300 group-hover:scale-110", iconClassName || "opacity-70 group-hover:opacity-100")} />
-                <span className="transition-all duration-200 group-hover:mr-1">{label}</span>
+                <Icon className={cn("h-4 w-4 transition-transform duration-200 group-hover:scale-110", iconClassName)} />
+                <span>{label}</span>
                 {badge !== undefined && badge !== null && badge > 0 && (
-                    <span 
-                        className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums text-white shadow-md"
-                        style={{ 
-                            backgroundColor: 'rgb(236, 72, 153)',
-                            boxShadow: '0 2px 4px rgba(236, 72, 153, 0.4)'
-                        }}
-                    >
+                    <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-pink-500 px-1.5 text-[10px] font-bold tabular-nums text-white shadow-sm">
                         {badge}
                     </span>
                 )}
-                <ArrowRightIcon className="ml-0 h-3 w-0 opacity-0 transition-all duration-200 group-hover:ml-1 group-hover:w-3 group-hover:opacity-70" />
+                <ArrowRightIcon className="ml-0 h-3 w-0 opacity-0 transition-all duration-200 group-hover:ml-0.5 group-hover:w-3 group-hover:opacity-70" />
             </Button>
         </Link>
     );
