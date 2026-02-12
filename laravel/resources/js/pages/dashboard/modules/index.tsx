@@ -36,7 +36,8 @@ interface Module {
 
 interface Stats {
     total_modules: number;
-    modules_by_status: Record<string, number    modules_with_erd: number;
+    modules_by_status: Record<string, number>;
+    modules_with_erd: number;
     modules_with_synced_erd: number;
     total_features: number;
 }
