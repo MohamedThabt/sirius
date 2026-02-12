@@ -48,8 +48,12 @@ interface Summary {
 interface Props {
     admins: {
         data: Admin[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     filters: {
         search?: string;
@@ -355,14 +359,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
 
                 {/* Pagination */}
                 <PaginationControls 
-                    data={{
-                        current_page: admins.meta?.current_page || 1,
-                        last_page: admins.meta?.last_page || 1,
-                        from: admins.meta?.from,
-                        to: admins.meta?.to,
-                        total: admins.meta?.total || 0,
-                        per_page: admins.meta?.per_page || 10,
-                    }}
+                    data={admins}
                     baseUrl="/admin/admins"
                     preserveFilters={{
                         search: search || undefined,

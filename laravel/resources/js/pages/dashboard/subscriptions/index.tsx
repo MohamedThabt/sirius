@@ -48,8 +48,12 @@ interface Summary {
 interface Props {
     subscriptions: {
         data: Subscription[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     filters: {
         search?: string;
@@ -272,14 +276,7 @@ export default function SubscriptionsIndex({ subscriptions, filters, summary, pl
 
                 {/* Pagination */}
                 <PaginationControls 
-                    data={{
-                        current_page: subscriptions.meta?.current_page || 1,
-                        last_page: subscriptions.meta?.last_page || 1,
-                        from: subscriptions.meta?.from,
-                        to: subscriptions.meta?.to,
-                        total: subscriptions.meta?.total || 0,
-                        per_page: subscriptions.meta?.per_page || 10,
-                    }}
+                    data={subscriptions}
                     baseUrl="/admin/subscriptions"
                     preserveFilters={{
                         search: search || undefined,

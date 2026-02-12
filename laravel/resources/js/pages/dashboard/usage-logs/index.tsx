@@ -54,8 +54,12 @@ interface Summary {
 interface Props {
     logs: {
         data: UsageLog[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     actionTypes: ActionTypeOption[];
     models: ModelOption[];
@@ -164,7 +168,7 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Usage Logs</h1>
-                    <Badge variant="outline">{summary?.total_logs || logs.meta?.total || 0} Total Logs</Badge>
+                    <Badge variant="outline">{summary?.total_logs || logs.total || 0} Total Logs</Badge>
                 </div>
 
                 {/* Summary Stats */}
@@ -381,14 +385,7 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
 
                 {/* Pagination */}
                 <PaginationControls
-                    data={{
-                        current_page: logs.meta?.current_page || 1,
-                        last_page: logs.meta?.last_page || 1,
-                        from: logs.meta?.from,
-                        to: logs.meta?.to,
-                        total: logs.meta?.total || 0,
-                        per_page: logs.meta?.per_page || 10,
-                    }}
+                    data={logs}
                     baseUrl="/admin/usage-logs"
                     preserveFilters={{
                         search: search || undefined,

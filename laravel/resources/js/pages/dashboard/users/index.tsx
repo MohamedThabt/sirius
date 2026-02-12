@@ -41,8 +41,12 @@ interface Summary {
 interface Props {
     users: {
         data: User[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     filters: {
         search?: string;
@@ -291,14 +295,7 @@ export default function UsersIndex({ users, filters, summary }: Props) {
 
                     {/* Pagination */}
                     <PaginationControls
-                        data={{
-                            current_page: users.meta?.current_page || 1,
-                            last_page: users.meta?.last_page || 1,
-                            from: users.meta?.from,
-                            to: users.meta?.to,
-                            total: users.meta?.total || 0,
-                            per_page: users.meta?.per_page || 10,
-                        }}
+                        data={users}
                         baseUrl="/admin/users"
                         preserveFilters={{
                             search: search || undefined,

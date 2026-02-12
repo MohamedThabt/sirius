@@ -60,8 +60,12 @@ interface PaginationMeta {
 interface Props {
     modules: {
         data: Module[];
-        links: PaginationLink[];
-        meta: PaginationMeta;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from?: number;
+        to?: number;
     };
     filters: {
         search?: string;
@@ -269,14 +273,7 @@ export default function ModulesIndex({ modules, stats }: Props) {
 
                 {/* Pagination */}
                 <PaginationControls
-                    data={{
-                        current_page: modules.meta?.current_page || 1,
-                        last_page: modules.meta?.last_page || 1,
-                        from: modules.meta?.from ?? undefined,
-                        to: modules.meta?.to ?? undefined,
-                        total: modules.meta?.total || 0,
-                        per_page: modules.meta?.per_page || 10,
-                    }}
+                    data={modules}
                     baseUrl="/admin/modules"
                     preserveFilters={{
                         search: search || undefined,

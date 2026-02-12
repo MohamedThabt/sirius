@@ -49,8 +49,12 @@ interface Summary {
 interface Props {
     issues: {
         data: Issue[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     severities: SeverityOption[];
     statuses: StatusOption[];
@@ -343,14 +347,7 @@ export default function IssuesIndex({ issues, severities, statuses, filters, sum
 
                     {/* Pagination */}
                     <PaginationControls 
-                        data={{
-                            current_page: issues.meta?.current_page || 1,
-                            last_page: issues.meta?.last_page || 1,
-                            from: issues.meta?.from,
-                            to: issues.meta?.to,
-                            total: issues.meta?.total || 0,
-                            per_page: issues.meta?.per_page || 10,
-                        }}
+                        data={issues}
                         baseUrl="/admin/issues"
                         preserveFilters={{
                             search: search || undefined,

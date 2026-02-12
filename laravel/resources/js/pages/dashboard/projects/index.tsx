@@ -39,8 +39,12 @@ interface Summary {
 interface Props {
     projects: {
         data: Project[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     statuses: string[];
     filters: {
@@ -304,14 +308,7 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
 
                     {/* Pagination */}
                     <PaginationControls 
-                        data={{
-                            current_page: projects.meta?.current_page || 1,
-                            last_page: projects.meta?.last_page || 1,
-                            from: projects.meta?.from,
-                            to: projects.meta?.to,
-                            total: projects.meta?.total || 0,
-                            per_page: projects.meta?.per_page || 10,
-                        }}
+                        data={projects}
                         baseUrl="/admin/projects"
                         preserveFilters={{
                             search: search || undefined,

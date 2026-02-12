@@ -48,8 +48,12 @@ interface Summary {
 interface Props {
     feedbacks: {
         data: Feedback[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     types: TypeOption[];
     statuses: StatusOption[];
@@ -344,14 +348,7 @@ export default function FeedbackIndex({ feedbacks, types, statuses, filters, sum
 
                     {/* Pagination */}
                     <PaginationControls 
-                        data={{
-                            current_page: feedbacks.meta?.current_page || 1,
-                            last_page: feedbacks.meta?.last_page || 1,
-                            from: feedbacks.meta?.from,
-                            to: feedbacks.meta?.to,
-                            total: feedbacks.meta?.total || 0,
-                            per_page: feedbacks.meta?.per_page || 10,
-                        }}
+                        data={feedbacks}
                         baseUrl="/admin/feedback"
                         preserveFilters={{
                             search: search || undefined,
