@@ -57,6 +57,7 @@ interface Props {
         search?: string;
         type?: string;
         status?: string;
+        per_page?: number;
     };
     summary: Summary;
 }
@@ -349,6 +350,7 @@ export default function FeedbackIndex({ feedbacks, types, statuses, filters, sum
                             from: feedbacks.meta?.from,
                             to: feedbacks.meta?.to,
                             total: feedbacks.meta?.total || 0,
+                            per_page: feedbacks.meta?.per_page || 10,
                         }}
                         baseUrl="/admin/feedback"
                         preserveFilters={{

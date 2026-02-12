@@ -58,6 +58,7 @@ interface Props {
         search?: string;
         severity?: string;
         status?: string;
+        per_page?: number;
     };
     summary: Summary;
 }
@@ -348,6 +349,7 @@ export default function IssuesIndex({ issues, severities, statuses, filters, sum
                             from: issues.meta?.from,
                             to: issues.meta?.to,
                             total: issues.meta?.total || 0,
+                            per_page: issues.meta?.per_page || 10,
                         }}
                         baseUrl="/admin/issues"
                         preserveFilters={{

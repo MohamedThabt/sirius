@@ -31,9 +31,11 @@ class PlanController extends Controller
                 $query->where('name', 'like', "%{$search}%");
             }
 
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
             $plans = $query->withCount('activeSubscribers')
                 ->latest()
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString();
 
             $activeSubscribersCount = Subscription::where('status', Subscription::STATUS_ACTIVE)
@@ -78,7 +80,7 @@ class PlanController extends Controller
                         'created_at' => $plan->created_at,
                     ];
                 }),
-                'filters' => $request->only(['search']),
+                'filters' => $request->only(['search', 'per_page']),
                 'summary' => $summary,
                 'usersPerPlan' => $usersPerPlan,
             ]);

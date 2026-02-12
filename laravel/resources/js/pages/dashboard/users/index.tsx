@@ -46,6 +46,7 @@ interface Props {
     };
     filters: {
         search?: string;
+        per_page?: number;
     };
     summary: Summary;
 }
@@ -296,6 +297,7 @@ export default function UsersIndex({ users, filters, summary }: Props) {
                             from: users.meta?.from,
                             to: users.meta?.to,
                             total: users.meta?.total || 0,
+                            per_page: users.meta?.per_page || 10,
                         }}
                         baseUrl="/admin/users"
                         preserveFilters={{

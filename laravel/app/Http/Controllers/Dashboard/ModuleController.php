@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Module;
 use App\Models\Project;
 use App\Traits\StructuredLogger;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -19,16 +20,19 @@ class ModuleController extends Controller
      *
      * @return Response Inertia response rendering the modules index page
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         try {
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
             $modules = Module::with([
                 'project:id,name,status',
                 'project.user:id,name,email,avatar',
             ])
                 ->withCount('features')
                 ->latest()
-                ->paginate(15);
+                ->paginate($perPage)
+                ->withQueryString();
 
             // Module statistics
             $stats = [
@@ -46,6 +50,7 @@ class ModuleController extends Controller
 
             return Inertia::render('dashboard/modules/index', [
                 'modules' => $modules,
+                'filters' => $request->only(['search', 'per_page']),
                 'stats' => $stats,
             ]);
         } catch (Throwable $e) {

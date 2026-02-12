@@ -66,6 +66,7 @@ interface Props {
         date_from?: string;
         date_to?: string;
         user_id?: string;
+        per_page?: number;
     };
     summary: Summary;
 }
@@ -386,6 +387,7 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
                         from: logs.meta?.from,
                         to: logs.meta?.to,
                         total: logs.meta?.total || 0,
+                        per_page: logs.meta?.per_page || 10,
                     }}
                     baseUrl="/admin/usage-logs"
                     preserveFilters={{

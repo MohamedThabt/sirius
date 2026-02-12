@@ -56,6 +56,7 @@ interface IndexProps {
   };
   filters: {
     search?: string;
+    per_page?: number;
   };
   summary: PlanSummary;
   usersPerPlan: UsersPerPlan[];

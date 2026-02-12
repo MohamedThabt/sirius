@@ -50,7 +50,9 @@ class AdminController extends Controller
                 $query->where('role', $request->role);
             }
 
-            $admins = $query->latest()->paginate(10)->withQueryString();
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
+            $admins = $query->latest()->paginate($perPage)->withQueryString();
 
             // Summary stats
             $summary = [
@@ -61,7 +63,7 @@ class AdminController extends Controller
 
             return Inertia::render('dashboard/admins/index', [
                 'admins' => $admins,
-                'filters' => $request->only(['search', 'role']),
+                'filters' => $request->only(['search', 'role', 'per_page']),
                 'roles' => [
                     ['value' => Admin::ROLE_ADMIN, 'label' => 'Admin'],
                     ['value' => Admin::ROLE_SUPER_ADMIN, 'label' => 'Super Admin'],

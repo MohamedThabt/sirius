@@ -54,6 +54,7 @@ interface Props {
     filters: {
         search?: string;
         role?: string;
+        per_page?: number;
     };
     roles: Role[];
     summary: Summary;
@@ -360,6 +361,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                         from: admins.meta?.from,
                         to: admins.meta?.to,
                         total: admins.meta?.total || 0,
+                        per_page: admins.meta?.per_page || 10,
                     }}
                     baseUrl="/admin/admins"
                     preserveFilters={{

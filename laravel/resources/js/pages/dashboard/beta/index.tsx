@@ -70,6 +70,7 @@ interface IndexProps {
   filters: {
     search?: string;
     status?: string;
+    per_page?: number;
   };
   statuses: Array<{ value: string; label: string }>;
   summary?: BetaSummary;

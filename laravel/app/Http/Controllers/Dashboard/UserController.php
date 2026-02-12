@@ -41,9 +41,11 @@ class UserController extends Controller
                 });
             }
 
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
             $users = $query->withCount('projects')
                 ->latest()
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString();
 
             // Summary stats
@@ -56,7 +58,7 @@ class UserController extends Controller
 
             return Inertia::render('dashboard/users/index', [
                 'users' => $users,
-                'filters' => $request->only(['search']),
+                'filters' => $request->only(['search', 'per_page']),
                 'summary' => $summary,
             ]);
         } catch (Throwable $e) {

@@ -36,8 +36,7 @@ interface Module {
 
 interface Stats {
     total_modules: number;
-    modules_by_status: Record<string, number>;
-    modules_with_erd: number;
+    modules_by_status: Record<string, number    modules_with_erd: number;
     modules_with_synced_erd: number;
     total_features: number;
 }
@@ -62,6 +61,10 @@ interface Props {
         data: Module[];
         links: PaginationLink[];
         meta: PaginationMeta;
+    };
+    filters: {
+        search?: string;
+        per_page?: number;
     };
     stats: Stats;
 }
@@ -268,11 +271,15 @@ export default function ModulesIndex({ modules, stats }: Props) {
                     data={{
                         current_page: modules.meta?.current_page || 1,
                         last_page: modules.meta?.last_page || 1,
-                        from: modules.meta?.from,
-                        to: modules.meta?.to,
+                        from: modules.meta?.from ?? undefined,
+                        to: modules.meta?.to ?? undefined,
                         total: modules.meta?.total || 0,
+                        per_page: modules.meta?.per_page || 10,
                     }}
                     baseUrl="/admin/modules"
+                    preserveFilters={{
+                        search: search || undefined,
+                    }}
                 />
             </div>
         </AppLayout>

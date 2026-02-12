@@ -45,8 +45,10 @@ class ProjectController extends Controller
                 $query->where('status', $request->status);
             }
 
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
             $projects = $query->latest()
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString();
 
             $statuses = Project::distinct('status')->pluck('status');
@@ -66,7 +68,7 @@ class ProjectController extends Controller
             return Inertia::render('dashboard/projects/index', [
                 'projects' => $projects,
                 'statuses' => $statuses,
-                'filters' => $request->only(['search', 'status']),
+                'filters' => $request->only(['search', 'status', 'per_page']),
                 'summary' => $summary,
             ]);
         } catch (Throwable $e) {

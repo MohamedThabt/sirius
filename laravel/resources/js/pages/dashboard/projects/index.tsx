@@ -46,6 +46,7 @@ interface Props {
     filters: {
         search?: string;
         status?: string;
+        per_page?: number;
     };
     summary: Summary;
 }
@@ -309,6 +310,7 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                             from: projects.meta?.from,
                             to: projects.meta?.to,
                             total: projects.meta?.total || 0,
+                            per_page: projects.meta?.per_page || 10,
                         }}
                         baseUrl="/admin/projects"
                         preserveFilters={{

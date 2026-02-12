@@ -55,6 +55,7 @@ interface Props {
         search?: string;
         status?: string;
         plan_id?: string;
+        per_page?: number;
     };
     summary: Summary;
     plans: Plan[];
@@ -277,6 +278,7 @@ export default function SubscriptionsIndex({ subscriptions, filters, summary, pl
                         from: subscriptions.meta?.from,
                         to: subscriptions.meta?.to,
                         total: subscriptions.meta?.total || 0,
+                        per_page: subscriptions.meta?.per_page || 10,
                     }}
                     baseUrl="/admin/subscriptions"
                     preserveFilters={{

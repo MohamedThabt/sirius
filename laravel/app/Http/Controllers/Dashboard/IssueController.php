@@ -53,7 +53,9 @@ class IssueController extends Controller
                 $query->where('status', $request->status);
             }
 
-            $issues = $query->latest()->paginate(15)->withQueryString();
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
+            $issues = $query->latest()->paginate($perPage)->withQueryString();
 
             // Summary stats
             $summary = [
@@ -68,7 +70,7 @@ class IssueController extends Controller
 
             return Inertia::render('dashboard/issues/index', [
                 'issues' => $issues,
-                'filters' => $request->only(['search', 'severity', 'status']),
+                'filters' => $request->only(['search', 'severity', 'status', 'per_page']),
                 'severities' => [
                     ['value' => IssueReport::SEVERITY_LOW, 'label' => 'Low'],
                     ['value' => IssueReport::SEVERITY_MEDIUM, 'label' => 'Medium'],

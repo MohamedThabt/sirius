@@ -67,7 +67,9 @@ class UsageLogController extends Controller
                 $query->where('user_id', $request->user_id);
             }
 
-            $logs = $query->latest('created_at')->paginate(25)->withQueryString();
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
+            $logs = $query->latest('created_at')->paginate($perPage)->withQueryString();
 
             // Get distinct action types for filter dropdown
             $actionTypes = UsageLog::distinct()
@@ -107,7 +109,7 @@ class UsageLogController extends Controller
 
             return Inertia::render('dashboard/usage-logs/index', [
                 'logs' => $logs,
-                'filters' => $request->only(['search', 'action_type', 'model', 'date_from', 'date_to', 'user_id']),
+                'filters' => $request->only(['search', 'action_type', 'model', 'date_from', 'date_to', 'user_id', 'per_page']),
                 'actionTypes' => $actionTypes,
                 'models' => $models,
                 'summary' => $summary,

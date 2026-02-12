@@ -50,7 +50,9 @@ class FeedbackController extends Controller
                 $query->where('status', $request->status);
             }
 
-            $feedbacks = $query->latest()->paginate(15)->withQueryString();
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
+            $feedbacks = $query->latest()->paginate($perPage)->withQueryString();
 
             // Summary stats
             $summary = [
@@ -63,7 +65,7 @@ class FeedbackController extends Controller
 
             return Inertia::render('dashboard/feedback/index', [
                 'feedbacks' => $feedbacks,
-                'filters' => $request->only(['search', 'type', 'status']),
+                'filters' => $request->only(['search', 'type', 'status', 'per_page']),
                 'types' => [
                     ['value' => Feedback::TYPE_SUGGESTION, 'label' => 'Suggestion'],
                     ['value' => Feedback::TYPE_UX, 'label' => 'UX Issue'],
