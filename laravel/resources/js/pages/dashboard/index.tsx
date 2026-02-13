@@ -8,7 +8,6 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { PaginationControls } from '@/components/PaginationControls';
 import { ClientDateTime, useIsClient } from '@/components/ClientDateTime';
 import {
     AlertCircleIcon,
@@ -584,7 +583,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                 iconBgClassName="bg-blue-500/10"
                                 iconClassName="text-blue-500"
                                 viewAllHref="/admin/users"
-                                items={stats.recent_users.data}
+                                items={stats.recent_users}
                                 renderItem={(user) => (
                                     <Link href={`/admin/users/${user.id}`}>
                                         <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
@@ -611,17 +610,6 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                     </Link>
                                 )}
                             />
-                            <PaginationControls 
-                                data={{
-                                    current_page: stats.recent_users.current_page,
-                                    last_page: stats.recent_users.last_page,
-                                    from: stats.recent_users.from,
-                                    to: stats.recent_users.to,
-                                    total: stats.recent_users.total,
-                                }}
-                                baseUrl="/admin/dashboard"
-                                preserveFilters={{}}
-                            />
                         </div>
 
                         {/* Recent Projects */}
@@ -632,7 +620,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                 iconBgClassName="bg-amber-500/10"
                                 iconClassName="text-amber-500"
                                 viewAllHref="/admin/projects"
-                                items={stats.recent_projects.data}
+                                items={stats.recent_projects}
                                 renderItem={(project) => (
                                     <Link href={`/admin/projects/${project.id}`}>
                                         <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
@@ -650,17 +638,6 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                     </Link>
                                 )}
                             />
-                            <PaginationControls 
-                                data={{
-                                    current_page: stats.recent_projects.current_page,
-                                    last_page: stats.recent_projects.last_page,
-                                    from: stats.recent_projects.from,
-                                    to: stats.recent_projects.to,
-                                    total: stats.recent_projects.total,
-                                }}
-                                baseUrl="/admin/dashboard"
-                                preserveFilters={{}}
-                            />
                         </div>
 
                         {/* Recent Admins */}
@@ -671,7 +648,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                 iconBgClassName="bg-violet-500/10"
                                 iconClassName="text-violet-500"
                                 viewAllHref="/admin/admins"
-                                items={stats.recent_admins.data}
+                                items={stats.recent_admins}
                                 renderItem={(admin) => (
                                     <div className="flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
                                         <div className="flex items-center gap-3">
@@ -697,17 +674,6 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                     </div>
                                 )}
                             />
-                            <PaginationControls 
-                                data={{
-                                    current_page: stats.recent_admins.current_page,
-                                    last_page: stats.recent_admins.last_page,
-                                    from: stats.recent_admins.from,
-                                    to: stats.recent_admins.to,
-                                    total: stats.recent_admins.total,
-                                }}
-                                baseUrl="/admin/dashboard"
-                                preserveFilters={{}}
-                            />
                         </div>
 
                         {/* Recent Beta Invitations */}
@@ -718,7 +684,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                 iconBgClassName="bg-pink-500/10"
                                 iconClassName="text-pink-500"
                                 viewAllHref="/admin/beta"
-                                items={stats.recent_beta_invitations.data}
+                                items={stats.recent_beta_invitations}
                                 renderItem={(invitation) => (
                                     <div className="flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
                                         <div className="flex items-center gap-3">
@@ -735,17 +701,6 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                         </Badge>
                                     </div>
                                 )}
-                            />
-                            <PaginationControls 
-                                data={{
-                                    current_page: stats.recent_beta_invitations.current_page,
-                                    last_page: stats.recent_beta_invitations.last_page,
-                                    from: stats.recent_beta_invitations.from,
-                                    to: stats.recent_beta_invitations.to,
-                                    total: stats.recent_beta_invitations.total,
-                                }}
-                                baseUrl="/admin/dashboard"
-                                preserveFilters={{}}
                             />
                         </div>
                     </div>
@@ -769,7 +724,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                 iconBgClassName="bg-red-500/10"
                                 iconClassName="text-red-500"
                                 viewAllHref="/admin/issues"
-                                items={stats.recent_issues.data}
+                                items={stats.recent_issues}
                                 renderItem={(issue) => (
                                     <Link href={`/admin/issues/${issue.id}`}>
                                         <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
@@ -787,17 +742,6 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                     </Link>
                                 )}
                             />
-                            <PaginationControls 
-                                data={{
-                                    current_page: stats.recent_issues.current_page,
-                                    last_page: stats.recent_issues.last_page,
-                                    from: stats.recent_issues.from,
-                                    to: stats.recent_issues.to,
-                                    total: stats.recent_issues.total,
-                                }}
-                                baseUrl="/admin/dashboard"
-                                preserveFilters={{}}
-                            />
                         </div>
 
                         {/* Recent Feedback */}
@@ -808,7 +752,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                 iconBgClassName="bg-green-500/10"
                                 iconClassName="text-emerald-500"
                                 viewAllHref="/admin/feedback"
-                                items={stats.recent_feedback.data}
+                                items={stats.recent_feedback}
                                 renderItem={(feedback) => (
                                     <Link href={`/admin/feedback/${feedback.id}`}>
                                         <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
@@ -830,17 +774,6 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                         </div>
                                     </Link>
                                 )}
-                            />
-                            <PaginationControls 
-                                data={{
-                                    current_page: stats.recent_feedback.current_page,
-                                    last_page: stats.recent_feedback.last_page,
-                                    from: stats.recent_feedback.from,
-                                    to: stats.recent_feedback.to,
-                                    total: stats.recent_feedback.total,
-                                }}
-                                baseUrl="/admin/dashboard"
-                                preserveFilters={{}}
                             />
                         </div>
                     </div>
