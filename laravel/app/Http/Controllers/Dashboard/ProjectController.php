@@ -27,7 +27,7 @@ class ProjectController extends Controller
     public function index(Request $request): Response
     {
         try {
-            $query = Project::with('user:id,name,email');
+            $query = Project::with('user:id,name,email')->withCount('modules');
 
             if ($request->filled('search')) {
                 $search = $request->search;
@@ -50,6 +50,21 @@ class ProjectController extends Controller
             $projects = $query->latest()
                 ->paginate($perPage)
                 ->withQueryString();
+
+            // Add completion percentage to each project
+            $projects->getCollection()->transform(function ($project) {
+                $sections = [
+                    !empty($project->brief),
+                    !empty($project->prd),
+                    !empty($project->erd),
+                    !empty($project->c4),
+                    !empty($project->technical_details),
+                    $project->modules_count > 0,
+                ];
+                $completed = count(array_filter($sections));
+                $project->completion_percentage = (int) round(($completed / count($sections)) * 100);
+                return $project;
+            });
 
             $statuses = Project::distinct('status')->pluck('status');
 
