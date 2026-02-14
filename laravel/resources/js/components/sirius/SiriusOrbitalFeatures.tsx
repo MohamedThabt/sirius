@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FileText, Github, Database, Layout, Users, FileCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -110,25 +110,57 @@ const SiriusStar: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 export default function SiriusOrbitalFeatures() {
-  const [rotationAngle, setRotationAngle] = useState(0);
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
   const [expandedNode, setExpandedNode] = useState<number | null>(null);
-  const [autoRotate, setAutoRotate] = useState(true);
-  const orbitRef = useRef<HTMLDivElement>(null);
+  const autoRotateRef = useRef(true);
+  const angleRef = useRef(0);
+  const nodesRef = useRef<(HTMLDivElement | null)[]>([]);
+  const rafRef = useRef<number>(0);
+  const lastTimeRef = useRef<number>(0);
 
+  const setAutoRotate = useCallback((val: boolean) => {
+    autoRotateRef.current = val;
+    if (val) lastTimeRef.current = 0;
+  }, []);
+
+  const calculateNodePosition = useCallback((index: number, total: number, angle: number) => {
+    const nodeAngle = ((index / total) * 360 + angle) % 360;
+    const radius = 140;
+    const radian = (nodeAngle * Math.PI) / 180;
+    const x = radius * Math.cos(radian);
+    const y = radius * Math.sin(radian);
+    const zIndex = Math.round(100 + 50 * Math.cos(radian));
+    const scale = 0.7 + 0.3 * ((1 + Math.sin(radian)) / 2);
+    const opacity = 0.5 + 0.5 * ((1 + Math.sin(radian)) / 2);
+    return { x, y, angle: nodeAngle, zIndex, scale, opacity };
+  }, []);
+
+  // RAF-based rotation — updates DOM directly, zero React re-renders
   useEffect(() => {
-    if (!autoRotate) return;
-
-    // Reduced from 50ms to 100ms for lower CPU/GPU usage
-    const rotationTimer = setInterval(() => {
-      setRotationAngle((prev) => {
-        const newAngle = (prev + 0.8) % 360; // Double step to maintain speed at half frequency
-        return Number(newAngle.toFixed(3));
+    const animate = (time: number) => {
+      if (autoRotateRef.current) {
+        if (lastTimeRef.current) {
+          const delta = time - lastTimeRef.current;
+          angleRef.current = (angleRef.current + delta * 0.015) % 360;
+        }
+        lastTimeRef.current = time;
+      }
+      nodesRef.current.forEach((el, i) => {
+        if (!el) return;
+        const pos = calculateNodePosition(i, featureNodes.length, angleRef.current);
+        const isExp = el.dataset.expanded === 'true';
+        const isHov = el.dataset.hovered === 'true';
+        el.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${isExp ? 1.3 : isHov ? 1.2 : pos.scale})`;
+        el.style.zIndex = isExp ? '300' : isHov ? '200' : String(pos.zIndex);
+        el.style.opacity = isExp || isHov ? '1' : String(pos.opacity);
+        const line = el.querySelector<HTMLElement>('[data-connector]');
+        if (line) line.style.transform = `rotate(${180 + pos.angle}deg)`;
       });
-    }, 100);
-
-    return () => clearInterval(rotationTimer);
-  }, [autoRotate]);
+      rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [calculateNodePosition]);
 
   const handleNodeClick = (nodeId: number) => {
     if (expandedNode === nodeId) {
@@ -140,21 +172,6 @@ export default function SiriusOrbitalFeatures() {
     }
   };
 
-  const calculateNodePosition = (index: number, total: number) => {
-    const angle = ((index / total) * 360 + rotationAngle) % 360;
-    const radius = 140;
-    const radian = (angle * Math.PI) / 180;
-
-    const x = radius * Math.cos(radian);
-    const y = radius * Math.sin(radian);
-
-    const zIndex = Math.round(100 + 50 * Math.cos(radian));
-    const scale = 0.7 + 0.3 * ((1 + Math.sin(radian)) / 2);
-    const opacity = 0.5 + 0.5 * ((1 + Math.sin(radian)) / 2);
-
-    return { x, y, angle, zIndex, scale, opacity };
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -163,7 +180,6 @@ export default function SiriusOrbitalFeatures() {
       className="relative w-[340px] h-[340px] flex items-center justify-center"
     >
       <div
-        ref={orbitRef}
         className="relative w-full h-full flex items-center justify-center"
       >
         <div className="absolute w-[300px] h-[300px] rounded-full border border-primary/20 shadow-[0_0_60px_rgba(255,255,255,0.1)]" />
@@ -180,7 +196,6 @@ export default function SiriusOrbitalFeatures() {
         </div>
 
         {featureNodes.map((node, index) => {
-          const position = calculateNodePosition(index, featureNodes.length);
           const Icon = node.icon;
           const isHovered = hoveredNode === node.id;
           const isExpanded = expandedNode === node.id;
@@ -188,30 +203,37 @@ export default function SiriusOrbitalFeatures() {
           return (
             <div
               key={node.id}
-              className="absolute transition-all duration-500 cursor-pointer"
-              style={{
-                transform: `translate(${position.x}px, ${position.y}px) scale(${isExpanded ? 1.3 : isHovered ? 1.2 : position.scale})`,
-                zIndex: isExpanded ? 300 : isHovered ? 200 : position.zIndex,
-                opacity: isExpanded ? 1 : isHovered ? 1 : position.opacity,
+              ref={(el) => { nodesRef.current[index] = el; }}
+              data-hovered={isHovered}
+              data-expanded={isExpanded}
+              className="absolute cursor-pointer"
+              style={{ willChange: 'transform, opacity' }}
+              onMouseEnter={() => {
+                setHoveredNode(node.id);
+                const el = nodesRef.current[index];
+                if (el) el.dataset.hovered = 'true';
               }}
-              onMouseEnter={() => setHoveredNode(node.id)}
-              onMouseLeave={() => setHoveredNode(null)}
+              onMouseLeave={() => {
+                setHoveredNode(null);
+                const el = nodesRef.current[index];
+                if (el) el.dataset.hovered = 'false';
+              }}
               onClick={() => handleNodeClick(node.id)}
             >
               <div
+                data-connector
                 className={cn(
                   "absolute top-1/2 left-1/2 h-px bg-gradient-to-r from-primary/60 via-primary/30 to-transparent origin-left transition-opacity duration-300",
                   isExpanded || isHovered ? "opacity-100" : "opacity-40"
                 )}
                 style={{
                   width: "140px",
-                  transform: `rotate(${180 + position.angle}deg)`,
                 }}
               />
 
               <div
                 className={cn(
-                  "relative w-11 h-11 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+                  "relative w-11 h-11 rounded-full border-2 flex items-center justify-center transition-[border-color,box-shadow,background-color] duration-300",
                   "bg-background/80 backdrop-blur-sm border-primary/40",
                   (isHovered || isExpanded) && "border-primary shadow-[0_0_20px_rgba(255,255,255,0.2)] bg-primary/10"
                 )}
@@ -224,7 +246,7 @@ export default function SiriusOrbitalFeatures() {
 
               <div
                 className={cn(
-                  "absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium transition-all duration-300",
+                  "absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium transition-colors duration-300",
                   (isHovered || isExpanded) ? "text-primary" : "text-muted-foreground"
                 )}
               >

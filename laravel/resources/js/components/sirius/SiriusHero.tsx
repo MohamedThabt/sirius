@@ -6,16 +6,31 @@ import { HyperTextParagraph } from '@/components/ui/hyper-text-paragraph';
 import { heroContent } from '@/lib/sirius/content';
 import SiriusOrbitalFeatures from './SiriusOrbitalFeatures';
 
+// Star color palette — fully opaque, glow handled via boxShadow
+const STAR_COLORS = [
+    '#ffffff',          // white
+    '#c8dcff',          // blue-white
+    '#aabeff',          // pale blue
+    '#ffe6c8',          // warm white
+    '#b4a0ff',          // pale violet
+];
+
 // Generate random stars for the background
 const generateStars = (count: number) => {
-    return Array.from({ length: count }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 2 + 1,
-        delay: Math.random() * 3,
-        duration: Math.random() * 2 + 2,
-    }));
+    return Array.from({ length: count }, (_, i) => {
+        const color = STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)];
+        const size = Math.random() * 2.5 + 0.8;
+        return {
+            id: i,
+            x: Math.random() * 100,
+            y: Math.random() * 100,
+            size,
+            delay: Math.random() * 4,
+            duration: Math.random() * 3 + 2,
+            color,
+            glow: `0 0 ${size * 2}px ${color}, 0 0 ${size * 4}px ${color}40`,
+        };
+    });
 };
 
 // Generate space dust particles
@@ -31,39 +46,51 @@ const generateSpaceDust = (count: number) => {
     }));
 };
 
+// CSS keyframes injected once for star twinkle — pure GPU compositing
+const starTwinkleCSS = `
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+`;
+
+
 export const SiriusHero: React.FC = () => {
     const prefersReducedMotion = useReducedMotion();
     // Reduced particle counts for better mobile performance; skip entirely if user prefers reduced motion
-    const stars = useMemo(() => prefersReducedMotion ? [] : generateStars(20), [prefersReducedMotion]);
-    const spaceDust = useMemo(() => prefersReducedMotion ? [] : generateSpaceDust(8), [prefersReducedMotion]);
+    const stars = useMemo(() => prefersReducedMotion ? [] : generateStars(45), [prefersReducedMotion]);
+    const spaceDust = useMemo(() => prefersReducedMotion ? [] : generateSpaceDust(12), [prefersReducedMotion]);
 
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-            {/* Dense starfield background */}
+            {/* Deep space radial base */}
+            <div className="absolute inset-0 z-0" style={{
+                background: 'radial-gradient(ellipse at 50% 0%, rgba(15,10,40,0.6) 0%, transparent 70%)',
+            }} />
+
+            {/* Inject star twinkle keyframe once */}
+            <style>{starTwinkleCSS}</style>
+
+            {/* Dense starfield background — CSS animated for zero JS overhead */}
             <div className="absolute inset-0 z-0">
                 {stars.map((star) => (
-                    <motion.div
+                    <div
                         key={star.id}
-                        className="absolute rounded-full bg-foreground/40"
+                        className="absolute rounded-full"
                         style={{
                             left: `${star.x}%`,
                             top: `${star.y}%`,
                             width: star.size,
                             height: star.size,
-                        }}
-                        animate={{
-                            opacity: [0.2, 0.8, 0.2],
-                            scale: [1, 1.3, 1],
-                        }}
-                        transition={{
-                            duration: star.duration,
-                            delay: star.delay,
-                            repeat: Infinity,
-                            ease: "easeInOut",
+                            backgroundColor: star.color,
+                            boxShadow: star.glow,
+                            animation: `starTwinkle ${star.duration}s ${star.delay}s ease-in-out infinite`,
+                            willChange: 'opacity, transform',
                         }}
                     />
                 ))}
             </div>
+
 
             {/* Space dust particles */}
             <div className="absolute inset-0 z-[1] pointer-events-none">
@@ -93,32 +120,76 @@ export const SiriusHero: React.FC = () => {
             </div>
 
             {/* Cosmic nebula gradient overlay */}
-            <div className="absolute inset-0 z-[2]">
+            <div className="absolute inset-0 z-[2] pointer-events-none">
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-transparent to-background" />
-                {/* Nebula accent - upper */}
-                <div 
-                    className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full opacity-20 blur-[120px]"
+                
+                {/* Deep purple nebula - upper left */}
+                <motion.div 
+                    className="absolute -top-20 -left-20 w-[700px] h-[700px] rounded-full opacity-[0.12] blur-[140px]"
                     style={{
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 50%, transparent 70%)',
+                        background: 'radial-gradient(circle, rgba(120,80,220,0.5) 0%, rgba(80,40,180,0.3) 40%, transparent 70%)',
+                    }}
+                    animate={{
+                        scale: [1, 1.15, 1],
+                        opacity: [0.12, 0.18, 0.12],
+                    }}
+                    transition={{
+                        duration: 12,
+                        repeat: Infinity,
+                        ease: "easeInOut",
                     }}
                 />
-                {/* Nebula accent - lower */}
-                <div 
-                    className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full opacity-25 blur-[100px]"
+                {/* Blue nebula - center right */}
+                <motion.div 
+                    className="absolute top-1/3 -right-10 w-[550px] h-[550px] rounded-full opacity-[0.10] blur-[120px]"
                     style={{
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 50%, transparent 70%)',
+                        background: 'radial-gradient(circle, rgba(60,120,255,0.4) 0%, rgba(40,80,200,0.2) 45%, transparent 70%)',
+                    }}
+                    animate={{
+                        scale: [1, 1.1, 1],
+                        opacity: [0.10, 0.16, 0.10],
+                    }}
+                    transition={{
+                        duration: 15,
+                        delay: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    }}
+                />
+                {/* Cyan/teal nebula - lower */}
+                <motion.div 
+                    className="absolute bottom-1/4 left-1/3 w-[500px] h-[500px] rounded-full opacity-[0.08] blur-[110px]"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(60,200,220,0.35) 0%, rgba(40,150,180,0.15) 50%, transparent 70%)',
+                    }}
+                    animate={{
+                        scale: [1, 1.12, 1],
+                        opacity: [0.08, 0.14, 0.08],
+                    }}
+                    transition={{
+                        duration: 10,
+                        delay: 5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    }}
+                />
+                {/* Subtle warm accent */}
+                <div 
+                    className="absolute top-1/2 left-1/4 w-[300px] h-[300px] rounded-full opacity-[0.06] blur-[100px]"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(255,180,100,0.3) 0%, transparent 60%)',
                     }}
                 />
             </div>
 
-            {/* Animated aurora effect */}
+            {/* Animated aurora / cosmic veil */}
             <motion.div
-                className="absolute top-0 left-0 right-0 h-[40vh] z-[3] pointer-events-none"
+                className="absolute top-0 left-0 right-0 h-[50vh] z-[3] pointer-events-none"
                 style={{
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 50%, transparent 100%)',
+                    background: 'linear-gradient(180deg, rgba(100,60,200,0.08) 0%, rgba(60,120,255,0.04) 30%, rgba(60,200,220,0.02) 60%, transparent 100%)',
                 }}
                 animate={{
-                    opacity: [0.3, 0.6, 0.3],
+                    opacity: [0.3, 0.7, 0.3],
                 }}
                 transition={{
                     duration: 8,
