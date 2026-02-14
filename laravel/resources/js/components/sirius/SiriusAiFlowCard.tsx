@@ -31,7 +31,7 @@ const SiriusAiFlowCard: React.FC<SiriusAiFlowCardProps> = ({
     },
     buttonText = 'GitHub Export',
     title = 'From Brief to Build-Ready Docs',
-    lightColor = '#6495ED',
+    lightColor = '#a3a3a3',
     leftBadgeText = 'Team Sync',
 }) => {
     return (
@@ -188,10 +188,10 @@ const SiriusAiFlowCard: React.FC<SiriusAiFlowCardProps> = ({
                     <mask id="sirius-mask-4">
                         <path d="M 100 55 v 10 q 0 5 5 5 h 60 q 5 0 5 5 v 10" strokeWidth="0.5" stroke="white" />
                     </mask>
-                    {/* Celestial Blue radial gradient */}
+                    {/* Neutral radial gradient */}
                     <radialGradient id="sirius-blue-grad" fx="1">
                         <stop offset="0%" stopColor={lightColor} />
-                        <stop offset="50%" stopColor="#7AA6F5" />
+                        <stop offset="50%" stopColor="#d4d4d4" />
                         <stop offset="100%" stopColor="transparent" />
                     </radialGradient>
                 </defs>

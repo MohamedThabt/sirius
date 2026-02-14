@@ -95,18 +95,18 @@ export const SiriusHero: React.FC = () => {
             {/* Cosmic nebula gradient overlay */}
             <div className="absolute inset-0 z-[2]">
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-transparent to-background" />
-                {/* Purple nebula accent */}
+                {/* Nebula accent - upper */}
                 <div 
                     className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full opacity-20 blur-[120px]"
                     style={{
-                        background: 'radial-gradient(circle, rgba(168,85,247,0.3) 0%, rgba(56,189,248,0.2) 50%, transparent 70%)',
+                        background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 50%, transparent 70%)',
                     }}
                 />
-                {/* Blue nebula accent */}
+                {/* Nebula accent - lower */}
                 <div 
                     className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full opacity-25 blur-[100px]"
                     style={{
-                        background: 'radial-gradient(circle, rgba(56,189,248,0.4) 0%, rgba(99,102,241,0.2) 50%, transparent 70%)',
+                        background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 50%, transparent 70%)',
                     }}
                 />
             </div>
@@ -115,7 +115,7 @@ export const SiriusHero: React.FC = () => {
             <motion.div
                 className="absolute top-0 left-0 right-0 h-[40vh] z-[3] pointer-events-none"
                 style={{
-                    background: 'linear-gradient(180deg, rgba(56,189,248,0.08) 0%, rgba(168,85,247,0.05) 50%, transparent 100%)',
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 50%, transparent 100%)',
                 }}
                 animate={{
                     opacity: [0.3, 0.6, 0.3],

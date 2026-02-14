@@ -17,8 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';import { getLogLevelColor } from '@/utils/semantic-colors';import { Head, router } from '@inertiajs/react';
 import {
     AlertCircleIcon,
     AlertOctagonIcon,
@@ -145,25 +144,7 @@ const getLevelIcon = (level: string) => {
     }
 };
 
-const getLevelColor = (level: string) => {
-    switch (level.toUpperCase()) {
-        case 'DEBUG':
-            return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
-        case 'INFO':
-        case 'NOTICE':
-            return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
-        case 'WARNING':
-            return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
-        case 'ERROR':
-        case 'ALERT':
-            return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
-        case 'CRITICAL':
-        case 'EMERGENCY':
-            return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20';
-        default:
-            return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20';
-    }
-};
+const getLevelColor = getLogLevelColor;
 
 function extractJsonFromMessage(message: string): {
     prefix: string;

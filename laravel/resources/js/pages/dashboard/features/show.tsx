@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { getStatusColor, getPriorityColor } from '@/utils/status-colors';
+import { getHealthColor } from '@/utils/semantic-colors';
 import { Head, Link } from '@inertiajs/react';
 import {
     ActivityIcon,
@@ -119,52 +121,24 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
         { title: feature.name, href: '#' },
     ];
 
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'completed':
-                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
-            case 'in_progress':
-                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
-            case 'draft':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-            default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-        }
-    };
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority.toLowerCase()) {
-            case 'critical':
-                return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
-            case 'high':
-                return 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20';
-            case 'medium':
-                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
-            case 'low':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-            default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-        }
-    };
-
-    const getCompletionColor = (score: number) => {
-        if (score >= 80) return 'text-emerald-600 dark:text-emerald-400';
-        if (score >= 50) return 'text-amber-600 dark:text-amber-400';
-        return 'text-red-600 dark:text-red-400';
-    };
-
-    const getProgressColor = (score: number) => {
-        if (score >= 80) return 'bg-emerald-500';
-        if (score >= 50) return 'bg-amber-500';
-        return 'bg-red-500';
-    };
-
     const health = useMemo(() => {
         const score = featureStats.completion_score;
-        if (score >= 80) return { label: 'Excellent', Icon: CheckCircleIcon, color: 'text-emerald-600 dark:text-emerald-400' };
-        if (score >= 60) return { label: 'Good', Icon: TrendingUpIcon, color: 'text-blue-600 dark:text-blue-400' };
-        if (score >= 40) return { label: 'Fair', Icon: AlertCircleIcon, color: 'text-orange-600 dark:text-orange-400' };
-        return { label: 'Needs Attention', Icon: AlertCircleIcon, color: 'text-red-600 dark:text-red-400' };
+        const { text, bg } = getHealthColor(score);
+        let label = 'Excellent';
+        let Icon = CheckCircleIcon;
+        if (score < 80) {
+            label = 'Good';
+            Icon = TrendingUpIcon;
+        }
+        if (score < 60) {
+            label = 'Fair';
+            Icon = AlertCircleIcon;
+        }
+        if (score < 40) {
+            label = 'Needs Attention';
+            Icon = AlertCircleIcon;
+        }
+        return { label, Icon, color: text, progressColor: bg };
     }, [featureStats.completion_score]);
 
     // Content Modal Component
@@ -330,7 +304,7 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                             <div className="text-3xl font-semibold">{featureStats.completion_score}%</div>
                             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                                 <div 
-                                    className={`h-full transition-all duration-500 ${getProgressColor(featureStats.completion_score)}`} 
+                                    className={`h-full transition-all duration-500 ${health.progressColor}`} 
                                     style={{ width: `${featureStats.completion_score}%` }} 
                                 />
                             </div>

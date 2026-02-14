@@ -264,7 +264,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
             <Card>
                 <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                        <CodeIcon className="h-5 w-5 text-blue-500" />
+                        <CodeIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         <div>
                             <CardTitle className="text-base">Frontend Stack</CardTitle>
                             <CardDescription>Choose your frontend framework and tools</CardDescription>
@@ -404,7 +404,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
             <Card>
                 <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                        <PlugIcon className="h-5 w-5 text-green-500" />
+                        <PlugIcon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                         <div>
                             <CardTitle className="text-base">External Services</CardTitle>
                             <CardDescription>Third-party integrations and services</CardDescription>

@@ -31,7 +31,7 @@ const DatabaseWithRestApi: React.FC<DatabaseWithRestApiProps> = ({
     },
     buttonText = 'GitHub Export',
     title = 'From Brief to Build-Ready Docs',
-    lightColor = '#6495ED',
+    lightColor = '#a3a3a3',
     leftBadgeText = 'Team Sync',
 }) => {
     return (
@@ -120,7 +120,7 @@ const DatabaseWithRestApi: React.FC<DatabaseWithRestApiProps> = ({
                     <mask id="db-mask-4">
                         <path d="M 170 10 v 15 q 0 5 -5 5 h -60 q -5 0 -5 5 v 10" strokeWidth="0.5" stroke="white" />
                     </mask>
-                    {/* Celestial Blue radial gradient */}
+                    {/* Neutral radial gradient */}
                     <radialGradient id="db-blue-grad" fx="1">
                         <stop offset="0%" stopColor={lightColor} />
                         <stop offset="100%" stopColor="transparent" />

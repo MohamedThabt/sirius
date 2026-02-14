@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { getSeverityColor, semanticColors } from '@/utils/semantic-colors';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowLeftIcon, ImageIcon, Maximize2Icon, MessageSquareIcon, TrashIcon, UserIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -122,33 +123,18 @@ export default function IssueShow({ issue, severities, statuses }: Props) {
         }
     };
 
-    const getSeverityColor = (severity: string) => {
-        switch (severity.toLowerCase()) {
-            case 'blocker':
-                return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
-            case 'high':
-                return 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20';
-            case 'medium':
-                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
-            case 'low':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-            default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-        }
-    };
-
-    const getStatusColor = (status: string) => {
+    const getIssueStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
             case 'fixed':
-                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+                return semanticColors.success.badge;
             case 'investigating':
-                return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20';
+                return semanticColors.warning.badge;
             case 'open':
-                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
+                return semanticColors.info.badge;
             case 'wont_fix':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+                return semanticColors.neutral.badge;
             default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
+                return semanticColors.neutral.badge;
         }
     };
 
@@ -174,7 +160,7 @@ export default function IssueShow({ issue, severities, statuses }: Props) {
                                 <Badge variant="outline" className={`${getSeverityColor(issue.severity)} text-xs font-medium`}>
                                     {issue.severity}
                                 </Badge>
-                                <Badge variant="outline" className={`${getStatusColor(issue.status)} text-xs font-medium`}>
+                                <Badge variant="outline" className={`${getIssueStatusColor(issue.status)} text-xs font-medium`}>
                                     {issue.status.replace('_', ' ')}
                                 </Badge>
                             </div>

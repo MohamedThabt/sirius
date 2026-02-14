@@ -27,7 +27,7 @@ const SiriusStar: React.FC<{ className?: string }> = ({ className }) => (
     <motion.div
       className="absolute inset-[-60%] rounded-full"
       style={{
-        background: 'radial-gradient(circle, rgba(56,189,248,0.35) 0%, rgba(56,189,248,0.1) 40%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.1) 40%, transparent 70%)',
       }}
       animate={{
         scale: [1, 1.15, 1],
@@ -50,7 +50,7 @@ const SiriusStar: React.FC<{ className?: string }> = ({ className }) => (
     <div 
       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[6px] h-[180%] blur-[2px]"
       style={{
-        background: 'linear-gradient(to bottom, transparent 0%, rgba(56,189,248,0.2) 25%, rgba(56,189,248,0.5) 45%, rgba(255,255,255,0.7) 50%, rgba(56,189,248,0.5) 55%, rgba(56,189,248,0.2) 75%, transparent 100%)',
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.15) 25%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.4) 55%, rgba(255,255,255,0.15) 75%, transparent 100%)',
       }}
     />
 
@@ -64,7 +64,7 @@ const SiriusStar: React.FC<{ className?: string }> = ({ className }) => (
     <div 
       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[6px] w-[180%] blur-[2px]"
       style={{
-        background: 'linear-gradient(to right, transparent 0%, rgba(56,189,248,0.2) 25%, rgba(56,189,248,0.5) 45%, rgba(255,255,255,0.7) 50%, rgba(56,189,248,0.5) 55%, rgba(56,189,248,0.2) 75%, transparent 100%)',
+        background: 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.15) 25%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.4) 55%, rgba(255,255,255,0.15) 75%, transparent 100%)',
       }}
     />
 
@@ -86,8 +86,8 @@ const SiriusStar: React.FC<{ className?: string }> = ({ className }) => (
     <motion.div
       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full"
       style={{
-        background: 'radial-gradient(circle, white 0%, rgba(56,189,248,1) 50%, rgba(56,189,248,0.5) 100%)',
-        boxShadow: '0 0 20px 8px rgba(56,189,248,0.8), 0 0 40px 15px rgba(56,189,248,0.4), 0 0 60px 25px rgba(56,189,248,0.2)',
+        background: 'radial-gradient(circle, white 0%, rgba(200,200,200,1) 50%, rgba(200,200,200,0.5) 100%)',
+        boxShadow: '0 0 20px 8px rgba(255,255,255,0.6), 0 0 40px 15px rgba(255,255,255,0.3), 0 0 60px 25px rgba(255,255,255,0.15)',
       }}
       animate={{
         scale: [1, 1.08, 1],
@@ -166,7 +166,7 @@ export default function SiriusOrbitalFeatures() {
         ref={orbitRef}
         className="relative w-full h-full flex items-center justify-center"
       >
-        <div className="absolute w-[300px] h-[300px] rounded-full border border-primary/20 shadow-[0_0_60px_rgba(56,189,248,0.15)]" />
+        <div className="absolute w-[300px] h-[300px] rounded-full border border-primary/20 shadow-[0_0_60px_rgba(255,255,255,0.1)]" />
 
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="absolute w-[280px] h-[280px] rounded-full border border-primary/30" />
@@ -213,7 +213,7 @@ export default function SiriusOrbitalFeatures() {
                 className={cn(
                   "relative w-11 h-11 rounded-full border-2 flex items-center justify-center transition-all duration-300",
                   "bg-background/80 backdrop-blur-sm border-primary/40",
-                  (isHovered || isExpanded) && "border-primary shadow-[0_0_20px_rgba(249,115,22,0.4)] bg-primary/10"
+                  (isHovered || isExpanded) && "border-primary shadow-[0_0_20px_rgba(255,255,255,0.2)] bg-primary/10"
                 )}
               >
                 <Icon className={cn(
@@ -236,7 +236,7 @@ export default function SiriusOrbitalFeatures() {
                   initial={{ opacity: 0, scale: 0.9, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-8 w-56 p-3 bg-card/95 backdrop-blur-lg border border-primary/30 rounded-xl shadow-[0_0_30px_rgba(249,115,22,0.2)]"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-8 w-56 p-3 bg-card/95 backdrop-blur-lg border border-primary/30 rounded-xl shadow-[0_0_30px_rgba(255,255,255,0.1)]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center gap-2 mb-2">

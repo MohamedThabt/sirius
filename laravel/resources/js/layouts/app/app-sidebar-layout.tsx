@@ -27,7 +27,7 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
     );
 
     if (isAdmin) {
-        return <div className="dashboard-theme bg-background text-foreground min-h-screen">{shell}</div>;
+        return <div className="bg-background text-foreground min-h-screen">{shell}</div>;
     }
 
     return shell;

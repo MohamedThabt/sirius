@@ -11,7 +11,7 @@ interface HighlighterProps {
 export function Highlighter({
     children,
     action = 'underline',
-    color = 'rgba(99, 102, 241, 0.6)',
+    color = 'rgba(163, 163, 163, 0.6)',
     className,
 }: HighlighterProps) {
     const styles: Record<string, React.CSSProperties> = {

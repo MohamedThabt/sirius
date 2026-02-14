@@ -316,7 +316,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                                     variant="outline"
                                                                     size="sm"
                                                                     onClick={() => handleDenyInvitation(invitation.id)}
-                                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
+                                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950"
                                                                 >
                                                                     <XCircle className="mr-2 h-4 w-4" />
                                                                     Decline
@@ -418,7 +418,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuSeparator />
                                                                     <DropdownMenuItem
-                                                                        className="text-red-600"
+                                                                        className="text-red-600 dark:text-red-400"
                                                                         onClick={() => {
                                                                             setSelectedMember(member);
                                                                             setIsRemoveMemberModalOpen(true);
@@ -523,7 +523,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                             if (emailValidationError) setEmailValidationError('');
                                         }}
                                         placeholder="colleague@example.com"
-                                        className={emailValidationError ? 'border-red-500' : ''}
+                                        className={emailValidationError ? 'border-red-200 dark:border-red-500/30' : ''}
                                         required
                                     />
                                     <Button type="button" variant="secondary" onClick={handleSearchUser} disabled={isSearching || !searchEmail}>
