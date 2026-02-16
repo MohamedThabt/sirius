@@ -16,8 +16,6 @@ services:
       - dokploy-network
     env_file:
       - .env
-    environment:
-      - NIGHTWATCH_INGEST_URI=nightwatch:2407
     entrypoint: ['/usr/local/bin/php-entrypoint']
     command: ['php-fpm']
 
