@@ -51,6 +51,28 @@ jobs:
           provenance: false
           sbom: false
 
+      # --- 2. Nightwatch Agent Image ---
+      - name: Extract metadata (Nightwatch Agent)
+        id: meta-nightwatch
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/mohamedthabt/sirius-nightwatch-agent
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Nightwatch Agent
+        uses: docker/build-push-action@v5
+        with:
+          context: ./laravel/vendor/laravel/nightwatch
+          file: ./laravel/vendor/laravel/nightwatch/agent/Dockerfile
+          push: true
+          tags: ${{ steps.meta-nightwatch.outputs.tags }}
+          labels: ${{ steps.meta-nightwatch.outputs.labels }}
+          provenance: false
+          sbom: false
+
       # --- Deployment Trigger (After image push) ---
       - name: Trigger Dokploy deployment
         if: success()
