@@ -99,7 +99,7 @@ class EmailController extends Controller
             $adminId = auth('admin')->id();
             $adminEmail = auth('admin')->user()->email ?? 'unknown';
 
-            AppLogger::info('Admin initiating email send', [
+            AppLogger::business('Admin initiating email send', [
                 'admin_id' => $adminId,
                 'admin_email' => $adminEmail,
                 'recipient_count' => count($validated['user_ids']),
@@ -110,10 +110,10 @@ class EmailController extends Controller
             $users = User::whereIn('id', $validated['user_ids'])->get();
 
             if ($users->isEmpty()) {
-                AppLogger::warning('No valid users found for email send', [
+                AppLogger::business('No valid users found for email send', [
                     'admin_id' => $adminId,
                     'user_ids' => $validated['user_ids'],
-                ]);
+                ], 'warning');
                 return back()->with('error', 'No valid users selected.');
             }
 
@@ -130,13 +130,6 @@ class EmailController extends Controller
                         )
                     );
                     $sentCount++;
-
-                    AppLogger::info('Email queued for user', [
-                        'admin_id' => $adminId,
-                        'user_id' => $user->id,
-                        'user_email' => $user->email,
-                        'subject' => $validated['subject'],
-                    ]);
                 } catch (Throwable $e) {
                     $failedUsers[] = $user->email;
 
@@ -145,7 +138,6 @@ class EmailController extends Controller
                         'user_id' => $user->id,
                         'user_email' => $user->email,
                         'subject' => $validated['subject'],
-                        'error_message' => $e->getMessage(),
                     ]);
                 }
             }
@@ -161,7 +153,7 @@ class EmailController extends Controller
 
             $recipientText = $sentCount === 1 ? '1 recipient' : "$sentCount recipients";
             
-            AppLogger::info('Admin email send completed', [
+            AppLogger::business('Admin email send completed', [
                 'admin_id' => $adminId,
                 'admin_email' => $adminEmail,
                 'sent_count' => $sentCount,
@@ -178,8 +170,6 @@ class EmailController extends Controller
         } catch (Throwable $e) {
             AppLogger::error('Unexpected error during email send', $e, [
                 'admin_id' => auth('admin')->id(),
-                'error_message' => $e->getMessage(),
-                'error_trace' => $e->getTraceAsString(),
             ]);
 
             return back()
