@@ -107,7 +107,7 @@ export function CreditsOverview({
                     <div className="flex items-center justify-between text-xs">
                         <span className="font-medium text-foreground">Credits Remaining</span>
                         <span className="font-semibold text-emerald-600 dark:text-emerald-500">
-                            {remainingPercentage.toFixed(1)}% left
+                            {Math.round(remainingPercentage)}% left
                         </span>
                     </div>
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
