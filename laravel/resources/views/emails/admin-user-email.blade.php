@@ -38,6 +38,14 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
+        .message-content a {
+            color: #4F46E5;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+        .message-content a:hover {
+            color: #4338CA;
+        }
         .greeting {
             font-size: 16px;
             color: #1F2937;
@@ -64,7 +72,11 @@
         </div>
 
         <div class="message-content">
-            {{ $messageBody }}
+            {!! preg_replace(
+                '/(https?:\/\/[^\s<>"]+)/i',
+                '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+                e($messageBody)
+            ) !!}
         </div>
 
         <p style="margin-top: 30px;">
