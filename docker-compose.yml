@@ -17,6 +17,22 @@ services:
     entrypoint: ["/usr/local/bin/php-entrypoint"]
     command: ["php-fpm"]
 
+  # Nightwatch Monitoring Agent
+  nightwatch:
+    image: ghcr.io/MohamedThabt/sirius-laravel:latest
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - storage:/var/www/storage:rw
+    networks:
+      - dokploy-network
+    env_file:
+      - .env
+    entrypoint: ["php"]
+    command: ["artisan", "nightwatch:agent"]
+    depends_on:
+      - prod-app
+
   # The Nginx Web Server Container
   prod-nginx:
     image: nginx:alpine

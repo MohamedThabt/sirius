@@ -15,6 +15,23 @@ services:
     env_file:
       - .env
 
+  # Nightwatch Monitoring Agent
+  nightwatch:
+    image: ghcr.io/mohamedthabt/sirius-laravel:latest
+    pull_policy: always
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - storage:/var/www/storage:rw
+    networks:
+      - dokploy-network
+    env_file:
+      - .env
+    entrypoint: ["php"]
+    command: ["artisan", "nightwatch:agent"]
+    depends_on:
+      - prod-app
+
   # Nginx Web Server (Production - Standard Image)
   prod-nginx:
     image: nginx:alpine
