@@ -17,7 +17,7 @@ services:
 
   # Nightwatch Monitoring Agent (Official Image)
   nightwatch:
-    image: ghcr.io/mohamedthabt/sirius-nightwatch-agent:latest
+    image: laravelphp/nightwatch-agent:v1
     pull_policy: always
     restart: unless-stopped
     env_file:
