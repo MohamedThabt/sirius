@@ -43,7 +43,7 @@ export function Footer() {
 	const socialLinks = [
 		{
 			icon: XIcon,
-			link: "https://x.com/SirThabet",
+			link: "https://x.com/BuildWithSirius",
 			label: "Follow us on X (Twitter)",
 		},
 		{
