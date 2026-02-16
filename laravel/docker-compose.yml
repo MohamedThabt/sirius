@@ -33,7 +33,7 @@ services:
     env_file:
       - .env
     entrypoint: ['php']
-    command: ['artisan', 'nightwatch:agent']
+    command: ['artisan', 'nightwatch:agent', '--listen-on=0.0.0.0:2407']
     depends_on:
       - prod-app
 
