@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -47,6 +48,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function EmailIndex({ users, filters }: Props) {
     const { toast } = useToast();
+    useFlashToasts();
     const [search, setSearch] = useState(filters.search || '');
     const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
     const [selectAll, setSelectAll] = useState(false);

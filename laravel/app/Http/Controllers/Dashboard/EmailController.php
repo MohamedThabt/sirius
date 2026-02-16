@@ -96,14 +96,30 @@ class EmailController extends Controller
         ]);
         
         try {
+            $adminId = auth('admin')->id();
+            $adminEmail = auth('admin')->user()->email ?? 'unknown';
+
+            AppLogger::info('Admin initiating email send', [
+                'admin_id' => $adminId,
+                'admin_email' => $adminEmail,
+                'recipient_count' => count($validated['user_ids']),
+                'subject' => $validated['subject'],
+                'user_ids' => $validated['user_ids'],
+            ]);
 
             $users = User::whereIn('id', $validated['user_ids'])->get();
 
             if ($users->isEmpty()) {
+                AppLogger::warning('No valid users found for email send', [
+                    'admin_id' => $adminId,
+                    'user_ids' => $validated['user_ids'],
+                ]);
                 return back()->with('error', 'No valid users selected.');
             }
 
             $sentCount = 0;
+            $failedUsers = [];
+
             foreach ($users as $user) {
                 try {
                     Mail::to($user->email)->queue(
@@ -114,45 +130,61 @@ class EmailController extends Controller
                         )
                     );
                     $sentCount++;
-                } catch (Throwable $e) {
-                    AppLogger::error('Failed to queue email for user', $e, [
-                        'admin_id' => auth('admin')->id(),
+
+                    AppLogger::info('Email queued for user', [
+                        'admin_id' => $adminId,
                         'user_id' => $user->id,
                         'user_email' => $user->email,
                         'subject' => $validated['subject'],
+                    ]);
+                } catch (Throwable $e) {
+                    $failedUsers[] = $user->email;
+
+                    AppLogger::error('Failed to queue email for user', $e, [
+                        'admin_id' => $adminId,
+                        'user_id' => $user->id,
+                        'user_email' => $user->email,
+                        'subject' => $validated['subject'],
+                        'error_message' => $e->getMessage(),
                     ]);
                 }
             }
 
             if ($sentCount === 0) {
-                return back()->with('error', 'Failed to send emails. Please check logs.');
+                AppLogger::error('All emails failed to queue', null, [
+                    'admin_id' => $adminId,
+                    'failed_users' => $failedUsers,
+                    'subject' => $validated['subject'],
+                ]);
+                return back()->with('error', 'Failed to send emails to all recipients. Please check logs for details.');
             }
 
             $recipientText = $sentCount === 1 ? '1 recipient' : "$sentCount recipients";
             
-            AppLogger::info('Admin sent emails to users', [
-                'admin_id' => auth('admin')->id(),
-                'admin_email' => auth('admin')->user()->email,
-                'recipient_count' => $sentCount,
+            AppLogger::info('Admin email send completed', [
+                'admin_id' => $adminId,
+                'admin_email' => $adminEmail,
+                'sent_count' => $sentCount,
+                'failed_count' => count($failedUsers),
+                'failed_users' => $failedUsers,
                 'subject' => $validated['subject'],
-                'user_ids' => $validated['user_ids'],
             ]);
+
+            if (!empty($failedUsers)) {
+                return back()->with('success', "Emails queued for {$recipientText}, but failed for " . count($failedUsers) . " user(s).");
+            }
 
             return back()->with('success', "Emails queued successfully for {$recipientText}.");
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()
-                ->withErrors($e->errors())
-                ->withInput()
-                ->with('error', 'Please correct the errors and try again.');
         } catch (Throwable $e) {
-            AppLogger::error('Failed to send emails', $e, [
+            AppLogger::error('Unexpected error during email send', $e, [
                 'admin_id' => auth('admin')->id(),
-                'request_data' => $request->all(),
+                'error_message' => $e->getMessage(),
+                'error_trace' => $e->getTraceAsString(),
             ]);
 
             return back()
                 ->withInput()
-                ->with('error', 'An unexpected error occurred. Please try again.');
+                ->with('error', 'An unexpected error occurred: ' . $e->getMessage());
         }
     }
 }

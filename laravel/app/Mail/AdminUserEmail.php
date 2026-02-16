@@ -22,13 +22,13 @@ class AdminUserEmail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public User $user,
-        public string $subject,
+        public string $emailSubject,
         public string $messageBody
     ) {
         Log::info('Admin user email queued', [
             'user_id' => $this->user->id,
             'email' => $this->user->email,
-            'subject' => $this->subject,
+            'subject' => $this->emailSubject,
         ]);
     }
 
@@ -39,7 +39,7 @@ class AdminUserEmail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             to: [$this->user->email],
-            subject: $this->subject,
+            subject: $this->emailSubject,
         );
     }
 
@@ -85,7 +85,7 @@ class AdminUserEmail extends Mailable implements ShouldQueue
         Log::error('Failed to send admin user email', [
             'user_id' => $this->user->id,
             'email' => $this->user->email,
-            'subject' => $this->subject,
+            'subject' => $this->emailSubject,
             'error' => $exception->getMessage(),
             'error_class' => get_class($exception),
         ]);
