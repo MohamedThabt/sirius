@@ -81,7 +81,7 @@
 
         <p style="margin-top: 30px;">
             Best regards,<br>
-            <strong>The Sirius Team</strong>
+            <strong> Sirius Team</strong>
         </p>
 
         <div class="footer">
