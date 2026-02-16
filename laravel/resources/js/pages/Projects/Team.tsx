@@ -224,7 +224,7 @@ export default function Team({ project, members, invitations, userInvitations, u
 
     return (
         <>
-            <Head title={`Team - ${project.name}`} />
+            <Head title="Team" />
 
             <div className="min-h-screen bg-background">
                 <div className="flex">

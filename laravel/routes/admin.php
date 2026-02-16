@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\BetaController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\EmailController;
 use App\Http\Controllers\Dashboard\FeatureController;
 use App\Http\Controllers\Dashboard\FeedbackController;
 use App\Http\Controllers\Dashboard\IssueController;
@@ -47,6 +48,10 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('users/{user}', [UserController::class, 'show'])->name('admin.users.show');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::post('users/{user}/add-credits', [UserController::class, 'addCredits'])->name('admin.users.add-credits');
+    
+    // Email Management
+    Route::get('emails', [EmailController::class, 'index'])->name('admin.emails.index');
+    Route::post('emails/send', [EmailController::class, 'send'])->name('admin.emails.send');
     
     // Plans Management
     Route::get('plans', [PlanController::class, 'index'])->name('admin.plans.index');
