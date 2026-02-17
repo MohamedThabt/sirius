@@ -167,15 +167,7 @@ class SystemOverviewController extends Controller
                 ],
             ]);
 
-            // Load modules for the response
-            $project->load('modules');
-
-            return Inertia::render('Projects/SystemOverview', [
-                'project' => $project,
-                'overviewVersions' => [],
-                'hasModules' => $project->modules()->exists(),
-                'isGenerating' => true,
-            ]);
+            return redirect()->route('projects.system-overview', $project);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'create', 'project_id' => $project->id]);
             return back()->with('error', 'Failed to create system overview.');
@@ -398,7 +390,22 @@ class SystemOverviewController extends Controller
                 return back()->with('error', 'You do not have permission to access this project.');
             }
 
-            // Load project with overview versions and modules
+            // Check if there's a pending generation from the create flow
+            $pendingData = session('pending_overview_generation');
+            $isGenerating = $pendingData && $pendingData['project_id'] === $project->id;
+
+            if ($isGenerating) {
+                $project->load('modules');
+
+                return Inertia::render('Projects/SystemOverview', [
+                    'project' => $project,
+                    'overviewVersions' => [],
+                    'hasModules' => $project->modules()->exists(),
+                    'isGenerating' => true,
+                ]);
+            }
+
+            // Normal show: load all versions
             $project->load(['overviewVersions', 'modules']);
 
             return Inertia::render('Projects/SystemOverview', [
