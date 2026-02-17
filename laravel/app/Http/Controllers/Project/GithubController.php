@@ -70,7 +70,7 @@ class GithubController extends Controller
     {
         try {
             return Socialite::driver('github')
-                ->scopes(['repo', 'delete_repo', 'read:org'])
+                ->scopes(['repo', 'read:org'])
                 ->redirect();
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'redirect']);
@@ -97,7 +97,7 @@ class GithubController extends Controller
                     'access_token' => $githubUser->token,
                     'refresh_token' => $githubUser->refreshToken ?? null,
                     'token_type' => 'bearer',
-                    'scope' => implode(',', $githubUser->approvedScopes ?? ['repo', 'delete_repo', 'read:org']),
+                    'scope' => implode(',', $githubUser->approvedScopes ?? ['repo', 'read:org']),
                     'provider_user_id' => (string) $githubUser->id,
                     'username' => $githubUser->nickname,
                     'avatar' => $githubUser->avatar,
