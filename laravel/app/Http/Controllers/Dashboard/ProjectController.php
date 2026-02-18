@@ -222,9 +222,8 @@ class ProjectController extends Controller
             $projectData = $project->toArray();
             $projectData['overview'] = $overviewContent;
 
-            // Check for pending generation
-            $pendingGeneration = session('pending_overview_generation');
-            $isGenerating = $pendingGeneration && $pendingGeneration['project_id'] === $project->id;
+            // Project has a brief but no overview versions yet — trigger initial generation
+            $isGenerating = ! empty($project->brief) && $project->overviewVersions->isEmpty();
 
             return Inertia::render('dashboard/projects/overview', [
                 'project' => $projectData,
