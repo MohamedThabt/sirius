@@ -158,6 +158,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
     const [currentBusinessStep, setCurrentBusinessStep] = useState(1);
     const [currentTechnicalStep, setCurrentTechnicalStep] = useState(1);
     const [showReview, setShowReview] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
     const saveTimeoutRef = useRef<number | null>(null);
     const savedTimeoutRef = useRef<number | null>(null);
@@ -577,6 +578,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
         const selectedScale = userScaleOptions[expectedUserScale];
         const cacheKey = `prepare:${projectId}`;
         
+        setIsSubmitting(true);
         router.post(
             `/projects/${projectId}/system-overview/create`,
             {
@@ -599,9 +601,11 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                     // Clear localStorage cache on successful submission to prevent stale data
                     localStorage.removeItem(cacheKey);
                     console.info('Form submitted successfully - cache cleared for project', projectId);
+                    setIsSubmitting(false);
                 },
                 onError: (errors) => {
                     console.error('System overview creation failed:', errors);
+                    setIsSubmitting(false);
                     router.get(`/projects/${projectId}`);
                 },
             },
@@ -1314,6 +1318,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                 technicalSteps={technicalSteps as { id: number; title: string; field: string }[]}
                 formData={formData}
                 canSubmit={canSubmit}
+                isSubmitting={isSubmitting}
             />
         </>
     );

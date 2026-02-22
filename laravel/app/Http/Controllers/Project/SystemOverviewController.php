@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\ProjectOverviewVersion;
 use App\Services\AiUsageService;
 use App\Support\AppLogger;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -144,6 +145,57 @@ class SystemOverviewController extends Controller
                 'project_id' => $project->id,
                 'has_technical_details' => $hasTechnicalDetails,
             ]);
+
+            // --- Synchronous FastAPI call to generate overview ---
+            set_time_limit(180);
+
+            $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
+            $response = Http::fastapi()->timeout(120)
+                ->post($fastApiBaseUrl.'/v1/Overview/generate', [
+                    'project_description' => $projectBrief,
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    throw new \Exception('AI usage data missing from response');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'system_overview_generation',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
+                $overviewContent = $data['Overview'] ?? '';
+
+                // Get next version number
+                $nextVersionNumber = ($project->overviewVersions()->max('version_number') ?? 0) + 1;
+
+                // Create new overview version
+                $overviewVersion = ProjectOverviewVersion::create([
+                    'project_id' => $project->id,
+                    'overview' => $overviewContent,
+                    'version_number' => $nextVersionNumber,
+                    'is_base_version' => true,
+                    'user_prompt' => $projectBrief,
+                ]);
+
+                // Mark all other versions as not base
+                $project->overviewVersions()
+                    ->where('id', '!=', $overviewVersion->id)
+                    ->update(['is_base_version' => false]);
+            } else {
+                Log::error('FastAPI overview generation failed during create', [
+                    'project_id' => $project->id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return back()->with('error', 'Failed to generate system overview. Please try again.');
+            }
 
             return redirect()->route('projects.system-overview', $project);
         } catch (\Throwable $e) {
@@ -320,14 +372,15 @@ class SystemOverviewController extends Controller
 
             $project->load(['overviewVersions', 'modules']);
 
-            // Project has a brief but no overview versions yet — trigger initial generation
-            $isGenerating = ! empty($project->brief) && $project->overviewVersions->isEmpty();
+            // Guard: redirect back if there's no overview content at all
+            if ($project->overviewVersions->isEmpty() && empty($project->overview)) {
+                return back()->with('error', 'This project has no overview yet. Please generate one first.');
+            }
 
             return Inertia::render('Projects/SystemOverview', [
                 'project' => $project,
-                'overviewVersions' => $isGenerating ? [] : $project->overviewVersions()->get(),
+                'overviewVersions' => $project->overviewVersions()->get(),
                 'hasModules' => $project->modules()->exists(),
-                'isGenerating' => $isGenerating,
             ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'show', 'project_id' => $project->id]);

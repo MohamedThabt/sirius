@@ -43,7 +43,6 @@ interface Props {
     project?: Project;
     overviewVersions: OverviewVersion[];
     hasModules: boolean;
-    isGenerating?: boolean;
     sections?: Sections;
     features?: unknown[];
 }
@@ -52,7 +51,6 @@ export default function SystemOverview({
     project,
     overviewVersions: initialOverviewVersions,
     hasModules,
-    isGenerating: initialIsGenerating = false,
     sections = { overview: null, prd: null, data_modeling: null, non_functional_requirements: null },
     features = [],
 }: Props) {
@@ -61,7 +59,6 @@ export default function SystemOverview({
     const [currentVersion, setCurrentVersion] = useState<OverviewVersion | null>(null);
     const [overviewVersions, setOverviewVersions] = useState<OverviewVersion[]>(initialOverviewVersions || []);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isInitialGeneration, setIsInitialGeneration] = useState(initialIsGenerating);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState('');
@@ -70,9 +67,6 @@ export default function SystemOverview({
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     // Fix #1: Track generation errors for retry UI
     const [generationError, setGenerationError] = useState<string | null>(null);
-
-    // Ref to prevent double-triggering of initial generation (React StrictMode, multiple renders)
-    const generationTriggeredRef = useRef(false);
 
     // Fix #10: AbortController to cancel in-flight requests on unmount
     const activeRequestRef = useRef<AbortController | null>(null);
@@ -166,13 +160,7 @@ export default function SystemOverview({
         });
     }, []);
 
-    // Handle initial generation trigger (with ref guard to prevent double-calls in StrictMode)
-    useEffect(() => {
-        if (isInitialGeneration && project && !generationTriggeredRef.current) {
-            generationTriggeredRef.current = true;
-            triggerAsyncGeneration();
-        }
-    }, [isInitialGeneration]);
+
 
     // Initialize with overview versions from props
     useEffect(() => {
@@ -191,8 +179,8 @@ export default function SystemOverview({
                 versionId: version.id,
             }));
             setChatMessages(messages);
-        } else if (project && project.overview && overviewVersions.length === 0 && !isInitialGeneration) {
-            // Fallback to project overview if no versions exist (but not during initial generation)
+        } else if (project && project.overview && overviewVersions.length === 0) {
+            // Fallback to project overview if no versions exist
             const initialVersion: OverviewVersion = {
                 id: 0,
                 project_id: project.id,
@@ -207,74 +195,15 @@ export default function SystemOverview({
             setCurrentVersion(initialVersion);
             setEditedContent(initialVersion.overview);
         }
-    }, [initialOverviewVersions, project, isInitialGeneration]);
+    }, [initialOverviewVersions, project]);
 
     // MermaidDiagram is now imported from '@/components/MermaidDiagram'
     // Removed ~188 lines of inline component definition
 
-    // Handle initial async generation
-    // Fix #5: Keep isInitialGeneration=true throughout the fetch so the shimmer stays visible
-    // Fix #1: Set generationError on failure so a retry button is shown
-    // Fix #10: Use AbortController for cleanup on unmount
-    const triggerAsyncGeneration = async () => {
-        setGenerationError(null);
-
-        // Abort any prior in-flight request
-        activeRequestRef.current?.abort();
-        const controller = new AbortController();
-        activeRequestRef.current = controller;
-
-        try {
-            const response = await fetch(`/projects/${project?.id}/system-overview/generate-async`, {
-                method: 'POST',
-                headers: getJsonHeaders(),
-                signal: controller.signal,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-
-                if (data.success) {
-                    setOverviewVersions(data.overviewVersions);
-
-                    const newestVersion = [...data.overviewVersions].sort(
-                        (a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number,
-                    )[0];
-                    setCurrentVersion(newestVersion);
-                    setEditedContent(newestVersion.overview);
-
-                    if (typeof data.hasModules === 'boolean') {
-                        setProjectHasModules(data.hasModules);
-                    }
-
-                    toast.success('System overview generated successfully!');
-                } else {
-                    throw new Error(data.message || 'Failed to generate overview');
-                }
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to generate overview');
-            }
-        } catch (error) {
-            // Silently ignore abort errors (user navigated away)
-            if (error instanceof DOMException && error.name === 'AbortError') return;
-
-            console.error('Error generating overview:', error);
-            const errorMsg = error instanceof Error ? error.message : 'Failed to generate system overview. Please try again.';
-            setGenerationError(errorMsg);
-            // Reset the ref on error so user can retry
-            generationTriggeredRef.current = false;
-            toast.error(errorMsg);
-        } finally {
-            // Fix #5: Only clear the shimmer AFTER the request completes (success or error)
-            setIsInitialGeneration(false);
-        }
-    };
-
     // Fix #8: Async regeneration for the empty-state "Generate" button
     // Uses fetch instead of router.post to avoid blocking the UI for 2 minutes
     const triggerRegeneration = useCallback(async () => {
-        setIsInitialGeneration(true);
+        setIsGenerating(true);
         setGenerationError(null);
 
         activeRequestRef.current?.abort();
@@ -320,7 +249,7 @@ export default function SystemOverview({
             setGenerationError(errorMsg);
             toast.error(errorMsg);
         } finally {
-            setIsInitialGeneration(false);
+            setIsGenerating(false);
         }
     }, [project?.id]);
 
@@ -568,19 +497,7 @@ export default function SystemOverview({
                                         {/* Version History */}
                                         <ScrollArea className="flex-1 p-4">
                                             <div className="space-y-4">
-                                                {isInitialGeneration ? (
-                                                    <div className="flex h-32 items-center justify-center">
-                                                        <div className="text-center">
-                                                            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                                                                <TextShimmer className="text-sm text-blue-600 dark:text-blue-400">
-                                                                    Generating...
-                                                                </TextShimmer>
-                                                            </div>
-                                                            <p className="text-sm text-slate-500 dark:text-slate-400">Creating your first overview</p>
-                                                            <p className="text-xs text-slate-400 dark:text-slate-500">This may take a moment</p>
-                                                        </div>
-                                                    </div>
-                                                ) : sortedVersionsDesc.length > 0 ? (
+                                                {sortedVersionsDesc.length > 0 ? (
                                                     sortedVersionsDesc.map((version) => (
                                                             <div
                                                                 key={version.id}
@@ -658,7 +575,6 @@ export default function SystemOverview({
                                         {currentVersion &&
                                             !currentVersion.is_base_version &&
                                             baseVersion &&
-                                            !isInitialGeneration &&
                                             overviewVersions.length > 1 && (
                                                 <div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-50 px-3 py-2 text-sm text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
                                                     <AlertTriangleIcon className="h-4 w-4 flex-shrink-0" />
@@ -775,7 +691,7 @@ export default function SystemOverview({
                                         </div>
 
                                         {/* Version Selector */}
-                                        {!isInitialGeneration && overviewVersions.length > 0 && (
+                                        {overviewVersions.length > 0 && (
                                             <div className="border-b border-border p-4">
                                                 <div className="flex flex-wrap gap-2">
                                                     {sortedVersionsAsc.map((version) => (
@@ -795,20 +711,7 @@ export default function SystemOverview({
 
                                         {/* Content Area */}
                                         <ScrollArea className="flex-1 p-6">
-                                            {isInitialGeneration ? (
-                                                <Card>
-                                                    <CardContent className="p-0">
-                                                        <div className="flex h-64 items-center justify-center bg-muted/10">
-                                                            <div className="text-center">
-                                                                <TextShimmer className="text-2xl font-semibold">
-                                                                    Generating System Overview...
-                                                                </TextShimmer>
-                                                                <p className="mt-4 text-sm text-muted-foreground">This may take a moment</p>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            ) : currentVersion ? (
+                                            {currentVersion ? (
                                                 <Card>
                                                     <CardContent className="p-0">
                                                         {isEditing ? (
@@ -915,9 +818,9 @@ export default function SystemOverview({
                                                                     {/* Fix #8: Use async fetch instead of blocking router.post */}
                                                                     <Button
                                                                         onClick={triggerRegeneration}
-                                                                        disabled={isInitialGeneration}
+                                                                        disabled={isGenerating}
                                                                     >
-                                                                        {isInitialGeneration ? (
+                                                                        {isGenerating ? (
                                                                             <TextShimmer>Generating...</TextShimmer>
                                                                         ) : (
                                                                             'Generate System Overview'

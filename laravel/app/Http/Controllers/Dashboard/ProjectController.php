@@ -200,9 +200,9 @@ class ProjectController extends Controller
      * Loads overview versions and provides the latest/base version content.
      *
      * @param Project $project The project to display
-     * @return Response Inertia response rendering the project overview page
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse Inertia response or redirect if no overview exists
      */
-    public function overview(Project $project): Response
+    public function overview(Project $project)
     {
         try {
             $project->load([
@@ -214,6 +214,14 @@ class ProjectController extends Controller
                 'baseOverviewVersion',
             ]);
 
+            // Project has a brief but no overview versions yet — trigger initial generation
+            $isGenerating = ! empty($project->brief) && $project->overviewVersions->isEmpty();
+
+            // Guard: redirect back if there's no overview and nothing to generate
+            if ($project->overviewVersions->isEmpty() && ! $isGenerating) {
+                return back()->with('error', 'This project has no overview yet. Please generate one first.');
+            }
+
             // Get the current overview content from the latest version
             $latestVersion = $project->latestOverviewVersion;
             $overviewContent = $latestVersion?->overview ?? '';
@@ -221,9 +229,6 @@ class ProjectController extends Controller
             // Prepare project data with overview content
             $projectData = $project->toArray();
             $projectData['overview'] = $overviewContent;
-
-            // Project has a brief but no overview versions yet — trigger initial generation
-            $isGenerating = ! empty($project->brief) && $project->overviewVersions->isEmpty();
 
             return Inertia::render('dashboard/projects/overview', [
                 'project' => $projectData,
@@ -243,11 +248,16 @@ class ProjectController extends Controller
      * the FeatureMarkdownService.
      *
      * @param Project $project The project to display
-     * @return Response Inertia response rendering the PRD page with formatted markdown
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse Inertia response or redirect if no PRD exists
      */
-    public function prd(Project $project): Response
+    public function prd(Project $project)
     {
         try {
+            // Guard: redirect back if there's no PRD content
+            if (empty($project->prd)) {
+                return back()->with('error', 'This project has no PRD yet. Please generate one first.');
+            }
+
             $project->load('user:id,name,email', 'features');
 
             $featureMarkdownService = app(\App\Services\Documentation\FeatureMarkdownService::class);

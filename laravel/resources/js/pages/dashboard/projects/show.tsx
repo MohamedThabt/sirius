@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { getStatusColor, getPriorityColor } from '@/utils/status-colors';
@@ -172,6 +173,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ProjectShow({ project, projectMetrics }: Props) {
+    useFlashToasts();
     const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
     const [selectedTechnicalDetail, setSelectedTechnicalDetail] = useState<{ title: string; content: string } | null>(null);
