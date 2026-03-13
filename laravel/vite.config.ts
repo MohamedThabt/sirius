@@ -16,7 +16,7 @@ export default defineConfig({
         react(),
         tailwindcss(),
         // Skip wayfinder generation in Docker build since routes are pre-generated
-        ...(isDockerBuild ? [] : [wayfinder({
+        ...(true ? [] : [wayfinder({
             formVariants: true,
         })]),
     ],

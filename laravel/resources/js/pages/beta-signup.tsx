@@ -11,6 +11,7 @@ import { Footer } from '@/components/footer';
 import { GridPattern } from '@/components/ui/shadcn-io/grid-pattern';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 interface BetaSignupProps {
   message?: string;
@@ -23,9 +24,10 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
   const { data, setData, post, processing, errors } = useForm({
     name: "",
     email: "",
+    "cf-turnstile-response": "",
   });
 
-  const [validationErrors, setValidationErrors] = useState<{ name?: string; email?: string }>({});
+  const [validationErrors, setValidationErrors] = useState<{ name?: string; email?: string, turnstile?: string }>({});
   const [touched, setTouched] = useState<{ name?: boolean; email?: boolean }>({});
 
   const validateField = (field: 'name' | 'email', value: string): string | undefined => {
@@ -54,11 +56,16 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
   const validateForm = (): boolean => {
     const nameError = validateField('name', data.name);
     const emailError = validateField('email', data.email);
+    let turnstileError = undefined;
+
+    if (!data["cf-turnstile-response"]) {
+        turnstileError = "Please complete the captcha verification";
+    }
     
-    setValidationErrors({ name: nameError, email: emailError });
+    setValidationErrors({ name: nameError, email: emailError, turnstile: turnstileError });
     setTouched({ name: true, email: true });
     
-    return !nameError && !emailError;
+    return !nameError && !emailError && !turnstileError;
   };
 
   const handleFieldChange = (field: 'name' | 'email', value: string) => {
@@ -85,7 +92,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
     
     post("/beta/signup", {
       onSuccess: () => {
-        setData({ name: "", email: "" });
+        setData({ name: "", email: "", "cf-turnstile-response": "" });
         setValidationErrors({});
         setTouched({});
       },
@@ -94,6 +101,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
 
   const nameError = validationErrors.name || errors.name;
   const emailError = validationErrors.email || errors.email;
+  const turnstileError = validationErrors.turnstile || errors["cf-turnstile-response"];
 
   const features = [
     "PRD Generation",
@@ -311,6 +319,35 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                             )}
                           </AnimatePresence>
                         </div>
+
+                        {/* Turnstile Captcha */}
+                        <div className="flex justify-center my-4">
+                            <Turnstile 
+                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAACj9nwv1GucMvdLU'} 
+                                onSuccess={(token) => {
+                                    setData("cf-turnstile-response", token);
+                                    if (validationErrors.turnstile) {
+                                      setValidationErrors(prev => ({ ...prev, turnstile: undefined }));
+                                    }
+                                }}
+                                options={{
+                                    theme: 'auto',
+                                }}
+                            />
+                        </div>
+                         <AnimatePresence>
+                            {turnstileError && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="flex items-center gap-2 text-sm text-destructive mt-2 overflow-hidden justify-center"
+                              >
+                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                <span>{turnstileError}</span>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
 
                         {/* Submit Button */}
                         <Button

@@ -55,4 +55,9 @@ return [
         // 'error_topic_id' => env('TELEGRAM_ERROR_TOPIC_ID'), // Optional: separate topic for error logs
     ],
 
+    'turnstile' => [
+        'site_key' => env('VITE_TURNSTILE_SITE_KEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];
