@@ -24,7 +24,8 @@ load_dotenv()
 class BasicChatState(TypedDict):
     messages: Annotated[list, add_messages]
     project_overview: Optional[str]
-    project_brief: Optional[str]
+    project_brief: Annotated[Optional[str], lambda x, y: y if y is not None else x]
+    incoming_brief: Optional[str]
 
 
 def _resolve_checkpoint_path() -> str:
@@ -68,14 +69,53 @@ def _format_messages_for_proxy(
 
 
 def chatbot(state: BasicChatState):
-    prompt = _format_messages_for_proxy(
-        state["messages"],
-        project_overview=state.get("project_overview"),
-        project_brief=state.get("project_brief"),
+
+    messages = state["messages"]
+    project_brief = state.get("project_brief")
+    incoming = state.get("incoming_brief")
+
+    logger.info(
+        "[GRAPH] messages=%s state_has_brief=%s incoming_brief=%s",
+        len(messages),
+        bool(project_brief),
+        bool(incoming),
     )
+
+    if project_brief is None and incoming:
+        logger.info("[GRAPH] First message detected. Saving project_brief into state.")
+        project_brief = incoming
+
+    messages = state["messages"]
+    project_brief = state.get("project_brief")
+
+    logger.info(
+        "[GRAPH] messages=%s state_has_brief=%s",
+        len(messages),
+        bool(state.get("project_brief")),
+    )
+
+    if project_brief is None and state.get("incoming_brief"):
+        logger.info("[GRAPH] First message detected. Saving project_brief into state.")
+        project_brief = state.get("incoming_brief")
+
+    prompt = _format_messages_for_proxy(
+        messages,
+        project_overview=state.get("project_overview"),
+        project_brief=project_brief,
+    )
+
+    logger.info(
+        "[PROMPT] brief_in_prompt=%s prompt_length=%s",
+        bool(project_brief),
+        len(prompt),
+    )
+    logger.debug("[PROMPT PREVIEW]\n%s", prompt[:300])
+
     response_text, _usage = asyncio.run(proxy(prompt, model=proxy_model))
     return {
-        "messages": [AIMessage(content=response_text)]
+        "messages": [AIMessage(content=response_text)],
+        "project_brief": project_brief
+        
     }
 
 
@@ -94,15 +134,26 @@ async def generate_langgraph_chat_response(request: ChatRequest) -> ChatResponse
     config = {"configurable": {"thread_id": request.thread_id}}
 
     try:
-        result = await asyncio.to_thread(
-            app.invoke,
-            {
-                "messages": [HumanMessage(content=request.message)],
-                "project_overview": request.project_overview,
-                "project_brief": request.project_brief,
-            },
-            config,
+        logger.info(
+            "[CHAT ENDPOINT] thread=%s incoming_brief=%s",
+            request.thread_id,
+            bool(request.project_brief),
         )
+        graph_input = {
+    "messages": [HumanMessage(content=request.message)]
+}
+
+        if request.project_overview:
+
+               graph_input["project_overview"] = request.project_overview
+
+        if request.project_brief:
+               graph_input["incoming_brief"] = request.project_brief
+        result = await asyncio.to_thread(
+    app.invoke,
+    graph_input,
+    config,
+)
         ai_message = result["messages"][-1].content
         return ChatResponse(response=ai_message, thread_id=request.thread_id)
     except HTTPException:
