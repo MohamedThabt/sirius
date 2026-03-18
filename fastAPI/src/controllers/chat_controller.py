@@ -9,7 +9,7 @@ import sqlite3
 
 from dotenv import load_dotenv
 from fastapi import HTTPException
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, StateGraph, add_messages
 
@@ -26,6 +26,7 @@ class BasicChatState(TypedDict):
     project_overview: Optional[str]
     project_brief: Annotated[Optional[str], lambda x, y: y if y is not None else x]
     incoming_brief: Optional[str]
+    summary: Optional[str]
 
 
 def _resolve_checkpoint_path() -> str:
@@ -43,6 +44,7 @@ def _format_messages_for_proxy(
     messages: list,
     project_overview: Optional[str] = None,
     project_brief: Optional[str] = None,
+    summary: Optional[str] = None,
 ) -> str:
     """Convert LangGraph message history into a prompt for LiteLLM proxy."""
     sections = []
@@ -53,11 +55,10 @@ def _format_messages_for_proxy(
             sections.append(f"PROJECT OVERVIEW:\n{project_overview.strip()}")
         if project_brief:
             sections.append(f"PROJECT BRIEF/BRD:\n{project_brief.strip()}")
-        sections.append(
-            "Use the project context above to answer questions accurately. "
-            "If the user asks about the project, refer to this information."
-        )
-        sections.append("=" * 22)
+
+    if summary:
+        sections.append("=== SUMMARY ===")
+        sections.append(summary.strip())
 
     sections.append("=== CONVERSATION ===")
     for message in messages:
@@ -69,39 +70,28 @@ def _format_messages_for_proxy(
 
 
 def chatbot(state: BasicChatState):
-
     messages = state["messages"]
     project_brief = state.get("project_brief")
     incoming = state.get("incoming_brief")
+    summary = state.get("summary")
 
     logger.info(
-        "[GRAPH] messages=%s state_has_brief=%s incoming_brief=%s",
+        "[GRAPH] messages=%s state_has_brief=%s incoming_brief=%s has_summary=%s",
         len(messages),
         bool(project_brief),
         bool(incoming),
+        bool(summary),
     )
 
     if project_brief is None and incoming:
         logger.info("[GRAPH] First message detected. Saving project_brief into state.")
         project_brief = incoming
 
-    messages = state["messages"]
-    project_brief = state.get("project_brief")
-
-    logger.info(
-        "[GRAPH] messages=%s state_has_brief=%s",
-        len(messages),
-        bool(state.get("project_brief")),
-    )
-
-    if project_brief is None and state.get("incoming_brief"):
-        logger.info("[GRAPH] First message detected. Saving project_brief into state.")
-        project_brief = state.get("incoming_brief")
-
     prompt = _format_messages_for_proxy(
         messages,
         project_overview=state.get("project_overview"),
         project_brief=project_brief,
+        summary=summary,
     )
 
     logger.info(
@@ -109,19 +99,65 @@ def chatbot(state: BasicChatState):
         bool(project_brief),
         len(prompt),
     )
-    logger.debug("[PROMPT PREVIEW]\n%s", prompt[:300])
+    logger.info("[PROMPT PREVIEW]\n%s", prompt)
 
     response_text, _usage = asyncio.run(proxy(prompt, model=proxy_model))
     return {
         "messages": [AIMessage(content=response_text)],
-        "project_brief": project_brief
-        
+        "project_brief": project_brief,
+    }
+
+
+def summarize_messages(state: BasicChatState):
+    messages = state["messages"]
+    if len(messages) <= 10:
+        logger.info("[SUMMARY] Skipping summarization. messages=%s", len(messages))
+        return {}
+
+    logger.info("[SUMMARY] Triggered summarization. messages=%s", len(messages))
+
+    conversation_lines = []
+    for message in messages:
+        role = "assistant" if getattr(message, "type", "") == "ai" else "user"
+        conversation_lines.append(f"{role}: {message.content}")
+
+    summary_prompt_sections = [
+        "Summarize the conversation so far while preserving important context.",
+    ]
+    if state.get("summary"):
+        summary_prompt_sections.extend(
+            [
+                "",
+                "Existing summary:",
+                state["summary"].strip(),
+            ]
+        )
+    summary_prompt_sections.extend(
+        [
+            "",
+            "Conversation:",
+            "\n".join(conversation_lines),
+        ]
+    )
+    summary_prompt = "\n".join(summary_prompt_sections)
+
+    summary_text, _usage = asyncio.run(proxy(summary_prompt, model=proxy_model))
+    logger.info(
+        "[SUMMARY] Saved summary_length=%s and trimming messages to last 4",
+        len(summary_text),
+    )
+
+    return {
+        "summary": summary_text,
+        "messages": [RemoveMessage(id=message.id) for message in messages[:-4]],
     }
 
 
 graph = StateGraph(BasicChatState)
 graph.add_node("chatbot", chatbot)
-graph.add_edge("chatbot", END)
+graph.add_node("summarize_messages", summarize_messages)
+graph.add_edge("chatbot", "summarize_messages")
+graph.add_edge("summarize_messages", END)
 graph.set_entry_point("chatbot")
 app = graph.compile(checkpointer=memory)
 
@@ -140,20 +176,20 @@ async def generate_langgraph_chat_response(request: ChatRequest) -> ChatResponse
             bool(request.project_brief),
         )
         graph_input = {
-    "messages": [HumanMessage(content=request.message)]
-}
+            "messages": [HumanMessage(content=request.message)]
+        }
 
         if request.project_overview:
-
-               graph_input["project_overview"] = request.project_overview
+            graph_input["project_overview"] = request.project_overview
 
         if request.project_brief:
-               graph_input["incoming_brief"] = request.project_brief
+            graph_input["incoming_brief"] = request.project_brief
+
         result = await asyncio.to_thread(
-    app.invoke,
-    graph_input,
-    config,
-)
+            app.invoke,
+            graph_input,
+            config,
+        )
         ai_message = result["messages"][-1].content
         return ChatResponse(response=ai_message, thread_id=request.thread_id)
     except HTTPException:
