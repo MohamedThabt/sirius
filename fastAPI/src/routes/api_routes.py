@@ -18,6 +18,7 @@ from controllers.sequence_controller import generate_feature_sequence, edit_feat
 from controllers.c4_controller import generate_c4, edit_c4
 from controllers.flow_diagram_controller import generate_flow
 from controllers.chat_controller import generate_langgraph_chat_response
+from controllers.chat_intent_controller import generate_langgraph_intent_chat_response
 from controllers.health_controller import get_health_status, get_simple_health
 from controllers.logs_controller import (
     get_logs,
@@ -317,6 +318,12 @@ chat_router = APIRouter(prefix="/v1/chat", tags=["Chat"])
 async def generate_chat_endpoint(request: ChatRequest):
     """Generate chat response with persisted memory using LangGraph checkpoints."""
     return await generate_langgraph_chat_response(request)
+
+
+@chat_router.post("/generate-intent", response_model=ChatResponse)
+async def generate_intent_chat_endpoint(request: ChatRequest):
+    """Generate chat response with intent routing before chatbot execution."""
+    return await generate_langgraph_intent_chat_response(request)
 
 
 # ============================================================================
