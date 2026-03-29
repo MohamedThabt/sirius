@@ -12,3 +12,5 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     thread_id: int
+    intent: Optional[str] = None
+    updated_project_overview: Optional[str] = None
