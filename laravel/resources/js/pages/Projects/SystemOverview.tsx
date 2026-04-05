@@ -443,7 +443,61 @@ export default function SystemOverview({
                                                                             ? 'border-primary/50 bg-primary text-primary-foreground shadow-sm'
                                                                             : 'border-border/70 bg-card text-foreground'
                                                                     }`}>
-                                                                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                                                                        <ReactMarkdown
+                                                                            remarkPlugins={[remarkGfm]}
+                                                                            components={{
+                                                                                p: ({ children }) => <p className="m-0 whitespace-pre-wrap">{children}</p>,
+                                                                                ul: ({ children }) => <ul className="my-1 list-inside list-disc text-left">{children}</ul>,
+                                                                                ol: ({ children }) => <ol className="my-1 list-inside list-decimal text-left">{children}</ol>,
+                                                                                li: ({ children }) => <li className="my-0.5">{children}</li>,
+                                                                                a: ({ href, children }) => (
+                                                                                    <a
+                                                                                        href={href}
+                                                                                        target="_blank"
+                                                                                        rel="noreferrer"
+                                                                                        className={`underline underline-offset-2 ${isUser ? 'text-primary-foreground/90' : 'text-primary'}`}
+                                                                                    >
+                                                                                        {children}
+                                                                                    </a>
+                                                                                ),
+                                                                                code: ({ className, children, ...props }) => {
+                                                                                    const isInline = !className?.includes('language-');
+                                                                                    if (isInline) {
+                                                                                        return (
+                                                                                            <code
+                                                                                                className={`rounded px-1 py-0.5 font-mono text-[12px] ${
+                                                                                                    isUser
+                                                                                                        ? 'bg-primary-foreground/15 text-primary-foreground'
+                                                                                                        : 'bg-muted text-foreground'
+                                                                                                }`}
+                                                                                                {...props}
+                                                                                            >
+                                                                                                {children}
+                                                                                            </code>
+                                                                                        );
+                                                                                    }
+                                                                                    return <code className={className} {...props}>{children}</code>;
+                                                                                },
+                                                                                pre: ({ children }) => (
+                                                                                    <pre className={`my-2 overflow-x-auto rounded-md border px-2 py-1.5 text-left text-xs ${
+                                                                                        isUser
+                                                                                            ? 'border-primary-foreground/20 bg-primary-foreground/10'
+                                                                                            : 'border-border/70 bg-muted/40'
+                                                                                    }`}>
+                                                                                        {children}
+                                                                                    </pre>
+                                                                                ),
+                                                                                blockquote: ({ children }) => (
+                                                                                    <blockquote className={`my-2 border-l-2 pl-2 italic ${
+                                                                                        isUser ? 'border-primary-foreground/40' : 'border-border'
+                                                                                    }`}>
+                                                                                        {children}
+                                                                                    </blockquote>
+                                                                                ),
+                                                                            }}
+                                                                        >
+                                                                            {msg.content}
+                                                                        </ReactMarkdown>
                                                                     </div>
 
                                                                     {msg.type === 'version' && msg.version_id && (
