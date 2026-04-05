@@ -60,6 +60,15 @@ def _normalize_intent(raw_intent: str) -> str:
         return "suggest"
     if normalized in {"execute", "apply", "edit", "approve"}:
         return "execute"
+    if normalized in {
+        "out_of_scope",
+        "out of scope",
+        "irrelevant",
+        "off_topic",
+        "off topic",
+        "unrelated",
+    }:
+        return "out_of_scope"
     return "ask"
 
 
@@ -69,14 +78,15 @@ def _route_intent_with_llm(
     project_brief: Optional[str] = None,
 ) -> str:
     router_prompt_parts = [
-        "Classify the user intent into exactly one label: ask, suggest, execute.",
+        "Classify the user intent into exactly one label: ask, suggest, execute, out_of_scope.",
         "",
         "Definitions:",
         "- ask: user only wants to discuss or ask questions.",
         "- suggest: user asks for suggestions to improve/create project overview based on brief.",
         "- execute: user asks to apply edits on overview, or approves prior suggestions to apply.",
+        "- out_of_scope: question is unrelated to the project or business-analysis scope (e.g., food, jokes, personal questions, general knowledge).",
         "",
-        "Respond with only one label: ask OR suggest OR execute.",
+        "Respond with only one label: ask OR suggest OR execute OR out_of_scope.",
         "",
         f"User message:\n{latest_user_message.strip()}",
     ]
@@ -227,6 +237,17 @@ def _format_messages_for_proxy(
         role = "assistant" if getattr(message, "type", "") == "ai" else "user"
         sections.append(f"{role}: {message.content}")
 
+    if intent == "ask":
+        sections.extend(
+            [
+                "",
+                "=== INSTRUCTION ===",
+                "You are a business analyst. Answer only questions related to the project context provided.",
+                "If a question is out of context or not related to the project, politely decline and redirect to project-related topics.",
+                "Maintain professionalism and provide thoughtful insights based on the project information.",
+            ]
+        )
+
     if intent == "suggest":
         sections.extend(
             [
@@ -313,6 +334,16 @@ def chatbot(state: IntentChatState):
     if project_brief is None and incoming:
         logger.info("[GRAPH] First message detected. Saving project_brief into state.")
         project_brief = incoming
+
+    if intent == "out_of_scope":
+        assistant_text = (
+            "I apologize, but that question seems to be outside the scope of our project discussion. "
+            "Please ask about your project overview, requirements, scope, features, or planning."
+        )
+        return {
+            "messages": [AIMessage(content=assistant_text)],
+            "project_brief": project_brief,
+        }
 
     if intent == "execute":
         current_overview = state.get("project_overview")
