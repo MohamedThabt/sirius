@@ -6,7 +6,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { TextShimmer } from '@/components/ui/text-shimmer';
-import { ArrowUpIcon, BotIcon, ChevronDownIcon, MessageCircleQuestionIcon } from 'lucide-react';
+import { ArrowUpIcon, ChevronDownIcon, MessageCircleQuestionIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export type ChatMode = 'agent' | 'ask';
@@ -18,6 +18,16 @@ export interface ChatInputProps {
     className?: string;
     mode?: ChatMode;
     onModeChange?: (mode: ChatMode) => void;
+}
+
+function AgentModeIcon({ className = '' }: { className?: string }) {
+    return (
+        <span className={`relative inline-flex items-center justify-center ${className}`}>
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            <span className="absolute -left-0.5 top-0.5 h-1 w-1 rounded-full bg-current/70" />
+            <span className="absolute -right-0.5 bottom-0.5 h-1 w-1 rounded-full bg-current/70" />
+        </span>
+    );
 }
 
 export function ChatInput({
@@ -57,8 +67,8 @@ export function ChatInput({
 
     const showModeControls = mode !== undefined && onModeChange !== undefined;
 
-    const modeConfig: Record<ChatMode, { label: string; icon: typeof BotIcon; hint: string }> = {
-        agent: { label: 'Agent', icon: BotIcon, hint: 'Can suggest & apply edits' },
+    const modeConfig: Record<ChatMode, { label: string; icon: React.ComponentType<{ className?: string }>; hint: string }> = {
+        agent: { label: 'Agent', icon: AgentModeIcon, hint: 'Can suggest & apply edits' },
         ask: { label: 'Ask', icon: MessageCircleQuestionIcon, hint: 'Discussion only' },
     };
 
@@ -91,20 +101,20 @@ export function ChatInput({
                                     <DropdownMenuTrigger asChild>
                                         <Button
                                             type="button"
-                                            variant="outline"
-                                            className="h-8 rounded-lg border-border/70 px-2.5 text-xs sm:h-7"
+                                            variant="ghost"
+                                            className="h-8 rounded-lg border border-border/60 bg-card px-2 text-xs text-foreground shadow-none hover:bg-card sm:h-7 sm:px-2.5"
                                         >
                                             {mode && (
                                                 <>
                                                     {mode === 'agent' ? (
-                                                        <BotIcon className="mr-1.5 h-3.5 w-3.5" />
+                                                        <AgentModeIcon className="h-3.5 w-3.5 sm:mr-1.5" />
                                                     ) : (
-                                                        <MessageCircleQuestionIcon className="mr-1.5 h-3.5 w-3.5" />
+                                                        <MessageCircleQuestionIcon className="h-3.5 w-3.5 sm:mr-1.5" />
                                                     )}
-                                                    {modeConfig[mode].label}
+                                                    <span className="hidden sm:inline">{modeConfig[mode].label}</span>
                                                 </>
                                             )}
-                                            <ChevronDownIcon className="ml-1.5 h-3 w-3 opacity-70" />
+                                            <ChevronDownIcon className="ml-1 h-3 w-3 opacity-70 sm:ml-1.5" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="start" className="min-w-36">
@@ -126,7 +136,7 @@ export function ChatInput({
                                 </DropdownMenu>
                             )}
                             {showModeControls && mode && (
-                                <span className="hidden text-[10px] text-muted-foreground/60 sm:inline">{modeConfig[mode].hint}</span>
+                                <span className="hidden text-[10px] text-muted-foreground/60 lg:inline">{modeConfig[mode].hint}</span>
                             )}
                         </div>
 

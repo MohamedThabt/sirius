@@ -511,7 +511,7 @@ export default function SystemOverview({
                                             mode={chatMode}
                                             onModeChange={setChatMode}
                                             className="border-t border-border/40 md:border-t-0"
-                                            placeholder="Ask for a focused rewrite, improvement, or structure update..."
+                                            placeholder="Refine the overview..."
                                         />
                                     </div>
 
