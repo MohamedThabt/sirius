@@ -1,91 +1,78 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ChatInput, type ChatMode } from '@/components/Chat/ChatInput';
 import { ClientDateTime } from '@/components/ClientDateTime';
-import { ChatInput } from '@/components/Chat/ChatInput';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import { MermaidDiagram } from '@/components/MermaidDiagram';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
-import { getHealthStatus } from '@/utils/project-status';
-import { getCsrfToken, getJsonHeaders } from '@/utils/csrf';
-import { type Project, type Sections, type OverviewVersion, type ChatMessage } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { toast } from 'sonner';
+import { useResizablePanel } from '@/hooks/use-resizable-panel';
+import { type OverviewChatMessage, type OverviewVersion, type Project, type Sections } from '@/types';
+import { getHealthStatus } from '@/utils/project-status';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
-    AlertTriangleIcon,
     ArrowLeft,
     BotIcon,
     ExternalLinkIcon,
     EyeIcon,
     FileTextIcon,
+    MessageSquareIcon,
     PencilIcon,
-    RefreshCwIcon,
     SaveIcon,
     SparklesIcon,
     StarIcon,
+    UserIcon,
 } from 'lucide-react';
 import mermaid from 'mermaid';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
-import { MermaidDiagram } from '@/components/MermaidDiagram';
-import { useResizablePanel } from '@/hooks/use-resizable-panel';
-
-// WHY: Removed ~95 lines of duplicate interface and ChatInput definitions.
-// Types now imported from '@/types', ChatInput from '@/components/Chat/ChatInput'
+import { toast } from 'sonner';
 
 interface Props {
     project?: Project;
     overviewVersions: OverviewVersion[];
+    overviewChat?: OverviewChatMessage[];
     hasModules: boolean;
+    isGenerating?: boolean;
     sections?: Sections;
-    features?: unknown[];
 }
 
 export default function SystemOverview({
     project,
     overviewVersions: initialOverviewVersions,
+    overviewChat: initialOverviewChat,
     hasModules,
+    isGenerating: initialIsGenerating = false,
     sections = { overview: null, prd: null, data_modeling: null, non_functional_requirements: null },
-    features = [],
 }: Props) {
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: any } }>().props;
     const [currentVersion, setCurrentVersion] = useState<OverviewVersion | null>(null);
     const [overviewVersions, setOverviewVersions] = useState<OverviewVersion[]>(initialOverviewVersions || []);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [isInitialGeneration, setIsInitialGeneration] = useState(initialIsGenerating);
+    const [chatMessages, setChatMessages] = useState<OverviewChatMessage[]>(initialOverviewChat || []);
+    const [chatMode, setChatMode] = useState<ChatMode>('agent');
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState('');
     const [projectHasModules, setProjectHasModules] = useState(hasModules);
     const [isOpeningModuleSuggestions, setIsOpeningModuleSuggestions] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    // Fix #1: Track generation errors for retry UI
-    const [generationError, setGenerationError] = useState<string | null>(null);
+    const chatEndRef = useRef<HTMLDivElement>(null);
 
-    // Fix #10: AbortController to cancel in-flight requests on unmount
-    const activeRequestRef = useRef<AbortController | null>(null);
-
-    // Cleanup active requests on unmount
-    useEffect(() => {
-        return () => {
-            activeRequestRef.current?.abort();
-        };
-    }, []);
-
-    // Helper function to open content in new tab via form POST
     const openInNewTab = (url: string, content: string, title: string) => {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = url;
         form.target = '_blank';
-
-        const csrfToken = getCsrfToken();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         if (csrfToken) {
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';
@@ -93,26 +80,22 @@ export default function SystemOverview({
             csrfInput.value = csrfToken;
             form.appendChild(csrfInput);
         }
-
         const contentInput = document.createElement('input');
         contentInput.type = 'hidden';
         contentInput.name = 'content';
         contentInput.value = content;
         form.appendChild(contentInput);
-
         const titleInput = document.createElement('input');
         titleInput.type = 'hidden';
         titleInput.name = 'title';
         titleInput.value = title;
         form.appendChild(titleInput);
-
         document.body.appendChild(form);
         form.submit();
         document.body.removeChild(form);
     };
 
-    // WHY: Replaced ~50 lines of resize logic with shared hook
-    const { width: leftPaneWidth, isResizing, handleMouseDown, containerRef } = useResizablePanel({
+    const { width: leftPaneWidth, handleMouseDown, containerRef } = useResizablePanel({
         initialWidth: 40,
         minWidth: 20,
         maxWidth: 80,
@@ -124,264 +107,129 @@ export default function SystemOverview({
         { title: 'System Overview', href: `/projects/${project?.id}/system-overview` },
     ];
 
-    const completionPercentage = useMemo(() => {
-        return project?.progress ?? 0;
-    }, [project]);
+    const completionPercentage = useMemo(() => project?.progress ?? 0, [project]);
+    const health = useMemo(() => getHealthStatus(completionPercentage), [completionPercentage]);
 
-    const health = useMemo(() => {
-        return getHealthStatus(completionPercentage);
-    }, [completionPercentage]);
-
-    // Fix #9: Pre-sorted version lists to ensure consistent ordering
-    const sortedVersionsDesc = useMemo(
-        () => [...overviewVersions].sort((a, b) => b.version_number - a.version_number),
-        [overviewVersions],
-    );
-
-    const sortedVersionsAsc = useMemo(
-        () => [...overviewVersions].sort((a, b) => a.version_number - b.version_number),
-        [overviewVersions],
-    );
-
-    // Fix #11: Track the base version for warnings
-    const baseVersion = useMemo(
-        () => overviewVersions.find((v) => v.is_base_version) || null,
-        [overviewVersions],
-    );
-
-    // Initialize Mermaid
     useEffect(() => {
         const isDarkMode = document.documentElement.classList.contains('dark');
-        mermaid.initialize({
-            startOnLoad: false,
-            theme: isDarkMode ? 'dark' : 'default',
-            securityLevel: 'loose',
-            fontFamily: 'inherit',
-        });
+        mermaid.initialize({ startOnLoad: false, theme: isDarkMode ? 'dark' : 'default', securityLevel: 'loose', fontFamily: 'inherit' });
     }, []);
 
+    useEffect(() => {
+        if (isInitialGeneration && project) triggerAsyncGeneration();
+    }, [isInitialGeneration, project]);
 
-
-    // Initialize with overview versions from props
     useEffect(() => {
         if (initialOverviewVersions && initialOverviewVersions.length > 0) {
-            // Find the base version or use the first one
             const baseVersion = initialOverviewVersions.find((v) => v.is_base_version) || initialOverviewVersions[0];
             setCurrentVersion(baseVersion);
             setEditedContent(baseVersion.overview);
-
-            // Initialize chat messages from versions
-            const messages: ChatMessage[] = initialOverviewVersions.map((version) => ({
-                id: `version-${version.id}`,
-                type: 'assistant',
-                content: version.overview,
-                timestamp: new Date(version.created_at),
-                versionId: version.id,
-            }));
-            setChatMessages(messages);
-        } else if (project && project.overview && overviewVersions.length === 0) {
-            // Fallback to project overview if no versions exist
+        } else if (project && project.overview && overviewVersions.length === 0 && !isInitialGeneration) {
             const initialVersion: OverviewVersion = {
-                id: 0,
-                project_id: project.id,
-                overview: project.overview,
-                version_number: 1,
-                is_base_version: true,
-                user_prompt: 'Initial project overview',
-                created_at: project.created_at,
-                updated_at: project.updated_at,
+                id: 0, project_id: project.id, overview: project.overview, version_number: 1,
+                is_base_version: true, user_prompt: 'Initial project overview',
+                created_at: project.created_at, updated_at: project.updated_at,
             };
             setOverviewVersions([initialVersion]);
             setCurrentVersion(initialVersion);
             setEditedContent(initialVersion.overview);
         }
-    }, [initialOverviewVersions, project]);
+    }, [initialOverviewVersions, project, isInitialGeneration]);
 
-    // MermaidDiagram is now imported from '@/components/MermaidDiagram'
-    // Removed ~188 lines of inline component definition
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [chatMessages, isGenerating]);
 
-    // Fix #8: Async regeneration for the empty-state "Generate" button
-    // Uses fetch instead of router.post to avoid blocking the UI for 2 minutes
-    const triggerRegeneration = useCallback(async () => {
-        setIsGenerating(true);
-        setGenerationError(null);
+    const getCsrfToken = () =>
+        document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+        document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
+        document.cookie.split('; ').find((row) => row.startsWith('XSRF-TOKEN='))?.split('=')[1] || '';
 
-        activeRequestRef.current?.abort();
-        const controller = new AbortController();
-        activeRequestRef.current = controller;
-
+    const triggerAsyncGeneration = async () => {
         try {
-            const response = await fetch(`/projects/${project?.id}/system-overview/regenerate`, {
+            const response = await fetch(`/projects/${project?.id}/system-overview/generate-async`, {
                 method: 'POST',
-                headers: getJsonHeaders(),
-                signal: controller.signal,
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
             });
-
             if (response.ok) {
                 const data = await response.json();
-
                 if (data.success) {
                     setOverviewVersions(data.overviewVersions);
-
-                    const newestVersion = [...data.overviewVersions].sort(
-                        (a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number,
-                    )[0];
+                    const newestVersion = data.overviewVersions.sort((a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number)[0];
                     setCurrentVersion(newestVersion);
                     setEditedContent(newestVersion.overview);
-
-                    if (typeof data.hasModules === 'boolean') {
-                        setProjectHasModules(data.hasModules);
-                    }
-
-                    toast.success('System overview regenerated successfully!');
-                } else {
-                    throw new Error(data.message || 'Failed to regenerate overview');
-                }
+                    if (typeof data.hasModules === 'boolean') setProjectHasModules(data.hasModules);
+                    setIsInitialGeneration(false);
+                } else throw new Error(data.message || 'Failed to generate overview');
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to regenerate overview');
+                throw new Error(errorData.message || 'Failed to generate overview');
             }
         } catch (error) {
-            if (error instanceof DOMException && error.name === 'AbortError') return;
-
-            console.error('Error regenerating overview:', error);
-            const errorMsg = error instanceof Error ? error.message : 'Failed to regenerate system overview.';
-            setGenerationError(errorMsg);
-            toast.error(errorMsg);
-        } finally {
-            setIsGenerating(false);
+            console.error('Error generating overview:', error);
+            setIsInitialGeneration(false);
         }
-    }, [project?.id]);
+    };
 
-    // Handle AI prompt submission using updateWithAi controller method
-    // Fix #2: Sync editedContent after AI update
-    // Fix #3: Check data.success from response
-    // Fix #4: Show meaningful chat message with version info
-    // Fix #10: Use AbortController
     const handlePromptSubmit = async (prompt: string) => {
-        if (!prompt.trim() || isGenerating || !currentVersion) return;
-
+        if (!prompt.trim() || isGenerating) return;
         setIsGenerating(true);
         const newPrompt = prompt.trim();
-
-        // Add user message to chat
-        const userMessage: ChatMessage = {
-            id: `user-${Date.now()}`,
-            type: 'user',
-            content: newPrompt,
-            timestamp: new Date(),
+        const optimisticUserMsg: OverviewChatMessage = {
+            id: `opt-user-${Date.now()}`, type: 'message', role: 'user', content: newPrompt,
+            version_id: null, intent: null, created_at: new Date().toISOString(),
         };
-        setChatMessages((prev) => [...prev, userMessage]);
-
-        activeRequestRef.current?.abort();
-        const controller = new AbortController();
-        activeRequestRef.current = controller;
-
+        setChatMessages((prev) => [...prev, optimisticUserMsg]);
         try {
             const response = await fetch(`/projects/${project?.id}/system-overview/update-with-ai`, {
                 method: 'POST',
-                headers: getJsonHeaders(),
-                body: JSON.stringify({
-                    system_overview: currentVersion.overview,
-                    engineer_notes: newPrompt,
-                }),
-                signal: controller.signal,
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ message: newPrompt, mode: chatMode }),
             });
-
             if (response.ok) {
                 const data = await response.json();
-
-                // Fix #3: Check data.success, not just HTTP status
-                if (!data.success) {
-                    throw new Error(data.message || 'Failed to update overview with AI');
-                }
-
-                // Update the versions list with the new data
+                if (data.chat) setChatMessages(data.chat);
                 if (data.overviewVersions) {
                     setOverviewVersions(data.overviewVersions);
-
-                    const newestVersion = [...data.overviewVersions].sort(
-                        (a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number,
-                    )[0];
+                    const newestVersion = data.overviewVersions.sort((a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number)[0];
                     setCurrentVersion(newestVersion);
-                    // Fix #2: Sync editedContent so the Edit view shows correct content
                     setEditedContent(newestVersion.overview);
-
-                    // Fix #4: Meaningful chat message with version info
-                    const aiMessage: ChatMessage = {
-                        id: `ai-${Date.now()}`,
-                        type: 'assistant',
-                        content: `Overview updated to Version ${newestVersion.version_number} and set as the base version.`,
-                        timestamp: new Date(),
-                        versionId: newestVersion.id,
-                    };
-                    setChatMessages((prev) => [...prev, aiMessage]);
                 }
-
-                if (typeof data.hasModules === 'boolean') {
-                    setProjectHasModules(data.hasModules);
-                }
+                if (typeof data.hasModules === 'boolean') setProjectHasModules(data.hasModules);
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to update overview with AI');
+                throw new Error(errorData.message || 'Failed to send message');
             }
         } catch (error) {
-            if (error instanceof DOMException && error.name === 'AbortError') return;
-
-            console.error('Error updating overview with AI:', error);
-
-            const errorMessage: ChatMessage = {
-                id: `error-${Date.now()}`,
-                type: 'assistant',
+            console.error('Error in chat:', error);
+            const errorMsg: OverviewChatMessage = {
+                id: `error-${Date.now()}`, type: 'message', role: 'agent',
                 content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
-                timestamp: new Date(),
+                version_id: null, intent: null, created_at: new Date().toISOString(),
             };
-            setChatMessages((prev) => [...prev, errorMessage]);
+            setChatMessages((prev) => [...prev, errorMsg]);
         } finally {
             setIsGenerating(false);
         }
     };
 
-    // Handle manual content update using userUpdate controller method
-    // Fix #6: Use server data.overviewVersions when available instead of optimistic-only update
     const handleContentUpdate = async () => {
         if (!currentVersion || !editedContent.trim()) return;
-
         try {
             const response = await fetch(`/projects/${project?.id}/system-overview/${currentVersion.id}/user-update`, {
                 method: 'POST',
-                headers: getJsonHeaders(),
-                body: JSON.stringify({
-                    overview: editedContent,
-                }),
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ overview: editedContent }),
             });
-
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    // Fix #6: Prefer server-returned version list to stay in sync
-                    if (data.overviewVersions) {
-                        setOverviewVersions(data.overviewVersions);
-                        const updatedCurrent = data.overviewVersions.find(
-                            (v: OverviewVersion) => v.id === currentVersion.id,
-                        );
-                        if (updatedCurrent) {
-                            setCurrentVersion(updatedCurrent);
-                            setEditedContent(updatedCurrent.overview);
-                        }
-                    } else {
-                        // Fallback to local update if server doesn't return versions
-                        const updatedVersion = { ...currentVersion, overview: editedContent };
-                        setCurrentVersion(updatedVersion);
-                        setOverviewVersions((prev) =>
-                            prev.map((v) => (v.id === currentVersion.id ? updatedVersion : v)),
-                        );
-                    }
+                    const updatedVersion = { ...currentVersion, overview: editedContent };
+                    setCurrentVersion(updatedVersion);
+                    setOverviewVersions((prev) => prev.map((v) => (v.id === currentVersion.id ? updatedVersion : v)));
                     setIsEditing(false);
                     toast.success(data.message || 'Overview updated successfully');
-                } else {
-                    throw new Error(data.message || 'Failed to update overview');
-                }
+                } else throw new Error(data.message || 'Failed to update overview');
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Failed to update overview');
@@ -392,30 +240,22 @@ export default function SystemOverview({
         }
     };
 
-    // Handle marking version as base using markAsBase controller method
     const handleMarkAsBase = async (version: OverviewVersion) => {
         try {
             const response = await fetch(`/projects/${project?.id}/system-overview/${version.id}/mark-as-base`, {
                 method: 'POST',
-                headers: getJsonHeaders(),
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
             });
-
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
                     if (data.overviewVersions) {
                         setOverviewVersions(data.overviewVersions);
-                        const updatedCurrent = data.overviewVersions.find(
-                            (v: OverviewVersion) => v.id === currentVersion?.id,
-                        );
-                        if (updatedCurrent) {
-                            setCurrentVersion(updatedCurrent);
-                        }
+                        const updatedCurrent = data.overviewVersions.find((v: OverviewVersion) => v.id === currentVersion?.id);
+                        if (updatedCurrent) setCurrentVersion(updatedCurrent);
                     }
                     toast.success(data.message || 'Version marked as base successfully');
-                } else {
-                    throw new Error(data.message || 'Failed to mark version as base');
-                }
+                } else throw new Error(data.message || 'Failed to mark version as base');
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Failed to mark version as base');
@@ -432,15 +272,29 @@ export default function SystemOverview({
         setIsEditing(false);
     };
 
-    const navGroups = useMemo(() => {
-        if (!project) {
-            return [];
-        }
+    const handleChatVersionClick = (versionId: number) => {
+        const version = overviewVersions.find((v) => v.id === versionId);
+        if (version) handleVersionSelect(version);
+    };
 
-        return buildProjectNavGroups({
-            project,
-            currentPage: 'overview',
-        });
+    const displayedChatMessages = useMemo<OverviewChatMessage[]>(() => {
+        if (chatMessages.length > 0) return chatMessages;
+        return [...overviewVersions]
+            .sort((a, b) => a.version_number - b.version_number)
+            .map((version) => ({
+                id: `fallback-version-${version.id}`,
+                type: 'version' as const,
+                role: 'agent' as const,
+                content: `Version ${version.version_number.toString().padStart(2, '0')}`,
+                version_id: version.id,
+                intent: null,
+                created_at: version.created_at,
+            }));
+    }, [chatMessages, overviewVersions]);
+
+    const navGroups = useMemo(() => {
+        if (!project) return [];
+        return buildProjectNavGroups({ project, currentPage: 'overview' });
     }, [project]);
 
     return (
@@ -448,286 +302,297 @@ export default function SystemOverview({
             <Head title={`System Overview - ${project?.name || 'Project'}`} />
 
             <div className="min-h-screen bg-background">
-            {project && (
-                <div className="flex">
-                    <ProjectSidebarPanel
-                        project={project}
-                        navGroups={navGroups}
-                        completionPercentage={completionPercentage}
-                        health={health}
-                        isCollapsed={isSidebarCollapsed}
-                        user={auth.user}
-                    />
+                {project && (
+                    <div className="flex">
+                        <ProjectSidebarPanel
+                            project={project}
+                            navGroups={navGroups}
+                            completionPercentage={completionPercentage}
+                            health={health}
+                            isCollapsed={isSidebarCollapsed}
+                            user={auth.user}
+                        />
 
-                    <main className="min-w-0 flex-1">
+                        <main className="min-w-0 flex-1">
                             <div className="flex h-screen flex-col">
-                                <div className="px-4 py-4 sm:px-6 lg:px-8">
-                                    <div className="mb-4 flex items-center gap-3">
+                                {/* Top bar */}
+                                <div className="border-b border-border/60 px-4 py-3 sm:px-6 lg:px-8">
+                                    <div className="flex items-center gap-3">
                                         <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                                     </div>
                                 </div>
 
                                 <div className="flex flex-1 overflow-hidden" ref={containerRef}>
-                                    {/* Chat Section - Left Side */}
-                                    <div className="flex flex-col border-r border-border bg-background" style={{ width: `${leftPaneWidth}%` }}>
-                                        {/* Chat Header */}
-                                        <div className="flex items-center justify-between border-b border-border p-4">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                                                    <FileTextIcon className="h-4 w-4" />
+                                    {/* ─── Chat Panel ─── */}
+                                    <div className="flex flex-col bg-background" style={{ width: `${leftPaneWidth}%` }}>
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                                    <MessageSquareIcon className="h-3.5 w-3.5" />
                                                 </div>
-                                                <div>
-                                                    <h2 className="text-lg font-semibold">Versions</h2>
-                                                    <p className="text-sm text-muted-foreground">{project?.name || 'Project'}</p>
+                                                <div className="leading-tight">
+                                                    <h2 className="text-sm font-semibold">Overview Chat</h2>
+                                                    <p className="text-[11px] text-muted-foreground">{project?.name || 'Project'}</p>
                                                 </div>
                                             </div>
                                             <Button
-                                                variant="outline"
+                                                variant="ghost"
                                                 size="sm"
                                                 onClick={() => router.visit(`/projects/${project?.id}`)}
-                                                className="flex items-center gap-2 border-primary/20 hover:border-primary/30 hover:bg-primary/10"
-                                                title="Back to Project"
+                                                className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
                                             >
-                                                <ArrowLeft className="h-4 w-4" />
-                                                <span className="font-medium">Back</span>
+                                                <ArrowLeft className="h-3.5 w-3.5" />
+                                                Back
                                             </Button>
                                         </div>
 
-                                        {/* Version History */}
-                                        <ScrollArea className="flex-1 p-4">
-                                            <div className="space-y-4">
-                                                {sortedVersionsDesc.length > 0 ? (
-                                                    sortedVersionsDesc.map((version) => (
-                                                            <div
-                                                                key={version.id}
-                                                                className={`cursor-pointer rounded-lg border p-3 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                                                                    currentVersion?.id === version.id
-                                                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                                                        : 'border-slate-200 dark:border-slate-700'
-                                                                }`}
-                                                                onClick={() => handleVersionSelect(version)}
-                                                            >
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex items-center space-x-3">
-                                                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-                                                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                                                v{version.version_number}
+                                        {/* Messages */}
+                                        <ScrollArea className="flex-1">
+                                            <div className="space-y-1 px-3 py-3">
+                                                {isInitialGeneration ? (
+                                                    <div className="flex h-40 items-center justify-center">
+                                                        <div className="text-center">
+                                                            <TextShimmer className="text-sm font-medium">Generating overview...</TextShimmer>
+                                                            <p className="mt-1 text-xs text-muted-foreground">This may take a moment</p>
+                                                        </div>
+                                                    </div>
+                                                ) : displayedChatMessages.length > 0 ? (
+                                                    displayedChatMessages.map((msg) => {
+                                                        const isUser = msg.role === 'user';
+                                                        return (
+                                                            <div key={msg.id} className={`group flex gap-2.5 py-2 ${isUser ? 'flex-row-reverse' : ''}`}>
+                                                                <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${
+                                                                    isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                                                                }`}>
+                                                                    {isUser
+                                                                        ? <UserIcon className="h-3 w-3" />
+                                                                        : <BotIcon className="h-3 w-3 text-muted-foreground" />
+                                                                    }
+                                                                </div>
+                                                                <div className={`max-w-[85%] space-y-1 ${isUser ? 'text-right' : ''}`}>
+                                                                    <div className={`inline-block rounded-xl px-3 py-2 text-[13px] leading-relaxed ${
+                                                                        isUser
+                                                                            ? 'bg-primary text-primary-foreground'
+                                                                            : 'bg-muted/60 text-foreground'
+                                                                    }`}>
+                                                                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                                                                    </div>
+
+                                                                    {msg.type === 'version' && msg.version_id && (
+                                                                        <div className={isUser ? 'flex justify-end' : ''}>
+                                                                            <button
+                                                                                onClick={() => handleChatVersionClick(msg.version_id!)}
+                                                                                className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
+                                                                            >
+                                                                                <FileTextIcon className="h-3 w-3" />
+                                                                                View Version
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div className={`flex items-center gap-1.5 ${isUser ? 'justify-end' : ''}`}>
+                                                                        {msg.intent && !isUser && (
+                                                                            <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${
+                                                                                msg.intent === 'execute'
+                                                                                    ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+                                                                                    : msg.intent === 'suggest'
+                                                                                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                                                                      : 'bg-muted text-muted-foreground'
+                                                                            }`}>
+                                                                                {msg.intent}
                                                                             </span>
-                                                                        </div>
-                                                                        <div>
-                                                                            <div className="flex items-center space-x-2">
-                                                                                <span className="text-sm font-medium text-slate-800 dark:text-white">
-                                                                                    Version {version.version_number}
-                                                                                </span>
-                                                                                {version.is_base_version && (
-                                                                                    <StarIcon className="h-4 w-4 text-yellow-500" />
-                                                                                )}
-                                                                            </div>
-                                                                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                                                <ClientDateTime value={version.created_at} dateStyle="short" />
-                                                                            </p>
-                                                                        </div>
+                                                                        )}
+                                                                        <span className="text-[10px] text-muted-foreground/50">
+                                                                            <ClientDateTime value={msg.created_at} dateStyle="long" timeStyle="short" />
+                                                                        </span>
                                                                     </div>
                                                                 </div>
-
-                                                                {version.user_prompt && (
-                                                                    <div className="mt-2">
-                                                                        <p className="line-clamp-2 text-sm text-slate-600 dark:text-slate-400">
-                                                                            {version.user_prompt}
-                                                                        </p>
-                                                                    </div>
-                                                                )}
                                                             </div>
-                                                        ))
+                                                        );
+                                                    })
                                                 ) : (
-                                                    <div className="flex h-32 items-center justify-center">
+                                                    <div className="flex h-40 items-center justify-center">
                                                         <div className="text-center">
-                                                            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-                                                                <FileTextIcon className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+                                                            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                                                                <MessageSquareIcon className="h-5 w-5 text-muted-foreground" />
                                                             </div>
-                                                            <p className="text-sm text-slate-500 dark:text-slate-400">No versions yet</p>
-                                                            <p className="text-xs text-slate-400 dark:text-slate-500">
-                                                                Start a conversation to create your first version
-                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">No messages yet</p>
+                                                            <p className="text-xs text-muted-foreground/60">Start a conversation to improve your overview</p>
                                                         </div>
                                                     </div>
                                                 )}
 
                                                 {isGenerating && (
-                                                    <div className="flex justify-start">
-                                                        <div className="flex max-w-[80%] space-x-3">
-                                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-                                                                <BotIcon className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                                                            </div>
-                                                            <div className="rounded-2xl bg-slate-100 px-4 py-3 dark:bg-slate-800">
-                                                                <TextShimmer className="text-sm text-slate-600 dark:text-slate-400">
-                                                                    Editing overview...
-                                                                </TextShimmer>
-                                                            </div>
+                                                    <div className="flex gap-2.5 py-2">
+                                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted">
+                                                            <BotIcon className="h-3 w-3 text-muted-foreground" />
+                                                        </div>
+                                                        <div className="rounded-xl bg-muted/60 px-3 py-2">
+                                                            <TextShimmer className="text-[13px]">Thinking...</TextShimmer>
                                                         </div>
                                                     </div>
                                                 )}
+                                                <div ref={chatEndRef} />
                                             </div>
                                         </ScrollArea>
 
-                                        {/* Fix #11: Warning when viewing a non-base version */}
-                                        {currentVersion &&
-                                            !currentVersion.is_base_version &&
-                                            baseVersion &&
-                                            overviewVersions.length > 1 && (
-                                                <div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-50 px-3 py-2 text-sm text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
-                                                    <AlertTriangleIcon className="h-4 w-4 flex-shrink-0" />
-                                                    <span>
-                                                        Viewing v{currentVersion.version_number} — AI edits will be based
-                                                        on this version, not the base (v{baseVersion.version_number}).
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                        {/* Chat Input */}
-                                        <ChatInput onSubmit={handlePromptSubmit} isGenerating={isGenerating} />
+                                        {/* Composer (mode chips are inside ChatInput now) */}
+                                        <ChatInput
+                                            onSubmit={handlePromptSubmit}
+                                            isGenerating={isGenerating}
+                                            mode={chatMode}
+                                            onModeChange={setChatMode}
+                                        />
                                     </div>
 
                                     {/* Resize Handle */}
                                     <div
-                                        className="group relative w-1 cursor-col-resize bg-border transition-colors duration-200 hover:bg-primary/50"
+                                        className="group relative w-px cursor-col-resize bg-border/60 transition-colors duration-200 hover:bg-primary/40"
                                         onMouseDown={handleMouseDown}
                                     >
-                                        <div className="absolute inset-y-0 -right-1 -left-1 transition-colors duration-200 group-hover:bg-primary/20" />
+                                        <div className="absolute inset-y-0 -right-1 -left-1" />
                                     </div>
 
-                                    {/* Result Section - Right Side */}
+                                    {/* ─── Result Panel ─── */}
                                     <div className="flex flex-col bg-background" style={{ width: `${100 - leftPaneWidth}%` }}>
-                                        {/* Result Header */}
-                                        <div className="flex items-center justify-between border-b border-border p-4">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                                                    <FileTextIcon className="h-4 w-4" />
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                                    <FileTextIcon className="h-3.5 w-3.5" />
                                                 </div>
-                                                <div>
-                                                    <h2 className="text-lg font-semibold">System Overview</h2>
+                                                <div className="leading-tight">
+                                                    <h2 className="text-sm font-semibold">System Overview</h2>
                                                     {currentVersion && (
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Version {currentVersion.version_number.toString().padStart(2, '0')}
+                                                        <p className="text-[11px] text-muted-foreground">
+                                                            v{currentVersion.version_number.toString().padStart(2, '0')}
                                                             {currentVersion.is_base_version && (
-                                                                <span className="ml-2 inline-flex items-center text-yellow-600">
-                                                                    <StarIcon className="mr-1 h-3 w-3" />
-                                                                    Base Version
+                                                                <span className="ml-1.5 inline-flex items-center text-yellow-600 dark:text-yellow-500">
+                                                                    <StarIcon className="mr-0.5 h-2.5 w-2.5" />
+                                                                    Base
                                                                 </span>
                                                             )}
                                                         </p>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center space-x-2">
+                                            <div className="flex items-center gap-1.5">
                                                 {!projectHasModules && (
                                                     <Button
+                                                        size="sm"
                                                         onClick={() => {
                                                             setIsOpeningModuleSuggestions(true);
                                                             router.visit(`/modules/create/${project?.id}`);
                                                         }}
-                                                        className="rounded-lg border border-primary/20 bg-primary/5 text-primary backdrop-blur-sm transition-all duration-200 hover:border-primary/30 hover:bg-primary/10"
+                                                        className="h-7 gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-2.5 text-xs text-primary hover:bg-primary/10"
                                                         disabled={
                                                             !currentVersion ||
                                                             !(currentVersion.overview && currentVersion.overview.trim().length > 0) ||
                                                             isOpeningModuleSuggestions
                                                         }
                                                     >
-                                                        <SparklesIcon className="mr-2 h-4 w-4" />
-                                                        Generate Modules
+                                                        <SparklesIcon className="h-3 w-3" />
+                                                        Modules
                                                     </Button>
                                                 )}
                                                 <Button
-                                                    variant="outline"
+                                                    variant="ghost"
+                                                    size="sm"
                                                     onClick={() => setIsEditing(!isEditing)}
-                                                    className="rounded-xl"
+                                                    className="h-7 gap-1.5 px-2 text-xs"
                                                     disabled={isGenerating}
                                                 >
-                                                    {isEditing ? <EyeIcon className="mr-2 h-4 w-4" /> : <PencilIcon className="mr-2 h-4 w-4" />}
+                                                    {isEditing ? <EyeIcon className="h-3 w-3" /> : <PencilIcon className="h-3 w-3" />}
                                                     {isEditing ? 'Preview' : 'Edit'}
                                                 </Button>
                                                 {currentVersion?.overview && (
                                                     <Button
-                                                        variant="outline"
-                                                        onClick={() => openInNewTab(
-                                                            `/projects/${project?.id}/system-overview/preview`,
-                                                            currentVersion.overview,
-                                                            'System Overview'
-                                                        )}
-                                                        className="rounded-xl"
-                                                        title="Open System Overview in new tab"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => openInNewTab(`/projects/${project?.id}/system-overview/preview`, currentVersion.overview, 'System Overview')}
+                                                        className="h-7 gap-1.5 px-2 text-xs"
                                                     >
-                                                        <ExternalLinkIcon className="mr-2 h-4 w-4" />
-                                                        Overview
+                                                        <ExternalLinkIcon className="h-3 w-3" />
+                                                        Open
                                                     </Button>
                                                 )}
                                                 {sections?.prd && (
                                                     <Button
-                                                        variant="outline"
-                                                        onClick={() => openInNewTab(
-                                                            `/projects/${project?.id}/prd/preview`,
-                                                            sections.prd!,
-                                                            'Product Requirements Document'
-                                                        )}
-                                                        className="rounded-xl"
-                                                        title="Open PRD in new tab"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => openInNewTab(`/projects/${project?.id}/prd/preview`, sections.prd!, 'PRD')}
+                                                        className="h-7 gap-1.5 px-2 text-xs"
                                                     >
-                                                        <ExternalLinkIcon className="mr-2 h-4 w-4" />
+                                                        <ExternalLinkIcon className="h-3 w-3" />
                                                         PRD
                                                     </Button>
                                                 )}
                                                 {currentVersion && !currentVersion.is_base_version && (
                                                     <Button
+                                                        size="sm"
                                                         onClick={() => handleMarkAsBase(currentVersion)}
-                                                        className="rounded-xl"
+                                                        className="h-7 gap-1.5 px-2 text-xs"
                                                         disabled={isGenerating}
                                                     >
-                                                        <StarIcon className="mr-2 h-4 w-4" />
-                                                        Mark as Base
+                                                        <StarIcon className="h-3 w-3" />
+                                                        Set Base
                                                     </Button>
                                                 )}
                                             </div>
                                         </div>
 
-                                        {/* Version Selector */}
-                                        {overviewVersions.length > 0 && (
-                                            <div className="border-b border-border p-4">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {sortedVersionsAsc.map((version) => (
-                                                        <Button
+                                        {/* Version pills */}
+                                        {!isInitialGeneration && overviewVersions.length > 0 && (
+                                            <div className="border-b border-border/40 px-4 py-2">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {overviewVersions.map((version) => (
+                                                        <button
                                                             key={version.id}
-                                                            variant={currentVersion?.id === version.id ? 'default' : 'outline'}
-                                                            size="sm"
                                                             onClick={() => handleVersionSelect(version)}
+                                                            className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                                                                currentVersion?.id === version.id
+                                                                    ? 'bg-primary text-primary-foreground'
+                                                                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                                                            }`}
                                                         >
                                                             v{version.version_number.toString().padStart(2, '0')}
-                                                            {version.is_base_version && <StarIcon className="ml-1 h-3 w-3" />}
-                                                        </Button>
+                                                            {version.is_base_version && <StarIcon className="h-2.5 w-2.5" />}
+                                                        </button>
                                                     ))}
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* Content Area */}
-                                        <ScrollArea className="flex-1 p-6">
-                                            {currentVersion ? (
-                                                <Card>
+                                        {/* Content area */}
+                                        <ScrollArea className="flex-1 p-4">
+                                            {isInitialGeneration ? (
+                                                <Card className="border-border/60">
+                                                    <CardContent className="p-0">
+                                                        <div className="flex h-64 items-center justify-center">
+                                                            <div className="text-center">
+                                                                <TextShimmer className="text-xl font-semibold">Generating System Overview...</TextShimmer>
+                                                                <p className="mt-3 text-sm text-muted-foreground">This may take a moment</p>
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            ) : currentVersion ? (
+                                                <Card className="border-border/60">
                                                     <CardContent className="p-0">
                                                         {isEditing ? (
                                                             <div className="flex flex-col">
-                                                                <div className="border-b border-border bg-muted/50 p-3">
-                                                                    <div className="flex items-center justify-between">
-                                                                        <h3 className="text-sm font-medium">Edit Overview</h3>
-                                                                        <div className="flex items-center space-x-2">
-                                                                            <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                                                                                Cancel
-                                                                            </Button>
-                                                                            <Button size="sm" onClick={handleContentUpdate} disabled={isGenerating}>
-                                                                                <SaveIcon className="mr-1 h-3 w-3" />
-                                                                                Save Changes
-                                                                            </Button>
-                                                                        </div>
+                                                                <div className="flex items-center justify-between border-b border-border/60 bg-muted/30 px-4 py-2">
+                                                                    <h3 className="text-xs font-medium text-muted-foreground">Editing Markdown</h3>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setIsEditing(false)}>
+                                                                            Cancel
+                                                                        </Button>
+                                                                        <Button size="sm" className="h-7 gap-1 px-2.5 text-xs" onClick={handleContentUpdate} disabled={isGenerating}>
+                                                                            <SaveIcon className="h-3 w-3" />
+                                                                            Save
+                                                                        </Button>
                                                                     </div>
                                                                 </div>
                                                                 <Textarea
@@ -740,7 +605,7 @@ export default function SystemOverview({
                                                             </div>
                                                         ) : (
                                                             <div className="p-6">
-                                                                <div className="prose prose-slate dark:prose-invert prose-table-bordered max-w-none">
+                                                                <div className="prose prose-sm prose-slate dark:prose-invert prose-table-bordered max-w-none">
                                                                     <ReactMarkdown
                                                                         remarkPlugins={[remarkGfm]}
                                                                         rehypePlugins={[rehypeRaw]}
@@ -749,7 +614,6 @@ export default function SystemOverview({
                                                                                 const match = /language-(\w+)/.exec(className || '');
                                                                                 const language = match ? match[1] : '';
                                                                                 const isInline = !className?.includes('language-');
-
                                                                                 if (language === 'mermaid' && !isInline) {
                                                                                     return (
                                                                                         <MermaidDiagram projectId={project?.id} previewTitle="System Overview Diagram">
@@ -757,12 +621,7 @@ export default function SystemOverview({
                                                                                         </MermaidDiagram>
                                                                                     );
                                                                                 }
-
-                                                                                return (
-                                                                                    <code className={className} {...props}>
-                                                                                        {children}
-                                                                                    </code>
-                                                                                );
+                                                                                return <code className={className} {...props}>{children}</code>;
                                                                             },
                                                                         }}
                                                                     >
@@ -776,59 +635,23 @@ export default function SystemOverview({
                                             ) : (
                                                 <div className="flex h-96 items-center justify-center">
                                                     <div className="text-center">
-                                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-                                                            {/* Fix #1: Show error icon when generation failed */}
-                                                            {generationError ? (
-                                                                <AlertTriangleIcon className="h-8 w-8 text-red-400 dark:text-red-500" />
-                                                            ) : (
-                                                                <FileTextIcon className="h-8 w-8 text-slate-400 dark:text-slate-500" />
-                                                            )}
+                                                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+                                                            <FileTextIcon className="h-6 w-6 text-muted-foreground" />
                                                         </div>
-
-                                                        {/* Fix #1: Show error state with retry when generation fails */}
-                                                        {generationError ? (
-                                                            <>
-                                                                <h3 className="mb-2 text-lg font-semibold text-red-600 dark:text-red-400">
-                                                                    Generation Failed
-                                                                </h3>
-                                                                <p className="mb-1 max-w-md text-sm text-slate-600 dark:text-white/70">
-                                                                    {generationError}
-                                                                </p>
-                                                                <div className="mt-4">
-                                                                    <Button
-                                                                        onClick={() => {
-                                                                            setGenerationError(null);
-                                                                            triggerRegeneration();
-                                                                        }}
-                                                                    >
-                                                                        <RefreshCwIcon className="mr-2 h-4 w-4" />
-                                                                        Retry Generation
-                                                                    </Button>
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <h3 className="mb-2 text-lg font-semibold text-slate-800 dark:text-white">
-                                                                    No Overview Available
-                                                                </h3>
-                                                                <p className="text-slate-600 dark:text-white/70">
-                                                                    Start a conversation to generate your first system overview.
-                                                                </p>
-                                                                <div className="mt-4">
-                                                                    {/* Fix #8: Use async fetch instead of blocking router.post */}
-                                                                    <Button
-                                                                        onClick={triggerRegeneration}
-                                                                        disabled={isGenerating}
-                                                                    >
-                                                                        {isGenerating ? (
-                                                                            <TextShimmer>Generating...</TextShimmer>
-                                                                        ) : (
-                                                                            'Generate System Overview'
-                                                                        )}
-                                                                    </Button>
-                                                                </div>
-                                                            </>
-                                                        )}
+                                                        <h3 className="mb-1 text-sm font-semibold">No Overview Available</h3>
+                                                        <p className="mb-4 text-xs text-muted-foreground">
+                                                            Start a conversation to generate your first system overview.
+                                                        </p>
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setIsInitialGeneration(true);
+                                                                router.post(`/projects/${project?.id}/system-overview/regenerate`, {}, { preserveScroll: true });
+                                                            }}
+                                                            disabled={isInitialGeneration}
+                                                        >
+                                                            {isInitialGeneration ? <TextShimmer>Generating...</TextShimmer> : 'Generate System Overview'}
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             )}
@@ -841,14 +664,13 @@ export default function SystemOverview({
                 )}
             </div>
 
-            {/* Overlay Loading when opening Module Suggestions */}
             {isOpeningModuleSuggestions && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
                     <div className="flex flex-col items-center space-y-4 rounded-lg border bg-card p-8 shadow-lg">
                         <div className="relative">
-                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="h-6 w-6 animate-pulse rounded-full bg-primary/20"></div>
+                                <div className="h-6 w-6 animate-pulse rounded-full bg-primary/20" />
                             </div>
                         </div>
                         <div className="space-y-1 text-center">

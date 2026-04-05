@@ -11,26 +11,16 @@ A comprehensive development project with multiple services including a FastAPI b
 npm run dev
 ```
 
-This will open two separate terminal windows:
-- **Laravel Server**: http://localhost:8000  
-- **FastAPI Server**: http://localhost:8005
+This runs [concurrently](https://www.npmjs.com/package/concurrently) in **one** terminal with three processes:
+- **Laravel** (Composer `dev`: PHP, queue, Vite): http://localhost:8000  
+- **FastAPI** (Uvicorn): http://localhost:8005  
+- **LiteLLM proxy** (matches `LITELLM_BASE_URL` in `fastAPI/.env`): http://localhost:4000  
 
-### Alternative: PowerShell Scripts
-```powershell
-.\start-dev.ps1
-```
+Run `npm run setup:fastapi` once so `fastAPI/venv` exists before `npm run dev`.
 
-### Windows (Batch)
-```cmd
-start-dev.bat
-```
+The root `package.json` scripts use `fastAPI\venv\Scripts\python.exe` (Windows paths). On macOS or Linux, use **Option 2: Manual Startup** below or adjust paths to `venv/bin/python`.
 
-### Linux/macOS
-```bash
-./start-dev.sh
-```
-
-These scripts will automatically start both Laravel and FastAPI services. See [START-HERE.md](START-HERE.md) for detailed instructions.
+If you prefer separate terminals, use the manual steps under [Development Workflow](#development-workflow) below.
 
 ## Project Structure
 
@@ -38,17 +28,17 @@ These scripts will automatically start both Laravel and FastAPI services. See [S
 - **`laravel/`** - Laravel web application with Inertia.js and React frontend
 - **`db/`** - Database design and visualization tools
 - **`docs/`** - Project documentation
-- **`start-dev.*`** - Development environment startup scripts
-- **`START-HERE.md`** - Quick start guide for the monorepo
+- **`package.json`** - Root `npm run dev` / `setup:*` scripts for the full stack
 
 ## FastAPI Server Setup
 
-The FastAPI server provides AI-powered software requirements generation using Google's Gemini AI.
+The FastAPI server provides AI-powered software requirements generation (Gemini via LiteLLM).
 
 ### Prerequisites
 
 - Python 3.8+ installed on your system
-- A Google API key for Gemini AI ([Get one here](https://aistudio.google.com/app/apikey))
+- At least one Gemini API key ([Google AI Studio](https://aistudio.google.com/app/apikey)), configured in `fastAPI/.env` as `GEMINI_API_KEY_1` (see `fastAPI/.env.example`)
+- For full local stack, run the **LiteLLM proxy** on port 4000 (`npm run dev` starts it automatically)
 
 ### Installation Steps
 
@@ -82,14 +72,7 @@ The FastAPI server provides AI-powered software requirements generation using Go
 
 5. **Set up environment variables:**
 
-   **Option A - Copy from example (Recommended):**
-   Create a `.env.example` file in the `fastAPI` directory:
-
-   ```env
-   GOOGLE_API_KEY=your_google_api_key_here
-   ```
-
-   Then copy it to create your `.env` file:
+   Copy the example file in `fastAPI/` and edit values:
 
    ```bash
    # Windows
@@ -99,20 +82,22 @@ The FastAPI server provides AI-powered software requirements generation using Go
    cp .env.example .env
    ```
 
-   **Option B - Create directly:**
-   Create a `.env` file in the `fastAPI` directory:
+   At minimum for local AI calls, set at least one Gemini key and point LiteLLM at your proxy (see `fastAPI/.env.example` for `GEMINI_API_KEY_*`, `LITELLM_BASE_URL`, optional Langfuse keys).
 
-   ```env
-   GOOGLE_API_KEY=your_google_api_key_here
-   ```
+6. **Start the FastAPI server** (from the virtual environment, from the `src` directory):
 
-   Replace `your_google_api_key_here` with your actual Google API key.
-
-6. **Start the FastAPI server:**
    ```bash
    cd src
    uvicorn main:app --reload --host 0.0.0.0 --port 8005
    ```
+
+   If `uvicorn` is not on your PATH after activating the venv, use:
+
+   ```bash
+   python -m uvicorn main:app --reload --host 0.0.0.0 --port 8005
+   ```
+
+   **Troubleshooting:** If you see `ModuleNotFoundError` (for example `langgraph.checkpoint.sqlite`), ensure you ran `pip install -r requirements.txt` **inside** the same `venv` you use to run Uvicorn.
 
 ### Port Configuration
 
@@ -132,22 +117,20 @@ Once running, the FastAPI server will be available at:
 
 #### Available Endpoints
 
-- **POST `/generate-requirements`** - Generate structured software requirements from project descriptions
+Interactive docs list all routes. Common examples:
 
-**Example Request:**
+- **POST `/v1/Overview/generate`** - Generate a system overview from a project description  
+- **POST `/v1/chat/generate-intent`** - Intent-routed overview chat (used by the Laravel System Overview page)
+
+**Example (OpenAPI / health):**
 
 ```bash
-curl -X POST "http://localhost:8005/generate-requirements" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "project_description": "A task management app for teams",
-    "parse_response": true
-  }'
+curl "http://localhost:8005/docs"
 ```
 
 ### Testing the Server
 
-You can test the server by visiting `http://localhost:8005/docs` in your browser or using the curl command above.
+You can test the server by visiting `http://localhost:8005/docs` in your browser.
 
 ## Laravel Server Setup
 
@@ -223,44 +206,50 @@ The Laravel application provides the web interface and frontend for the Sirius p
 ## Development Workflow
 
 ### Option 1: Quick Start (Recommended)
-Use the provided startup scripts to run everything at once:
 
-```powershell
-# Windows PowerShell
-.\start-dev.ps1
+From the repository root:
 
-# Windows Batch
-start-dev.bat
-
-# Linux/macOS
-./start-dev.sh
+```bash
+npm run setup:fastapi   # first time only: creates fastAPI/venv and installs Python deps
+npm run dev             # Laravel + FastAPI + LiteLLM proxy
 ```
 
 ### Option 2: Manual Startup
+
 If you prefer to start services individually:
 
-1. **Start the Laravel development server** (includes PHP server, queue worker, and Vite):
+1. **LiteLLM proxy** (if your `fastAPI/.env` uses `LITELLM_BASE_URL=http://localhost:4000`):
+
+   ```bash
+   cd fastAPI
+   # Windows: venv\Scripts\activate  |  Linux/macOS: source venv/bin/activate
+   set PYTHONIOENCODING=utf-8   # Windows CMD; optional on Unix
+   litellm --config configllm.yaml --port 4000
+   ```
+
+2. **Start the Laravel development server** (includes PHP server, queue worker, and Vite):
 
    ```bash
    cd laravel
    composer dev
    ```
 
-2. **Start the FastAPI server** on port 8005:
+3. **Start the FastAPI server** on port 8005:
 
    ```bash
    cd fastAPI
-   venv\Scripts\activate  # Windows
-   # source venv/bin/activate  # Linux/macOS
+   # Windows: venv\Scripts\activate  |  Linux/macOS: source venv/bin/activate
    cd src
    uvicorn main:app --reload --host 0.0.0.0 --port 8005
    ```
 
-3. Both services can run simultaneously without conflicts:
+Services work together as follows:
+
    - **Laravel Web App**: `http://localhost:8000`
    - **FastAPI Backend**: `http://localhost:8005`
    - **API Documentation**: `http://localhost:8005/docs`
-   - **Vite Dev Server**: `http://localhost:5173` (for hot reloading)
+   - **LiteLLM proxy** (when used): `http://localhost:4000`
+   - **Vite Dev Server**: `http://localhost:5173` (started by `composer dev`)
 
 ## Dependencies
 
