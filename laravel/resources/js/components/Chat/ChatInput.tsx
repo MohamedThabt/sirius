@@ -42,6 +42,7 @@ export function ChatInput({
 
     const resetHeight = () => {
         if (textareaRef.current) {
+            textareaRef.current.style.overflowY = 'hidden';
             textareaRef.current.style.height = 'auto';
         }
     };
@@ -49,8 +50,9 @@ export function ChatInput({
     useEffect(() => {
         const el = textareaRef.current;
         if (!el) return;
+        el.style.overflowY = 'hidden';
         el.style.height = 'auto';
-        el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+        el.style.height = `${el.scrollHeight}px`;
     }, [promptInput]);
 
     const showModeControls = mode !== undefined && onModeChange !== undefined;
@@ -61,7 +63,7 @@ export function ChatInput({
     };
 
     return (
-        <div className={`p-3 ${className}`}>
+        <div className={`p-2.5 sm:p-3 ${className}`}>
             <form onSubmit={handleSubmit}>
                 <div className="rounded-xl border border-border bg-card shadow-sm">
                     <textarea
@@ -70,7 +72,7 @@ export function ChatInput({
                         onChange={(e) => setPromptInput(e.target.value)}
                         placeholder={placeholder}
                         rows={1}
-                        className="block w-full resize-none border-0 bg-transparent px-4 pt-3 pb-2 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
+                        className="block w-full resize-none overflow-y-hidden border-0 bg-transparent px-3.5 pt-3 pb-2 text-[13px] leading-relaxed text-foreground placeholder:text-muted-foreground/70 focus:outline-none sm:px-4 sm:text-sm"
                         disabled={isGenerating}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
@@ -82,7 +84,7 @@ export function ChatInput({
                         }}
                     />
 
-                    <div className="flex items-center justify-between px-3 pb-2.5">
+                    <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5 sm:px-3">
                         <div className="flex items-center gap-1.5">
                             {showModeControls && (
                                 <DropdownMenu>
@@ -90,7 +92,7 @@ export function ChatInput({
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            className="h-7 rounded-lg border-border/70 px-2.5 text-xs"
+                                            className="h-8 rounded-lg border-border/70 px-2.5 text-xs sm:h-7"
                                         >
                                             {mode && (
                                                 <>
@@ -128,7 +130,7 @@ export function ChatInput({
                             )}
                         </div>
 
-                        <Button type="submit" size="icon" className="h-8 w-8 shrink-0 rounded-lg" disabled={isDisabled} aria-label="Send message">
+                        <Button type="submit" size="icon" className="h-9 w-9 shrink-0 rounded-lg sm:h-8 sm:w-8" disabled={isDisabled} aria-label="Send message">
                             {isGenerating ? <TextShimmer className="text-[10px]">...</TextShimmer> : <ArrowUpIcon className="h-4 w-4" />}
                         </Button>
                     </div>

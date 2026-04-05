@@ -7,12 +7,15 @@ import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useResizablePanel } from '@/hooks/use-resizable-panel';
-import { type OverviewChatMessage, type OverviewVersion, type Project, type Sections } from '@/types';
+import { type OverviewChatMessage, type OverviewVersion, type Project, type Sections, type User } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
@@ -21,6 +24,7 @@ import {
     ExternalLinkIcon,
     EyeIcon,
     FileTextIcon,
+    MoreHorizontal as MoreHorizontalIcon,
     MessageSquareIcon,
     PencilIcon,
     SaveIcon,
@@ -29,7 +33,7 @@ import {
     UserIcon,
 } from 'lucide-react';
 import mermaid from 'mermaid';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -44,6 +48,8 @@ interface Props {
     sections?: Sections;
 }
 
+type MobilePanel = 'chat' | 'overview';
+
 export default function SystemOverview({
     project,
     overviewVersions: initialOverviewVersions,
@@ -53,7 +59,7 @@ export default function SystemOverview({
     sections = { overview: null, prd: null, data_modeling: null, non_functional_requirements: null },
 }: Props) {
     useFlashToasts();
-    const { auth } = usePage<{ auth: { user: any } }>().props;
+    const { auth } = usePage<{ auth: { user: User } }>().props;
     const [currentVersion, setCurrentVersion] = useState<OverviewVersion | null>(null);
     const [overviewVersions, setOverviewVersions] = useState<OverviewVersion[]>(initialOverviewVersions || []);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -65,7 +71,9 @@ export default function SystemOverview({
     const [projectHasModules, setProjectHasModules] = useState(hasModules);
     const [isOpeningModuleSuggestions, setIsOpeningModuleSuggestions] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [mobilePanel, setMobilePanel] = useState<MobilePanel>('chat');
     const chatEndRef = useRef<HTMLDivElement>(null);
+    const isMobile = useIsMobile();
 
     const openInNewTab = (url: string, content: string, title: string) => {
         const form = document.createElement('form');
@@ -116,10 +124,6 @@ export default function SystemOverview({
     }, []);
 
     useEffect(() => {
-        if (isInitialGeneration && project) triggerAsyncGeneration();
-    }, [isInitialGeneration, project]);
-
-    useEffect(() => {
         if (initialOverviewVersions && initialOverviewVersions.length > 0) {
             const baseVersion = initialOverviewVersions.find((v) => v.is_base_version) || initialOverviewVersions[0];
             setCurrentVersion(baseVersion);
@@ -134,18 +138,19 @@ export default function SystemOverview({
             setCurrentVersion(initialVersion);
             setEditedContent(initialVersion.overview);
         }
-    }, [initialOverviewVersions, project, isInitialGeneration]);
+    }, [initialOverviewVersions, project, isInitialGeneration, overviewVersions.length]);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatMessages, isGenerating]);
 
-    const getCsrfToken = () =>
+    const getCsrfToken = useCallback(() =>
         document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
         document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
-        document.cookie.split('; ').find((row) => row.startsWith('XSRF-TOKEN='))?.split('=')[1] || '';
+        document.cookie.split('; ').find((row) => row.startsWith('XSRF-TOKEN='))?.split('=')[1] || '',
+    []);
 
-    const triggerAsyncGeneration = async () => {
+    const triggerAsyncGeneration = useCallback(async () => {
         try {
             const response = await fetch(`/projects/${project?.id}/system-overview/generate-async`, {
                 method: 'POST',
@@ -169,7 +174,11 @@ export default function SystemOverview({
             console.error('Error generating overview:', error);
             setIsInitialGeneration(false);
         }
-    };
+    }, [project?.id, getCsrfToken]);
+
+    useEffect(() => {
+        if (isInitialGeneration && project) triggerAsyncGeneration();
+    }, [isInitialGeneration, project, triggerAsyncGeneration]);
 
     const handlePromptSubmit = async (prompt: string) => {
         if (!prompt.trim() || isGenerating) return;
@@ -274,7 +283,12 @@ export default function SystemOverview({
 
     const handleChatVersionClick = (versionId: number) => {
         const version = overviewVersions.find((v) => v.id === versionId);
-        if (version) handleVersionSelect(version);
+        if (version) {
+            handleVersionSelect(version);
+            if (isMobile) {
+                setMobilePanel('overview');
+            }
+        }
     };
 
     const displayedChatMessages = useMemo<OverviewChatMessage[]>(() => {
@@ -312,6 +326,9 @@ export default function SystemOverview({
         return buildProjectNavGroups({ project, currentPage: 'overview' });
     }, [project]);
 
+    const hasSecondaryActions =
+        !projectHasModules || Boolean(sections?.prd) || Boolean(currentVersion && !currentVersion.is_base_version);
+
     return (
         <>
             <Head title={`System Overview - ${project?.name || 'Project'}`} />
@@ -331,41 +348,73 @@ export default function SystemOverview({
                         <main className="min-w-0 flex-1">
                             <div className="flex h-screen flex-col">
                                 {/* Top bar */}
-                                <div className="border-b border-border/60 px-4 py-3 sm:px-6 lg:px-8">
-                                    <div className="flex items-center gap-3">
-                                        <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-                                        <Breadcrumbs breadcrumbs={breadcrumbs} />
+                                <div className="border-b border-border/50 bg-card/20 px-4 py-3 sm:px-6 lg:px-8">
+                                    <div className="flex items-center justify-between gap-2 sm:gap-3">
+                                        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                                            <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+                                            <div className="min-w-0 flex-1 overflow-hidden">
+                                                <Breadcrumbs breadcrumbs={breadcrumbs} />
+                                            </div>
+                                        </div>
+                                        <div className="hidden items-center gap-1.5 rounded-lg border border-border/60 bg-background/80 px-2.5 py-1 sm:flex">
+                                            <health.Icon className={`h-3.5 w-3.5 ${health.color}`} />
+                                            <span className="text-[11px] font-medium text-muted-foreground">{completionPercentage}% complete</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-1 overflow-hidden" ref={containerRef}>
+                                {isMobile && (
+                                    <div className="border-b border-border/40 bg-background px-3 py-2">
+                                        <Tabs
+                                            value={mobilePanel}
+                                            onValueChange={(value) => setMobilePanel(value as MobilePanel)}
+                                            className="w-full"
+                                        >
+                                            <TabsList className="grid h-8 w-full grid-cols-2">
+                                                <TabsTrigger value="chat" className="text-xs">
+                                                    Chat Agent
+                                                </TabsTrigger>
+                                                <TabsTrigger value="overview" className="text-xs">
+                                                    Overview
+                                                </TabsTrigger>
+                                            </TabsList>
+                                        </Tabs>
+                                    </div>
+                                )}
+
+                                <div className={`flex flex-1 overflow-hidden ${isMobile ? 'flex-col' : ''}`} ref={containerRef}>
                                     {/* ─── Chat Panel ─── */}
-                                    <div className="flex flex-col bg-background" style={{ width: `${leftPaneWidth}%` }}>
+                                    <div
+                                        className={`min-h-0 bg-background ${isMobile ? (mobilePanel !== 'chat' ? 'hidden' : 'flex flex-1 flex-col') : 'flex h-full flex-col'}`}
+                                        style={!isMobile ? { width: `${leftPaneWidth}%`, flex: '0 0 auto' } : undefined}
+                                    >
                                         {/* Header */}
-                                        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
-                                            <div className="flex items-center gap-2.5">
-                                                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-                                                    <MessageSquareIcon className="h-3.5 w-3.5" />
+                                        <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-card/20 px-3 py-2.5 sm:px-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-primary">
+                                                    <MessageSquareIcon className="h-4 w-4" />
                                                 </div>
                                                 <div className="leading-tight">
                                                     <h2 className="text-sm font-semibold">Overview Chat</h2>
-                                                    <p className="text-[11px] text-muted-foreground">{project?.name || 'Project'}</p>
+                                                    <p className="text-[11px] text-muted-foreground">
+                                                        {displayedChatMessages.length} messages
+                                                    </p>
                                                 </div>
                                             </div>
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 onClick={() => router.visit(`/projects/${project?.id}`)}
-                                                className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                                className="h-7 gap-1 border-border/70 px-2 text-xs text-muted-foreground hover:text-foreground"
                                             >
                                                 <ArrowLeft className="h-3.5 w-3.5" />
-                                                Back
+                                                <span className="hidden sm:inline">Back</span>
                                             </Button>
                                         </div>
 
                                         {/* Messages */}
                                         <ScrollArea className="flex-1">
-                                            <div className="space-y-1 px-3 py-3">
+                                            <div className="space-y-2 px-4 py-4">
                                                 {isInitialGeneration ? (
                                                     <div className="flex h-40 items-center justify-center">
                                                         <div className="text-center">
@@ -377,20 +426,22 @@ export default function SystemOverview({
                                                     displayedChatMessages.map((msg) => {
                                                         const isUser = msg.role === 'user';
                                                         return (
-                                                            <div key={msg.id} className={`group flex gap-2.5 py-2 ${isUser ? 'flex-row-reverse' : ''}`}>
-                                                                <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${
-                                                                    isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                                                            <div key={msg.id} className={`group flex gap-3 py-1.5 ${isUser ? 'flex-row-reverse' : ''}`}>
+                                                                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
+                                                                    isUser
+                                                                        ? 'border-primary/30 bg-primary text-primary-foreground'
+                                                                        : 'border-border/70 bg-card'
                                                                 }`}>
                                                                     {isUser
                                                                         ? <UserIcon className="h-3 w-3" />
                                                                         : <BotIcon className="h-3 w-3 text-muted-foreground" />
                                                                     }
                                                                 </div>
-                                                                <div className={`max-w-[85%] space-y-1 ${isUser ? 'text-right' : ''}`}>
-                                                                    <div className={`inline-block rounded-xl px-3 py-2 text-[13px] leading-relaxed ${
+                                                                <div className={`max-w-[94%] space-y-1.5 sm:max-w-[88%] ${isUser ? 'text-right' : ''}`}>
+                                                                    <div className={`inline-block rounded-2xl border px-3.5 py-2.5 text-[13px] leading-relaxed ${
                                                                         isUser
-                                                                            ? 'bg-primary text-primary-foreground'
-                                                                            : 'bg-muted/60 text-foreground'
+                                                                            ? 'border-primary/50 bg-primary text-primary-foreground shadow-sm'
+                                                                            : 'border-border/70 bg-card text-foreground'
                                                                     }`}>
                                                                         <p className="whitespace-pre-wrap">{msg.content}</p>
                                                                     </div>
@@ -399,7 +450,7 @@ export default function SystemOverview({
                                                                         <div className={isUser ? 'flex justify-end' : ''}>
                                                                             <button
                                                                                 onClick={() => handleChatVersionClick(msg.version_id!)}
-                                                                                className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
+                                                                                className="inline-flex items-center gap-1 rounded-md border border-primary/25 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
                                                                             >
                                                                                 <FileTextIcon className="h-3 w-3" />
                                                                                 View Version
@@ -419,7 +470,7 @@ export default function SystemOverview({
                                                                                 {msg.intent}
                                                                             </span>
                                                                         )}
-                                                                        <span className="text-[10px] text-muted-foreground/50">
+                                                                        <span className="text-[10px] text-muted-foreground/70">
                                                                             <ClientDateTime value={msg.created_at} dateStyle="long" timeStyle="short" />
                                                                         </span>
                                                                     </div>
@@ -440,11 +491,11 @@ export default function SystemOverview({
                                                 )}
 
                                                 {isGenerating && (
-                                                    <div className="flex gap-2.5 py-2">
-                                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted">
+                                                    <div className="flex gap-3 py-2">
+                                                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-card">
                                                             <BotIcon className="h-3 w-3 text-muted-foreground" />
                                                         </div>
-                                                        <div className="rounded-xl bg-muted/60 px-3 py-2">
+                                                        <div className="rounded-2xl border border-border/70 bg-card px-3.5 py-2.5">
                                                             <TextShimmer className="text-[13px]">Thinking...</TextShimmer>
                                                         </div>
                                                     </div>
@@ -459,29 +510,44 @@ export default function SystemOverview({
                                             isGenerating={isGenerating}
                                             mode={chatMode}
                                             onModeChange={setChatMode}
+                                            className="border-t border-border/40 md:border-t-0"
+                                            placeholder="Ask for a focused rewrite, improvement, or structure update..."
                                         />
                                     </div>
 
                                     {/* Resize Handle */}
-                                    <div
-                                        className="group relative w-px cursor-col-resize bg-border/60 transition-colors duration-200 hover:bg-primary/40"
-                                        onMouseDown={handleMouseDown}
-                                    >
-                                        <div className="absolute inset-y-0 -right-1 -left-1" />
-                                    </div>
+                                    {!isMobile && (
+                                        <div
+                                            className="group relative w-2 cursor-col-resize bg-transparent transition-colors duration-200"
+                                            onMouseDown={handleMouseDown}
+                                            title="Drag to resize panels"
+                                        >
+                                            <div className="absolute inset-y-0 -right-1 -left-1" />
+                                            <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-border/80" />
+                                            <div className="absolute top-1/2 left-1/2 h-10 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/35 group-hover:bg-primary/45" />
+                                            <div className="pointer-events-none absolute top-1/2 left-1/2 flex h-11 w-5 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-1 rounded-full border border-border/60 bg-background/90 shadow-sm">
+                                                <span className="h-0.5 w-2 rounded-full bg-muted-foreground/70" />
+                                                <span className="h-0.5 w-2 rounded-full bg-muted-foreground/70" />
+                                                <span className="h-0.5 w-2 rounded-full bg-muted-foreground/70" />
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* ─── Result Panel ─── */}
-                                    <div className="flex flex-col bg-background" style={{ width: `${100 - leftPaneWidth}%` }}>
+                                    <div
+                                        className={`min-h-0 bg-background ${isMobile ? (mobilePanel !== 'overview' ? 'hidden' : 'flex flex-1 flex-col') : 'flex h-full flex-col'}`}
+                                        style={!isMobile ? { width: `${100 - leftPaneWidth}%`, flex: '0 0 auto' } : undefined}
+                                    >
                                         {/* Header */}
-                                        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
-                                            <div className="flex items-center gap-2.5">
-                                                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-                                                    <FileTextIcon className="h-3.5 w-3.5" />
+                                        <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-card/20 px-3 py-2.5 sm:px-4">
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-primary">
+                                                    <FileTextIcon className="h-4 w-4" />
                                                 </div>
-                                                <div className="leading-tight">
+                                                <div className="min-w-0 leading-tight">
                                                     <h2 className="text-sm font-semibold">System Overview</h2>
                                                     {currentVersion && (
-                                                        <p className="text-[11px] text-muted-foreground">
+                                                        <p className="truncate text-[11px] text-muted-foreground">
                                                             v{currentVersion.version_number.toString().padStart(2, '0')}
                                                             {currentVersion.is_base_version && (
                                                                 <span className="ml-1.5 inline-flex items-center text-yellow-600 dark:text-yellow-500">
@@ -493,97 +559,122 @@ export default function SystemOverview({
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-1.5">
-                                                {!projectHasModules && (
-                                                    <Button
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setIsOpeningModuleSuggestions(true);
-                                                            router.visit(`/modules/create/${project?.id}`);
-                                                        }}
-                                                        className="h-7 gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-2.5 text-xs text-primary hover:bg-primary/10"
-                                                        disabled={
-                                                            !currentVersion ||
-                                                            !(currentVersion.overview && currentVersion.overview.trim().length > 0) ||
-                                                            isOpeningModuleSuggestions
-                                                        }
-                                                    >
-                                                        <SparklesIcon className="h-3 w-3" />
-                                                        Modules
-                                                    </Button>
-                                                )}
+                                            <div className="ml-2 flex shrink-0 items-center gap-1">
                                                 <Button
-                                                    variant="ghost"
+                                                    variant={isEditing ? 'secondary' : 'ghost'}
                                                     size="sm"
                                                     onClick={() => setIsEditing(!isEditing)}
-                                                    className="h-7 gap-1.5 px-2 text-xs"
+                                                    className="h-7 gap-1 px-2 text-xs"
                                                     disabled={isGenerating}
                                                 >
                                                     {isEditing ? <EyeIcon className="h-3 w-3" /> : <PencilIcon className="h-3 w-3" />}
-                                                    {isEditing ? 'Preview' : 'Edit'}
+                                                    <span className="hidden sm:inline">{isEditing ? 'Preview' : 'Edit'}</span>
                                                 </Button>
                                                 {currentVersion?.overview && (
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => openInNewTab(`/projects/${project?.id}/system-overview/preview`, currentVersion.overview, 'System Overview')}
-                                                        className="h-7 gap-1.5 px-2 text-xs"
+                                                        className="h-7 gap-1 px-2 text-xs"
                                                     >
                                                         <ExternalLinkIcon className="h-3 w-3" />
-                                                        Open
+                                                        <span className="hidden sm:inline">Open</span>
                                                     </Button>
                                                 )}
-                                                {sections?.prd && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => openInNewTab(`/projects/${project?.id}/prd/preview`, sections.prd!, 'PRD')}
-                                                        className="h-7 gap-1.5 px-2 text-xs"
-                                                    >
-                                                        <ExternalLinkIcon className="h-3 w-3" />
-                                                        PRD
-                                                    </Button>
-                                                )}
-                                                {currentVersion && !currentVersion.is_base_version && (
-                                                    <Button
-                                                        size="sm"
-                                                        onClick={() => handleMarkAsBase(currentVersion)}
-                                                        className="h-7 gap-1.5 px-2 text-xs"
-                                                        disabled={isGenerating}
-                                                    >
-                                                        <StarIcon className="h-3 w-3" />
-                                                        Set Base
-                                                    </Button>
+                                                {hasSecondaryActions && (
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="sm" className="h-7 w-7 px-0" aria-label="More actions">
+                                                                <MoreHorizontalIcon className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="min-w-36">
+                                                            {!projectHasModules && (
+                                                                <DropdownMenuItem
+                                                                    onSelect={(e) => {
+                                                                        e.preventDefault();
+                                                                        setIsOpeningModuleSuggestions(true);
+                                                                        router.visit(`/modules/create/${project?.id}`);
+                                                                    }}
+                                                                    disabled={
+                                                                        !currentVersion ||
+                                                                        !(currentVersion.overview && currentVersion.overview.trim().length > 0) ||
+                                                                        isOpeningModuleSuggestions
+                                                                    }
+                                                                >
+                                                                    <SparklesIcon className="mr-2 h-3.5 w-3.5" />
+                                                                    Modules
+                                                                </DropdownMenuItem>
+                                                            )}
+
+                                                            {sections?.prd && (
+                                                                <DropdownMenuItem
+                                                                    onSelect={(e) => {
+                                                                        e.preventDefault();
+                                                                        openInNewTab(`/projects/${project?.id}/prd/preview`, sections.prd!, 'PRD');
+                                                                    }}
+                                                                >
+                                                                    <ExternalLinkIcon className="mr-2 h-3.5 w-3.5" />
+                                                                    Open PRD
+                                                                </DropdownMenuItem>
+                                                            )}
+
+                                                            {currentVersion && !currentVersion.is_base_version && (
+                                                                <DropdownMenuItem
+                                                                    onSelect={(e) => {
+                                                                        e.preventDefault();
+                                                                        handleMarkAsBase(currentVersion);
+                                                                    }}
+                                                                    disabled={isGenerating}
+                                                                >
+                                                                    <StarIcon className="mr-2 h-3.5 w-3.5" />
+                                                                    Set As Base
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 )}
                                             </div>
                                         </div>
 
                                         {/* Version pills */}
                                         {!isInitialGeneration && overviewVersions.length > 0 && (
-                                            <div className="border-b border-border/40 px-4 py-2">
-                                                <div className="flex flex-wrap gap-1">
+                                            <div className="border-b border-border/40 bg-background/70 px-3 py-2.5 sm:px-4">
+                                                <div className="mb-2 flex items-center justify-between">
+                                                    <p className="text-[11px] font-medium text-muted-foreground">
+                                                        {overviewVersions.length} versions
+                                                    </p>
+                                                    {currentVersion && (
+                                                        <p className="hidden text-[11px] text-muted-foreground sm:block">
+                                                            Selected: v{currentVersion.version_number.toString().padStart(2, '0')}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="overflow-x-auto pb-0.5">
+                                                    <div className="flex w-max min-w-full flex-nowrap gap-1.5 sm:w-auto sm:min-w-0 sm:flex-wrap">
                                                     {overviewVersions.map((version) => (
                                                         <button
                                                             key={version.id}
                                                             onClick={() => handleVersionSelect(version)}
-                                                            className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                                                            className={`inline-flex whitespace-nowrap items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
                                                                 currentVersion?.id === version.id
-                                                                    ? 'bg-primary text-primary-foreground'
-                                                                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                                                                    ? 'border-primary/60 bg-primary text-primary-foreground shadow-sm'
+                                                                    : 'border-border/60 bg-card text-muted-foreground hover:bg-muted/70 hover:text-foreground'
                                                             }`}
                                                         >
                                                             v{version.version_number.toString().padStart(2, '0')}
                                                             {version.is_base_version && <StarIcon className="h-2.5 w-2.5" />}
                                                         </button>
                                                     ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* Content area */}
-                                        <ScrollArea className="flex-1 p-4">
+                                        <ScrollArea className="flex-1 p-3 sm:p-5">
                                             {isInitialGeneration ? (
-                                                <Card className="border-border/60">
+                                                <Card className="border-border/60 shadow-sm">
                                                     <CardContent className="p-0">
                                                         <div className="flex h-64 items-center justify-center">
                                                             <div className="text-center">
@@ -594,11 +685,11 @@ export default function SystemOverview({
                                                     </CardContent>
                                                 </Card>
                                             ) : currentVersion ? (
-                                                <Card className="border-border/60">
+                                                <Card className="border-border/60 shadow-sm">
                                                     <CardContent className="p-0">
                                                         {isEditing ? (
                                                             <div className="flex flex-col">
-                                                                <div className="flex items-center justify-between border-b border-border/60 bg-muted/30 px-4 py-2">
+                                                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/20 px-4 py-2.5">
                                                                     <h3 className="text-xs font-medium text-muted-foreground">Editing Markdown</h3>
                                                                     <div className="flex items-center gap-1.5">
                                                                         <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setIsEditing(false)}>
@@ -613,14 +704,14 @@ export default function SystemOverview({
                                                                 <Textarea
                                                                     value={editedContent}
                                                                     onChange={(e) => setEditedContent(e.target.value)}
-                                                                    className="min-h-[500px] resize-none border-0 font-mono text-sm focus:ring-0"
+                                                                    className="min-h-[60vh] resize-none border-0 bg-background px-3 py-3 font-mono text-sm leading-6 focus-visible:ring-0 sm:min-h-[500px] sm:px-5 sm:py-4"
                                                                     placeholder="Enter your system overview in Markdown format..."
                                                                     disabled={isGenerating}
                                                                 />
                                                             </div>
                                                         ) : (
-                                                            <div className="p-6">
-                                                                <div className="prose prose-sm prose-slate dark:prose-invert prose-table-bordered max-w-none">
+                                                            <div className="px-4 py-5 sm:px-8 sm:py-7">
+                                                                <div className="prose prose-sm prose-slate max-w-none dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-8 prose-h2:border-b prose-h2:border-border/50 prose-h2:pb-2 prose-h3:mt-6 prose-p:leading-7 prose-li:leading-7 prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:before:content-[''] prose-code:after:content-['']">
                                                                     <ReactMarkdown
                                                                         remarkPlugins={[remarkGfm]}
                                                                         rehypePlugins={[rehypeRaw]}
@@ -650,7 +741,7 @@ export default function SystemOverview({
                                             ) : (
                                                 <div className="flex h-96 items-center justify-center">
                                                     <div className="text-center">
-                                                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+                                                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-border/60 bg-card">
                                                             <FileTextIcon className="h-6 w-6 text-muted-foreground" />
                                                         </div>
                                                         <h3 className="mb-1 text-sm font-semibold">No Overview Available</h3>
@@ -681,13 +772,8 @@ export default function SystemOverview({
 
             {isOpeningModuleSuggestions && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                    <div className="flex flex-col items-center space-y-4 rounded-lg border bg-card p-8 shadow-lg">
-                        <div className="relative">
-                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="h-6 w-6 animate-pulse rounded-full bg-primary/20" />
-                            </div>
-                        </div>
+                    <div className="flex w-[calc(100%-2rem)] max-w-sm flex-col items-center space-y-4 rounded-xl border border-border/70 bg-card p-6 shadow-lg sm:p-8">
+                        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
                         <div className="space-y-1 text-center">
                             <TextShimmer className="text-lg font-semibold">Generating Modules</TextShimmer>
                             <p className="text-sm text-muted-foreground">Preparing AI suggestions for {project?.name || 'project'}...</p>
