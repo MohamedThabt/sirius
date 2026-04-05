@@ -501,7 +501,38 @@ class SystemOverviewController extends Controller
             set_time_limit(180);
 
             $mode = $validated['mode'] ?? 'agent';
-            $chat = $project->overview_chat ?? [];
+            $chat = is_array($project->overview_chat) ? $project->overview_chat : [];
+
+            // Seed missing overview versions into chat so legacy projects keep versions visible.
+            $existingVersionIds = collect($chat)
+                ->filter(fn ($message) =>
+                    is_array($message)
+                    && ($message['type'] ?? null) === 'version'
+                    && isset($message['version_id'])
+                    && $message['version_id'] !== null
+                )
+                ->map(fn ($message) => (int) $message['version_id'])
+                ->unique();
+
+            $seededVersionMessages = $project->overviewVersions()
+                ->orderBy('version_number')
+                ->get()
+                ->filter(fn (ProjectOverviewVersion $version) => ! $existingVersionIds->contains($version->id))
+                ->map(fn (ProjectOverviewVersion $version) => [
+                    'id' => 'seeded-version-' . $version->id,
+                    'type' => 'version',
+                    'role' => 'agent',
+                    'content' => 'Version ' . str_pad((string) $version->version_number, 2, '0', STR_PAD_LEFT),
+                    'version_id' => $version->id,
+                    'intent' => null,
+                    'created_at' => $version->created_at?->toISOString() ?? now()->toISOString(),
+                ])
+                ->values()
+                ->all();
+
+            if (! empty($seededVersionMessages)) {
+                $chat = array_merge($seededVersionMessages, $chat);
+            }
 
             $baseVersion = $project->baseOverviewVersion;
             $currentOverview = $baseVersion?->overview ?? '';

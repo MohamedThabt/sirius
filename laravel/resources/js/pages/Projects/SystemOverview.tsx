@@ -278,8 +278,7 @@ export default function SystemOverview({
     };
 
     const displayedChatMessages = useMemo<OverviewChatMessage[]>(() => {
-        if (chatMessages.length > 0) return chatMessages;
-        return [...overviewVersions]
+        const fallbackVersionMessages: OverviewChatMessage[] = [...overviewVersions]
             .sort((a, b) => a.version_number - b.version_number)
             .map((version) => ({
                 id: `fallback-version-${version.id}`,
@@ -290,6 +289,22 @@ export default function SystemOverview({
                 intent: null,
                 created_at: version.created_at,
             }));
+
+        if (fallbackVersionMessages.length === 0) {
+            return chatMessages;
+        }
+
+        const existingVersionIds = new Set(
+            chatMessages
+                .filter((msg) => msg.type === 'version' && msg.version_id !== null)
+                .map((msg) => msg.version_id as number),
+        );
+
+        const missingVersionMessages = fallbackVersionMessages.filter(
+            (msg) => msg.version_id !== null && !existingVersionIds.has(msg.version_id),
+        );
+
+        return [...missingVersionMessages, ...chatMessages];
     }, [chatMessages, overviewVersions]);
 
     const navGroups = useMemo(() => {
