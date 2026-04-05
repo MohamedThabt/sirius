@@ -107,7 +107,7 @@ export function CreditsOverview({
                     <div className="flex items-center justify-between text-xs">
                         <span className="font-medium text-foreground">Credits Remaining</span>
                         <span className="font-semibold text-emerald-600 dark:text-emerald-500">
-                            {remainingPercentage.toFixed(1)}% left
+                            {Math.round(remainingPercentage)}% left
                         </span>
                     </div>
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
@@ -150,8 +150,8 @@ export function CreditsOverview({
                     <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10">
-                                    <Receipt className="h-3.5 w-3.5 text-blue-500" />
+                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-500/10">
+                                    <Receipt className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-foreground">Active Subscription</p>
@@ -162,7 +162,7 @@ export function CreditsOverview({
                             </div>
                             <div className="flex items-center gap-2">
                                 {subscription.status === 'active' ? (
-                                    <Badge variant="default" className="bg-green-500/10 text-green-600 dark:text-green-400">
+                                    <Badge variant="default" className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
                                         <CheckCircle className="h-3 w-3 mr-1" />
                                         Active
                                     </Badge>

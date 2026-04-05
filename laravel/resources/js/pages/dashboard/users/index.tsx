@@ -1,8 +1,9 @@
+import { PaginationControls } from '@/components/PaginationControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -40,11 +41,16 @@ interface Summary {
 interface Props {
     users: {
         data: User[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     filters: {
         search?: string;
+        per_page?: number;
     };
     summary: Summary;
 }
@@ -112,7 +118,6 @@ export default function UsersIndex({ users, filters, summary }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="User Management" />
 
-            <FuturisticBackground className="min-h-full" showDots={true}>
                 <div className="flex h-full flex-1 flex-col gap-6 p-6">
                     {/* Page Header */}
                     <PageHeader
@@ -288,14 +293,15 @@ export default function UsersIndex({ users, filters, summary }: Props) {
                         </EnhancedCard>
                     )}
 
-                    {/* Pagination info */}
-                    <div className="flex justify-center">
-                        <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-                            Showing <span className="font-medium text-foreground/80">{users.data.length}</span> of <span className="font-medium text-foreground/80">{users.meta?.total || 0}</span> users
-                        </p>
-                    </div>
+                    {/* Pagination */}
+                    <PaginationControls
+                        data={users}
+                        baseUrl="/admin/users"
+                        preserveFilters={{
+                            search: search || undefined,
+                        }}
+                    />
                 </div>
-            </FuturisticBackground>
 
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent className="border-destructive/20 bg-background/95 backdrop-blur-xl">

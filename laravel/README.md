@@ -1,4 +1,4 @@
-# Dev Mind
+# Sirius
 
 A modern web application built with Laravel, React, and Inertia.js, featuring a beautiful and responsive user interface with comprehensive authentication and user management capabilities.
 
@@ -51,7 +51,7 @@ Before you begin, ensure you have the following installed:
 
     ```bash
     git clone <your-repository-url>
-    cd dev-mind
+    cd sirius
     ```
 
 2. **Install PHP dependencies**
@@ -125,7 +125,7 @@ npm run types
 ## 📁 Project Structure
 
 ```
-dev-mind/
+sirius/
 ├── app/                    # Laravel application logic
 │   ├── Http/             # HTTP layer (controllers, middleware, requests)
 │   ├── Models/           # Eloquent models
@@ -148,7 +148,7 @@ dev-mind/
 Key environment variables to configure in your `.env` file:
 
 ```env
-APP_NAME="Dev Mind"
+APP_NAME="Sirius"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000
@@ -159,7 +159,7 @@ DB_DATABASE=database/database.sqlite
 # For other databases (MySQL, PostgreSQL)
 # DB_HOST=127.0.0.1
 # DB_PORT=3306
-# DB_DATABASE=dev_mind
+# DB_DATABASE=sirius
 # DB_USERNAME=root
 # DB_PASSWORD=
 ```

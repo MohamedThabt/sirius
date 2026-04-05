@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\BetaController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\EmailController;
 use App\Http\Controllers\Dashboard\FeatureController;
 use App\Http\Controllers\Dashboard\FeedbackController;
 use App\Http\Controllers\Dashboard\IssueController;
@@ -40,13 +41,17 @@ Route::middleware('auth:admin')->group(function () {
         'edit' => 'admin.admins.edit',
         'update' => 'admin.admins.update',
         'destroy' => 'admin.admins.destroy',
-    ])->except(['show']);
+    ])->except(['show'])->middleware('super.admin');
     
     // User Management
     Route::get('users', [UserController::class, 'index'])->name('admin.users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->name('admin.users.show');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::post('users/{user}/add-credits', [UserController::class, 'addCredits'])->name('admin.users.add-credits');
+    
+    // Email Management
+    Route::get('emails', [EmailController::class, 'index'])->name('admin.emails.index');
+    Route::post('emails/send', [EmailController::class, 'send'])->name('admin.emails.send');
     
     // Plans Management
     Route::get('plans', [PlanController::class, 'index'])->name('admin.plans.index');
@@ -109,6 +114,7 @@ Route::middleware('auth:admin')->group(function () {
     // FastAPI Logs Management
     Route::prefix('logs/fastapi')->name('admin.logs.fastapi.')->group(function () {
         Route::get('/', [LogsController::class, 'index'])->name('index');
+        Route::get('/show/{logType}/{lineNumber}', [LogsController::class, 'show'])->name('show');
         Route::delete('/clear', [LogsController::class, 'clearLogs'])->name('clear');
         Route::get('/download/{logType}', [LogsController::class, 'downloadLog'])->name('download');
     });
@@ -116,6 +122,7 @@ Route::middleware('auth:admin')->group(function () {
     // Laravel Logs Management
     Route::prefix('logs/laravel')->name('admin.logs.laravel.')->group(function () {
         Route::get('/', [LaravelLogsController::class, 'index'])->name('index');
+        Route::get('/show/{logFile}/{lineNumber}', [LaravelLogsController::class, 'show'])->name('show');
         Route::delete('/clear', [LaravelLogsController::class, 'clearLogs'])->name('clear');
         Route::get('/download/{logFile}', [LaravelLogsController::class, 'downloadLog'])->name('download');
     });

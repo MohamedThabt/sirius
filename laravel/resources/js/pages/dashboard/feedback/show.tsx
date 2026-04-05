@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FuturisticBackground } from '@/components/ui/futuristic';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
@@ -135,7 +134,6 @@ export default function FeedbackShow({ feedback, statuses }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Feedback: ${feedback.type}`} />
 
-            <FuturisticBackground className="min-h-full" showDots={true}>
                 <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
@@ -369,7 +367,6 @@ export default function FeedbackShow({ feedback, statuses }: Props) {
                     </div>
                 </div>
                 </div>
-            </FuturisticBackground>
         </AppLayout>
     );
 }

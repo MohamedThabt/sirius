@@ -18,6 +18,7 @@ use Inertia\Response;
 
 class NewPasswordController extends Controller
 {
+    use \App\Traits\StructuredLogger;
     /**
      * Show the password reset page.
      */
@@ -36,37 +37,46 @@ class NewPasswordController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        try {
+            $request->validate([
+                'token' => 'required',
+                'email' => 'required|email',
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+            // Here we will attempt to reset the user's password. If it is successful we
+            // will update the password on an actual user model and persist it to the
+            // database. Otherwise we will parse the error and return the response.
+            $status = Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function (User $user) use ($request) {
+                    $user->forceFill([
+                        'password' => Hash::make($request->password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
 
-                event(new PasswordReset($user));
+                    event(new PasswordReset($user));
+                }
+            );
+
+            if ($status == Password::PasswordReset) {
+                AppLogger::security('user.password_reset.completed', [
+                    'email' => $request->input('email'),
+                ], 'info');
+
+                return to_route('login')->with('status', __($status));
             }
-        );
 
-        if ($status == Password::PasswordReset) {
-            AppLogger::security('user.password_reset.completed', [
-                'email' => $request->input('email'),
-            ], 'info');
-
-            return to_route('login')->with('status', __($status));
+            throw ValidationException::withMessages([
+                'email' => [__($status)],
+            ]);
+        } catch (\Throwable $e) {
+            // Re-throw validation exceptions to be handled by Laravel
+            if ($e instanceof ValidationException) {
+                throw $e;
+            }
+            $this->logException($e, ['action' => 'password_reset_confirm']);
+            throw $e;
         }
-
-        throw ValidationException::withMessages([
-            'email' => [__($status)],
-        ]);
     }
 }

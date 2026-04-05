@@ -60,12 +60,12 @@ function Password() {
 
             <div className="space-y-6">
                 {/* Security Tips */}
-                <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">
+                                                                        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-500/30 dark:bg-blue-500/10">
                     <div className="flex items-start gap-3">
-                        <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+                        <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
                         <div>
-                            <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Password Security Tips</p>
-                            <ul className="mt-2 space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Password Security Tips</p>
+                            <ul className="mt-2 space-y-1 text-sm text-blue-700 dark:text-blue-400">
                                 <li className="flex items-center gap-2">
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                     Use at least 8 characters
@@ -194,7 +194,7 @@ function Password() {
                                     leaveFrom="opacity-100 translate-x-0"
                                     leaveTo="opacity-0 translate-x-2"
                                 >
-                                    <span className="flex items-center gap-2 text-sm font-medium text-green-600">
+                                        <span className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Password updated successfully
                                     </span>

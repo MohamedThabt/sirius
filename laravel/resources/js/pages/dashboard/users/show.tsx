@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -191,7 +191,6 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`User Details - ${user.name}`} />
 
-            <FuturisticBackground className="min-h-full" showDots={true}>
                 <div className="w-full max-w-7xl mx-auto space-y-6 p-6">
                     {/* Header */}
                     <div className="flex items-center gap-3">
@@ -740,7 +739,6 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
                         </EnhancedCard>
                     )}
                 </div>
-            </FuturisticBackground>
         </AppLayout>
     );
 }

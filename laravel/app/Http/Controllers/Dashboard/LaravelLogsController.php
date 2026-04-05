@@ -50,6 +50,31 @@ class LaravelLogsController extends Controller
     }
 
     /**
+     * Display a specific log entry.
+     */
+    public function show(Request $request, string $logFile, int $lineNumber): Response
+    {
+        try {
+            // Fetch the specific log entry
+            $logEntry = $this->fetchLogByLine($logFile, $lineNumber);
+
+            if (!$logEntry) {
+                abort(404, 'Log entry not found.');
+            }
+
+            return Inertia::render('dashboard/laravelLogs/show', [
+                'log' => $logEntry,
+                'log_file' => $logFile,
+                'filters' => $request->only(['log_file', 'level', 'search', 'page']),
+            ]);
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'laravel-logs.show', 'log_file' => $logFile, 'line_number' => $lineNumber]);
+
+            abort(500, 'Failed to load log entry: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Clear logs and redirect back with status.
      */
     public function clearLogs(Request $request): RedirectResponse
@@ -136,8 +161,9 @@ class LaravelLogsController extends Controller
             $lineCount = count(array_filter($lines, fn($line) => trim($line) !== ''));
             $totalEntries += $lineCount;
 
-            // Count log levels
-            $levelCounts = $this->countLogLevels($content);
+            // Count log levels based on file type
+            $isJsonLog = str_starts_with($fileName, 'laravel-json');
+            $levelCounts = $isJsonLog ? $this->countJsonLogLevels($content) : $this->countLogLevels($content);
             $totalErrors += $levelCounts['ERROR'] ?? 0;
             $totalWarnings += $levelCounts['WARNING'] ?? 0;
             $totalCritical += $levelCounts['CRITICAL'] ?? 0;
@@ -200,7 +226,10 @@ class LaravelLogsController extends Controller
             }
 
             $content = File::get($filePath);
-            $entries = $this->parseLogEntries($content);
+            
+            // Detect if this is a JSON log file and use appropriate parser
+            $isJsonLog = str_starts_with(basename($logFile), 'laravel-json');
+            $entries = $isJsonLog ? $this->parseJsonLogEntries($content) : $this->parseLogEntries($content);
 
             // Filter by level
             if ($levelFilter) {
@@ -250,6 +279,7 @@ class LaravelLogsController extends Controller
 
     /**
      * Parse Laravel log file content into structured entries.
+     * Supports both standard Laravel format and JSON format (laravel-json.log).
      */
     private function parseLogEntries(string $content): array
     {
@@ -298,6 +328,96 @@ class LaravelLogsController extends Controller
         return $entries;
     }
 
+    /**
+     * Fetch a specific log entry by line number.
+     */
+    private function fetchLogByLine(string $logFile, int $lineNumber): ?array
+    {
+        try {
+            $logsPath = $this->getLogsPath();
+            $filePath = $logsPath . '/' . basename($logFile);
+
+            if (!File::exists($filePath)) {
+                return null;
+            }
+
+            $content = File::get($filePath);
+            
+            // Detect if this is a JSON log file and use appropriate parser
+            $isJsonLog = str_starts_with(basename($logFile), 'laravel-json');
+            $entries = $isJsonLog ? $this->parseJsonLogEntries($content) : $this->parseLogEntries($content);
+
+            // Find the entry with the matching line number
+            foreach ($entries as $entry) {
+                if (isset($entry['line_number']) && $entry['line_number'] == $lineNumber) {
+                    return $entry;
+                }
+            }
+
+            return null;
+        } catch (Throwable $e) {
+            $this->logException($e, ['action' => 'fetchLogByLine', 'log_file' => $logFile, 'line_number' => $lineNumber]);
+            return null;
+        }
+    }
+
+    /**
+     * Parse JSON log file content (one JSON object per line).
+     */
+    private function parseJsonLogEntries(string $content): array
+    {
+        $entries = [];
+        $lines = explode("\n", $content);
+        $lineNumber = 0;
+
+        foreach ($lines as $line) {
+            $lineNumber++;
+            $line = trim($line);
+
+            if (empty($line)) {
+                continue;
+            }
+
+            try {
+                $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
+                
+                // Extract standard fields from JSON log
+                $timestamp = $decoded['datetime'] ?? $decoded['timestamp'] ?? date('Y-m-d H:i:s');
+                $level = strtoupper($decoded['level_name'] ?? $decoded['level'] ?? 'INFO');
+                $message = $decoded['message'] ?? '';
+                $environment = $decoded['context']['environment'] ?? config('app.env', 'production');
+                
+                // Remove standard fields from context to avoid duplication
+                unset($decoded['datetime'], $decoded['timestamp'], $decoded['level_name'], $decoded['level'], $decoded['message'], $decoded['channel']);
+                
+                // Format remaining JSON as context
+                $contextJson = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                
+                $entries[] = [
+                    'timestamp' => $timestamp,
+                    'environment' => $environment,
+                    'level' => $level,
+                    'message' => $message,
+                    'context' => $contextJson,
+                    'line_number' => $lineNumber,
+                    'is_json' => true, // Flag to help UI render differently if needed
+                ];
+            } catch (\JsonException $e) {
+                // If line is not valid JSON, treat as a regular line
+                $entries[] = [
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'environment' => 'unknown',
+                    'level' => 'UNKNOWN',
+                    'message' => $line,
+                    'context' => '',
+                    'line_number' => $lineNumber,
+                ];
+            }
+        }
+
+        return $entries;
+    }
+
     private function categorizeLogFile(string $fileName): string
     {
         return match (true) {
@@ -326,6 +446,43 @@ class LaravelLogsController extends Controller
 
         foreach ($levels as $level => $count) {
             $levels[$level] = preg_match_all('/\.\s*' . $level . ':/i', $content);
+        }
+
+        return $levels;
+    }
+
+    /**
+     * Count log levels in JSON log content.
+     */
+    private function countJsonLogLevels(string $content): array
+    {
+        $levels = [
+            'DEBUG' => 0,
+            'INFO' => 0,
+            'NOTICE' => 0,
+            'WARNING' => 0,
+            'ERROR' => 0,
+            'CRITICAL' => 0,
+            'ALERT' => 0,
+            'EMERGENCY' => 0,
+        ];
+
+        $lines = explode("\n", $content);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
+            }
+
+            try {
+                $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
+                $level = strtoupper($decoded['level_name'] ?? $decoded['level'] ?? '');
+                if (isset($levels[$level])) {
+                    $levels[$level]++;
+                }
+            } catch (\JsonException $e) {
+                // Skip invalid JSON lines
+            }
         }
 
         return $levels;

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface BetaInvitation {
   id: number;
@@ -69,6 +70,7 @@ interface IndexProps {
   filters: {
     search?: string;
     status?: string;
+    per_page?: number;
   };
   statuses: Array<{ value: string; label: string }>;
   summary?: BetaSummary;
@@ -212,7 +214,6 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Beta Invitations" />
       
-      <FuturisticBackground className="min-h-full" showDots={true}>
         <div className="flex h-full flex-1 flex-col gap-6 p-6">
           {/* Page Header */}
           <PageHeader
@@ -443,14 +444,16 @@ const BetaIndex = ({ invitations, filters, statuses, summary }: IndexProps) => {
             </EnhancedCard>
           )}
 
-          {/* Pagination info */}
-          <div className="flex justify-center">
-            <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-              Showing <span className="font-medium text-foreground/80">{invitations.from || 0}</span> to <span className="font-medium text-foreground/80">{invitations.to || 0}</span> of <span className="font-medium text-foreground/80">{invitations.total}</span> invitations
-            </p>
-          </div>
+          {/* Pagination */}
+          <PaginationControls 
+            data={invitations} 
+            baseUrl="/admin/beta"
+            preserveFilters={{
+              search: search || undefined,
+              status: statusFilter || undefined,
+            }}
+          />
         </div>
-      </FuturisticBackground>
 
       {/* Create Invitation Modal */}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>

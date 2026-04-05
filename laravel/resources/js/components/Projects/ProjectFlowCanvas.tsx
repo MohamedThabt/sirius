@@ -109,6 +109,10 @@ const FlowCanvas = ({
         return document.documentElement.classList.contains('dark');
     });
 
+    // Theme-aware edge colors (neutral palette)
+    const completedEdgeColor = isDarkMode ? '#e5e5e5' : '#262626';
+    const incompleteEdgeColor = isDarkMode ? '#404040' : '#d4d4d4';
+
     const toggleModuleExpanded = useCallback((moduleId: number) => {
         setExpandedModules(prev => ({
             ...prev,
@@ -341,11 +345,11 @@ const FlowCanvas = ({
                         type: MarkerType.ArrowClosed,
                         width: 20,
                         height: 20,
-                        color: isCompleted ? '#6495ED' : '#3d4354',
+                        color: isCompleted ? completedEdgeColor : incompleteEdgeColor,
                     },
                     style: {
                         strokeWidth: 2,
-                        stroke: isCompleted ? '#6495ED' : '#3d4354',
+                        stroke: isCompleted ? completedEdgeColor : incompleteEdgeColor,
                     },
                 };
             })
@@ -369,11 +373,11 @@ const FlowCanvas = ({
                         type: MarkerType.ArrowClosed,
                         width: 20,
                         height: 20,
-                        color: isCompleted ? '#6495ED' : '#3d4354',
+                        color: isCompleted ? completedEdgeColor : incompleteEdgeColor,
                     },
                     style: {
                         strokeWidth: 2,
-                        stroke: isCompleted ? '#6495ED' : '#3d4354',
+                        stroke: isCompleted ? completedEdgeColor : incompleteEdgeColor,
                     },
                 });
 
@@ -393,11 +397,11 @@ const FlowCanvas = ({
                                 type: MarkerType.ArrowClosed,
                                 width: 20,
                                 height: 20,
-                                color: isFeatureCompleted ? '#6495ED' : '#3d4354',
+                                color: isFeatureCompleted ? completedEdgeColor : incompleteEdgeColor,
                             },
                             style: {
                                 strokeWidth: 2,
-                                stroke: isFeatureCompleted ? '#6495ED' : '#3d4354',
+                                stroke: isFeatureCompleted ? completedEdgeColor : incompleteEdgeColor,
                             },
                         });
                     });
@@ -406,7 +410,7 @@ const FlowCanvas = ({
         }
 
         return { nodes, edges };
-    }, [steps, modules, isModulesExpanded, expandedModules, projectId]);
+    }, [steps, modules, isModulesExpanded, expandedModules, projectId, completedEdgeColor, incompleteEdgeColor]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -438,13 +442,13 @@ const FlowCanvas = ({
             <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg">
                 {/* Enhanced gradient background */}
                 <div className="pointer-events-none absolute inset-0">
-                    {/* Base gradient - dark sophisticated look */}
+                    {/* Base gradient - neutral background */}
                     <div 
                         className="absolute inset-0"
                         style={{
                             background: isDarkMode 
-                                ? 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 25%, #141b27 50%, #0d1117 75%, #0a0e14 100%)'
-                                : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%)'
+                                ? 'linear-gradient(135deg, #141414 0%, #1a1a1a 25%, #171717 50%, #141414 75%, #0f0f0f 100%)'
+                                : 'linear-gradient(135deg, #fafafa 0%, #e5e5e5 25%, #f5f5f5 50%, #e5e5e5 75%, #fafafa 100%)'
                         }}
                     />
                     
@@ -453,11 +457,11 @@ const FlowCanvas = ({
                         className="absolute inset-0"
                         style={{
                             background: isDarkMode
-                                ? `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
-                                   radial-gradient(ellipse 50% 30% at 50% 50%, rgba(99, 102, 241, 0.04) 0%, transparent 50%)`
-                                : `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 50%)`
+                                ? `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+                                   radial-gradient(ellipse 50% 30% at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 50%)`
+                                : `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 0, 0, 0.03) 0%, transparent 50%),
+                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 0, 0, 0.02) 0%, transparent 50%)`
                         }}
                     />
                     
@@ -474,16 +478,16 @@ const FlowCanvas = ({
                         className="absolute -top-32 -left-32 h-64 w-64 rounded-full blur-3xl"
                         style={{
                             background: isDarkMode 
-                                ? 'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)'
+                                ? 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, transparent 70%)'
                         }}
                     />
                     <div 
                         className="absolute -right-32 -bottom-32 h-64 w-64 rounded-full blur-3xl"
                         style={{
                             background: isDarkMode 
-                                ? 'radial-gradient(circle, rgba(139, 92, 246, 0.10) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 70%)'
+                                ? 'radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%)'
                         }}
                     />
                     
@@ -516,7 +520,7 @@ const FlowCanvas = ({
                         gap={24}
                         size={2}
                         variant={BackgroundVariant.Dots}
-                        color={isDarkMode ? 'rgba(148, 163, 184, 0.4)' : 'rgba(71, 85, 105, 0.25)'}
+                        color={isDarkMode ? 'rgba(163, 163, 163, 0.3)' : 'rgba(115, 115, 115, 0.2)'}
                     />
                 </ReactFlow>
                 <style>{`

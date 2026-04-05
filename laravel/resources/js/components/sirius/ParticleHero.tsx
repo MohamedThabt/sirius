@@ -21,8 +21,8 @@ export const ParticleCanvas: React.FC = () => {
     const particles: Particle[] = [];
     const particleCount = Math.min(80, Math.floor((width * height) / 15000));
 
-    const primaryColor = "rgba(100, 149, 237, 0.5)";
-    const secondaryColor = "rgba(134, 167, 200, 0.4)";
+    const primaryColor = "rgba(163, 163, 163, 0.5)";
+    const secondaryColor = "rgba(212, 212, 212, 0.4)";
 
     for (let i = 0; i < particleCount; i++) {
       const x = Math.random() * width;
@@ -86,7 +86,7 @@ export const ParticleCanvas: React.FC = () => {
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(other.x, other.y);
-            ctx.strokeStyle = `rgba(134, 167, 200, ${0.2 * (1 - dist / 120)})`;
+            ctx.strokeStyle = `rgba(163, 163, 163, ${0.2 * (1 - dist / 120)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }

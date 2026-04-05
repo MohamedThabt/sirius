@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\SuggestedFeature;
 use App\Services\AiUsageService;
 use App\Services\Feature\FeatureSpecService;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -367,6 +368,12 @@ class FeaturesController extends Controller
                     }
                 });
 
+                AppLogger::business('feature.created.bulk', [
+                    'project_id' => $project->id,
+                    'module_id' => $module->id,
+                    'count' => count($enrichedFeatures),
+                ]);
+
                 return redirect()->route('modules.show', ['project' => $project, 'module' => $module])
                     ->with('success', 'Features created and enriched successfully!');
             } else {
@@ -495,6 +502,12 @@ class FeaturesController extends Controller
                 ]);
             });
 
+            AppLogger::business('feature.created.single', [
+                'project_id' => $project->id,
+                'module_id' => $module->id,
+                'feature_name' => $name,
+            ]);
+
             return back()->with('success', 'Feature created successfully.');
         } catch (\Throwable $e) {
             $this->logException($e, [
@@ -602,6 +615,12 @@ class FeaturesController extends Controller
 
             $feature->update($validated);
 
+            AppLogger::business('feature.updated', [
+                'project_id' => $project->id,
+                'module_id' => $module->id,
+                'feature_id' => $feature->id,
+            ]);
+
             return back()->with('success', 'Feature updated successfully.');
         } catch (\Throwable $e) {
             $this->logException($e, [
@@ -677,6 +696,15 @@ class FeaturesController extends Controller
             if ($module->erd !== null) {
                 $module->update(['erd_is_synced' => false]);
             }
+
+            return back()->with('success', "Feature '{$featureName}' deleted successfully!");
+
+            AppLogger::business('feature.deleted', [
+                'project_id' => $project->id,
+                'module_id' => $module->id,
+                'feature_id' => $feature->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with('success', "Feature '{$featureName}' deleted successfully!");
         } catch (\Throwable $e) {

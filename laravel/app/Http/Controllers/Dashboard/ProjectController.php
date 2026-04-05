@@ -27,7 +27,7 @@ class ProjectController extends Controller
     public function index(Request $request): Response
     {
         try {
-            $query = Project::with('user:id,name,email');
+            $query = Project::with('user:id,name,email')->withCount('modules');
 
             if ($request->filled('search')) {
                 $search = $request->search;
@@ -45,9 +45,26 @@ class ProjectController extends Controller
                 $query->where('status', $request->status);
             }
 
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
             $projects = $query->latest()
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString();
+
+            // Add completion percentage to each project
+            $projects->getCollection()->transform(function ($project) {
+                $sections = [
+                    !empty($project->brief),
+                    !empty($project->prd),
+                    !empty($project->erd),
+                    !empty($project->c4),
+                    !empty($project->technical_details),
+                    $project->modules_count > 0,
+                ];
+                $completed = count(array_filter($sections));
+                $project->completion_percentage = (int) round(($completed / count($sections)) * 100);
+                return $project;
+            });
 
             $statuses = Project::distinct('status')->pluck('status');
 
@@ -66,7 +83,7 @@ class ProjectController extends Controller
             return Inertia::render('dashboard/projects/index', [
                 'projects' => $projects,
                 'statuses' => $statuses,
-                'filters' => $request->only(['search', 'status']),
+                'filters' => $request->only(['search', 'status', 'per_page']),
                 'summary' => $summary,
             ]);
         } catch (Throwable $e) {
@@ -183,9 +200,9 @@ class ProjectController extends Controller
      * Loads overview versions and provides the latest/base version content.
      *
      * @param Project $project The project to display
-     * @return Response Inertia response rendering the project overview page
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse Inertia response or redirect if no overview exists
      */
-    public function overview(Project $project): Response
+    public function overview(Project $project)
     {
         try {
             $project->load([
@@ -197,6 +214,14 @@ class ProjectController extends Controller
                 'baseOverviewVersion',
             ]);
 
+            // Project has a brief but no overview versions yet — trigger initial generation
+            $isGenerating = ! empty($project->brief) && $project->overviewVersions->isEmpty();
+
+            // Guard: redirect back if there's no overview and nothing to generate
+            if ($project->overviewVersions->isEmpty() && ! $isGenerating) {
+                return back()->with('error', 'This project has no overview yet. Please generate one first.');
+            }
+
             // Get the current overview content from the latest version
             $latestVersion = $project->latestOverviewVersion;
             $overviewContent = $latestVersion?->overview ?? '';
@@ -204,10 +229,6 @@ class ProjectController extends Controller
             // Prepare project data with overview content
             $projectData = $project->toArray();
             $projectData['overview'] = $overviewContent;
-
-            // Check for pending generation
-            $pendingGeneration = session('pending_overview_generation');
-            $isGenerating = $pendingGeneration && $pendingGeneration['project_id'] === $project->id;
 
             return Inertia::render('dashboard/projects/overview', [
                 'project' => $projectData,
@@ -227,11 +248,16 @@ class ProjectController extends Controller
      * the FeatureMarkdownService.
      *
      * @param Project $project The project to display
-     * @return Response Inertia response rendering the PRD page with formatted markdown
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse Inertia response or redirect if no PRD exists
      */
-    public function prd(Project $project): Response
+    public function prd(Project $project)
     {
         try {
+            // Guard: redirect back if there's no PRD content
+            if (empty($project->prd)) {
+                return back()->with('error', 'This project has no PRD yet. Please generate one first.');
+            }
+
             $project->load('user:id,name,email', 'features');
 
             $featureMarkdownService = app(\App\Services\Documentation\FeatureMarkdownService::class);

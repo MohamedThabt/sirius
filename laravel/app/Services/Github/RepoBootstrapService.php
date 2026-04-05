@@ -5,6 +5,7 @@ namespace App\Services\Github;
 use App\Models\Project;
 use App\Models\ProjectRepository;
 use App\Services\Documentation\ProjectSpecsExportService;
+use App\Support\AppLogger;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
@@ -34,7 +35,7 @@ class RepoBootstrapService
      */
     public function pushInitialCommit(): bool
     {
-        Log::info('Starting bootstrap process', [
+        AppLogger::business('github.bootstrap.started', [
             'project_id' => $this->project->id,
             'project_name' => $this->project->name,
             'repo_full_name' => $this->repository->full_name,
@@ -67,15 +68,10 @@ class RepoBootstrapService
             // For empty repositories, push specs as initial commit
             return $this->pushFilesToEmptyRepo();
         } catch (\Exception $e) {
-            Log::error('Bootstrap process failed with exception', [
+            AppLogger::error('Bootstrap process failed with exception', $e, [
                 'project_id' => $this->project->id,
                 'project_name' => $this->project->name,
                 'repo_full_name' => $this->repository->full_name,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString(),
             ]);
 
             return false;

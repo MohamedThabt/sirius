@@ -159,20 +159,20 @@ const SiriusCpuArchitecture: React.FC<SiriusCpuArchitectureProps> = ({
                     <path d="M 30 30 h 25 q 5 0 5 5 v 6.5 q 0 5 5 5 h 20" strokeWidth="0.5" stroke="white" />
                 </mask>
 
-                {/* Sirius Celestial Blue Gradients */}
+                {/* Neutral Gradients */}
                 <radialGradient id="sirius-cpu-primary-grad" fx="1">
-                    <stop offset="0%" stopColor="#6495ED" />
-                    <stop offset="50%" stopColor="#7AA6F5" />
+                    <stop offset="0%" stopColor="#a3a3a3" />
+                    <stop offset="50%" stopColor="#d4d4d4" />
                     <stop offset="100%" stopColor="transparent" />
                 </radialGradient>
                 <radialGradient id="sirius-cpu-secondary-grad" fx="1">
-                    <stop offset="0%" stopColor="#7AA6F5" />
-                    <stop offset="50%" stopColor="#6495ED" />
+                    <stop offset="0%" stopColor="#d4d4d4" />
+                    <stop offset="50%" stopColor="#a3a3a3" />
                     <stop offset="100%" stopColor="transparent" />
                 </radialGradient>
                 <radialGradient id="sirius-cpu-accent-grad" fx="1">
-                    <stop offset="0%" stopColor="#B4D4FF" />
-                    <stop offset="50%" stopColor="#93C5FD" />
+                    <stop offset="0%" stopColor="#e5e5e5" />
+                    <stop offset="50%" stopColor="#d4d4d4" />
                     <stop offset="100%" stopColor="transparent" />
                 </radialGradient>
                 <radialGradient id="sirius-cpu-white-grad" fx="1">

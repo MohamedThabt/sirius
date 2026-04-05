@@ -1,12 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { Head } from '@inertiajs/react';
-import { ArrowLeftIcon, CodeIcon, CopyIcon, DownloadIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ArrowLeftIcon, CodeIcon, CopyIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import mermaid from 'mermaid';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { MermaidDiagram } from '@/components/MermaidDiagram';
 
 interface User {
     id: number;
@@ -28,25 +31,19 @@ interface Props {
     project: Project;
 }
 
-// Utility function to convert escaped Mermaid strings
-const convertEscapedMermaid = (escapedString: string): string => {
-    let cleaned = escapedString.replace(/```mermaid\s*/g, '').replace(/```\s*$/g, '');
-    cleaned = cleaned.replace(/\\n/g, '\n');
-    cleaned = cleaned.replace(/\\/g, '');
-    cleaned = cleaned.trim();
-    return cleaned;
+// Mermaid initialization with theme awareness
+const initializeMermaid = () => {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: isDarkMode ? 'dark' : 'default',
+        securityLevel: 'loose',
+        fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    });
 };
-
-mermaid.initialize({
-    startOnLoad: false,
-    theme: 'default',
-    securityLevel: 'loose',
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-});
 
 export default function OverviewPreview({ content, title, projectName, project }: Props) {
     const [showCode, setShowCode] = useState(false);
-    const [isDarkMode, setIsDarkMode] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -63,16 +60,14 @@ export default function OverviewPreview({ content, title, projectName, project }
         },
     ];
 
-    // Sync theme with application's global theme
+    // Initialize mermaid on mount
     useEffect(() => {
-        const detectTheme = () => {
-            const isDark = document.documentElement.classList.contains('dark');
-            setIsDarkMode(isDark);
-        };
+        initializeMermaid();
 
-        detectTheme();
-
-        const observer = new MutationObserver(detectTheme);
+        // Re-initialize on theme change
+        const observer = new MutationObserver(() => {
+            initializeMermaid();
+        });
         observer.observe(document.documentElement, {
             attributes: true,
             attributeFilter: ['class'],
@@ -135,7 +130,32 @@ export default function OverviewPreview({ content, title, projectName, project }
                         </div>
                     ) : (
                         <div className="mx-auto max-w-4xl prose dark:prose-invert">
-                            <ReactMarkdown>{content}</ReactMarkdown>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                rehypePlugins={[rehypeRaw]}
+                                components={{
+                                    code({ className, children, ...props }) {
+                                        const match = /language-(\w+)/.exec(className || '');
+                                        const language = match ? match[1] : '';
+                                        const isInline = !className?.includes('language-');
+
+                                        if (language === 'mermaid' && !isInline) {
+                                            return (
+                                                <MermaidDiagram projectId={project.id} previewTitle={title}>
+                                                    {String(children).replace(/\n$/, '')}
+                                                </MermaidDiagram>
+                                            );
+                                        }
+                                        return (
+                                            <code className={className} {...props}>
+                                                {children}
+                                            </code>
+                                        );
+                                    },
+                                }}
+                            >
+                                {content}
+                            </ReactMarkdown>
                         </div>
                     )}
                 </div>

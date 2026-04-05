@@ -4,13 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { getStatusColor, getPriorityColor } from '@/utils/status-colors';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, SettingsIcon, UserIcon, GitBranchIcon, DatabaseIcon, Code2Icon, UsersIcon, MailIcon, BoxIcon, CheckCircleIcon, TrendingUpIcon, AlertCircleIcon, ZapIcon, Github, ExternalLink, LayersIcon, ServerIcon, BrainCircuitIcon, PlugIcon, EyeIcon, ClockIcon, ActivityIcon, FolderGitIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { FuturisticBackground } from '@/components/ui/futuristic';
 
 interface User {
     id: number;
@@ -172,41 +173,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ProjectShow({ project, projectMetrics }: Props) {
+    useFlashToasts();
     const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
     const [selectedTechnicalDetail, setSelectedTechnicalDetail] = useState<{ title: string; content: string } | null>(null);
-
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'completed':
-                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
-            case 'in_progress':
-                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
-            case 'draft':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-            case 'active':
-                return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
-            case 'archived':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-            default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-        }
-    };
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case 'critical':
-                return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
-            case 'high':
-                return 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20';
-            case 'medium':
-                return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
-            case 'low':
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-            default:
-                return 'bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20';
-        }
-    };
 
     const completionPercentage = useMemo(() => {
         if (projectMetrics?.completion_percentage !== undefined) {
@@ -234,7 +204,6 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Project: ${project.name}`} />
 
-            <FuturisticBackground className="min-h-full" showDots={true}>
                 <div className="w-full max-w-7xl mx-auto space-y-6 p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
@@ -1088,7 +1057,6 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                     </DialogContent>
                 </Dialog>
                 </div>
-            </FuturisticBackground>
         </AppLayout>
     );
 }

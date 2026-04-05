@@ -5,12 +5,15 @@ import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { Toaster } from '@/components/ui/sonner';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type BreadcrumbItem } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
 export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     useFlashToasts();
-    
-    return (
+    const { url } = usePage();
+    const isAdmin = url.startsWith('/admin');
+
+    const shell = (
         <AppShell variant="sidebar">
             <AppSidebar />
             <AppContent variant="sidebar" className="overflow-x-auto">
@@ -22,4 +25,10 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
             <Toaster />
         </AppShell>
     );
+
+    if (isAdmin) {
+        return <div className="bg-background text-foreground min-h-screen">{shell}</div>;
+    }
+
+    return shell;
 }

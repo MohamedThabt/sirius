@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Feature;
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
 use App\Services\AiUsageService;
+use App\Support\AppLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -80,6 +81,12 @@ class SequenceDiagramController extends Controller
                 'pending_sequence_generation' => [
                     'feature_id' => $feature->id,
                 ]
+            ]);
+
+            AppLogger::business('sequence.generation.initiated', [
+                'feature_id' => $feature->id,
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
             ]);
 
             return Inertia::render('features/SequenceDiagram', [
@@ -187,6 +194,14 @@ class SequenceDiagramController extends Controller
             // Clear pending session data
             session()->forget('pending_sequence_generation');
 
+            // Clear pending session data
+            session()->forget('pending_sequence_generation');
+
+            AppLogger::business('sequence.generated', [
+                'feature_id' => $feature->id,
+                'project_id' => $project->id,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Sequence diagram generated successfully',
@@ -267,6 +282,15 @@ class SequenceDiagramController extends Controller
             $feature->sequence_diagram = $sequence;
             $feature->save();
 
+            $feature->sequence_diagram = $sequence;
+            $feature->save();
+
+            AppLogger::business('sequence.updated.ai', [
+                'feature_id' => $feature->id,
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
+
             return back()->with([
                 'success' => 'Sequence diagram updated successfully.',
                 'newSequence' => $sequence
@@ -306,6 +330,15 @@ class SequenceDiagramController extends Controller
 
             $feature->sequence_diagram = $sequence;
             $feature->save();
+
+            $feature->sequence_diagram = $sequence;
+            $feature->save();
+
+            AppLogger::business('sequence.updated.manual', [
+                'feature_id' => $feature->id,
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with([
                 'success' => 'Sequence diagram saved successfully.',

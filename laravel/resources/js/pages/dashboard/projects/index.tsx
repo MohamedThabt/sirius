@@ -2,12 +2,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { DatabaseIcon, FileTextIcon, FolderIcon, NetworkIcon, SearchIcon, XIcon, ExternalLinkIcon, AlertCircleIcon, GitBranchIcon } from 'lucide-react';
 import { useState } from 'react';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface User {
     id: number;
@@ -22,6 +23,7 @@ interface Project {
     status: string;
     created_at: string;
     user: User;
+    completion_percentage: number;
 }
 
 interface Summary {
@@ -38,13 +40,18 @@ interface Summary {
 interface Props {
     projects: {
         data: Project[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     statuses: string[];
     filters: {
         search?: string;
         status?: string;
+        per_page?: number;
     };
     summary: Summary;
 }
@@ -106,7 +113,6 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Project Management" />
 
-            <FuturisticBackground className="min-h-full" showDots={true}>
                 <div className="flex h-full flex-1 flex-col gap-6 p-6">
                     {/* Page Header */}
                     <PageHeader
@@ -245,8 +251,8 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                                 <TableRow className="border-border/40 hover:bg-transparent">
                                     <TableHead className="text-muted-foreground/70">Project Name</TableHead>
                                     <TableHead className="text-muted-foreground/70">Owner</TableHead>
-                                    <TableHead className="text-muted-foreground/70">Brief</TableHead>
                                     <TableHead className="text-muted-foreground/70">Status</TableHead>
+                                    <TableHead className="text-muted-foreground/70">Progress</TableHead>
                                     <TableHead className="text-muted-foreground/70">Created</TableHead>
                                     <TableHead className="w-10"></TableHead>
                                 </TableRow>
@@ -265,15 +271,31 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                                                 <p className="text-xs text-muted-foreground/50">{project.user.email}</p>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="max-w-md">
-                                            <p className="truncate text-muted-foreground/60" title={project.brief}>
-                                                {project.brief}
-                                            </p>
-                                        </TableCell>
                                         <TableCell>
                                             <GlowingBadge variant={getStatusVariant(project.status)}>
                                                 {project.status.replace('_', ' ')}
                                             </GlowingBadge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2 min-w-[120px]">
+                                                <div className="h-2 w-full max-w-[80px] overflow-hidden rounded-full bg-muted">
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-500 ${
+                                                            project.completion_percentage >= 80
+                                                                ? 'bg-emerald-500'
+                                                                : project.completion_percentage >= 50
+                                                                  ? 'bg-blue-500'
+                                                                  : project.completion_percentage >= 25
+                                                                    ? 'bg-orange-500'
+                                                                    : 'bg-slate-400'
+                                                        }`}
+                                                        style={{ width: `${project.completion_percentage}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-xs tabular-nums text-muted-foreground/70 w-8">
+                                                    {project.completion_percentage}%
+                                                </span>
+                                            </div>
                                         </TableCell>
                                         <TableCell className="text-muted-foreground/60 tabular-nums">
                                             {new Date(project.created_at).toLocaleDateString()}
@@ -301,14 +323,16 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                         </EnhancedCard>
                     )}
 
-                    {/* Pagination info */}
-                    <div className="flex justify-center">
-                        <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-                            Showing <span className="font-medium text-foreground/80">{projects.data.length}</span> of <span className="font-medium text-foreground/80">{projects.meta?.total || 0}</span> projects
-                        </p>
-                    </div>
+                    {/* Pagination */}
+                    <PaginationControls 
+                        data={projects}
+                        baseUrl="/admin/projects"
+                        preserveFilters={{
+                            search: search || undefined,
+                            status: filters.status || undefined,
+                        }}
+                    />
                 </div>
-            </FuturisticBackground>
         </AppLayout>
     );
 }

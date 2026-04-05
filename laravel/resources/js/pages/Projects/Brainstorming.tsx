@@ -8,11 +8,13 @@ import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Excalidraw, exportToBlob, serializeAsJSON } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { useThemeDetection } from '@/hooks/use-theme-detection';
 
 // Project and Sections types now imported from @/types
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 interface BrainstormingPageProps {
     project: Project;
@@ -22,11 +24,18 @@ interface BrainstormingPageProps {
 export default function Brainstorming({ project, sections }: BrainstormingPageProps) {
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [elements, setElements] = useState<any[] | null>(null);
     const [appState, setAppState] = useState<any | null>(null);
     const [files, setFiles] = useState<Record<string, any> | null>(null);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isSavingRef = useRef(false);
+    
+    // Use refs to store latest values for handleSave
+    const elementsRef = useRef<any[] | null>(null);
+    const appStateRef = useRef<any | null>(null);
+    const filesRef = useRef<Record<string, any> | null>(null);
 
     // WHY: Replaced ~23 lines of MutationObserver logic with shared hook
     const theme = useThemeDetection();
@@ -52,25 +61,128 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
     // Theme detection now handled by useThemeDetection hook
 
     const handleChange = useCallback((els: readonly any[], app: any, f: Record<string, any>) => {
-        setHasUnsavedChanges(true);
-        setElements(els as any[]);
+        const elementsArray = els as any[];
+        setElements(elementsArray);
         setAppState(app);
         setFiles(f);
+        
+        // Update refs with latest values
+        elementsRef.current = elementsArray;
+        appStateRef.current = app;
+        filesRef.current = f;
+        
+        setSaveStatus('idle');
     }, []);
 
     const handleSave = useCallback(() => {
+        if (isSavingRef.current) return;
+
+        isSavingRef.current = true;
+        setSaveStatus('saving');
+
         const payload = {
             scene: {
-                elements: elements ?? [],
-                appState: appState ?? {},
-                files: files ?? {},
+                elements: elementsRef.current ?? [],
+                appState: appStateRef.current ?? {},
+                files: filesRef.current ?? {},
             },
         };
+
         router.post(`/projects/${project.id}/brainstorming/scene`, payload, {
             preserveScroll: true,
-            onSuccess: () => setHasUnsavedChanges(false),
+            onSuccess: () => {
+                setSaveStatus('saved');
+                isSavingRef.current = false;
+                // Reset to idle after 2 seconds
+                setTimeout(() => setSaveStatus('idle'), 2000);
+            },
+            onError: () => {
+                setSaveStatus('error');
+                isSavingRef.current = false;
+            },
         });
-    }, [elements, appState, files, project.id]);
+    }, [project.id]);
+
+    // Autosave effect with debouncing
+    useEffect(() => {
+        // Don't autosave if there's no data yet (initial load)
+        if (elements === null && appState === null && files === null) {
+            return;
+        }
+
+        // Clear previous timeout
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        // Set new timeout for autosave (5 seconds debounce)
+        saveTimeoutRef.current = setTimeout(() => {
+            handleSave();
+        }, 5000);
+
+        // Cleanup on unmount
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
+    }, [elements, appState, files]); // Removed handleSave from dependencies
+
+    // Periodic autosave every minute
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            // Only save if there's data to save
+            if (elementsRef.current !== null || appStateRef.current !== null || filesRef.current !== null) {
+                handleSave();
+            }
+        }, 60000); // 60 seconds
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, []); // Empty dependencies - interval runs independently
+
+    // Save on page leave/navigation
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            // If there's a pending save timeout, save immediately
+            if (saveTimeoutRef.current && (elementsRef.current !== null || appStateRef.current !== null || filesRef.current !== null)) {
+                clearTimeout(saveTimeoutRef.current);
+                
+                // Use synchronous approach for beforeunload
+                const payload = {
+                    scene: {
+                        elements: elementsRef.current ?? [],
+                        appState: appStateRef.current ?? {},
+                        files: filesRef.current ?? {},
+                    },
+                };
+                
+                // Use sendBeacon for reliable save on page unload
+                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                navigator.sendBeacon(`/projects/${project.id}/brainstorming/scene`, blob);
+            }
+        };
+
+        // Handle Inertia navigation (SPA navigation)
+        const handleInertiaNavigate = () => {
+            // If there's a pending save, execute it immediately
+            if (saveTimeoutRef.current && (elementsRef.current !== null || appStateRef.current !== null || filesRef.current !== null)) {
+                clearTimeout(saveTimeoutRef.current);
+                handleSave();
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        // Listen to Inertia's before event for SPA navigation
+        router.on('before', handleInertiaNavigate);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            router.on('before', () => {}); // Cleanup Inertia listener
+        };
+    }, [project.id]); // Removed elements, appState, files, and handleSave from dependencies
 
     return (
         <>
@@ -97,8 +209,15 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
                                     <Breadcrumbs breadcrumbs={breadcrumbs} />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {hasUnsavedChanges && <span className="text-sm text-muted-foreground">Unsaved changes</span>}
-                                    <Button size="sm" onClick={handleSave} variant={hasUnsavedChanges ? 'default' : 'outline'}>
+                                    {saveStatus === 'saving' && <span className="text-sm text-muted-foreground">Saving...</span>}
+                                    {saveStatus === 'saved' && <span className="text-sm text-emerald-600">All changes saved</span>}
+                                    {saveStatus === 'error' && <span className="text-sm text-destructive">Autosave failed</span>}
+                                    <Button 
+                                        size="sm" 
+                                        onClick={handleSave} 
+                                        variant={saveStatus === 'error' ? 'default' : 'outline'}
+                                        disabled={saveStatus === 'saving'}
+                                    >
                                         Save
                                     </Button>
                                 </div>

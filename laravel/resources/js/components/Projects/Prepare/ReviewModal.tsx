@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { CheckCircleIcon, CheckIcon } from 'lucide-react';
+import { CheckCircleIcon, CheckIcon, Loader2Icon } from 'lucide-react';
 
 interface Step {
     id: number;
@@ -17,6 +17,7 @@ interface ReviewModalProps {
     technicalSteps: Step[];
     formData: Record<string, string>;
     canSubmit: boolean;
+    isSubmitting?: boolean;
 }
 
 /**
@@ -38,6 +39,7 @@ export function ReviewModal({
     technicalSteps,
     formData,
     canSubmit,
+    isSubmitting = false,
 }: ReviewModalProps) {
     if (!isOpen) return null;
 
@@ -119,11 +121,20 @@ export function ReviewModal({
                         </Button>
                         <Button
                             onClick={onSubmit}
-                            disabled={!canSubmit}
+                            disabled={!canSubmit || isSubmitting}
                             className="bg-gradient-to-r from-primary to-primary/90"
                         >
-                            Complete Brief
-                            <CheckIcon className="ml-2 h-4 w-4" />
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                                    Generating...
+                                </>
+                            ) : (
+                                <>
+                                    Complete Brief
+                                    <CheckIcon className="ml-2 h-4 w-4" />
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>

@@ -162,6 +162,14 @@ class GithubClient
 
         $this->lastError = null;
 
+        $this->lastError = null;
+
+        AppLogger::business('github.repo.created', [
+            'type' => 'user',
+            'name' => $name,
+            'private' => $isPrivate,
+        ], 'info');
+
         return $response->json();
     }
 
@@ -193,6 +201,15 @@ class GithubClient
 
         $this->lastError = null;
 
+        $this->lastError = null;
+
+        AppLogger::business('github.repo.created', [
+            'type' => 'org',
+            'org' => $org,
+            'name' => $name,
+            'private' => $isPrivate,
+        ], 'info');
+
         return $response->json();
     }
 
@@ -211,12 +228,27 @@ class GithubClient
      */
     public function isRepoEmpty(string $fullName): bool
     {
-        $response = $this->request('GET', "/repos/{$fullName}/commits", [
-            'per_page' => 1,
-        ]);
+        $url = $this->baseUrl . "/repos/{$fullName}/commits";
 
-        // 409 means the repo is empty
-        return $response->status() === 409;
+        // Make request directly to avoid logging 409 as a failure (it's expected for empty repos)
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer {$this->token->access_token}",
+            'Accept' => 'application/vnd.github.v3+json',
+            'X-GitHub-Api-Version' => '2022-11-28',
+        ])->timeout(30)->get($url, ['per_page' => 1]);
+
+        $isEmpty = $response->status() === 409;
+
+        // Log as info since 409 is an expected response for empty repositories
+        if ($isEmpty) {
+            AppLogger::api('github', "GET /repos/{$fullName}/commits", [
+                'status' => 409,
+                'message' => 'Repository is empty (expected)',
+                'is_empty' => true,
+            ]);
+        }
+
+        return $isEmpty;
     }
 
     /**
@@ -461,7 +493,7 @@ class GithubClient
             $response = $this->request('DELETE', "/repos/{$fullName}");
 
             if ($response->status() === 204) {
-                Log::info('Repository deleted successfully', [
+                AppLogger::business('github.repo.deleted', [
                     'repo' => $fullName,
                 ]);
 

@@ -1,3 +1,4 @@
+import { PaginationControls } from '@/components/PaginationControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,8 +54,12 @@ interface Summary {
 interface Props {
     logs: {
         data: UsageLog[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     actionTypes: ActionTypeOption[];
     models: ModelOption[];
@@ -65,6 +70,7 @@ interface Props {
         date_from?: string;
         date_to?: string;
         user_id?: string;
+        per_page?: number;
     };
     summary: Summary;
 }
@@ -162,7 +168,7 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Usage Logs</h1>
-                    <Badge variant="outline">{summary?.total_logs || logs.meta?.total || 0} Total Logs</Badge>
+                    <Badge variant="outline">{summary?.total_logs || logs.total || 0} Total Logs</Badge>
                 </div>
 
                 {/* Summary Stats */}
@@ -377,12 +383,19 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
                     </div>
                 )}
 
-                {/* Pagination info */}
-                <div className="flex justify-center">
-                    <p className="text-sm text-muted-foreground">
-                        Showing {logs.data.length} of {logs.meta?.total || 0} usage logs
-                    </p>
-                </div>
+                {/* Pagination */}
+                <PaginationControls
+                    data={logs}
+                    baseUrl="/admin/usage-logs"
+                    preserveFilters={{
+                        search: search || undefined,
+                        action_type: (filters.action_type && filters.action_type !== 'all') ? filters.action_type : undefined,
+                        model: (filters.model && filters.model !== 'all') ? filters.model : undefined,
+                        date_from: dateFrom || undefined,
+                        date_to: dateTo || undefined,
+                        user_id: filters.user_id || undefined,
+                    }}
+                />
             </div>
         </AppLayout>
     );

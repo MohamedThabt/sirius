@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Feature;
 use App\Models\UsageLog;
 use App\Models\User;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -40,9 +41,11 @@ class UserController extends Controller
                 });
             }
 
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
             $users = $query->withCount('projects')
                 ->latest()
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString();
 
             // Summary stats
@@ -55,7 +58,7 @@ class UserController extends Controller
 
             return Inertia::render('dashboard/users/index', [
                 'users' => $users,
-                'filters' => $request->only(['search']),
+                'filters' => $request->only(['search', 'per_page']),
                 'summary' => $summary,
             ]);
         } catch (Throwable $e) {
@@ -208,8 +211,7 @@ class UserController extends Controller
             $userCredit->incrementCredits($validated['amount']);
 
             // Log the action
-            $this->logInfo('Admin added credits to user', [
-                'action' => 'add_credits',
+            AppLogger::business('admin.credits.added', [
                 'user_id' => $user->id,
                 'amount' => $validated['amount'],
                 'reason' => $validated['reason'] ?? null,
@@ -236,8 +238,8 @@ class UserController extends Controller
             // though for now we assume admins can delete any user.
             
             // Log the action before deletion (so we have the user ID)
-            $this->logInfo('Admin deleted user', [
-                'action' => 'delete_user',
+            // Log the action before deletion (so we have the user ID)
+            AppLogger::business('admin.user.deleted', [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
                 'admin_id' => auth('admin')->id(),

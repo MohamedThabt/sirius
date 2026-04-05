@@ -50,8 +50,8 @@ export function FuturisticBackground({
                     className="absolute inset-0"
                     style={{
                         background: isDarkMode 
-                            ? 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 25%, #141b27 50%, #0d1117 75%, #0a0e14 100%)'
-                            : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%)'
+                            ? 'linear-gradient(135deg, #141414 0%, #1a1a1a 25%, #171717 50%, #141414 75%, #0f0f0f 100%)'
+                            : 'linear-gradient(135deg, #fafafa 0%, #e5e5e5 25%, #f5f5f5 50%, #e5e5e5 75%, #fafafa 100%)'
                     }}
                 />
                 
@@ -60,11 +60,11 @@ export function FuturisticBackground({
                     className="absolute inset-0"
                     style={{
                         background: isDarkMode
-                            ? `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(59, 130, 246, ${0.08 * intensityMultiplier}) 0%, transparent 50%),
-                               radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, ${0.06 * intensityMultiplier}) 0%, transparent 50%),
-                               radial-gradient(ellipse 50% 30% at 50% 50%, rgba(99, 102, 241, ${0.04 * intensityMultiplier}) 0%, transparent 50%)`
-                            : `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(59, 130, 246, ${0.05 * intensityMultiplier}) 0%, transparent 50%),
-                               radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, ${0.04 * intensityMultiplier}) 0%, transparent 50%)`
+                            ? `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(255, 255, 255, ${0.04 * intensityMultiplier}) 0%, transparent 50%),
+                               radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 255, 255, ${0.03 * intensityMultiplier}) 0%, transparent 50%),
+                               radial-gradient(ellipse 50% 30% at 50% 50%, rgba(255, 255, 255, ${0.02 * intensityMultiplier}) 0%, transparent 50%)`
+                            : `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 0, 0, ${0.03 * intensityMultiplier}) 0%, transparent 50%),
+                               radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 0, 0, ${0.02 * intensityMultiplier}) 0%, transparent 50%)`
                     }}
                 />
                 
@@ -81,16 +81,16 @@ export function FuturisticBackground({
                     className="absolute -top-32 -left-32 h-64 w-64 rounded-full blur-3xl"
                     style={{
                         background: isDarkMode 
-                            ? `radial-gradient(circle, rgba(59, 130, 246, ${0.12 * intensityMultiplier}) 0%, transparent 70%)`
-                            : `radial-gradient(circle, rgba(59, 130, 246, ${0.08 * intensityMultiplier}) 0%, transparent 70%)`
+                            ? `radial-gradient(circle, rgba(255, 255, 255, ${0.06 * intensityMultiplier}) 0%, transparent 70%)`
+                            : `radial-gradient(circle, rgba(0, 0, 0, ${0.04 * intensityMultiplier}) 0%, transparent 70%)`
                     }}
                 />
                 <div 
                     className="absolute -right-32 -bottom-32 h-64 w-64 rounded-full blur-3xl"
                     style={{
                         background: isDarkMode 
-                            ? `radial-gradient(circle, rgba(139, 92, 246, ${0.10 * intensityMultiplier}) 0%, transparent 70%)`
-                            : `radial-gradient(circle, rgba(139, 92, 246, ${0.06 * intensityMultiplier}) 0%, transparent 70%)`
+                            ? `radial-gradient(circle, rgba(255, 255, 255, ${0.05 * intensityMultiplier}) 0%, transparent 70%)`
+                            : `radial-gradient(circle, rgba(0, 0, 0, ${0.03 * intensityMultiplier}) 0%, transparent 70%)`
                     }}
                 />
                 
@@ -110,8 +110,8 @@ export function FuturisticBackground({
                         className="absolute inset-0"
                         style={{
                             backgroundImage: isDarkMode
-                                ? 'radial-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px)'
-                                : 'radial-gradient(rgba(71, 85, 105, 0.1) 1px, transparent 1px)',
+                                ? 'radial-gradient(rgba(163, 163, 163, 0.15) 1px, transparent 1px)'
+                                : 'radial-gradient(rgba(115, 115, 115, 0.1) 1px, transparent 1px)',
                             backgroundSize: '24px 24px',
                         }}
                     />

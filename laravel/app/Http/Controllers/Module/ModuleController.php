@@ -7,6 +7,7 @@ use App\Models\Module;
 use App\Models\Project;
 use App\Models\SuggestedModule;
 use App\Services\AiUsageService;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -342,6 +343,11 @@ class ModuleController extends Controller
                     }
                 });
 
+                AppLogger::business('module.created.bulk', [
+                    'project_id' => $project->id,
+                    'count' => count($enrichedModules),
+                ]);
+
                 return redirect()->route('modules.index', $project)
                     ->with('success', 'Modules created and enriched successfully!');
             } else {
@@ -396,16 +402,22 @@ class ModuleController extends Controller
                 return back()->with('error', 'You do not have permission to update this module.');
             }
 
+            // Note: Status is automatically managed based on features and cannot be manually changed.
+            // It transitions automatically: 'planned' (no features) → 'in_progress' (has features) → 'completed' (all features 100%)
             $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
                 'description' => 'sometimes|nullable|string',
                 'metrics' => 'sometimes|nullable|string',
                 'erd' => 'sometimes|nullable|string',
-                'status' => 'sometimes|in:planned,in_progress,completed',
                 'order_of_implementation' => 'sometimes|integer|min:1',
             ]);
 
             $module->update($validated);
+
+            AppLogger::business('module.updated', [
+                'project_id' => $project->id,
+                'module_id' => $module->id,
+            ]);
 
             return back()->with('success', 'Module updated successfully!');
         } catch (\Throwable $e) {
@@ -441,6 +453,14 @@ class ModuleController extends Controller
             if ($project->prd !== null) {
                 $project->update(['prd_is_synced' => false]);
             }
+
+            return back()->with('success', "Module '{$moduleName}' deleted successfully!");
+
+            AppLogger::business('module.deleted', [
+                'project_id' => $project->id,
+                'module_id' => $module->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with('success', "Module '{$moduleName}' deleted successfully!");
         } catch (\Throwable $e) {
@@ -527,6 +547,15 @@ class ModuleController extends Controller
 
                     return redirect()->route('modules.show', ['project' => $project, 'module' => $module])
                         ->with('success', 'Module created and enriched successfully!');
+                    
+                    AppLogger::business('module.created.single', [
+                        'project_id' => $project->id,
+                        'module_id' => $module->id,
+                        'enriched' => true,
+                    ]);
+
+                    return redirect()->route('modules.show', ['project' => $project, 'module' => $module])
+                        ->with('success', 'Module created and enriched successfully!');
                 }
             }
 
@@ -548,6 +577,15 @@ class ModuleController extends Controller
             if ($project->prd !== null) {
                 $project->update(['prd_is_synced' => false]);
             }
+
+            return redirect()->route('modules.show', ['project' => $project, 'module' => $module])
+                ->with('success', 'Module created successfully! (AI enrichment unavailable)');
+
+            AppLogger::business('module.created.single', [
+                'project_id' => $project->id,
+                'module_id' => $module->id,
+                'enriched' => false,
+            ]);
 
             return redirect()->route('modules.show', ['project' => $project, 'module' => $module])
                 ->with('success', 'Module created successfully! (AI enrichment unavailable)');

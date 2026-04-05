@@ -6,18 +6,30 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
 import { getHealthStatus } from '@/utils/project-status';
-import { type User, type Project, type Sections, type OverviewVersion, type ChatMessage } from '@/types';
+import { getCsrfToken, getJsonHeaders } from '@/utils/csrf';
+import { type Project, type Sections, type OverviewVersion, type ChatMessage } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { toast } from 'sonner';
-import { ArrowLeft, BotIcon, CheckIcon, CodeIcon, CopyIcon, ExternalLinkIcon, EyeIcon, FileTextIcon, PencilIcon, SaveIcon, SparklesIcon, StarIcon } from 'lucide-react';
+import {
+    AlertTriangleIcon,
+    ArrowLeft,
+    BotIcon,
+    ExternalLinkIcon,
+    EyeIcon,
+    FileTextIcon,
+    PencilIcon,
+    RefreshCwIcon,
+    SaveIcon,
+    SparklesIcon,
+    StarIcon,
+} from 'lucide-react';
 import mermaid from 'mermaid';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -31,7 +43,6 @@ interface Props {
     project?: Project;
     overviewVersions: OverviewVersion[];
     hasModules: boolean;
-    isGenerating?: boolean;
     sections?: Sections;
     features?: unknown[];
 }
@@ -40,7 +51,6 @@ export default function SystemOverview({
     project,
     overviewVersions: initialOverviewVersions,
     hasModules,
-    isGenerating: initialIsGenerating = false,
     sections = { overview: null, prd: null, data_modeling: null, non_functional_requirements: null },
     features = [],
 }: Props) {
@@ -49,13 +59,24 @@ export default function SystemOverview({
     const [currentVersion, setCurrentVersion] = useState<OverviewVersion | null>(null);
     const [overviewVersions, setOverviewVersions] = useState<OverviewVersion[]>(initialOverviewVersions || []);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isInitialGeneration, setIsInitialGeneration] = useState(initialIsGenerating);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState('');
     const [projectHasModules, setProjectHasModules] = useState(hasModules);
     const [isOpeningModuleSuggestions, setIsOpeningModuleSuggestions] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    // Fix #1: Track generation errors for retry UI
+    const [generationError, setGenerationError] = useState<string | null>(null);
+
+    // Fix #10: AbortController to cancel in-flight requests on unmount
+    const activeRequestRef = useRef<AbortController | null>(null);
+
+    // Cleanup active requests on unmount
+    useEffect(() => {
+        return () => {
+            activeRequestRef.current?.abort();
+        };
+    }, []);
 
     // Helper function to open content in new tab via form POST
     const openInNewTab = (url: string, content: string, title: string) => {
@@ -64,7 +85,7 @@ export default function SystemOverview({
         form.action = url;
         form.target = '_blank';
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const csrfToken = getCsrfToken();
         if (csrfToken) {
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';
@@ -111,6 +132,23 @@ export default function SystemOverview({
         return getHealthStatus(completionPercentage);
     }, [completionPercentage]);
 
+    // Fix #9: Pre-sorted version lists to ensure consistent ordering
+    const sortedVersionsDesc = useMemo(
+        () => [...overviewVersions].sort((a, b) => b.version_number - a.version_number),
+        [overviewVersions],
+    );
+
+    const sortedVersionsAsc = useMemo(
+        () => [...overviewVersions].sort((a, b) => a.version_number - b.version_number),
+        [overviewVersions],
+    );
+
+    // Fix #11: Track the base version for warnings
+    const baseVersion = useMemo(
+        () => overviewVersions.find((v) => v.is_base_version) || null,
+        [overviewVersions],
+    );
+
     // Initialize Mermaid
     useEffect(() => {
         const isDarkMode = document.documentElement.classList.contains('dark');
@@ -122,12 +160,7 @@ export default function SystemOverview({
         });
     }, []);
 
-    // Handle initial generation trigger
-    useEffect(() => {
-        if (isInitialGeneration && project) {
-            triggerAsyncGeneration();
-        }
-    }, [isInitialGeneration, project]);
+
 
     // Initialize with overview versions from props
     useEffect(() => {
@@ -146,8 +179,8 @@ export default function SystemOverview({
                 versionId: version.id,
             }));
             setChatMessages(messages);
-        } else if (project && project.overview && overviewVersions.length === 0 && !isInitialGeneration) {
-            // Fallback to project overview if no versions exist (but not during initial generation)
+        } else if (project && project.overview && overviewVersions.length === 0) {
+            // Fallback to project overview if no versions exist
             const initialVersion: OverviewVersion = {
                 id: 0,
                 project_id: project.id,
@@ -162,68 +195,69 @@ export default function SystemOverview({
             setCurrentVersion(initialVersion);
             setEditedContent(initialVersion.overview);
         }
-    }, [initialOverviewVersions, project, isInitialGeneration]);
+    }, [initialOverviewVersions, project]);
 
     // MermaidDiagram is now imported from '@/components/MermaidDiagram'
     // Removed ~188 lines of inline component definition
 
-    // Handle initial async generation
-    const triggerAsyncGeneration = async () => {
-        try {
-            // Get CSRF token
-            const csrfToken =
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
-                document.cookie
-                    .split('; ')
-                    .find((row) => row.startsWith('XSRF-TOKEN='))
-                    ?.split('=')[1];
+    // Fix #8: Async regeneration for the empty-state "Generate" button
+    // Uses fetch instead of router.post to avoid blocking the UI for 2 minutes
+    const triggerRegeneration = useCallback(async () => {
+        setIsGenerating(true);
+        setGenerationError(null);
 
-            const response = await fetch(`/projects/${project?.id}/system-overview/generate-async`, {
+        activeRequestRef.current?.abort();
+        const controller = new AbortController();
+        activeRequestRef.current = controller;
+
+        try {
+            const response = await fetch(`/projects/${project?.id}/system-overview/regenerate`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
+                headers: getJsonHeaders(),
+                signal: controller.signal,
             });
 
             if (response.ok) {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update the versions list with the new data
                     setOverviewVersions(data.overviewVersions);
 
-                    // Set the newest version as current
-                    const newestVersion = data.overviewVersions.sort(
+                    const newestVersion = [...data.overviewVersions].sort(
                         (a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number,
                     )[0];
                     setCurrentVersion(newestVersion);
                     setEditedContent(newestVersion.overview);
 
-                    // Update hasModules state if provided
                     if (typeof data.hasModules === 'boolean') {
                         setProjectHasModules(data.hasModules);
                     }
 
-                    // Mark initial generation as complete
-                    setIsInitialGeneration(false);
+                    toast.success('System overview regenerated successfully!');
                 } else {
-                    throw new Error(data.message || 'Failed to generate overview');
+                    throw new Error(data.message || 'Failed to regenerate overview');
                 }
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to generate overview');
+                throw new Error(errorData.message || 'Failed to regenerate overview');
             }
         } catch (error) {
-            console.error('Error generating overview:', error);
-            setIsInitialGeneration(false);
-            // You could add a toast notification here for the error
+            if (error instanceof DOMException && error.name === 'AbortError') return;
+
+            console.error('Error regenerating overview:', error);
+            const errorMsg = error instanceof Error ? error.message : 'Failed to regenerate system overview.';
+            setGenerationError(errorMsg);
+            toast.error(errorMsg);
+        } finally {
+            setIsGenerating(false);
         }
-    };
+    }, [project?.id]);
 
     // Handle AI prompt submission using updateWithAi controller method
+    // Fix #2: Sync editedContent after AI update
+    // Fix #3: Check data.success from response
+    // Fix #4: Show meaningful chat message with version info
+    // Fix #10: Use AbortController
     const handlePromptSubmit = async (prompt: string) => {
         if (!prompt.trim() || isGenerating || !currentVersion) return;
 
@@ -239,54 +273,51 @@ export default function SystemOverview({
         };
         setChatMessages((prev) => [...prev, userMessage]);
 
-        try {
-            // Get CSRF token
-            const csrfToken =
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
-                document.cookie
-                    .split('; ')
-                    .find((row) => row.startsWith('XSRF-TOKEN='))
-                    ?.split('=')[1];
+        activeRequestRef.current?.abort();
+        const controller = new AbortController();
+        activeRequestRef.current = controller;
 
-            // Call the updateWithAi controller method
+        try {
             const response = await fetch(`/projects/${project?.id}/system-overview/update-with-ai`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
+                headers: getJsonHeaders(),
                 body: JSON.stringify({
                     system_overview: currentVersion.overview,
                     engineer_notes: newPrompt,
                 }),
+                signal: controller.signal,
             });
 
             if (response.ok) {
                 const data = await response.json();
 
-                // Add AI response message to chat
-                const aiMessage: ChatMessage = {
-                    id: `ai-${Date.now()}`,
-                    type: 'assistant',
-                    content: 'System overview updated successfully! A new version has been created and set as the base version.',
-                    timestamp: new Date(),
-                };
-                setChatMessages((prev) => [...prev, aiMessage]);
+                // Fix #3: Check data.success, not just HTTP status
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to update overview with AI');
+                }
 
                 // Update the versions list with the new data
                 if (data.overviewVersions) {
                     setOverviewVersions(data.overviewVersions);
 
-                    // Set the newest version as current
-                    const newestVersion = data.overviewVersions.sort(
+                    const newestVersion = [...data.overviewVersions].sort(
                         (a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number,
                     )[0];
                     setCurrentVersion(newestVersion);
+                    // Fix #2: Sync editedContent so the Edit view shows correct content
+                    setEditedContent(newestVersion.overview);
+
+                    // Fix #4: Meaningful chat message with version info
+                    const aiMessage: ChatMessage = {
+                        id: `ai-${Date.now()}`,
+                        type: 'assistant',
+                        content: `Overview updated to Version ${newestVersion.version_number} and set as the base version.`,
+                        timestamp: new Date(),
+                        versionId: newestVersion.id,
+                    };
+                    setChatMessages((prev) => [...prev, aiMessage]);
                 }
 
-                // Update hasModules state if provided
                 if (typeof data.hasModules === 'boolean') {
                     setProjectHasModules(data.hasModules);
                 }
@@ -295,9 +326,10 @@ export default function SystemOverview({
                 throw new Error(errorData.message || 'Failed to update overview with AI');
             }
         } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') return;
+
             console.error('Error updating overview with AI:', error);
 
-            // Add error message to chat
             const errorMessage: ChatMessage = {
                 id: `error-${Date.now()}`,
                 type: 'assistant',
@@ -311,27 +343,14 @@ export default function SystemOverview({
     };
 
     // Handle manual content update using userUpdate controller method
-    // Handle manual content update using userUpdate controller method
+    // Fix #6: Use server data.overviewVersions when available instead of optimistic-only update
     const handleContentUpdate = async () => {
         if (!currentVersion || !editedContent.trim()) return;
 
         try {
-            // Get CSRF token
-            const csrfToken =
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
-                document.cookie
-                    .split('; ')
-                    .find((row) => row.startsWith('XSRF-TOKEN='))
-                    ?.split('=')[1];
-
             const response = await fetch(`/projects/${project?.id}/system-overview/${currentVersion.id}/user-update`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
+                headers: getJsonHeaders(),
                 body: JSON.stringify({
                     overview: editedContent,
                 }),
@@ -340,9 +359,24 @@ export default function SystemOverview({
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    const updatedVersion = { ...currentVersion, overview: editedContent };
-                    setCurrentVersion(updatedVersion);
-                    setOverviewVersions((prev) => prev.map((v) => (v.id === currentVersion.id ? updatedVersion : v)));
+                    // Fix #6: Prefer server-returned version list to stay in sync
+                    if (data.overviewVersions) {
+                        setOverviewVersions(data.overviewVersions);
+                        const updatedCurrent = data.overviewVersions.find(
+                            (v: OverviewVersion) => v.id === currentVersion.id,
+                        );
+                        if (updatedCurrent) {
+                            setCurrentVersion(updatedCurrent);
+                            setEditedContent(updatedCurrent.overview);
+                        }
+                    } else {
+                        // Fallback to local update if server doesn't return versions
+                        const updatedVersion = { ...currentVersion, overview: editedContent };
+                        setCurrentVersion(updatedVersion);
+                        setOverviewVersions((prev) =>
+                            prev.map((v) => (v.id === currentVersion.id ? updatedVersion : v)),
+                        );
+                    }
                     setIsEditing(false);
                     toast.success(data.message || 'Overview updated successfully');
                 } else {
@@ -359,35 +393,21 @@ export default function SystemOverview({
     };
 
     // Handle marking version as base using markAsBase controller method
-    // Handle marking version as base using markAsBase controller method
     const handleMarkAsBase = async (version: OverviewVersion) => {
         try {
-            // Get CSRF token
-            const csrfToken =
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
-                document.cookie
-                    .split('; ')
-                    .find((row) => row.startsWith('XSRF-TOKEN='))
-                    ?.split('=')[1];
-
             const response = await fetch(`/projects/${project?.id}/system-overview/${version.id}/mark-as-base`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
+                headers: getJsonHeaders(),
             });
 
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    // Update local state
                     if (data.overviewVersions) {
                         setOverviewVersions(data.overviewVersions);
-                        // Update current version if it was the one marked as base
-                        const updatedCurrent = data.overviewVersions.find((v: OverviewVersion) => v.id === currentVersion?.id);
+                        const updatedCurrent = data.overviewVersions.find(
+                            (v: OverviewVersion) => v.id === currentVersion?.id,
+                        );
                         if (updatedCurrent) {
                             setCurrentVersion(updatedCurrent);
                         }
@@ -477,22 +497,8 @@ export default function SystemOverview({
                                         {/* Version History */}
                                         <ScrollArea className="flex-1 p-4">
                                             <div className="space-y-4">
-                                                {isInitialGeneration ? (
-                                                    <div className="flex h-32 items-center justify-center">
-                                                        <div className="text-center">
-                                                            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                                                                <TextShimmer className="text-sm text-blue-600 dark:text-blue-400">
-                                                                    Generating...
-                                                                </TextShimmer>
-                                                            </div>
-                                                            <p className="text-sm text-slate-500 dark:text-slate-400">Creating your first overview</p>
-                                                            <p className="text-xs text-slate-400 dark:text-slate-500">This may take a moment</p>
-                                                        </div>
-                                                    </div>
-                                                ) : overviewVersions.length > 0 ? (
-                                                    overviewVersions
-                                                        .sort((a, b) => b.version_number - a.version_number)
-                                                        .map((version) => (
+                                                {sortedVersionsDesc.length > 0 ? (
+                                                    sortedVersionsDesc.map((version) => (
                                                             <div
                                                                 key={version.id}
                                                                 className={`cursor-pointer rounded-lg border p-3 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${
@@ -564,6 +570,20 @@ export default function SystemOverview({
                                                 )}
                                             </div>
                                         </ScrollArea>
+
+                                        {/* Fix #11: Warning when viewing a non-base version */}
+                                        {currentVersion &&
+                                            !currentVersion.is_base_version &&
+                                            baseVersion &&
+                                            overviewVersions.length > 1 && (
+                                                <div className="mx-4 mb-2 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-50 px-3 py-2 text-sm text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                                    <AlertTriangleIcon className="h-4 w-4 flex-shrink-0" />
+                                                    <span>
+                                                        Viewing v{currentVersion.version_number} — AI edits will be based
+                                                        on this version, not the base (v{baseVersion.version_number}).
+                                                    </span>
+                                                </div>
+                                            )}
 
                                         {/* Chat Input */}
                                         <ChatInput onSubmit={handlePromptSubmit} isGenerating={isGenerating} />
@@ -671,10 +691,10 @@ export default function SystemOverview({
                                         </div>
 
                                         {/* Version Selector */}
-                                        {!isInitialGeneration && overviewVersions.length > 0 && (
+                                        {overviewVersions.length > 0 && (
                                             <div className="border-b border-border p-4">
                                                 <div className="flex flex-wrap gap-2">
-                                                    {overviewVersions.map((version) => (
+                                                    {sortedVersionsAsc.map((version) => (
                                                         <Button
                                                             key={version.id}
                                                             variant={currentVersion?.id === version.id ? 'default' : 'outline'}
@@ -691,20 +711,7 @@ export default function SystemOverview({
 
                                         {/* Content Area */}
                                         <ScrollArea className="flex-1 p-6">
-                                            {isInitialGeneration ? (
-                                                <Card>
-                                                    <CardContent className="p-0">
-                                                        <div className="flex h-64 items-center justify-center bg-muted/10">
-                                                            <div className="text-center">
-                                                                <TextShimmer className="text-2xl font-semibold">
-                                                                    Generating System Overview...
-                                                                </TextShimmer>
-                                                                <p className="mt-4 text-sm text-muted-foreground">This may take a moment</p>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            ) : currentVersion ? (
+                                            {currentVersion ? (
                                                 <Card>
                                                     <CardContent className="p-0">
                                                         {isEditing ? (
@@ -770,35 +777,58 @@ export default function SystemOverview({
                                                 <div className="flex h-96 items-center justify-center">
                                                     <div className="text-center">
                                                         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-                                                            <FileTextIcon className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+                                                            {/* Fix #1: Show error icon when generation failed */}
+                                                            {generationError ? (
+                                                                <AlertTriangleIcon className="h-8 w-8 text-red-400 dark:text-red-500" />
+                                                            ) : (
+                                                                <FileTextIcon className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+                                                            )}
                                                         </div>
-                                                        <h3 className="mb-2 text-lg font-semibold text-slate-800 dark:text-white">
-                                                            No Overview Available
-                                                        </h3>
-                                                        <p className="text-slate-600 dark:text-white/70">
-                                                            Start a conversation to generate your first system overview.
-                                                        </p>
-                                                        <div className="mt-4">
-                                                            <Button
-                                                                onClick={() => {
-                                                                    setIsInitialGeneration(true);
-                                                                    router.post(
-                                                                        `/projects/${project?.id}/system-overview/regenerate`,
-                                                                        {},
-                                                                        {
-                                                                            preserveScroll: true,
-                                                                        },
-                                                                    );
-                                                                }}
-                                                                disabled={isInitialGeneration}
-                                                            >
-                                                                {isInitialGeneration ? (
-                                                                    <TextShimmer>Generating...</TextShimmer>
-                                                                ) : (
-                                                                    'Generate System Overview'
-                                                                )}
-                                                            </Button>
-                                                        </div>
+
+                                                        {/* Fix #1: Show error state with retry when generation fails */}
+                                                        {generationError ? (
+                                                            <>
+                                                                <h3 className="mb-2 text-lg font-semibold text-red-600 dark:text-red-400">
+                                                                    Generation Failed
+                                                                </h3>
+                                                                <p className="mb-1 max-w-md text-sm text-slate-600 dark:text-white/70">
+                                                                    {generationError}
+                                                                </p>
+                                                                <div className="mt-4">
+                                                                    <Button
+                                                                        onClick={() => {
+                                                                            setGenerationError(null);
+                                                                            triggerRegeneration();
+                                                                        }}
+                                                                    >
+                                                                        <RefreshCwIcon className="mr-2 h-4 w-4" />
+                                                                        Retry Generation
+                                                                    </Button>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <h3 className="mb-2 text-lg font-semibold text-slate-800 dark:text-white">
+                                                                    No Overview Available
+                                                                </h3>
+                                                                <p className="text-slate-600 dark:text-white/70">
+                                                                    Start a conversation to generate your first system overview.
+                                                                </p>
+                                                                <div className="mt-4">
+                                                                    {/* Fix #8: Use async fetch instead of blocking router.post */}
+                                                                    <Button
+                                                                        onClick={triggerRegeneration}
+                                                                        disabled={isGenerating}
+                                                                    >
+                                                                        {isGenerating ? (
+                                                                            <TextShimmer>Generating...</TextShimmer>
+                                                                        ) : (
+                                                                            'Generate System Overview'
+                                                                        )}
+                                                                    </Button>
+                                                                </div>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}

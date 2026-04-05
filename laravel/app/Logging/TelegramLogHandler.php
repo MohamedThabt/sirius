@@ -49,6 +49,7 @@ class TelegramLogHandler extends AbstractProcessingHandler
 
     /**
      * Format the log record into a Telegram-friendly message.
+     * Extracts structured context from AppLogger/StructuredLogger format.
      */
     private function formatMessage(LogRecord $record): string
     {
@@ -66,82 +67,109 @@ class TelegramLogHandler extends AbstractProcessingHandler
 
         $appName = config('app.name', 'Laravel');
         $environment = config('app.env', 'production');
-        $timestamp = $record->datetime->format('Y-m-d H:i:s');
-
-        // Escape markdown special characters
-        $escapedMessage = $this->escapeMarkdown($this->truncate($record->message, 1000));
-
-        $message = <<<MSG
-{$levelEmoji} *{$record->level->name}* | {$appName}
-
-*Environment:* {$environment}
-*Time:* {$timestamp}
-
-*Message:*
-```
-{$escapedMessage}
-```
-MSG;
-
-        // Add context if available
-        if (!empty($record->context)) {
-            $contextStr = $this->formatContext($record->context);
-            if (!empty($contextStr)) {
-                $message .= "\n\n*Context:*\n```\n{$contextStr}\n```";
+        
+        // Extract Context and System Data
+        $context = $record->context;
+        $exception = $context['exception'] ?? null;
+        $sys = $context['sys'] ?? [];
+        
+        // Extract exception details from structured logging (AppLogger puts them at top level)
+        $exceptionType = $context['exception_type'] ?? ($exception ? get_class($exception) : null);
+        $exceptionMessage = $context['exception_message'] ?? ($exception instanceof \Throwable ? $exception->getMessage() : null);
+        $exceptionFile = $context['exception_file'] ?? ($exception instanceof \Throwable ? $exception->getFile() : null);
+        $exceptionLine = $context['exception_line'] ?? ($exception instanceof \Throwable ? $exception->getLine() : null);
+        
+        // Extract user info (prefer sys, fallback to top-level)
+        $userName = $sys['user_name'] ?? $context['user_name'] ?? null;
+        $userEmail = $sys['user_email'] ?? $context['user_email'] ?? null;
+        $userId = $sys['user_id'] ?? $context['user_id'] ?? null;
+        
+        // Extract route info (prefer sys, fallback to top-level)
+        $route = $sys['route'] ?? $context['route_name'] ?? $context['route'] ?? $context['url'] ?? null;
+        $method = $sys['method'] ?? $context['method'] ?? 'GET';
+        $action = $sys['action'] ?? $context['route_action'] ?? null;
+        
+        // Extract request_id
+        $requestId = $sys['request_id'] ?? $context['request_id'] ?? null;
+        
+        // Build clean, structured message
+        $message = "{$levelEmoji} *{$record->level->name}* | {$appName} ({$environment})\n";
+        
+        // 1. Main message/exception
+        $mainMessage = $exceptionMessage ?: $record->message;
+        $message .= "\n🗣️ *" . $this->escapeMarkdown($this->truncate($mainMessage, 200)) . "*";
+        
+        // 2. User info (if available)
+        if ($userName || $userEmail) {
+            $userParts = array_filter([
+                $userName,
+                $userEmail,
+                $userId ? "ID:{$userId}" : null
+            ]);
+            $message .= "\n👤 " . $this->escapeMarkdown(implode(' | ', $userParts));
+        }
+        
+        // 3. Route + method
+        if ($route) {
+            $routeDisplay = $route;
+            if ($action && $action !== $route) {
+                $routeDisplay = "{$route} ({$action})";
+            }
+            $message .= "\n🛣️ `{$method} " . $this->escapeMarkdown($routeDisplay) . "`";
+        }
+        
+        // 4. Exception details (class + location)
+        if ($exceptionType) {
+            $message .= "\n\n*Exception:* `" . $this->escapeMarkdown($exceptionType) . "`";
+            if ($exceptionFile && $exceptionLine) {
+                $message .= "\n📍 " . $this->escapeMarkdown(basename($exceptionFile) . ':' . $exceptionLine);
             }
         }
-
-        // Add exception details if present
-        if (isset($record->context['exception'])) {
-            $exception = $record->context['exception'];
-            if ($exception instanceof \Throwable) {
-                $exceptionInfo = $this->formatException($exception);
-                $message .= "\n\n*Exception:*\n```\n{$exceptionInfo}\n```";
+        
+        // 5. Request ID (for tracing)
+        if ($requestId) {
+            $message .= "\n🔖 Request ID: `" . $this->escapeMarkdown($requestId) . "`";
+        }
+        
+        // 6. Compact context (only show a few safe keys, avoid dumping entire request_body)
+        $contextWhitelist = ['event', 'action', 'data', 'status', 'error', 'ip'];
+        $compactContext = [];
+        foreach ($contextWhitelist as $key) {
+            if (isset($context[$key]) && !in_array($key, ['sys', 'exception', 'exception_type', 'exception_message', 'exception_file', 'exception_line', 'exception_trace'])) {
+                $value = $context[$key];
+                if (is_array($value) || is_object($value)) {
+                    $value = json_encode($value);
+                }
+                $compactContext[$key] = $this->truncate((string)$value, 100);
             }
         }
-
+        
+        if (!empty($compactContext)) {
+            $message .= "\n\n*Context:*";
+            foreach ($compactContext as $key => $value) {
+                $message .= "\n• *{$this->escapeMarkdown($key)}*: " . $this->escapeMarkdown($value);
+            }
+        }
+        
         return $message;
     }
 
     /**
      * Format context array for display.
+     * Deprecated: logic moved to formatMessage for better control
      */
     private function formatContext(array $context): string
     {
-        // Remove exception from context as it's handled separately
-        unset($context['exception']);
-
-        if (empty($context)) {
-            return '';
-        }
-
-        try {
-            $json = json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            return $this->truncate($json, 500);
-        } catch (\Throwable $e) {
-            return 'Context could not be serialized';
-        }
+        return '';
     }
 
     /**
      * Format exception for display.
+     * Deprecated: logic moved to formatMessage
      */
     private function formatException(\Throwable $exception): string
     {
-        $info = sprintf(
-            "%s: %s\nFile: %s:%d",
-            get_class($exception),
-            $this->truncate($exception->getMessage(), 300),
-            $exception->getFile(),
-            $exception->getLine()
-        );
-
-        // Add a short stack trace
-        $trace = $exception->getTraceAsString();
-        $traceLines = explode("\n", $trace);
-        $shortTrace = implode("\n", array_slice($traceLines, 0, 5));
-
-        return $info . "\n\nStack trace:\n" . $this->truncate($shortTrace, 400);
+        return '';
     }
 
     /**

@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import {
   Table,
   TableBody,
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { AddPlanModal } from "./components/AddPlanModal";
 import { EditPlanModal } from "./components/EditPlanModal";
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface Plan {
   id: number;
@@ -55,6 +56,7 @@ interface IndexProps {
   };
   filters: {
     search?: string;
+    per_page?: number;
   };
   summary: PlanSummary;
   usersPerPlan: UsersPerPlan[];
@@ -95,7 +97,6 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Plans" />
       
-      <FuturisticBackground className="min-h-full" showDots={true}>
         <div className="flex h-full flex-1 flex-col gap-6 p-6">
           {/* Page Header */}
           <PageHeader
@@ -296,16 +297,15 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
             </EnhancedCard>
           )}
 
-          {/* Pagination info */}
-          {plans.total > 0 && (
-            <div className="flex justify-center">
-              <p className="rounded-lg border border-border/30 bg-card/30 px-4 py-2 text-sm text-muted-foreground/60 backdrop-blur-sm">
-                Showing <span className="font-medium text-foreground/80">{plans.from || 0}</span> to <span className="font-medium text-foreground/80">{plans.to || 0}</span> of <span className="font-medium text-foreground/80">{plans.total}</span> plans
-              </p>
-            </div>
-          )}
+          {/* Pagination */}
+          <PaginationControls 
+            data={plans} 
+            baseUrl="/admin/plans"
+            preserveFilters={{
+              search: search || undefined,
+            }}
+          />
         </div>
-      </FuturisticBackground>
 
       {/* Edit Plan Modal */}
       {selectedPlan && (

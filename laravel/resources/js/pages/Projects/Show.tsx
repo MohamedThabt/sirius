@@ -107,6 +107,9 @@ export default function ProjectShow({
     const [isGeneratingModules, setIsGeneratingModules] = useState(false);
     const [isGeneratingTechnicalDetails, setIsGeneratingTechnicalDetails] = useState(false);
     const [isGeneratingERD, setIsGeneratingERD] = useState(false);
+    const [isGeneratingPRD, setIsGeneratingPRD] = useState(false);
+    const [isGeneratingArchitecture, setIsGeneratingArchitecture] = useState(false);
+    const [navigatingStepId, setNavigatingStepId] = useState<string | null>(null);
     const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
 
     // getPriorityColor now imported from @/utils/status-colors
@@ -176,6 +179,7 @@ export default function ProjectShow({
                 actionPath: `/projects/${project.id}/system-overview`,
                 prerequisites: ['brief'],
                 prerequisiteMessage: 'Complete Project Brief first',
+                isLoading: navigatingStepId === 'overview',
             },
             {
                 id: 'technical_details',
@@ -193,6 +197,7 @@ export default function ProjectShow({
                 prerequisites: ['brief'],
                 prerequisiteMessage: 'Complete Project Brief first',
                 currentBadgeLabel: 'Complete',
+                isLoading: navigatingStepId === 'technical_details',
             },
             // Stage 3: System Modules (unlocked after Overview)
             {
@@ -229,6 +234,7 @@ export default function ProjectShow({
                 actionPath: prdExists ? `/projects/${project.id}/prd` : null,
                 prerequisites: ['modules'],
                 prerequisiteMessage: 'Complete System Modules to generate PRD',
+                isLoading: isGeneratingPRD,
                 isOutOfSync: prdExists && project.prd_is_synced === false,
             },
             {
@@ -246,6 +252,7 @@ export default function ProjectShow({
                 actionPath: c4Exists ? `/projects/${project.id}/c4` : null,
                 prerequisites: ['modules'],
                 prerequisiteMessage: 'Complete System Modules to unlock System Architecture',
+                isLoading: isGeneratingArchitecture,
             },
             {
                 id: 'erd',
@@ -290,6 +297,9 @@ export default function ProjectShow({
             isGeneratingModules,
             isGeneratingTechnicalDetails,
             isGeneratingERD,
+            isGeneratingPRD,
+            isGeneratingArchitecture,
+            navigatingStepId,
         ]
     );
     const currentStep = roadmapSteps.find((step) => step.isCurrent);
@@ -365,13 +375,34 @@ export default function ProjectShow({
         if (step.actionType === 'view' && step.actionHandler) {
             step.actionHandler();
         } else if (step.actionType === 'navigate' && step.actionPath) {
-            router.get(step.actionPath);
+            setNavigatingStepId(step.id);
+            router.get(
+                step.actionPath,
+                {},
+                {
+                    onFinish: () => setNavigatingStepId(null),
+                },
+            );
         } else if (step.actionType === 'generate') {
             if (step.isLocked) return;
             if (step.id === 'prd') {
-                router.post(`/projects/${project.id}/prd/generate`);
+                setIsGeneratingPRD(true);
+                router.post(
+                    `/projects/${project.id}/prd/generate`,
+                    {},
+                    {
+                        onFinish: () => setIsGeneratingPRD(false),
+                    },
+                );
             } else if (step.id === 'architecture') {
-                router.post(`/projects/${project.id}/c4/generate`);
+                setIsGeneratingArchitecture(true);
+                router.post(
+                    `/projects/${project.id}/c4/generate`,
+                    {},
+                    {
+                        onFinish: () => setIsGeneratingArchitecture(false),
+                    },
+                );
             } else if (step.id === 'modules') {
                 setIsGeneratingModules(true);
                 router.get(

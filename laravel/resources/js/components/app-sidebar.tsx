@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
-import { Activity, Briefcase, Bug, CoinsIcon, CreditCard, FileText, LayoutDashboard, MessageSquare, Receipt, ScrollText, Shield, Users, Zap } from 'lucide-react';
+import { Activity, Briefcase, Bug, CoinsIcon, CreditCard, FileText, LayoutDashboard, Mail, MessageSquare, Receipt, ScrollText, Shield, Users, Zap } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [];
@@ -25,6 +25,11 @@ const adminNavItems: NavItem[] = [
         title: 'Users',
         href: '/admin/users',
         icon: Users,
+    },
+    {
+        title: 'Send Email',
+        href: '/admin/emails',
+        icon: Mail,
     },
     {
         title: 'Plans',

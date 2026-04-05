@@ -14,8 +14,29 @@ services:
       - dokploy-network
     env_file:
       - .env
+    environment:
+      - NIGHTWATCH_INGEST_URI=nightwatch:2407
     entrypoint: ["/usr/local/bin/php-entrypoint"]
     command: ["php-fpm"]
+
+  # Nightwatch Monitoring Agent (Official Image)
+  nightwatch:
+    image: laravelphp/nightwatch-agent:v1
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NIGHTWATCH_INGEST_URI=0.0.0.0:2407
+    healthcheck:
+      test: php nightwatch-status
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - dokploy-network
+    depends_on:
+      - prod-app
 
   # The Nginx Web Server Container
   prod-nginx:

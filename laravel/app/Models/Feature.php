@@ -35,6 +35,22 @@ class Feature extends Model
                 $feature->status = 'done';
             }
         });
+
+        // Update parent module status after feature is saved
+        static::saved(function (Feature $feature) {
+            if ($feature->module) {
+                $feature->module->updateModuleStatus();
+                $feature->module->saveQuietly(); // Save without triggering events
+            }
+        });
+
+        // Update parent module status after feature is deleted
+        static::deleted(function (Feature $feature) {
+            if ($feature->module) {
+                $feature->module->updateModuleStatus();
+                $feature->module->saveQuietly(); // Save without triggering events
+            }
+        });
     }
 
     /**

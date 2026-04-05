@@ -245,7 +245,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                     {searchTerm && (
                                         <button
                                             onClick={() => handleSearchChange('')}
-                                            className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                            className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                                         >
                                             <XIcon className="h-4 w-4" />
                                         </button>

@@ -1,3 +1,4 @@
+import { PaginationControls } from '@/components/PaginationControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,8 +60,16 @@ interface PaginationMeta {
 interface Props {
     modules: {
         data: Module[];
-        links: PaginationLink[];
-        meta: PaginationMeta;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from?: number;
+        to?: number;
+    };
+    filters: {
+        search?: string;
+        per_page?: number;
     };
     stats: Stats;
 }
@@ -263,20 +272,13 @@ export default function ModulesIndex({ modules, stats }: Props) {
                 </div>
 
                 {/* Pagination */}
-                {modules.meta && modules.meta.last_page > 1 && (
-                    <div className="flex items-center justify-center gap-2">
-                        {modules.links.map((link: PaginationLink, index: number) => (
-                            <Button
-                                key={index}
-                                variant={link.active ? 'default' : 'outline'}
-                                size="sm"
-                                disabled={!link.url}
-                                onClick={() => link.url && router.visit(link.url)}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        ))}
-                    </div>
-                )}
+                <PaginationControls
+                    data={modules}
+                    baseUrl="/admin/modules"
+                    preserveFilters={{
+                        search: search || undefined,
+                    }}
+                />
             </div>
         </AppLayout>
     );

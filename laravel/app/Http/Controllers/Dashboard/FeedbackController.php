@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feedback;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,7 +50,9 @@ class FeedbackController extends Controller
                 $query->where('status', $request->status);
             }
 
-            $feedbacks = $query->latest()->paginate(15)->withQueryString();
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
+            $feedbacks = $query->latest()->paginate($perPage)->withQueryString();
 
             // Summary stats
             $summary = [
@@ -62,7 +65,7 @@ class FeedbackController extends Controller
 
             return Inertia::render('dashboard/feedback/index', [
                 'feedbacks' => $feedbacks,
-                'filters' => $request->only(['search', 'type', 'status']),
+                'filters' => $request->only(['search', 'type', 'status', 'per_page']),
                 'types' => [
                     ['value' => Feedback::TYPE_SUGGESTION, 'label' => 'Suggestion'],
                     ['value' => Feedback::TYPE_UX, 'label' => 'UX Issue'],
@@ -142,6 +145,13 @@ class FeedbackController extends Controller
 
             if (!empty($data)) {
                 $feedback->update($data);
+
+                AppLogger::business('admin.feedback.updated', [
+                    'feedback_id' => $feedback->id,
+                    'user_id' => $feedback->user_id,
+                    'status' => $feedback->status,
+                    'admin_id' => auth('admin')->id(),
+                ]);
             }
 
             return back()->with('success', 'Feedback updated successfully.');
@@ -159,6 +169,12 @@ class FeedbackController extends Controller
     {
         try {
             $feedback->delete();
+
+            AppLogger::business('admin.feedback.deleted', [
+                'feedback_id' => $feedback->id,
+                'user_id' => $feedback->user_id,
+                'admin_id' => auth('admin')->id(),
+            ]);
 
             return back()->with('success', 'Feedback deleted successfully.');
         } catch (Throwable $e) {

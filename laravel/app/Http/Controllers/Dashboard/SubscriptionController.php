@@ -37,8 +37,10 @@ class SubscriptionController extends Controller
                 $query->where('plan_id', $request->plan_id);
             }
 
+            $perPage = in_array((int) $request->input('per_page'), [10, 25, 50, 100]) ? (int) $request->input('per_page') : 10;
+
             $subscriptions = $query->latest('started_at')
-                ->paginate(15)
+                ->paginate($perPage)
                 ->withQueryString();
 
             $summary = [
@@ -53,7 +55,7 @@ class SubscriptionController extends Controller
 
             return Inertia::render('dashboard/subscriptions/index', [
                 'subscriptions' => $subscriptions,
-                'filters' => $request->only(['search', 'status', 'plan_id']),
+                'filters' => $request->only(['search', 'status', 'plan_id', 'per_page']),
                 'summary' => $summary,
                 'plans' => $plans,
             ]);

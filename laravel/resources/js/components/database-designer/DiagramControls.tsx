@@ -128,23 +128,6 @@ const DiagramControls = ({
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Toggle Editor Button - Only show in full screen mode to exit */}
-                {onToggleEditor && isFullScreen && (
-                    <>
-                        <Separator orientation="vertical" className="h-5" />
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onToggleEditor}
-                            className="flex items-center gap-2 h-9"
-                            title="Show Editor"
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                            <span className="hidden md:inline">Show Editor</span>
-                        </Button>
-                    </>
-                )}
-
                 {/* Full Screen Toggle */}
                 {onToggleFullScreen && (
                     <>

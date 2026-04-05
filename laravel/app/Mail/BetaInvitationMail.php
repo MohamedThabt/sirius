@@ -63,16 +63,6 @@ class BetaInvitationMail extends Mailable implements ShouldQueue
      */
     public function attachments(): array
     {
-        $logoPath = public_path('images/logo.png');
-        
-        if (file_exists($logoPath)) {
-            return [
-                Attachment::fromPath($logoPath)
-                    ->as('logo.png')
-                    ->withMime('image/png'),
-            ];
-        }
-        
         return [];
     }
 

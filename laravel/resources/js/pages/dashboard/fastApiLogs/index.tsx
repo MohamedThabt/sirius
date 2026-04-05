@@ -12,15 +12,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';import { getLogLevelColor } from '@/utils/semantic-colors';import { Head, router } from '@inertiajs/react';
 import {
     AlertCircleIcon,
     AlertOctagonIcon,
@@ -142,22 +140,99 @@ const getLevelIcon = (level: string) => {
     }
 };
 
-const getLevelColor = (level: string) => {
-    switch (level.toUpperCase()) {
-        case 'DEBUG':
-            return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
-        case 'INFO':
-            return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
-        case 'WARNING':
-            return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
-        case 'ERROR':
-            return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
-        case 'CRITICAL':
-            return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20';
-        default:
-            return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20';
+const getLevelColor = getLogLevelColor;
+
+/**
+ * Try to parse a string as JSON
+ */
+function tryParseJson(raw: string): { isJson: true; parsed: unknown } | { isJson: false } {
+    const trimmed = raw?.trim() ?? '';
+    if (!trimmed) return { isJson: false };
+    try {
+        const parsed = JSON.parse(trimmed);
+        return { isJson: true, parsed };
+    } catch {
+        return { isJson: false };
     }
-};
+}
+
+/**
+ * Extract summary fields from FastAPI log entry for display in table row
+ */
+function extractFastApiLogSummary(log: LogEntry): {
+    mainMessage: string;
+    routeInfo: string | null;
+    exceptionInfo: string | null;
+    requestId: string | null;
+} {
+    // Try to parse message as JSON (our structured logs)
+    const result = tryParseJson(log.message);
+    
+    if (result.isJson && typeof result.parsed === 'object' && result.parsed !== null) {
+        const data = result.parsed as Record<string, unknown>;
+        
+        // Extract fields from structured log
+        const event = data.event as string | null;
+        const route = data.route as string | null;
+        const method = data.method as string | null;
+        const exceptionType = data.exception_type as string | null;
+        const exceptionMessage = data.exception_message as string | null;
+        const exceptionFile = data.exception_file as string | null;
+        const exceptionLine = data.exception_line as number | null;
+        const requestId = data.request_id as string | null;
+        
+        // Build summary strings
+        let routeInfo: string | null = null;
+        if (route) {
+            routeInfo = method ? `${method} ${route}` : route;
+        }
+        
+        let exceptionInfo: string | null = null;
+        if (exceptionType || exceptionFile) {
+            const parts: string[] = [];
+            if (exceptionType) {
+                parts.push(exceptionType);
+            }
+            if (exceptionFile && exceptionLine) {
+                const shortFile = exceptionFile.split('/').pop()?.split('\\').pop() || exceptionFile;
+                parts.push(`${shortFile}:${exceptionLine}`);
+            }
+            exceptionInfo = parts.join(' @ ');
+        }
+        
+        // Main message is the event or exception message
+        const mainMessage = exceptionMessage || event || log.message;
+        
+        return {
+            mainMessage,
+            routeInfo,
+            exceptionInfo,
+            requestId,
+        };
+    }
+    
+    // Fallback: parse from non-JSON message (e.g., "Request completed: GET /api/v1/...")
+    const requestMatch = log.message.match(/Request completed: (\w+)\s+([^|]+)/);
+    if (requestMatch) {
+        return {
+            mainMessage: 'Request completed',
+            routeInfo: `${requestMatch[1]} ${requestMatch[2].trim()}`,
+            exceptionInfo: null,
+            requestId: null,
+        };
+    }
+    
+    // Check for exception patterns in the message
+    const exceptionMatch = log.message.match(/\[(\w+Error|\w+Exception)\]:/);
+    const exceptionInfo = exceptionMatch ? exceptionMatch[1] : null;
+    
+    return {
+        mainMessage: log.message,
+        routeInfo: null,
+        exceptionInfo,
+        requestId: null,
+    };
+}
 
 /**
  * Format timestamp to human-readable format.
@@ -207,7 +282,6 @@ const formatTimestamp = (timestamp: string): string => {
 export default function LogsIndex({ stats, logs, filters, error: serverError }: Props) {
     const [activeTab, setActiveTab] = useState<'app' | 'error'>((filters.log_type as 'app' | 'error') || 'app');
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
 
     // Local filter state
     const [search, setSearch] = useState(filters.search || '');
@@ -483,60 +557,44 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
 
                         {/* Logs Table */}
                         <TabsContent value="app" className="mt-4 flex-1">
-                            <LogsTable logs={entries} isLoading={isLoading} error={serverError} meta={meta} onPageChange={handlePageChange} onSelectLog={(log) => setSelectedLog(log)} />
+                            <LogsTable 
+                                logs={entries} 
+                                isLoading={isLoading} 
+                                error={serverError} 
+                                meta={meta} 
+                                onPageChange={handlePageChange} 
+                                onSelectLog={(log) => {
+                                    // Navigate to detail page
+                                    const queryParams = new URLSearchParams();
+                                    queryParams.set('log_type', activeTab);
+                                    if (levelFilter !== 'all') queryParams.set('level', levelFilter);
+                                    if (search) queryParams.set('search', search);
+                                    if (meta?.current_page) queryParams.set('page', meta.current_page.toString());
+                                    
+                                    router.visit(`/admin/logs/fastapi/show/${activeTab}/${log.line_number}?${queryParams.toString()}`);
+                                }} 
+                            />
                         </TabsContent>
                         <TabsContent value="error" className="mt-4 flex-1">
-                            <LogsTable logs={entries} isLoading={isLoading} error={serverError} meta={meta} onPageChange={handlePageChange} onSelectLog={(log) => setSelectedLog(log)} />
+                            <LogsTable 
+                                logs={entries} 
+                                isLoading={isLoading} 
+                                error={serverError} 
+                                meta={meta} 
+                                onPageChange={handlePageChange} 
+                                onSelectLog={(log) => {
+                                    // Navigate to detail page
+                                    const queryParams = new URLSearchParams();
+                                    queryParams.set('log_type', activeTab);
+                                    if (levelFilter !== 'all') queryParams.set('level', levelFilter);
+                                    if (search) queryParams.set('search', search);
+                                    if (meta?.current_page) queryParams.set('page', meta.current_page.toString());
+                                    
+                                    router.visit(`/admin/logs/fastapi/show/${activeTab}/${log.line_number}?${queryParams.toString()}`);
+                                }} 
+                            />
                         </TabsContent>
                     </Tabs>
-
-                    {/* Log Detail Modal */}
-                    <Dialog open={selectedLog !== null} onOpenChange={(open) => !open && setSelectedLog(null)}>
-                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-3">
-                                    {selectedLog && (() => {
-                                        const LevelIcon = getLevelIcon(selectedLog.level);
-                                        return (
-                                            <>
-                                                <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(selectedLog.level))}>
-                                                    <LevelIcon className="mr-1 h-3 w-3" />
-                                                    {selectedLog.level}
-                                                </Badge>
-                                                <span className="font-mono text-sm text-muted-foreground" title={selectedLog.timestamp}>
-                                                    {formatTimestamp(selectedLog.timestamp)}
-                                                </span>
-                                                <span className="font-mono text-xs text-muted-foreground/60">
-                                                    Line {selectedLog.line_number}
-                                                </span>
-                                            </>
-                                        );
-                                    })()}
-                                </DialogTitle>
-                            </DialogHeader>
-                            {selectedLog && (
-                                <div className="flex-1 overflow-auto space-y-4">
-                                    {/* Log Message */}
-                                    <div>
-                                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Message</h4>
-                                        <div className="rounded-md border border-border/30 bg-muted/30 p-4">
-                                            <p className="font-mono text-sm whitespace-pre-wrap break-words">
-                                                {selectedLog.message}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Logger */}
-                                    <div className="flex items-center gap-4">
-                                        <div>
-                                            <span className="text-xs text-muted-foreground">Logger:</span>
-                                            <Badge variant="secondary" className="ml-2">{selectedLog.logger || '-'}</Badge>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </AppLayout>
         </>
@@ -600,38 +658,73 @@ function LogsTable({
                 <Table>
                     <TableHeader>
                         <TableRow className="border-border/30 hover:bg-transparent">
-                            <TableHead className="w-[180px]">Timestamp</TableHead>
-                            <TableHead className="w-[100px]">Level</TableHead>
-                            <TableHead className="w-[200px]">Logger</TableHead>
+                            <TableHead className="w-[160px]">Timestamp</TableHead>
+                            <TableHead className="w-[90px]">Level</TableHead>
                             <TableHead>Message</TableHead>
-                            <TableHead className="w-[80px] text-right">Line</TableHead>
+                            <TableHead className="w-[70px] text-right">Line</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {logs.map((log, index) => {
                             const LevelIcon = getLevelIcon(log.level);
+                            const summary = extractFastApiLogSummary(log);
+                            
                             return (
                                 <TableRow
                                     key={`${log.line_number}-${index}`}
                                     className="border-border/20 cursor-pointer hover:bg-muted/30 transition-colors"
                                     onClick={() => onSelectLog(log)}
                                 >
-                                    <TableCell className="font-mono text-xs text-muted-foreground/80" title={log.timestamp}>{formatTimestamp(log.timestamp)}</TableCell>
-                                    <TableCell>
+                                    <TableCell className="align-top font-mono text-xs text-muted-foreground/80" title={log.timestamp}>
+                                        {formatTimestamp(log.timestamp)}
+                                    </TableCell>
+                                    <TableCell className="align-top">
                                         <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(log.level))}>
                                             <LevelIcon className="mr-1 h-3 w-3" />
                                             {log.level}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="max-w-[200px] truncate font-mono text-xs text-muted-foreground/70">
-                                        {log.logger || '-'}
-                                    </TableCell>
-                                    <TableCell className="max-w-[400px] font-mono text-xs">
-                                        <div className="truncate" title={log.message}>
-                                            {log.message}
+                                    <TableCell className="max-w-[600px]">
+                                        <div className="flex flex-col gap-1.5">
+                                            {/* Main message */}
+                                            <div className="font-mono text-xs text-foreground/90 line-clamp-2" title={summary.mainMessage}>
+                                                {summary.mainMessage}
+                                            </div>
+                                            
+                                            {/* Structured summary line */}
+                                            {(summary.routeInfo || summary.exceptionInfo || summary.requestId) && (
+                                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                                    {summary.routeInfo && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/70">
+                                                            <span className="text-muted-foreground/50">🛣️</span>
+                                                            <span className="font-mono">{summary.routeInfo}</span>
+                                                        </span>
+                                                    )}
+                                                    {summary.exceptionInfo && (
+                                                        <span className="inline-flex items-center gap-1 text-amber-600/80 dark:text-amber-500/70">
+                                                            <span>📍</span>
+                                                            <span className="font-mono text-xs">{summary.exceptionInfo}</span>
+                                                        </span>
+                                                    )}
+                                                    {summary.requestId && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/60">
+                                                            <span className="text-muted-foreground/40">🔖</span>
+                                                            <span className="font-mono text-[10px]">{summary.requestId.substring(0, 8)}</span>
+                                                        </span>
+                                                    )}
+                                                    {log.logger && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/50">
+                                                            <span className="text-muted-foreground/30">📦</span>
+                                                            <span className="font-mono text-[10px]">{log.logger}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-right font-mono text-xs text-muted-foreground/60">{log.line_number}</TableCell>
+                                    <TableCell className="align-top text-right font-mono text-xs text-muted-foreground/60">
+                                        {log.line_number}
+                                    </TableCell>
                                 </TableRow>
                             );
                         })}

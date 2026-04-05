@@ -94,7 +94,7 @@ function EmojiButton({
             type="button"
             onClick={onClick}
             className={cn(
-                'flex size-8 items-center justify-center rounded-full p-0 transition-all duration-200',
+                'cursor-pointer flex size-8 items-center justify-center rounded-full p-0 transition-all duration-200',
                 'hover:bg-primary/20 hover:text-primary',
                 selected ? 'bg-primary/20 text-primary' : 'bg-transparent text-muted-foreground',
             )}

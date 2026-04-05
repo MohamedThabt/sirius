@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 
 class PRDController extends Controller
@@ -39,24 +40,92 @@ class PRDController extends Controller
                 return redirect()->route('projects.show', $project)->with('error', 'Please create a base System Overview before generating the PRD.');
             }
 
-            // Store project data in session for async generation
-            session([
-                'pending_prd_generation' => [
-                    'project_id' => $project->id,
+            // --- Synchronous FastAPI call to generate PRD ---
+            set_time_limit(180);
+
+            // Use enriched features with module context
+            $features = $featureMarkdownService->getEnrichedFeaturesForAPI($project);
+            $modules = $featureMarkdownService->getModulesWithFeaturesForAPI($project);
+
+            $payload = [
+                'project_name' => $project->name,
+                'author' => auth()->user()->name ?? 'Unknown',
+                'date' => now()->toDateString(),
+                'version' => '1',
+                'overview' => $overviewText,
+                'modules' => $modules,
+                'features' => [
+                    'features' => $features,
                 ],
-            ]);
+            ];
+
+            $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
+                ->post($fastApiBaseUrl.'/v1/PRD/generate', $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Validate and record usage
+                if (!isset($data['usage'])) {
+                    throw new \Exception('AI usage data missing from response');
+                }
+
+                app(AiUsageService::class)->handle(
+                    auth()->user(),
+                    'prd_generation',
+                    $data['usage'],
+                    $data['model'] ?? null
+                );
+
+                $combined = $data['combined_file'] ?? null;
+                if (is_string($combined) && $combined !== '') {
+                    $project->update([
+                        'prd' => $combined,
+                        'prd_is_synced' => true,
+                        'prd_last_synced_at' => now(),
+                    ]);
+                }
+
+                AppLogger::business('prd.generated', [
+                    'project_id' => $project->id,
+                    'version' => 1,
+                ]);
+            } else {
+                \Illuminate\Support\Facades\Log::error('FastAPI PRD generation failed during generate', [
+                    'project_id' => $project->id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return back()->with('error', 'Failed to generate PRD. Please try again.');
+            }
+
+            // Build prdVersions from the (potentially updated) project
+            $project->refresh();
+            $prdVersions = [];
+            if (! empty($project->prd)) {
+                $prdVersions[] = [
+                    'id' => 0,
+                    'project_id' => $project->id,
+                    'prd_content' => $project->prd,
+                    'version_number' => 1,
+                    'is_base_version' => true,
+                    'user_prompt' => null,
+                    'created_at' => $project->created_at?->toISOString() ?? now()->toISOString(),
+                    'updated_at' => $project->updated_at?->toISOString() ?? now()->toISOString(),
+                ];
+            }
 
             $featuresMarkdown = $featureMarkdownService->formatProjectFeaturesToMarkdown($project);
 
             return Inertia::render('Projects/PRD', [
                 'project' => $project,
-                'prdVersions' => [],
+                'prdVersions' => $prdVersions,
                 'featuresMarkdown' => $featuresMarkdown,
-                'isGenerating' => true,
             ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'generate', 'project_id' => $project->id]);
-            return redirect()->route('projects.show', $project)->with('error', 'Failed to load PRD generation page.');
+            return redirect()->route('projects.show', $project)->with('error', 'Failed to generate PRD.');
         }
     }
 
@@ -139,6 +208,11 @@ class PRDController extends Controller
                 // Clear pending session data
                 session()->forget('pending_prd_generation');
 
+                AppLogger::business('prd.generated', [
+                    'project_id' => $project->id,
+                    'version' => 1,
+                ]);
+
                 // Prepare PRD versions
                 $prdVersions = [];
                 if (! empty($project->prd)) {
@@ -187,6 +261,11 @@ class PRDController extends Controller
         try {
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'You do not have permission to access this project.');
+            }
+
+            // Guard: redirect back if there's no PRD content
+            if (empty($project->prd)) {
+                return back()->with('error', 'This project has no PRD yet. Please generate one first.');
             }
 
             // Load modules with their features for proper markdown generation
@@ -243,6 +322,11 @@ class PRDController extends Controller
                 'prd' => $validated['prd_content'],
                 'prd_is_synced' => true,
                 'prd_last_synced_at' => now(),
+            ]);
+
+            AppLogger::business('prd.updated.manual', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
             ]);
 
             return back()->with('success', 'PRD saved successfully.');
@@ -313,6 +397,11 @@ class PRDController extends Controller
                     'prd_last_synced_at' => now(),
                 ]);
             }
+
+            AppLogger::business('prd.updated.ai', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with('success', 'PRD updated successfully.');
         } catch (\Throwable $e) {
@@ -456,6 +545,11 @@ class PRDController extends Controller
                     'prd_last_synced_at' => now(),
                 ]);
             }
+
+            AppLogger::business('prd.synced', [
+                'project_id' => $project->id,
+                'version' => 2,
+            ]);
 
             return back()->with('success', 'PRD synchronized successfully with current modules and features.');
         } catch (\Throwable $e) {

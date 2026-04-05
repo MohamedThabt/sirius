@@ -30,7 +30,6 @@ interface Props {
     project?: Project;
     prdVersions: PRDVersion[];
     featuresMarkdown?: string;
-    isGenerating?: boolean;
     sections?: Sections;
 }
 
@@ -49,7 +48,6 @@ export default function PRD({
     project,
     prdVersions: initialPRDVersions,
     featuresMarkdown = '',
-    isGenerating: initialIsGenerating = false,
     sections,
 }: Props) {
     useFlashToasts();
@@ -57,7 +55,6 @@ export default function PRD({
     const [currentVersion, setCurrentVersion] = useState<PRDVersion | null>(null);
     const [prdVersions, setPrdVersions] = useState<PRDVersion[]>(initialPRDVersions || []);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isInitialGeneration, setIsInitialGeneration] = useState(initialIsGenerating);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState('');
@@ -125,12 +122,7 @@ export default function PRD({
         });
     }, []);
 
-    // Handle initial generation trigger
-    useEffect(() => {
-        if (isInitialGeneration && project) {
-            triggerAsyncGeneration();
-        }
-    }, [isInitialGeneration, project]);
+
 
     // Initialize with PRD versions from props
     useEffect(() => {
@@ -149,8 +141,8 @@ export default function PRD({
                 versionId: version.id,
             }));
             setChatMessages(messages);
-        } else if (project && project.brief && prdVersions.length === 0 && !isInitialGeneration) {
-            // Fallback to project brief if no versions exist (but not during initial generation)
+        } else if (project && project.brief && prdVersions.length === 0) {
+            // Fallback to project brief if no versions exist
             const initialVersion: PRDVersion = {
                 id: 0,
                 project_id: project.id,
@@ -165,61 +157,9 @@ export default function PRD({
             setCurrentVersion(initialVersion);
             setEditedContent(initialVersion.prd_content);
         }
-    }, [initialPRDVersions, project, isInitialGeneration]);
+    }, [initialPRDVersions, project]);
 
-    // MermaidDiagram is now imported from '@/components/MermaidDiagram'
-    // Removed ~200 lines of inline component definition
 
-    // Handle initial async generation
-    const triggerAsyncGeneration = async () => {
-        try {
-            // Get CSRF token
-            const csrfToken =
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
-                document.cookie
-                    .split('; ')
-                    .find((row) => row.startsWith('XSRF-TOKEN='))
-                    ?.split('=')[1];
-
-            const response = await fetch(`/projects/${project?.id}/prd/generate-async`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-
-                if (data.success) {
-                    // Update the versions list with the new data
-                    setPrdVersions(data.prdVersions);
-
-                    // Set the newest version as current
-                    if (data.prdVersions && data.prdVersions.length > 0) {
-                        const newestVersion = data.prdVersions[0];
-                        setCurrentVersion(newestVersion);
-                        setEditedContent(newestVersion.prd_content);
-                    }
-
-                    // Mark initial generation as complete
-                    setIsInitialGeneration(false);
-                } else {
-                    throw new Error(data.message || 'Failed to generate PRD');
-                }
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to generate PRD');
-            }
-        } catch (error) {
-            console.error('Error generating PRD:', error);
-            setIsInitialGeneration(false);
-            // You could add a toast notification here for the error
-        }
-    };
 
     // Handle AI prompt submission using updateWithAi controller method
     const handlePromptSubmit = async (prompt: string) => {
@@ -414,9 +354,7 @@ export default function PRD({
 
                                         {/* Content Area */}
                                         <ScrollArea className="flex-1 p-6">
-                                            {isInitialGeneration ? (
-                                                <SimpleLoader text="Generating PRD" />
-                                            ) : currentVersion ? (
+                                            {currentVersion ? (
                                                 <Card>
                                                     <CardContent className="p-0">
                                                         {isEditing ? (

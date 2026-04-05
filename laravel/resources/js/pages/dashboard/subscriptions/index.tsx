@@ -9,6 +9,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Receipt, UsersIcon, TrendingUpIcon, XCircle, CheckCircle, Clock } from 'lucide-react';
 import { useState } from 'react';
+import { PaginationControls } from '@/components/PaginationControls';
 
 interface User {
     id: number;
@@ -47,13 +48,18 @@ interface Summary {
 interface Props {
     subscriptions: {
         data: Subscription[];
-        links: any[];
-        meta: any;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
     };
     filters: {
         search?: string;
         status?: string;
         plan_id?: string;
+        per_page?: number;
     };
     summary: Summary;
     plans: Plan[];
@@ -268,14 +274,16 @@ export default function SubscriptionsIndex({ subscriptions, filters, summary, pl
                     </div>
                 )}
 
-                {/* Pagination info */}
-                {subscriptions.meta?.total > 0 && (
-                    <div className="flex justify-center">
-                        <p className="text-sm text-muted-foreground">
-                            Showing {subscriptions.meta.from || 0} to {subscriptions.meta.to || 0} of {subscriptions.meta.total} subscriptions
-                        </p>
-                    </div>
-                )}
+                {/* Pagination */}
+                <PaginationControls 
+                    data={subscriptions}
+                    baseUrl="/admin/subscriptions"
+                    preserveFilters={{
+                        search: search || undefined,
+                        status: (statusFilter && statusFilter !== 'all') ? statusFilter : undefined,
+                        plan_id: (planFilter && planFilter !== 'all') ? planFilter : undefined,
+                    }}
+                />
             </div>
         </AppLayout>
     );

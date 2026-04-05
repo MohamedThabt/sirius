@@ -70,7 +70,7 @@ class GithubController extends Controller
     {
         try {
             return Socialite::driver('github')
-                ->scopes(['repo', 'delete_repo', 'read:org'])
+                ->scopes(['repo', 'read:org'])
                 ->redirect();
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'redirect']);
@@ -97,7 +97,7 @@ class GithubController extends Controller
                     'access_token' => $githubUser->token,
                     'refresh_token' => $githubUser->refreshToken ?? null,
                     'token_type' => 'bearer',
-                    'scope' => implode(',', $githubUser->approvedScopes ?? ['repo', 'delete_repo', 'read:org']),
+                    'scope' => implode(',', $githubUser->approvedScopes ?? ['repo', 'read:org']),
                     'provider_user_id' => (string) $githubUser->id,
                     'username' => $githubUser->nickname,
                     'avatar' => $githubUser->avatar,
@@ -187,7 +187,7 @@ class GithubController extends Controller
      *
      * @param Request $request
      * @param Project $project
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\JsonResponse
      */
     public function createRepo(Request $request, Project $project)
     {
@@ -201,13 +201,13 @@ class GithubController extends Controller
 
         try {
             if ($project->user_id !== auth()->id()) {
-                return back()->with('error', 'You are not authorized to perform this action.');
+                return response()->json(['success' => false, 'error' => 'You are not authorized to perform this action.'], 403);
             }
 
             $token = auth()->user()->githubToken;
 
             if (!$token || $token->isExpired()) {
-                return back()->with('error', 'GitHub authentication required. Please connect your account.');
+                return response()->json(['success' => false, 'error' => 'GitHub authentication required. Please connect your account.'], 401);
             }
 
             $client = new GithubClient($token);
@@ -230,7 +230,7 @@ class GithubController extends Controller
 
             if (!$repo) {
                 $errorMessage = $client->getLastErrorMessage() ?? 'Failed to create repository on GitHub.';
-                return back()->with('error', $errorMessage);
+                return response()->json(['success' => false, 'error' => $errorMessage], 500);
             }
 
             $repository = ProjectRepository::updateOrCreate(
@@ -263,13 +263,22 @@ class GithubController extends Controller
                     'project_id' => $project->id,
                     'repo' => $repo['full_name'],
                 ]);
-                return back()->with('success', 'Repository created and specs pushed successfully.');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Repository created and specs pushed successfully.',
+                    'repository' => $repository->fresh()->toArray(),
+                ]);
             } else {
-                return back()->with('warning', 'Repository created but failed to push specs. You can sync manually.');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Repository created but failed to push specs. You can sync manually.',
+                    'repository' => $repository->fresh()->toArray(),
+                    'warning' => true,
+                ]);
             }
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'createRepo', 'project_id' => $project->id]);
-            return back()->with('error', 'An error occurred while creating the repository.');
+            return response()->json(['success' => false, 'error' => 'An error occurred while creating the repository.'], 500);
         }
     }
 
@@ -280,7 +289,7 @@ class GithubController extends Controller
      *
      * @param Request $request
      * @param Project $project
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\JsonResponse
      */
     public function linkExistingRepo(Request $request, Project $project)
     {
@@ -290,26 +299,26 @@ class GithubController extends Controller
 
         try {
             if ($project->user_id !== auth()->id()) {
-                return back()->with('error', 'You are not authorized to perform this action.');
+                return response()->json(['success' => false, 'error' => 'You are not authorized to perform this action.'], 403);
             }
 
             $token = auth()->user()->githubToken;
 
             if (!$token || $token->isExpired()) {
-                return back()->with('error', 'GitHub authentication required. Please connect your account.');
+                return response()->json(['success' => false, 'error' => 'GitHub authentication required. Please connect your account.'], 401);
             }
 
             $client = new GithubClient($token);
             $repo = $client->getRepo($validated['full_name']);
 
             if (!$repo) {
-                return back()->with('error', 'Repository not found on GitHub.');
+                return response()->json(['success' => false, 'error' => 'Repository not found on GitHub.'], 404);
             }
 
             $ownerLogin = $repo['owner']['login'];
             $ownerType = $repo['owner']['type'] === 'Organization' ? 'org' : 'user';
 
-            ProjectRepository::updateOrCreate(
+            $repository = ProjectRepository::updateOrCreate(
                 ['project_id' => $project->id],
                 [
                     'provider' => 'github',
@@ -330,10 +339,18 @@ class GithubController extends Controller
                 'repo' => $repo['full_name'],
             ]);
 
-            return back()->with('success', 'Repository linked successfully.');
+            // Check if repository is empty
+            $isEmpty = $client->isRepoEmpty($validated['full_name']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Repository linked successfully.',
+                'repository' => $repository->fresh()->toArray(),
+                'is_empty' => $isEmpty,
+            ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'linkExistingRepo', 'project_id' => $project->id]);
-            return back()->with('error', 'An error occurred while linking the repository.');
+            return response()->json(['success' => false, 'error' => 'An error occurred while linking the repository.'], 500);
         }
     }
 
@@ -343,25 +360,25 @@ class GithubController extends Controller
      * Bootstraps the repository with initial project files.
      *
      * @param Project $project
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\JsonResponse
      */
     public function pushInitial(Project $project)
     {
         try {
             if ($project->user_id !== auth()->id()) {
-                return back()->with('error', 'You are not authorized to perform this action.');
+                return response()->json(['success' => false, 'error' => 'You are not authorized to perform this action.'], 403);
             }
 
             $repository = $project->repository;
 
             if (!$repository) {
-                return back()->with('error', 'No repository linked to this project.');
+                return response()->json(['success' => false, 'error' => 'No repository linked to this project.'], 404);
             }
 
             $token = auth()->user()->githubToken;
 
             if (!$token || $token->isExpired()) {
-                return back()->with('error', 'GitHub authentication required.');
+                return response()->json(['success' => false, 'error' => 'GitHub authentication required.'], 401);
             }
 
             $client = new GithubClient($token);
@@ -375,13 +392,16 @@ class GithubController extends Controller
                     'project_id' => $project->id,
                     'repo' => $repository->full_name,
                 ]);
-                return back()->with('success', 'Files have been successfully uploaded to the repository.');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Files have been successfully uploaded to the repository.',
+                ]);
             } else {
-                return back()->with('error', 'Failed to push files to the repository.');
+                return response()->json(['success' => false, 'error' => 'Failed to push files to the repository.'], 500);
             }
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'pushInitial', 'project_id' => $project->id]);
-            return back()->with('error', 'An error occurred while pushing files.');
+            return response()->json(['success' => false, 'error' => 'An error occurred while pushing files.'], 500);
         }
     }
 
@@ -408,6 +428,12 @@ class GithubController extends Controller
 
             // Only delete from database, do NOT delete from GitHub
             $repository->delete();
+
+            AppLogger::business('github.repo.unlinked', [
+                'project_id' => $project->id,
+                'repo' => $repository->full_name,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with('success', 'Repository unlinked successfully.');
         } catch (Throwable $e) {

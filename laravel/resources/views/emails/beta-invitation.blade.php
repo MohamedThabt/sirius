@@ -107,9 +107,6 @@
 <body>
     <div class="container">
         <div class="header">
-            @if(file_exists(public_path('images/logo.png')))
-                <img src="{{ $message->embed(public_path('images/logo.png')) }}" alt="Sirius Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;">
-            @endif
             <h1>Welcome to Sirius Beta!</h1>
         </div>
 

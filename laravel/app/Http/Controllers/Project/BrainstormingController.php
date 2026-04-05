@@ -7,6 +7,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 
 class BrainstormingController extends Controller
@@ -35,27 +36,33 @@ class BrainstormingController extends Controller
         }
     }
 
-    /**
-     * Save the brainstorming scene data.
-     *
-     * @param Request $request
-     * @param Project $project
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function save(Request $request, Project $project)
     {
-        // Validation is done before try/catch to let Laravel handle ValidationException automatically
-        $data = $request->validate([
-            'scene' => ['required', 'array'],
-        ]);
-
         try {
             if ($project->user_id !== auth()->id()) {
                 return back()->with('error', 'You are not authorized to update this project.');
             }
 
+            // Handle sendBeacon requests (raw JSON in request body)
+            if ($request->isJson() && empty($request->all())) {
+                $data = json_decode($request->getContent(), true);
+                if (!isset($data['scene']) || !is_array($data['scene'])) {
+                    return response()->json(['error' => 'Invalid data format'], 400);
+                }
+            } else {
+                // Regular form request
+                $data = $request->validate([
+                    'scene' => ['required', 'array'],
+                ]);
+            }
+
             $project->brainstorming_scene = $data['scene'];
             $project->save();
+
+            AppLogger::business('brainstorming.saved', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return back()->with('success', 'Brainstorming saved successfully!');
         } catch (\Throwable $e) {

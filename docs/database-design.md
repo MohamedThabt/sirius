@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the database design for the DevMind application, which manages users and their projects. The design follows Laravel conventions and includes proper relationships, indexes, and data types.
+This document outlines the database design for the Sirius application, which manages users and their projects. The design follows Laravel conventions and includes proper relationships, indexes, and data types.
 
 ## Entity Relationship Diagram
 

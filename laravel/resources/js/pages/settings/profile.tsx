@@ -78,12 +78,12 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                     {auth.user.email}
                                 </div>
                                 {auth.user.email_verified_at ? (
-                                    <Badge variant="secondary" className="mt-2 gap-1 bg-green-500/10 text-green-600 hover:bg-green-500/20">
+                                    <Badge variant="secondary" className="mt-2 gap-1 bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-500/20">
                                         <CheckCircle2 className="h-3 w-3" />
                                         Verified
                                     </Badge>
                                 ) : (
-                                    <Badge variant="secondary" className="mt-2 gap-1 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20">
+                                    <Badge variant="secondary" className="mt-2 gap-1 bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-500/20">
                                         <AlertCircle className="h-3 w-3" />
                                         Unverified
                                     </Badge>
@@ -161,7 +161,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                                 </button>
                                             </p>
                                             {status === 'verification-link-sent' && (
-                                                <div className="mt-2 flex items-center gap-2 text-sm font-medium text-green-600">
+                                                <div className="mt-2 flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                                                     <CheckCircle2 className="h-4 w-4" />
                                                     A new verification link has been sent to your email address.
                                                 </div>
@@ -181,7 +181,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                     leaveFrom="opacity-100 translate-x-0"
                                     leaveTo="opacity-0 translate-x-2"
                                 >
-                                    <span className="flex items-center gap-2 text-sm font-medium text-green-600">
+                                    <span className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Changes saved successfully
                                     </span>

@@ -175,20 +175,21 @@ export function RepoConnectDialog({ open, onOpenChange, projectId, projectName }
             if (data.success) {
                 toast.dismiss(loadingToast);
                 toast.success('✅ Repository created successfully!', {
-                    description: 'Now pushing your project files...',
+                    description: data.warning ? 'Repository created but failed to push specs.' : 'Files have been uploaded to your repository.',
                 });
-                // Auto-push after creation
-                handlePushInitial();
+                // Close modal and reload page data to reflect changes
+                onOpenChange(false);
+                router.reload({ only: ['repository'] });
             } else {
                 toast.dismiss(loadingToast);
                 toast.error(data.error || 'Failed to create repository');
+                setCreating(false);
             }
         } catch {
             toast.dismiss(loadingToast);
             toast.error('Failed to create repository', {
                 description: 'Please check your internet connection and try again.',
             });
-        } finally {
             setCreating(false);
         }
     };
@@ -215,23 +216,26 @@ export function RepoConnectDialog({ open, onOpenChange, projectId, projectName }
                         description: 'Repository is empty and ready for your files.',
                     });
                     setShowPushConfirm(true);
+                    setLoading(false);
+                    // Reload to update repository state
+                    router.reload({ only: ['repository'] });
                 } else {
                     toast.success('🔗 Repository linked successfully!', {
                         description: 'Your project is now connected to GitHub.',
                     });
                     onOpenChange(false);
-                    router.reload();
+                    router.reload({ only: ['repository'] });
                 }
             } else {
                 toast.error(data.error || 'Failed to link repository', {
                     description: 'Please verify the repository exists and you have access.',
                 });
+                setLoading(false);
             }
         } catch {
             toast.error('Failed to link repository', {
                 description: 'Please check your internet connection and try again.',
             });
-        } finally {
             setLoading(false);
         }
     };
@@ -249,22 +253,23 @@ export function RepoConnectDialog({ open, onOpenChange, projectId, projectName }
 
             const data = await response.json();
             if (data.success) {
-                toast.success('🚀 Push initiated! Your files are being uploaded to the repository.', {
-                    description: 'This may take a few minutes depending on your project size.',
+                toast.success('🚀 Files uploaded successfully!', {
+                    description: 'Your project specifications are now in the repository.',
                     duration: 5000,
                 });
+                setShowPushConfirm(false);
                 onOpenChange(false);
-                router.reload();
+                router.reload({ only: ['repository'] });
             } else {
                 toast.error(data.error || 'Failed to push files', {
                     description: 'There was an issue uploading your files to GitHub.',
                 });
+                setPushing(false);
             }
         } catch {
             toast.error('Failed to push files', {
                 description: 'Please check your internet connection and repository permissions.',
             });
-        } finally {
             setPushing(false);
         }
     };

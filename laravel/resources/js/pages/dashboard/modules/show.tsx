@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { getModuleStatusColor, getPriorityColor } from '@/utils/status-colors';
 import { Head, Link } from '@inertiajs/react';
 import { 
     ArrowLeftIcon, 

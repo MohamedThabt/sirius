@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FuturisticBackground, EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -77,7 +77,6 @@ export default function PlanShow({ plan, subscribers, planStats }: Props) {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Plan Details - ${plan.name}`} />
 
-      <FuturisticBackground className="min-h-full" showDots={true}>
         <div className="w-full max-w-7xl mx-auto space-y-6 p-6">
           {/* Header */}
           <div className="flex items-center gap-3">
@@ -345,7 +344,6 @@ export default function PlanShow({ plan, subscribers, planStats }: Props) {
             </div>
           )}
         </div>
-      </FuturisticBackground>
     </AppLayout>
   );
 }

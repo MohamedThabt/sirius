@@ -8,6 +8,7 @@ use App\Services\AiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
+use App\Support\AppLogger;
 use App\Traits\StructuredLogger;
 
 class ArchitectureController extends Controller
@@ -154,6 +155,10 @@ class ArchitectureController extends Controller
                 // Clear pending session data
                 session()->forget('pending_c4_generation');
 
+                AppLogger::business('c4.generated', [
+                    'project_id' => $project->id,
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'C4 diagram generated successfully',
@@ -258,6 +263,11 @@ class ArchitectureController extends Controller
                 'c4' => $validated['c4_content'],
             ]);
 
+            AppLogger::business('c4.saved.manual', [
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
+
             return back()->with('success', 'C4 diagram saved successfully!');
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'saveC4', 'project_id' => $project->id]);
@@ -304,14 +314,19 @@ class ArchitectureController extends Controller
 
         // Check if user is a team member
         if (!$project->hasMember($userId)) {
-            throw new \Exception('You do not have access to this project.');
+            throw new \Exception(
+                "Access denied: User #{$userId} is not a member of Project #{$project->id}."
+            );
         }
 
         // If specific roles are required, check user's role
         if (!empty($allowedRoles)) {
             $userRole = $project->getMemberRole($userId);
             if (!in_array($userRole, $allowedRoles)) {
-                throw new \Exception('You do not have permission to perform this action.');
+                $allowed = implode(', ', $allowedRoles);
+                throw new \Exception(
+                    "Permission denied: User #{$userId} has role '{$userRole}' on Project #{$project->id}, but this action requires one of [{$allowed}]."
+                );
             }
         }
     }

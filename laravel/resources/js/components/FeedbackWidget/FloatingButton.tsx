@@ -241,44 +241,46 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                     <ChevronUp className="size-4 pointer-events-none" />
                 </motion.button>
             ) : (
-                <motion.button
-                    onClick={handleClick}
-                    drag={false}
-                    className={cn(
-                        'group relative',
-                        'flex items-center gap-2',
-                        'h-10 px-4',
-                        'rounded-full',
-                        'bg-card text-foreground',
-                        'border border-border',
-                        'shadow-lg shadow-black/5',
-                        'hover:bg-accent hover:border-primary/30 hover:shadow-xl',
-                        'transition-all duration-200',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                        'select-none',
-                        className
-                    )}
-                    whileHover={!isDragging ? { scale: 1.02, y: -1 } : undefined}
-                    whileTap={!isDragging ? { scale: 0.98 } : undefined}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ 
-                        scale: 1, 
-                        opacity: 1
-                    }}
-                    transition={{
-                        type: 'spring',
-                        stiffness: 260,
-                        damping: 20
-                    }}
-                    aria-label="Open feedback widget - drag to reposition"
-                >
-                    {/* Icon */}
-                    <MessageSquareText className="size-4 pointer-events-none text-primary" />
+                <div className="relative">
+                    <motion.button
+                        onClick={handleClick}
+                        drag={false}
+                        className={cn(
+                            'group relative',
+                            'flex items-center gap-2',
+                            'h-10 px-4',
+                            'rounded-full',
+                            'bg-card text-foreground',
+                            'border border-border',
+                            'shadow-lg shadow-black/5',
+                            'hover:bg-accent hover:border-primary/30 hover:shadow-xl',
+                            'transition-all duration-200',
+                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                            'select-none',
+                            className
+                        )}
+                        whileHover={!isDragging ? { scale: 1.02, y: -1 } : undefined}
+                        whileTap={!isDragging ? { scale: 0.98 } : undefined}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ 
+                            scale: 1, 
+                            opacity: 1
+                        }}
+                        transition={{
+                            type: 'spring',
+                            stiffness: 260,
+                            damping: 20
+                        }}
+                        aria-label="Open feedback widget - drag to reposition"
+                    >
+                        {/* Icon */}
+                        <MessageSquareText className="size-4 pointer-events-none text-primary" />
+                        
+                        {/* Text label */}
+                        <span className="text-sm font-medium pointer-events-none">Feedback</span>
+                    </motion.button>
                     
-                    {/* Text label */}
-                    <span className="text-sm font-medium pointer-events-none">Feedback</span>
-                    
-                    {/* Minimize button - appears on hover */}
+                    {/* Minimize button - now outside the main button */}
                     <AnimatePresence>
                         {isHovered && !isDragging && (
                             <motion.button
@@ -300,11 +302,11 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                                 aria-label="Minimize feedback widget"
                                 onMouseDown={(e) => e.stopPropagation()}
                             >
-                                <X className="size-3 text-muted-foreground group-hover:text-destructive" />
+                                <X className="size-3 text-muted-foreground hover:text-destructive" />
                             </motion.button>
                         )}
                     </AnimatePresence>
-                </motion.button>
+                </div>
             )}
         </motion.div>
     );

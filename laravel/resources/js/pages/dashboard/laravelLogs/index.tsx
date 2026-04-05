@@ -12,16 +12,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { useIsClient } from '@/components/ClientDateTime';
+import { type BreadcrumbItem } from '@/types';import { getLogLevelColor } from '@/utils/semantic-colors';import { Head, router } from '@inertiajs/react';
 import {
     AlertCircleIcon,
     AlertOctagonIcon,
@@ -29,7 +25,6 @@ import {
     BugIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
-    CopyIcon,
     DownloadIcon,
     FileIcon,
     FileTextIcon,
@@ -42,7 +37,6 @@ import {
     XIcon,
 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { useDebouncedCallback } from 'use-debounce';
 
 // Types
@@ -150,228 +144,136 @@ const getLevelIcon = (level: string) => {
     }
 };
 
-const getLevelColor = (level: string) => {
-    switch (level.toUpperCase()) {
-        case 'DEBUG':
-            return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
-        case 'INFO':
-        case 'NOTICE':
-            return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
-        case 'WARNING':
-            return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
-        case 'ERROR':
-        case 'ALERT':
-            return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
-        case 'CRITICAL':
-        case 'EMERGENCY':
-            return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20';
-        default:
-            return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20';
-    }
-};
+const getLevelColor = getLogLevelColor;
 
-function tryParseJson(raw: string): { isJson: true; formatted: string; raw: string; parsed: unknown } | { isJson: false; raw: string } {
-    const trimmed = raw?.trim() ?? '';
-    if (!trimmed) return { isJson: false, raw };
+function extractJsonFromMessage(message: string): {
+    prefix: string;
+    json: Record<string, unknown> | null;
+    formatted: string | null;
+} {
+    if (!message) return { prefix: message, json: null, formatted: null };
+    const firstBrace = message.indexOf('{');
+    if (firstBrace === -1) return { prefix: message, json: null, formatted: null };
+    const prefix = message.substring(0, firstBrace).trim();
+    const jsonPart = message.substring(firstBrace);
     try {
-        const parsed = JSON.parse(trimmed);
-        const formatted = JSON.stringify(parsed, null, 2);
-        const minified = JSON.stringify(parsed);
-        return { isJson: true, formatted, raw: minified, parsed };
+        const parsed = JSON.parse(jsonPart);
+        if (typeof parsed === 'object' && parsed !== null) {
+            return { prefix, json: parsed as Record<string, unknown>, formatted: JSON.stringify(parsed, null, 2) };
+        }
+        return { prefix: message, json: null, formatted: null };
     } catch {
-        return { isJson: false, raw };
+        return { prefix: message, json: null, formatted: null };
     }
 }
 
-type JsonTokenType = 'key' | 'string' | 'number' | 'literal' | 'punctuation' | 'whitespace';
-type JsonToken = { type: JsonTokenType; value: string };
-
-function tokenizeJson(str: string): JsonToken[] {
-    const tokens: JsonToken[] = [];
-    let i = 0;
-    const re = {
-        ws: /^\s+/,
-        key: /^("(?:[^"\\]|\\.)*")\s*:/,
-        string: /^("(?:[^"\\]|\\.)*")/,
-        number: /^(-?\d+\.?\d*)/,
-        literal: /^(true|false|null)\b/,
-        punct: /^([{}\[\]:,])/,
-    };
-    while (i < str.length) {
-        const tail = str.slice(i);
-        let m = tail.match(re.ws);
-        if (m) {
-            const v = m[0];
-            tokens.push({ type: 'whitespace', value: v });
-            i += v.length;
-            continue;
+/**
+ * Extract summary fields from log entry for display in table row
+ */
+function extractLogSummary(log: LogEntry): {
+    mainMessage: string;
+    userInfo: string | null;
+    routeInfo: string | null;
+    exceptionInfo: string | null;
+    requestId: string | null;
+} {
+    // Try to parse context as JSON
+    const contextTrimmed = log.context?.trim() ?? '';
+    let contextData: Record<string, unknown> | null = null;
+    
+    if (contextTrimmed) {
+        try {
+            const parsed = JSON.parse(contextTrimmed);
+            if (typeof parsed === 'object' && parsed !== null) {
+                contextData = parsed as Record<string, unknown>;
+            }
+        } catch {
+            // Not JSON, ignore
         }
-        m = tail.match(re.key);
-        if (m) {
-            tokens.push({ type: 'key', value: m[1] });
-            tokens.push({ type: 'punctuation', value: m[0].slice(m[1].length) });
-            i += m[0].length;
-            continue;
-        }
-        m = tail.match(re.string);
-        if (m) {
-            tokens.push({ type: 'string', value: m[1] });
-            i += m[1].length;
-            continue;
-        }
-        m = tail.match(re.number);
-        if (m) {
-            tokens.push({ type: 'number', value: m[1] });
-            i += m[1].length;
-            continue;
-        }
-        m = tail.match(re.literal);
-        if (m) {
-            tokens.push({ type: 'literal', value: m[1] });
-            i += m[1].length;
-            continue;
-        }
-        m = tail.match(re.punct);
-        if (m) {
-            tokens.push({ type: 'punctuation', value: m[1] });
-            i += m[1].length;
-            continue;
-        }
-        tokens.push({ type: 'punctuation', value: str[i] ?? '' });
-        i += 1;
     }
-    return tokens;
-}
-
-function JsonSyntaxHighlight({ formatted }: { formatted: string }) {
-    const tokens = tokenizeJson(formatted);
-    const tokenClass: Record<JsonTokenType, string> = {
-        key: 'text-sky-500 dark:text-sky-400',
-        string: 'text-emerald-600 dark:text-emerald-400',
-        number: 'text-amber-600 dark:text-amber-400',
-        literal: 'text-violet-500 dark:text-violet-400',
-        punctuation: 'text-muted-foreground/80',
-        whitespace: '',
+    
+    // Try to extract embedded JSON from message
+    const msgExtract = extractJsonFromMessage(log.message);
+    const messageData: Record<string, unknown> | null = msgExtract.json;
+    
+    // Extract system context — check data.sys nesting (AppLogger format), then top-level sys, then top-level keys
+    const msgDataSys = (messageData?.data && typeof messageData.data === 'object' && 'sys' in (messageData.data as Record<string, unknown>))
+        ? (messageData.data as Record<string, unknown>).sys as Record<string, unknown>
+        : {};
+    const ctxDataSys = (contextData?.data && typeof contextData.data === 'object' && 'sys' in (contextData.data as Record<string, unknown>))
+        ? (contextData.data as Record<string, unknown>).sys as Record<string, unknown>
+        : {};
+    const ctxSys = (contextData?.sys as Record<string, unknown>) || {};
+    const msgSys = (messageData?.sys as Record<string, unknown>) || {};
+    
+    // Merge all sys sources (priority: ctxDataSys > ctxSys > msgDataSys > msgSys > top-level fields)
+    const sys = { ...msgSys, ...msgDataSys, ...ctxSys, ...ctxDataSys };
+    
+    // Extract exception info (check multiple sources)
+    const exceptionMessage = (contextData?.exception_message || messageData?.exception_message) as string | null;
+    const exceptionType = (contextData?.exception_type || messageData?.exception_type) as string | null;
+    const exceptionFile = (contextData?.exception_file || messageData?.exception_file) as string | null;
+    const exceptionLine = (contextData?.exception_line || messageData?.exception_line) as number | null;
+    
+    // Extract user info
+    const userName = (sys.user_name || contextData?.user_name || messageData?.user_name) as string | null;
+    const userEmail = (sys.user_email || contextData?.user_email || messageData?.user_email) as string | null;
+    const userId = (sys.user_id || contextData?.user_id || messageData?.user_id) as string | number | null;
+    
+    // Extract route info
+    const route = (sys.route || contextData?.route_name || messageData?.route || sys.url || messageData?.url) as string | null;
+    const method = (sys.method || contextData?.method || messageData?.method) as string | null;
+    const action = (sys.action || contextData?.route_action || messageData?.action) as string | null;
+    
+    // Extract request ID
+    const requestId = (sys.request_id || contextData?.request_id || messageData?.request_id) as string | null;
+    
+    // Build summary strings
+    let userInfo: string | null = null;
+    if (userName || userEmail) {
+        const parts = [userName, userEmail].filter(Boolean);
+        if (userId) parts.push(`#${userId}`);
+        userInfo = parts.join(' • ');
+    }
+    
+    let routeInfo: string | null = null;
+    if (route) {
+        routeInfo = method ? `${method} ${route}` : route;
+    } else if (action) {
+        routeInfo = method ? `${method} ${action}` : action;
+    }
+    
+    let exceptionInfo: string | null = null;
+    if (exceptionType || exceptionFile) {
+        const parts: string[] = [];
+        if (exceptionType) {
+            // Handle PHP namespaces (App\\Exceptions\\Foo) and path separators
+            const shortType = exceptionType.split(/[\\\\/]/).pop() || exceptionType;
+            parts.push(shortType);
+        }
+        if (exceptionFile && exceptionLine) {
+            const shortFile = exceptionFile.split(/[\\\\/]/).pop() || exceptionFile;
+            parts.push(`${shortFile}:${exceptionLine}`);
+        }
+        exceptionInfo = parts.join(' @ ');
+    }
+    
+    // Determine main message
+    let mainMessage = log.message;
+    if (msgExtract.prefix && msgExtract.json) {
+        mainMessage = msgExtract.prefix || log.message;
+    }
+    if (exceptionMessage && exceptionMessage !== mainMessage) {
+        mainMessage = exceptionMessage;
+    }
+    
+    return {
+        mainMessage,
+        userInfo,
+        routeInfo,
+        exceptionInfo,
+        requestId,
     };
-    return (
-        <code className="font-mono text-xs leading-relaxed">
-            {tokens.map((t, idx) => (
-                <span key={idx} className={tokenClass[t.type]}>
-                    {t.value}
-                </span>
-            ))}
-        </code>
-    );
-}
-
-function JsonOrRawBlock({
-    title,
-    content,
-    className,
-    scrollHeight = 280,
-}: {
-    title: string;
-    content: string;
-    className?: string;
-    scrollHeight?: number;
-}) {
-    const result = tryParseJson(content);
-    const [view, setView] = useState<'formatted' | 'raw'>('formatted');
-    const displayText = result.isJson
-        ? view === 'formatted'
-            ? result.formatted
-            : result.raw
-        : result.raw;
-    const isEmpty = !displayText;
-    const eventName = result.isJson && typeof result.parsed === 'object' && result.parsed !== null && 'event' in result.parsed
-        ? String((result.parsed as { event?: unknown }).event)
-        : null;
-
-    const handleCopy = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isEmpty) return;
-        navigator.clipboard.writeText(displayText).then(
-            () => toast.success('Copied to clipboard'),
-            () => toast.error('Failed to copy'),
-        );
-    };
-
-    return (
-        <div className={cn('space-y-2', className)}>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
-                    {eventName && (
-                        <Badge variant="secondary" className="font-mono text-xs">
-                            {eventName}
-                        </Badge>
-                    )}
-                </div>
-                <div className="flex items-center gap-2">
-                    {result.isJson && (
-                        <div className="flex rounded-md border border-border/30 bg-muted/30 p-0.5">
-                            <button
-                                type="button"
-                                onClick={() => setView('formatted')}
-                                className={cn(
-                                    'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                                    view === 'formatted'
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground',
-                                )}
-                            >
-                                Formatted
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setView('raw')}
-                                className={cn(
-                                    'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                                    view === 'raw'
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground',
-                                )}
-                            >
-                                Raw
-                            </button>
-                        </div>
-                    )}
-                    {!isEmpty && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 gap-1.5 text-xs"
-                            onClick={handleCopy}
-                        >
-                            <CopyIcon className="h-3.5 w-3.5" />
-                            Copy
-                        </Button>
-                    )}
-                </div>
-            </div>
-            <ScrollArea
-                className="w-full rounded-lg border border-border/30 bg-zinc-100 dark:bg-zinc-950/95"
-                style={{ height: scrollHeight }}
-            >
-                <div className="p-4">
-                    <pre className={cn(
-                        'font-mono text-xs leading-relaxed',
-                        result.isJson && view === 'formatted' ? 'whitespace-pre' : 'whitespace-pre-wrap break-words',
-                    )}>
-                        {isEmpty ? (
-                            <span className="italic text-muted-foreground">(empty)</span>
-                        ) : result.isJson && view === 'formatted' ? (
-                            <JsonSyntaxHighlight formatted={result.formatted} />
-                        ) : (
-                            <span className="text-zinc-700 dark:text-zinc-300">{displayText}</span>
-                        )}
-                    </pre>
-                </div>
-                <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-        </div>
-    );
 }
 
 /**
@@ -421,7 +323,6 @@ const formatTimestamp = (timestamp: string): string => {
 
 export default function LaravelLogsIndex({ stats, logs, filters, error: serverError }: Props) {
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
     const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
     // Local filter state
@@ -714,53 +615,17 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
                         error={serverError}
                         meta={meta}
                         onPageChange={handlePageChange}
-                        onSelectLog={(log) => setSelectedLog(log)}
+                        onSelectLog={(log) => {
+                            // Navigate to detail page
+                            const queryParams = new URLSearchParams();
+                            queryParams.set('log_file', selectedLogFile);
+                            if (levelFilter !== 'all') queryParams.set('level', levelFilter);
+                            if (search) queryParams.set('search', search);
+                            if (meta?.current_page) queryParams.set('page', meta.current_page.toString());
+                            
+                            router.visit(`/admin/logs/laravel/show/${encodeURIComponent(selectedLogFile)}/${log.line_number}?${queryParams.toString()}`);
+                        }}
                     />
-
-                    {/* Log Detail Modal */}
-                    <Dialog open={selectedLog !== null} onOpenChange={(open) => !open && setSelectedLog(null)}>
-                        <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col gap-0">
-                            <DialogHeader className="pb-4">
-                                <DialogTitle className="flex flex-wrap items-center gap-3">
-                                    {selectedLog && (() => {
-                                        const LevelIcon = getLevelIcon(selectedLog.level);
-                                        return (
-                                            <>
-                                                <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(selectedLog.level))}>
-                                                    <LevelIcon className="mr-1 h-3 w-3" />
-                                                    {selectedLog.level}
-                                                </Badge>
-                                                <span className="font-mono text-sm text-muted-foreground" title={selectedLog.timestamp}>
-                                                    {formatTimestamp(selectedLog.timestamp)}
-                                                </span>
-                                                <span className="font-mono text-xs text-muted-foreground/60">
-                                                    Line {selectedLog.line_number}
-                                                </span>
-                                            </>
-                                        );
-                                    })()}
-                                </DialogTitle>
-                            </DialogHeader>
-                            {selectedLog && (
-                                <div className="flex flex-1 flex-col gap-5 overflow-y-auto pr-1">
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-xs text-muted-foreground">Environment:</span>
-                                        <Badge variant="secondary">{selectedLog.environment}</Badge>
-                                    </div>
-
-                                    <JsonOrRawBlock title="Message" content={selectedLog.message} scrollHeight={200} />
-
-                                    {selectedLog.context ? (
-                                        <JsonOrRawBlock
-                                            title="Context / Stack Trace"
-                                            content={selectedLog.context}
-                                            scrollHeight={320}
-                                        />
-                                    ) : null}
-                                </div>
-                            )}
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </AppLayout>
         </>
@@ -824,36 +689,73 @@ function LogsTable({
                 <Table>
                     <TableHeader>
                         <TableRow className="border-border/30 hover:bg-transparent">
-                            <TableHead className="w-[180px]">Timestamp</TableHead>
-                            <TableHead className="w-[100px]">Level</TableHead>
-                            <TableHead className="w-[100px]">Env</TableHead>
+                            <TableHead className="w-[160px]">Timestamp</TableHead>
+                            <TableHead className="w-[90px]">Level</TableHead>
                             <TableHead>Message</TableHead>
-                            <TableHead className="w-[80px] text-right">Line</TableHead>
+                            <TableHead className="w-[70px] text-right">Line</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {logs.map((log, index) => {
                             const LevelIcon = getLevelIcon(log.level);
+                            const summary = extractLogSummary(log);
+                            
                             return (
                                 <TableRow
                                     key={`${log.line_number}-${index}`}
                                     className="border-border/20 cursor-pointer hover:bg-muted/30 transition-colors"
                                     onClick={() => onSelectLog(log)}
                                 >
-                                    <TableCell className="font-mono text-xs text-muted-foreground/80" title={log.timestamp}>{formatTimestamp(log.timestamp)}</TableCell>
-                                    <TableCell>
+                                    <TableCell className="align-top font-mono text-xs text-muted-foreground/80" title={log.timestamp}>
+                                        {formatTimestamp(log.timestamp)}
+                                    </TableCell>
+                                    <TableCell className="align-top">
                                         <Badge variant="outline" className={cn('border text-xs font-medium', getLevelColor(log.level))}>
                                             <LevelIcon className="mr-1 h-3 w-3" />
                                             {log.level}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="font-mono text-xs text-muted-foreground/70">{log.environment || '-'}</TableCell>
-                                    <TableCell className="max-w-[400px] font-mono text-xs">
-                                        <div className="truncate" title={log.message}>
-                                            {log.message}
+                                    <TableCell className="max-w-[600px]">
+                                        <div className="flex flex-col gap-1.5">
+                                            {/* Main message */}
+                                            <div className="font-mono text-xs text-foreground/90 line-clamp-2" title={summary.mainMessage}>
+                                                {summary.mainMessage}
+                                            </div>
+                                            
+                                            {/* Structured summary line */}
+                                            {(summary.userInfo || summary.routeInfo || summary.exceptionInfo) && (
+                                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                                    {summary.userInfo && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/70">
+                                                            <span className="text-muted-foreground/50">👤</span>
+                                                            <span className="font-mono">{summary.userInfo}</span>
+                                                        </span>
+                                                    )}
+                                                    {summary.routeInfo && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/70">
+                                                            <span className="text-muted-foreground/50">🛣️</span>
+                                                            <span className="font-mono">{summary.routeInfo}</span>
+                                                        </span>
+                                                    )}
+                                                    {summary.exceptionInfo && (
+                                                        <span className="inline-flex items-center gap-1 text-amber-600/80 dark:text-amber-500/70">
+                                                            <span>📍</span>
+                                                            <span className="font-mono text-xs">{summary.exceptionInfo}</span>
+                                                        </span>
+                                                    )}
+                                                    {summary.requestId && (
+                                                        <span className="inline-flex items-center gap-1 text-muted-foreground/60">
+                                                            <span className="text-muted-foreground/40">🔖</span>
+                                                            <span className="font-mono text-[10px]">{summary.requestId.substring(0, 8)}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-right font-mono text-xs text-muted-foreground/60">{log.line_number}</TableCell>
+                                    <TableCell className="align-top text-right font-mono text-xs text-muted-foreground/60">
+                                        {log.line_number}
+                                    </TableCell>
                                 </TableRow>
                             );
                         })}

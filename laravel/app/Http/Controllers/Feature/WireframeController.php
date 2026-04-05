@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Feature;
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
 use App\Services\AiUsageService;
+use App\Support\AppLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -89,6 +90,12 @@ class WireframeController extends Controller
                 'pending_wireframe_generation' => [
                     'feature_id' => $feature->id,
                 ]
+            ]);
+
+            AppLogger::business('wireframe.generation.initiated', [
+                'feature_id' => $feature->id,
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
             ]);
 
             return Inertia::render('features/WireframePage', [
@@ -197,6 +204,15 @@ class WireframeController extends Controller
                 throw new \Exception('Invalid wireframe JSON format');
             }
 
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Invalid wireframe JSON format');
+            }
+
+            AppLogger::business('wireframe.generated', [
+                'feature_id' => $feature->id,
+                'project_id' => $project->id,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Wireframe generated successfully',
@@ -296,6 +312,15 @@ class WireframeController extends Controller
             // Persist updated wireframe to feature
             $feature->wireframe = $wireframe;
             $feature->save();
+
+            $feature->wireframe = $wireframe;
+            $feature->save();
+
+            AppLogger::business('wireframe.updated.ai', [
+                'feature_id' => $feature->id,
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+            ]);
 
             return response()->json([
                 'success' => true,

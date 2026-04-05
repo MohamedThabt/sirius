@@ -77,17 +77,17 @@ class FeatureController extends Controller
     public function specs(Feature $feature)
     {
         try {
-            $feature->load('project:id,name');
+            $feature->load('module.project:id,name');
 
             // Generate markdown content using the service
             $specsMarkdown = $this->featureSpecService->generateSpecsMarkdown($feature);
 
             return Inertia::render('dashboard/features/specs', [
-                'project' => $feature->project,
+                'project' => $feature->module->project,
                 'feature' => $feature->only([
                     'id', 
                     'name', 
-                    'project_id', 
+                    'module_id', 
                     'summary',
                     'description',
                     'acceptance_criteria',
@@ -161,11 +161,13 @@ class FeatureController extends Controller
     public function wireframe(Feature $feature)
     {
         try {
-            $feature->load('project:id,name');
+            $feature->load('module.project:id,name');
 
             return Inertia::render('dashboard/features/wireframe', [
-                'project' => $feature->project,
-                'feature' => $feature->only(['id', 'name', 'project_id', 'wireframe']),
+                'project' => $feature->module->project,
+                'feature' => array_merge($feature->only(['id', 'name', 'module_id', 'wireframe']), [
+                    'project_id' => $feature->module->project_id,
+                ]),
             ]);
         } catch (Throwable $e) {
             $this->logException($e, ['action' => 'wireframe', 'feature_id' => $feature->id]);
@@ -182,11 +184,13 @@ class FeatureController extends Controller
     public function userJourney(Feature $feature)
     {
         try {
-            $feature->load('project:id,name');
+            $feature->load('module.project:id,name');
 
             return Inertia::render('dashboard/features/user-journey', [
-                'project' => $feature->project,
-                'feature' => $feature->only(['id', 'name', 'project_id', 'user_flows']),
+                'project' => $feature->module->project,
+                'feature' => array_merge($feature->only(['id', 'name', 'module_id', 'user_flows']), [
+                    'project_id' => $feature->module->project_id,
+                ]),
                 'initialContent' => $feature->user_flows ?? '',
             ]);
         } catch (Throwable $e) {
