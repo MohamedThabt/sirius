@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectOverviewVersion;
 use App\Services\AiUsageService;
-use App\Support\AppLogger;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -141,63 +139,35 @@ class SystemOverviewController extends Controller
                 );
             }
 
-            AppLogger::business('project.overview.created', [
-                'project_id' => $project->id,
-                'has_technical_details' => $hasTechnicalDetails,
+            // Store the validated data in session for async generation
+            session([
+                'pending_overview_generation' => [
+                    'project_id' => $project->id,
+                    'why_making' => $validated['why_making'],
+                    'who_for' => $validated['who_for'],
+                    'what_valuable' => $validated['what_valuable'],
+                    'features_functionality' => $validated['features_functionality'],
+                    'data_model_details' => $validated['data_model_details'] ?? null,
+                    'expected_users' => $validated['expected_users'] ?? null,
+                    'platform_targets' => $validated['platform_targets'] ?? null,
+                    'frontend_tech' => $validated['frontend_tech'] ?? null,
+                    'backend_tech' => $validated['backend_tech'] ?? null,
+                    'database_tech' => $validated['database_tech'] ?? null,
+                    'ai_usage' => $validated['ai_usage'] ?? null,
+                    'external_services' => $validated['external_services'] ?? null,
+                ],
             ]);
 
-            // --- Synchronous FastAPI call to generate overview ---
-            set_time_limit(180);
+            // Load modules for the response
+            $project->load('modules');
 
-            $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::fastapi()->timeout(120)
-                ->post($fastApiBaseUrl.'/v1/Overview/generate', [
-                    'project_description' => $projectBrief,
-                ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-
-                // Validate and record usage
-                if (!isset($data['usage'])) {
-                    throw new \Exception('AI usage data missing from response');
-                }
-
-                app(AiUsageService::class)->handle(
-                    auth()->user(),
-                    'system_overview_generation',
-                    $data['usage'],
-                    $data['model'] ?? null
-                );
-
-                $overviewContent = $data['Overview'] ?? '';
-
-                // Get next version number
-                $nextVersionNumber = ($project->overviewVersions()->max('version_number') ?? 0) + 1;
-
-                // Create new overview version
-                $overviewVersion = ProjectOverviewVersion::create([
-                    'project_id' => $project->id,
-                    'overview' => $overviewContent,
-                    'version_number' => $nextVersionNumber,
-                    'is_base_version' => true,
-                    'user_prompt' => $projectBrief,
-                ]);
-
-                // Mark all other versions as not base
-                $project->overviewVersions()
-                    ->where('id', '!=', $overviewVersion->id)
-                    ->update(['is_base_version' => false]);
-            } else {
-                Log::error('FastAPI overview generation failed during create', [
-                    'project_id' => $project->id,
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-                return back()->with('error', 'Failed to generate system overview. Please try again.');
-            }
-
-            return redirect()->route('projects.system-overview', $project);
+            return Inertia::render('Projects/SystemOverview', [
+                'project' => $project,
+                'overviewVersions' => [],
+                'overviewChat' => $project->overview_chat ?? [],
+                'hasModules' => $project->modules()->exists(),
+                'isGenerating' => true,
+            ]);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'create', 'project_id' => $project->id]);
             return back()->with('error', 'Failed to create system overview.');
@@ -222,84 +192,80 @@ class SystemOverviewController extends Controller
             // Increase execution time for FastAPI calls
             set_time_limit(180);
 
-            // Idempotency check: return existing if overview was created in last 30 seconds
-            $recentVersion = $project->overviewVersions()
-                ->where('created_at', '>=', now()->subSeconds(30))
-                ->orderByDesc('created_at')
-                ->first();
+            $pendingData = session('pending_overview_generation');
 
-            if ($recentVersion) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Overview already generated',
-                    'overviewVersions' => $project->overviewVersions()->get(),
-                    'hasModules' => $project->modules()->exists(),
-                ]);
-            }
-
-            // Use project brief from DB (saved by create()) — no session dependency
-            if (empty($project->brief)) {
+            if (! $pendingData || $pendingData['project_id'] !== $project->id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Project brief is required. Please prepare your project first.',
+                    'message' => 'No pending generation data found',
                 ], 400);
             }
 
-            $projectDescription = $project->brief;
+            // Build description from multi-step form data (matching brief format for consistency)
+            $projectDescription = "# Project Brief: {$project->name}\n\n";
+            $projectDescription .= "## Project Purpose\n";
+            $projectDescription .= $pendingData['why_making']."\n\n";
+            $projectDescription .= "## Target Audience\n";
+            $projectDescription .= $pendingData['who_for']."\n";
+            if (! empty($pendingData['expected_users'])) {
+                $projectDescription .= '**Expected User Scale:** '.$pendingData['expected_users']." users\n";
+            }
+            $projectDescription .= "\n";
+            $projectDescription .= "## Value Proposition\n";
+            $projectDescription .= $pendingData['what_valuable']."\n\n";
+            $projectDescription .= "## Features & Functionality\n";
+            $projectDescription .= $pendingData['features_functionality']."\n\n";
 
-            // Append technical intake if not already included in brief
-            if (! str_contains($projectDescription, '## Technical Details')) {
-                $project->load('technicalIntake');
+            if (! empty($pendingData['data_model_details'])) {
+                $projectDescription .= "## Data Model Details\n";
+                $projectDescription .= $pendingData['data_model_details']."\n\n";
+            }
 
-                if ($project->technicalIntake) {
-                    $technicalIntake = $project->technicalIntake;
-                    $hasTechnicalDetails = ! empty($technicalIntake->platform_targets) ||
-                        ! empty($technicalIntake->frontend_tech) ||
-                        ! empty($technicalIntake->backend_tech) ||
-                        ! empty($technicalIntake->database_tech) ||
-                        ! empty($technicalIntake->ai_usage) ||
-                        ! empty($technicalIntake->external_services);
+            // Add technical details section if any technical field is provided
+            $hasTechnicalDetails = ! empty($pendingData['platform_targets']) ||
+                ! empty($pendingData['frontend_tech']) ||
+                ! empty($pendingData['backend_tech']) ||
+                ! empty($pendingData['database_tech']) ||
+                ! empty($pendingData['ai_usage']) ||
+                ! empty($pendingData['external_services']);
 
-                    if ($hasTechnicalDetails) {
-                        $projectDescription .= "\n\n## Technical Details\n\n";
+            if ($hasTechnicalDetails) {
+                $projectDescription .= "## Technical Details\n\n";
 
-                        if (! empty($technicalIntake->platform_targets)) {
-                            $projectDescription .= "### Platform Targets\n";
-                            $projectDescription .= $technicalIntake->platform_targets."\n\n";
-                        }
+                if (! empty($pendingData['platform_targets'])) {
+                    $projectDescription .= "### Platform Targets\n";
+                    $projectDescription .= $pendingData['platform_targets']."\n\n";
+                }
 
-                        if (! empty($technicalIntake->frontend_tech)) {
-                            $projectDescription .= "### Frontend Technology\n";
-                            $projectDescription .= $technicalIntake->frontend_tech."\n\n";
-                        }
+                if (! empty($pendingData['frontend_tech'])) {
+                    $projectDescription .= "### Frontend Technology\n";
+                    $projectDescription .= $pendingData['frontend_tech']."\n\n";
+                }
 
-                        if (! empty($technicalIntake->backend_tech)) {
-                            $projectDescription .= "### Backend Technology\n";
-                            $projectDescription .= $technicalIntake->backend_tech."\n\n";
-                        }
+                if (! empty($pendingData['backend_tech'])) {
+                    $projectDescription .= "### Backend Technology\n";
+                    $projectDescription .= $pendingData['backend_tech']."\n\n";
+                }
 
-                        if (! empty($technicalIntake->database_tech)) {
-                            $projectDescription .= "### Database Technology\n";
-                            $projectDescription .= $technicalIntake->database_tech."\n\n";
-                        }
+                if (! empty($pendingData['database_tech'])) {
+                    $projectDescription .= "### Database Technology\n";
+                    $projectDescription .= $pendingData['database_tech']."\n\n";
+                }
 
-                        if (! empty($technicalIntake->ai_usage)) {
-                            $projectDescription .= "### AI Usage\n";
-                            $projectDescription .= $technicalIntake->ai_usage."\n\n";
-                        }
+                if (! empty($pendingData['ai_usage'])) {
+                    $projectDescription .= "### AI Usage\n";
+                    $projectDescription .= $pendingData['ai_usage']."\n\n";
+                }
 
-                        if (! empty($technicalIntake->external_services)) {
-                            $projectDescription .= "### External Services\n";
-                            $projectDescription .= $technicalIntake->external_services."\n\n";
-                        }
-                    }
+                if (! empty($pendingData['external_services'])) {
+                    $projectDescription .= "### External Services\n";
+                    $projectDescription .= $pendingData['external_services']."\n\n";
                 }
             }
 
-
-            // Call FastAPI endpoint to generate overview (no retry - creation operations should not retry to prevent duplicates)
+            // Call FastAPI endpoint to generate overview
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
-            $response = Http::fastapi()->timeout(120)
+            $response = Http::fastapi()->timeout(120)->retry(2, 2000)
                 ->post($fastApiBaseUrl.'/v1/Overview/generate', [
                     'project_description' => $projectDescription,
                 ]);
@@ -329,7 +295,7 @@ class SystemOverviewController extends Controller
                     'project_id' => $project->id,
                     'overview' => $overviewContent,
                     'version_number' => $nextVersionNumber,
-                    'is_base_version' => true,
+                    'is_base_version' => true, // First version is base
                     'user_prompt' => $projectDescription,
                 ]);
 
@@ -337,6 +303,9 @@ class SystemOverviewController extends Controller
                 $project->overviewVersions()
                     ->where('id', '!=', $overviewVersion->id)
                     ->update(['is_base_version' => false]);
+
+                // Clear pending session data
+                session()->forget('pending_overview_generation');
 
                 return response()->json([
                     'success' => true,
@@ -370,16 +339,13 @@ class SystemOverviewController extends Controller
                 return back()->with('error', 'You do not have permission to access this project.');
             }
 
+            // Load project with overview versions and modules
             $project->load(['overviewVersions', 'modules']);
-
-            // Guard: redirect back if there's no overview content at all
-            if ($project->overviewVersions->isEmpty() && empty($project->overview)) {
-                return back()->with('error', 'This project has no overview yet. Please generate one first.');
-            }
 
             return Inertia::render('Projects/SystemOverview', [
                 'project' => $project,
                 'overviewVersions' => $project->overviewVersions()->get(),
+                'overviewChat' => $project->overview_chat ?? [],
                 'hasModules' => $project->modules()->exists(),
             ]);
         } catch (\Throwable $e) {
@@ -495,27 +461,13 @@ class SystemOverviewController extends Controller
                     ->where('id', '!=', $overviewVersion->id)
                     ->update(['is_base_version' => false]);
 
-                AppLogger::business('project.overview.regenerated', [
-                    'project_id' => $project->id,
-                    'version_number' => $nextVersionNumber,
-                ]);
-
+                // Return an Inertia response (or redirect) so Inertia visit succeeds
                 $project->load(['overviewVersions', 'modules']);
 
-                // Return JSON for AJAX requests (async frontend calls)
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Overview regenerated successfully',
-                        'overviewVersions' => $project->overviewVersions()->get(),
-                        'hasModules' => $project->modules()->exists(),
-                    ]);
-                }
-
-                // Return Inertia response for standard navigation
                 return Inertia::render('Projects/SystemOverview', [
                     'project' => $project,
                     'overviewVersions' => $project->overviewVersions()->get(),
+                    'overviewChat' => $project->overview_chat ?? [],
                     'hasModules' => $project->modules()->exists(),
                 ])->with('success', 'Overview regenerated successfully');
             } else {
@@ -523,21 +475,12 @@ class SystemOverviewController extends Controller
             }
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'regenerate', 'project_id' => $project->id]);
-
-            // Return JSON for AJAX requests
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to regenerate system overview. Please try again.',
-                ], 500);
-            }
-
             return back()->with('error', 'Failed to regenerate system overview. Please try again.');
         }
     }
 
     /**
-     * Update overview with AI based on engineer notes.
+     * Chat with AI agent for overview assistance (ask, suggest, or execute edits).
      *
      * @param Request $request
      * @param Project $project
@@ -545,71 +488,138 @@ class SystemOverviewController extends Controller
      */
     public function updateWithAi(Request $request, Project $project)
     {
-        // Ensure user owns the project
         if ($project->user_id !== auth()->id()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
         $validated = $request->validate([
-            'system_overview' => 'required|string',
-            'engineer_notes' => 'required|string|max:2000',
+            'message' => 'required|string|max:2000',
+            'mode' => 'sometimes|string|in:ask,agent',
         ]);
 
         try {
-            // Increase execution time for FastAPI calls
             set_time_limit(180);
 
-            // Call FastAPI endpoint to edit overview
+            $mode = $validated['mode'] ?? 'agent';
+            $chat = is_array($project->overview_chat) ? $project->overview_chat : [];
+
+            // Seed missing overview versions into chat so legacy projects keep versions visible.
+            $existingVersionIds = collect($chat)
+                ->filter(fn ($message) =>
+                    is_array($message)
+                    && ($message['type'] ?? null) === 'version'
+                    && isset($message['version_id'])
+                    && $message['version_id'] !== null
+                )
+                ->map(fn ($message) => (int) $message['version_id'])
+                ->unique();
+
+            $seededVersionMessages = $project->overviewVersions()
+                ->orderBy('version_number')
+                ->get()
+                ->filter(fn (ProjectOverviewVersion $version) => ! $existingVersionIds->contains($version->id))
+                ->map(fn (ProjectOverviewVersion $version) => [
+                    'id' => 'seeded-version-' . $version->id,
+                    'type' => 'version',
+                    'role' => 'agent',
+                    'content' => 'Version ' . str_pad((string) $version->version_number, 2, '0', STR_PAD_LEFT),
+                    'version_id' => $version->id,
+                    'intent' => null,
+                    'created_at' => $version->created_at?->toISOString() ?? now()->toISOString(),
+                ])
+                ->values()
+                ->all();
+
+            if (! empty($seededVersionMessages)) {
+                $chat = array_merge($seededVersionMessages, $chat);
+            }
+
+            $baseVersion = $project->baseOverviewVersion;
+            $currentOverview = $baseVersion?->overview ?? '';
+
+            // Append user message to chat
+            $userMessage = [
+                'id' => 'msg-' . now()->timestamp . '-' . mt_rand(1000, 9999),
+                'type' => 'message',
+                'role' => 'user',
+                'content' => $validated['message'],
+                'version_id' => null,
+                'intent' => null,
+                'created_at' => now()->toISOString(),
+            ];
+            $chat[] = $userMessage;
+
             $fastApiBaseUrl = config('app.fastapi_base_url', 'http://127.0.0.1:8005');
             $response = Http::fastapi()->timeout(120)->retry(2, 2000)
-                ->post($fastApiBaseUrl.'/v1/Overview/edit', [
-                    'system_overview' => $validated['system_overview'],
-                    'engineer_notes' => $validated['engineer_notes'],
+                ->post($fastApiBaseUrl . '/v1/chat/generate-intent', [
+                    'message' => $validated['message'],
+                    'thread_id' => $project->id,
+                    'mode' => $mode,
+                    'project_overview' => $currentOverview,
+                    'project_brief' => $project->brief ?? '',
                 ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
+            if (! $response->successful()) {
+                throw new \Exception('FastAPI intent chat failed: ' . $response->body());
+            }
 
-                // Validate and record usage
-                if (!isset($data['usage'])) {
-                    throw new \Exception('AI usage data missing from response');
-                }
+            $data = $response->json();
+            $intent = $data['intent'] ?? 'ask';
+            $aiResponseText = $data['response'] ?? '';
+            $updatedOverview = $data['updated_project_overview'] ?? '';
 
-                app(AiUsageService::class)->handle(
-                    auth()->user(),
-                    'system_overview_edit',
-                    $data['usage'],
-                    $data['model'] ?? null
-                );
+            $overviewVersions = null;
+            $newVersionId = null;
 
-                $updatedOverview = $data['Overview'] ?? '';
+            $isExecuteWithEdit = $intent === 'execute'
+                && ! empty($updatedOverview)
+                && $updatedOverview !== $currentOverview;
 
-                // Get next version number
+            if ($isExecuteWithEdit) {
                 $nextVersionNumber = ($project->overviewVersions()->max('version_number') ?? 0) + 1;
 
-                // Create new overview version
                 $overviewVersion = ProjectOverviewVersion::create([
                     'project_id' => $project->id,
                     'overview' => $updatedOverview,
                     'version_number' => $nextVersionNumber,
-                    'is_base_version' => true, // New AI version becomes the base
-                    'user_prompt' => $validated['engineer_notes'],
+                    'is_base_version' => true,
+                    'user_prompt' => $validated['message'],
                 ]);
 
-                // Mark all other versions as not base
                 $project->overviewVersions()
                     ->where('id', '!=', $overviewVersion->id)
                     ->update(['is_base_version' => false]);
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Overview updated successfully',
-                    'overviewVersions' => $project->overviewVersions()->get(),
-                    'hasModules' => $project->modules()->exists(),
-                ]);
-            } else {
-                throw new \Exception('FastAPI overview edit failed: ' . $response->body());
+                $newVersionId = $overviewVersion->id;
+                $overviewVersions = $project->overviewVersions()->get();
             }
+
+            $agentMessage = [
+                'id' => 'msg-' . now()->timestamp . '-' . mt_rand(1000, 9999),
+                'type' => $isExecuteWithEdit ? 'version' : 'message',
+                'role' => 'agent',
+                'content' => $aiResponseText,
+                'version_id' => $newVersionId,
+                'intent' => $intent,
+                'created_at' => now()->toISOString(),
+            ];
+            $chat[] = $agentMessage;
+
+            $project->update(['overview_chat' => $chat]);
+
+            $responsePayload = [
+                'success' => true,
+                'message' => $aiResponseText,
+                'intent' => $intent,
+                'chat' => $chat,
+                'hasModules' => $project->modules()->exists(),
+            ];
+
+            if ($overviewVersions) {
+                $responsePayload['overviewVersions'] = $overviewVersions;
+            }
+
+            return response()->json($responsePayload);
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'updateWithAi', 'project_id' => $project->id]);
             return response()->json([

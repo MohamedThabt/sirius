@@ -121,6 +121,7 @@ export interface Project {
     updated_at: string;
     prd_is_synced?: boolean;
     brainstorming_scene?: unknown;
+    overview_chat?: OverviewChatMessage[];
     user_id?: number;
     progress?: number;
 }
@@ -176,6 +177,19 @@ export interface ChatMessage {
     content: string;
     timestamp: Date;
     versionId?: number;
+}
+
+/**
+ * Persisted overview chat message stored in project.overview_chat JSON column.
+ */
+export interface OverviewChatMessage {
+    id: string;
+    type: 'message' | 'version';
+    role: 'user' | 'agent';
+    content: string;
+    version_id: number | null;
+    intent: string | null;
+    created_at: string;
 }
 
 /**

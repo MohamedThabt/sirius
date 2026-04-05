@@ -50,6 +50,7 @@ class Project extends Model
         'erd',
         'c4',
         'brainstorming_scene',
+        'overview_chat',
         'status',
     ];
 
@@ -61,6 +62,7 @@ class Project extends Model
     protected $casts = [
         'status' => 'string',
         'brainstorming_scene' => 'array',
+        'overview_chat' => 'array',
         'prd_is_synced' => 'boolean',
         'prd_last_synced_at' => 'datetime',
     ];
