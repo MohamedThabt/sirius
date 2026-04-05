@@ -1,4 +1,4 @@
-# DevMind
+# Sirius
 
 A comprehensive development project with multiple services including a FastAPI backend, Laravel web application, and database design tools.
 
@@ -151,7 +151,7 @@ You can test the server by visiting `http://localhost:8005/docs` in your browser
 
 ## Laravel Server Setup
 
-The Laravel application provides the web interface and frontend for the DevMind project.
+The Laravel application provides the web interface and frontend for the Sirius project.
 
 ### Prerequisites
 
