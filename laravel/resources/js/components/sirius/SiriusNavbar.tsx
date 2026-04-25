@@ -12,6 +12,7 @@ const navigationLinks = [
   { href: "/#how-it-works", label: "How it Works" },
   { href: "/#features", label: "Features" },
   { href: "/#teams", label: "For Teams" },
+  { href: "/pricing", label: "Pricing", isInertiaLink: true },
   { href: "/#faq", label: "FAQ" },
   { href: "/team", label: "Team", isInertiaLink: true },
 ];
@@ -98,10 +99,10 @@ export const SiriusNavbar: React.FC = () => {
               whileHover={{ scale: 1.05 }}
             >
               <Link
-                href="/beta"
+                href="/register"
                 className="inline-flex items-center justify-center px-5 py-2 text-sm text-primary-foreground bg-primary rounded-full hover:bg-primary/90 transition-colors font-medium"
               >
-                Request Early Access
+                Sign Up
               </Link>
             </motion.div>
           )}
@@ -185,11 +186,11 @@ export const SiriusNavbar: React.FC = () => {
                 </Link>
                 {!isAuthenticated && (
                   <Link
-                    href="/beta"
+                    href="/register"
                     className="inline-flex items-center justify-center w-full px-5 py-3 text-base text-primary-foreground bg-primary rounded-full hover:bg-primary/90 transition-colors font-medium"
                     onClick={toggleMenu}
                   >
-                    Request Early Access
+                    Sign Up
                   </Link>
                 )}
               </motion.div>

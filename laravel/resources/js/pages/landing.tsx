@@ -11,6 +11,7 @@ import SiriusSectionShell from '@/components/sirius/SiriusSectionShell';
 import SiriusStepTimeline from '@/components/sirius/SiriusStepTimeline';
 import ProblemSolutionSection from '@/components/sirius/ProblemSolutionSection';
 import TeamRolesSection from '@/components/sirius/TeamRolesSection';
+import PricingSection from '@/components/sirius/PricingSection';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { documentationSuite, howItWorks } from '@/lib/sirius/content';
@@ -115,9 +116,9 @@ export default function Landing() {
                             </div>
                         </section>
 
-                        <TeamRolesSection />
+						<TeamRolesSection />
 
-
+						<PricingSection />
 
 						<FaqsSection />
 

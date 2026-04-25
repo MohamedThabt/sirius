@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         // Seed plans first
         $this->call([
             PlanSeeder::class,
+            FreeTierUserSeeder::class,
             AdminSeeder::class,
             // ProjectWithFeaturesSeeder::class,
             // ProjectTechnicalIntakeSeeder::class,

@@ -33,11 +33,35 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         try {
-            $request->validate([
+            $rules = [
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            ]);
+            ];
+
+            if (config('services.turnstile.secret_key')) {
+                $rules['cf-turnstile-response'] = ['required', 'string'];
+            }
+
+            $messages = [
+                'cf-turnstile-response.required' => 'Please complete the captcha verification.',
+            ];
+
+            $request->validate($rules, $messages);
+
+            if (config('services.turnstile.secret_key')) {
+                $cfResponse = \Illuminate\Support\Facades\Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                    'secret' => config('services.turnstile.secret_key'),
+                    'response' => $request->input('cf-turnstile-response'),
+                    'remoteip' => $request->ip(),
+                ]);
+
+                if (! $cfResponse->json('success')) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'cf-turnstile-response' => __('Failed captcha verification. Please try again.'),
+                    ]);
+                }
+            }
 
             $user = User::create([
                 'name' => $request->name,

@@ -1,11 +1,11 @@
 import { FileText, GitBranch, Users, Zap, Shield, Database, Code, Workflow, Brain, Layout, Server, Lock, Gauge, Accessibility, CloudCog, GitMerge, ClipboardList, UsersRound, Shapes, Blocks, ScrollText, RefreshCw, AlertTriangle, Layers, TrendingUp } from "lucide-react";
 
 export const heroContent = {
-  badge: "Beta Access",
+  badge: "Early Access",
   title: "Build-ready specs",
   titleHighlight: "for engineering teams",
   subtitle: "Paste your project brief and Sirius AI breaks it into features with complete PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports everything to GitHub.",
-  primaryCta: "Request Early Access",
+  primaryCta: "Sign Up Now",
   secondaryCta: "See How It Works",
   valueProps: [
     "Project brief → Complete documentation",
@@ -275,9 +275,9 @@ export const faqItems = [
 
 export const ctaContent = {
   headline: "Ready to ship faster?",
-  body: "Join the closed beta and be among the first to transform your pre-code workflow. Limited seats available for engineering teams.",
-  primaryLabel: "Request Early Access",
-  primaryHref: "/beta",
+  body: "Start transforming your pre-code workflow.",
+  primaryLabel: "Sign Up Now",
+  primaryHref: "/register",
   secondaryLabel: "Read Sample PRD",
   secondaryHref: "#sample",
 };

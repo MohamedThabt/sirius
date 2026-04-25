@@ -263,7 +263,7 @@ export const SiriusHero: React.FC = () => {
                                 className="group text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow" 
                                 asChild
                             >
-                                <a href="/beta">
+                                <a href="/register">
                                     {heroContent.primaryCta}
                                     <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </a>

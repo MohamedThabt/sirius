@@ -16,6 +16,31 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Boot the model.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (User $user) {
+            // Assign Free plan (id: 1) on registration
+            if (!$user->subscriptions()->exists()) {
+                \App\Models\Subscription::create([
+                    'user_id' => $user->id,
+                    'plan_id' => 1, // Free plan
+                    'status' => \App\Models\Subscription::STATUS_ACTIVE,
+                    'started_at' => now(),
+                ]);
+
+                \App\Models\UserCredit::create([
+                    'user_id' => $user->id,
+                    'credits_balance' => 100,
+                    'total_this_month' => 100,
+                    'billing_cycle_start' => now()->startOfMonth(),
+                ]);
+            }
+        });
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

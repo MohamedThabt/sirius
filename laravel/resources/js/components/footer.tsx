@@ -35,8 +35,8 @@ export function Footer() {
 
 	const resources = [
 		{
-			title: "Beta",
-			href: "/beta",
+			title: "Pricing",
+			href: "/pricing",
 		},
 	];
 

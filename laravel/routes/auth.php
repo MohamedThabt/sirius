@@ -12,12 +12,11 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    // CLOSED BETA: Registration disabled
-    // Route::get('register', [RegisteredUserController::class, 'create'])
-    //     ->name('register');
+    Route::get('register', [RegisteredUserController::class, 'create'])
+        ->name('register');
 
-    // Route::post('register', [RegisteredUserController::class, 'store'])
-    //     ->middleware('throttle:5,1');
+    Route::post('register', [RegisteredUserController::class, 'store'])
+        ->middleware('throttle:5,1');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
@@ -37,19 +36,18 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
-// CLOSED BETA: OAuth routes disabled
 // OAuth routes - Redirect routes need guest middleware
-// Route::middleware('guest')->group(function () {
-//     // GitHub OAuth redirect
-//     Route::get('auth/github', [OAuthController::class, 'redirectToGitHub'])->name('oauth.github');
-//     
-//     // Google OAuth redirect
-//     Route::get('auth/google', [OAuthController::class, 'redirectToGoogle'])->name('oauth.google');
-// });
+Route::middleware('guest')->group(function () {
+    // GitHub OAuth redirect (Disabled for global auth due to repo integration)
+    // Route::get('auth/github', [OAuthController::class, 'redirectToGitHub'])->name('oauth.github');
+    
+    // Google OAuth redirect
+    Route::get('auth/google', [OAuthController::class, 'redirectToGoogle'])->name('oauth.google');
+});
 
 // OAuth callback routes - Must NOT have guest middleware to allow authentication
 // Route::get('auth/github/callback', [OAuthController::class, 'handleGitHubCallback'])->name('oauth.github.callback');
-// Route::get('auth/google/callback', [OAuthController::class, 'handleGoogleCallback'])->name('oauth.google.callback');
+Route::get('auth/google/callback', [OAuthController::class, 'handleGoogleCallback'])->name('oauth.google.callback');
 
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
