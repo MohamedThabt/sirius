@@ -10,6 +10,7 @@ use App\Models\Feature;
 use App\Models\GithubToken;
 use App\Models\IssueReport;
 use App\Models\Module;
+use App\Models\Payment;
 use App\Models\Project;
 use App\Models\UsageLog;
 use App\Models\User;
@@ -89,6 +90,9 @@ class DashboardController extends Controller
             $betaApproved = BetaInvitation::where('status', BetaInvitation::STATUS_APPROVED)->count();
             $betaDenied = BetaInvitation::where('status', BetaInvitation::STATUS_DENIED)->count();
             $betaTotal = $betaPending + $betaApproved + $betaDenied;
+
+            // Payment stats
+            $paymentsPending = Payment::where('status', Payment::STATUS_PENDING)->count();
 
             // GitHub integration stats
             $usersWithGithub = GithubToken::count();
@@ -219,6 +223,9 @@ class DashboardController extends Controller
                 'beta_approved' => $betaApproved,
                 'beta_denied' => $betaDenied,
                 'beta_total' => $betaTotal,
+
+                // Payment metrics
+                'payments_pending' => $paymentsPending,
 
                 // GitHub integration
                 'users_with_github' => $usersWithGithub,

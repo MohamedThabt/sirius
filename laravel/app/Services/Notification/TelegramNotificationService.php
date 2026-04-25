@@ -5,10 +5,13 @@ namespace App\Services\Notification;
 use App\Models\BetaInvitation;
 use App\Models\Feedback;
 use App\Models\IssueReport;
+use App\Models\Payment;
 use App\Models\User;
 use App\Support\AppLogger;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class TelegramNotificationService
@@ -310,6 +313,149 @@ MSG;
 MSG;
 
         return $this->sendMessage($message);
+    }
+
+    /**
+     * Pro upgrade payment with transfer screenshot (same channel as feedback).
+     */
+    public function notifyNewProPaymentRequest(Payment $payment, User $user): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $path = Storage::disk('public')->path($payment->transfer_image_path);
+        if (! is_file($path) || ! is_readable($path)) {
+            return false;
+        }
+
+        $appUrl = config('app.url');
+        $escapedName = $this->escapeMarkdown($user->name);
+        $escapedEmail = $this->escapeMarkdown($user->email);
+        $amount = $this->escapeMarkdown((string) $payment->amount);
+        $planSlug = $this->escapeMarkdown($payment->plan_slug);
+        $status = $this->escapeMarkdown($payment->status);
+
+        $caption = <<<MSG
+💳 *Pro Payment Request*
+
+*Payment ID:* {$payment->id}
+*User ID:* {$user->id}
+*Name:* {$escapedName}
+*Email:* {$escapedEmail}
+*Plan:* {$planSlug}
+*Amount:* {$amount} {$payment->currency}
+*Status:* {$status}
+
+*Transfer proof:* attached in this message
+
+[Review in admin]({$appUrl}/admin/payments/{$payment->id})
+MSG;
+
+        if (mb_strlen($caption) > 1020) {
+            $caption = mb_substr($caption, 0, 1020) . '…';
+        }
+
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $heic = in_array($ext, ['heic', 'heif'], true);
+
+        if ($heic) {
+            return $this->sendDocument($path, $caption, "transfer-{$payment->id}.{$ext}");
+        }
+
+        $mime = File::mimeType($path) ?? 'image/jpeg';
+        if (! str_starts_with((string) $mime, 'image/')) {
+            return $this->sendDocument($path, $caption, "transfer-{$payment->id}.{$ext}");
+        }
+
+        return $this->sendPhoto($path, $caption, "transfer-{$payment->id}.{$ext}", $mime);
+    }
+
+    /**
+     * @return bool whether Telegram accepted the request
+     */
+    private function sendPhoto(string $absolutePath, string $caption, string $fileName, string $mime = 'image/jpeg'): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $contents = @file_get_contents($absolutePath);
+        if ($contents === false) {
+            return false;
+        }
+
+        try {
+            $url = "https://api.telegram.org/bot{$this->botToken}/sendPhoto";
+
+            $form = [
+                'chat_id' => $this->chatId,
+                'caption' => $caption,
+                'parse_mode' => 'Markdown',
+            ];
+            if ($this->topicId !== null) {
+                $form['message_thread_id'] = (string) $this->topicId;
+            }
+
+            $response = Http::timeout(30)
+                ->attach('photo', $contents, $fileName, ['Content-Type' => $mime])
+                ->post($url, $form);
+
+            if ($response->successful()) {
+                return true;
+            }
+
+            AppLogger::apiFailure('telegram', 'POST /sendPhoto', $response->status(), $response->body(), []);
+            return false;
+        } catch (Throwable $e) {
+            AppLogger::apiFailure('telegram', 'POST /sendPhoto', 0, $e->getMessage(), [
+                'exception_type' => get_class($e),
+            ]);
+            return false;
+        }
+    }
+
+    private function sendDocument(string $absolutePath, string $caption, string $fileName): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $contents = @file_get_contents($absolutePath);
+        if ($contents === false) {
+            return false;
+        }
+
+        $mime = File::mimeType($absolutePath) ?? 'application/octet-stream';
+
+        try {
+            $url = "https://api.telegram.org/bot{$this->botToken}/sendDocument";
+
+            $form = [
+                'chat_id' => $this->chatId,
+                'caption' => $caption,
+                'parse_mode' => 'Markdown',
+            ];
+            if ($this->topicId !== null) {
+                $form['message_thread_id'] = (string) $this->topicId;
+            }
+
+            $response = Http::timeout(30)
+                ->attach('document', $contents, $fileName, ['Content-Type' => $mime])
+                ->post($url, $form);
+
+            if ($response->successful()) {
+                return true;
+            }
+
+            AppLogger::apiFailure('telegram', 'POST /sendDocument', $response->status(), $response->body(), []);
+            return false;
+        } catch (Throwable $e) {
+            AppLogger::apiFailure('telegram', 'POST /sendDocument', 0, $e->getMessage(), [
+                'exception_type' => get_class($e),
+            ]);
+            return false;
+        }
     }
 }
 

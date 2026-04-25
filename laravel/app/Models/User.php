@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -21,19 +21,24 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::created(function (User $user) {
-            // Assign Free plan (id: 1) on registration
             if (!$user->subscriptions()->exists()) {
-                \App\Models\Subscription::create([
+                $freePlan = Plan::query()->where('slug', 'free')->first();
+
+                if (!$freePlan) {
+                    return;
+                }
+
+                Subscription::create([
                     'user_id' => $user->id,
-                    'plan_id' => 1, // Free plan
-                    'status' => \App\Models\Subscription::STATUS_ACTIVE,
+                    'plan_id' => $freePlan->id,
+                    'status' => Subscription::STATUS_ACTIVE,
                     'started_at' => now(),
                 ]);
 
-                \App\Models\UserCredit::create([
+                UserCredit::create([
                     'user_id' => $user->id,
-                    'credits_balance' => 100,
-                    'total_this_month' => 100,
+                    'credits_balance' => $freePlan->credits_per_cycle,
+                    'total_this_month' => $freePlan->credits_per_cycle,
                     'billing_cycle_start' => now()->startOfMonth(),
                 ]);
             }

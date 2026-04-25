@@ -127,6 +127,12 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('/download/{logFile}', [LaravelLogsController::class, 'downloadLog'])->name('download');
     });
     
+    // Payment Requests Management
+    Route::get('payments', [\App\Http\Controllers\Dashboard\PaymentController::class, 'index'])->name('admin.payments.index');
+    Route::get('payments/{payment}', [\App\Http\Controllers\Dashboard\PaymentController::class, 'show'])->name('admin.payments.show');
+    Route::put('payments/{payment}', [\App\Http\Controllers\Dashboard\PaymentController::class, 'update'])->name('admin.payments.update');
+    Route::delete('payments/{payment}', [\App\Http\Controllers\Dashboard\PaymentController::class, 'destroy'])->name('admin.payments.destroy');
+    
     // Admin Profile (Password Change Only)
     Route::get('profile', function () {
         return Inertia::render('admin/profile', [

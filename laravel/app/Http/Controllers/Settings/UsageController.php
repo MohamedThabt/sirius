@@ -63,7 +63,8 @@ class UsageController extends Controller
                 'days_until_reset' => $daysUntilReset,
             ],
             'plan' => $activePlan ? [
-                'name' => $activePlan->name,
+                'name'  => $activePlan->name,
+                'slug'  => $activePlan->slug,
                 'price' => $activePlan->price,
             ] : null,
             'subscription' => $activeSubscription ? [

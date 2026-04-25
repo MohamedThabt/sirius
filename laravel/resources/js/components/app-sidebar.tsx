@@ -42,6 +42,11 @@ const adminNavItems: NavItem[] = [
         icon: Receipt,
     },
     {
+        title: 'Payments',
+        href: '/admin/payments',
+        icon: CreditCard,
+    },
+    {
         title: 'Beta',
         href: '/admin/beta',
         icon: Zap,

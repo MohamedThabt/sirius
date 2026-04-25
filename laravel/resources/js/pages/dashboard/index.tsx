@@ -19,6 +19,7 @@ import {
     ClockIcon,
     CoinsIcon,
     CpuIcon,
+    CreditCardIcon,
     DatabaseIcon,
     ExternalLinkIcon,
     FileTextIcon,
@@ -141,6 +142,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                         <QuickLink href="/admin/projects" icon={FolderIcon} label="Projects" iconClassName="text-amber-500" />
                         <QuickLink href="/admin/modules" icon={BoxIcon} label="Modules" iconClassName="text-cyan-500" />
                         <QuickLink href="/admin/admins" icon={ShieldIcon} label="Admins" iconClassName="text-violet-500" />
+                        <QuickLink href="/admin/payments" icon={CreditCardIcon} label="Payments" badge={stats.payments_pending} iconClassName="text-violet-500" />
                         <QuickLink href="/admin/beta" icon={MailIcon} label="Beta Invitations" badge={stats.beta_pending} iconClassName="text-pink-500" />
                         <QuickLink href="/admin/issues" icon={BugIcon} label="Issues" iconClassName="text-red-500" />
                         <QuickLink href="/admin/feedback" icon={MessageSquareIcon} label="Feedback" iconClassName="text-green-500" />

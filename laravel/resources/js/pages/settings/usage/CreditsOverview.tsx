@@ -9,10 +9,12 @@ import {
     Receipt,
     CheckCircle,
     XCircle,
+    ArrowUpCircleIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatNumber } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
+import { Link } from '@inertiajs/react';
 import {
     Dialog,
     DialogContent,
@@ -180,6 +182,26 @@ export function CreditsOverview({
                                     </p>
                                 )}
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Upgrade to Pro CTA */}
+                {plan && plan.slug !== 'pro' && (
+                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                                <ArrowUpCircleIcon className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground">Upgrade to Pro</p>
+                                <p className="text-xs text-muted-foreground">Get 2000 AI Credits/month for 200 EGP</p>
+                            </div>
+                            <Link href="/upgrade/pro">
+                                <Button size="sm" className="shrink-0">
+                                    Upgrade
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 )}

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckIcon, SparklesIcon } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 
 type PricingCardProps = {
 	titleBadge: string;
@@ -12,6 +13,7 @@ type PricingCardProps = {
 	priceSuffix?: string;
 	features: string[];
 	cta?: string;
+	ctaHref?: string;
 	className?: string;
 };
 
@@ -29,6 +31,7 @@ function PricingCard({
 	priceSuffix = '/month',
 	features,
 	cta = 'Subscribe',
+	ctaHref,
 	className,
 }: PricingCardProps) {
 	return (
@@ -42,7 +45,13 @@ function PricingCard({
 			<div className="flex items-center gap-3 p-4">
 				<Badge variant="secondary">{titleBadge}</Badge>
 				<div className="ml-auto">
-					<Button variant="outline">{cta}</Button>
+					{ctaHref ? (
+						<Link href={ctaHref}>
+							<Button variant="outline">{cta}</Button>
+						</Link>
+					) : (
+						<Button variant="outline">{cta}</Button>
+					)}
 				</div>
 			</div>
 
@@ -78,7 +87,10 @@ export function BentoPricing() {
 		'100 Free AI Credits',
 	];
 
-	const proPlanFeatures = [...freePlanFeatures.slice(0, -1), '2000 AI Credits'];
+	/** Pro = every Free feature, with 2000 AI credits instead of the free-tier credits line. */
+	const proPlanFeatures = freePlanFeatures.map((f) =>
+		f === '100 AI credits' ? '2000 AI credits' : f,
+	);
 
 	return (
 		<div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-8 max-w-6xl mx-auto">
@@ -107,7 +119,9 @@ export function BentoPricing() {
 						<SparklesIcon className="me-1 size-3" /> Beta Exclusive
 					</Badge>
 					<div className="ml-auto">
-						<Button>Upgrade to Pro</Button>
+						<Link href="/upgrade/pro">
+							<Button>Upgrade to Pro</Button>
+						</Link>
 					</div>
 				</div>
 				<div className="flex flex-col p-4 lg:flex-row relative z-10 h-full">
@@ -143,6 +157,7 @@ export function BentoPricing() {
 				features={freePlanFeatures}
 				className="lg:col-span-3"
 				cta="Get Started"
+				ctaHref="/projects"
 			/>
 		</div>
 	);

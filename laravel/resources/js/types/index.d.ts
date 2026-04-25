@@ -93,6 +93,7 @@ export interface User {
     plan?: {
         id: number;
         name: string;
+        slug?: string;
         monthly_price: number;
         monthly_credits: number;
     };
@@ -224,6 +225,7 @@ export interface Credits {
  */
 export interface UsagePlan {
     name: string;
+    slug?: string;
     price: number | string;
 }
 

@@ -214,6 +214,12 @@ Route::middleware(['auth'])->prefix('beta')->name('beta.')->group(function () {
     Route::get('/issues/{issue}', [\App\Http\Controllers\Beta\IssueController::class, 'show'])->name('issues.show');
 });
 
+// Pro Upgrade Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/upgrade/pro', [\App\Http\Controllers\Billing\PaymentController::class, 'upgradePro'])->name('upgrade.pro');
+    Route::post('/upgrade/pro', [\App\Http\Controllers\Billing\PaymentController::class, 'acceptProPayment'])->name('upgrade.pro.submit');
+});
+
 require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
 

@@ -59,6 +59,9 @@ export interface Stats {
     beta_denied: number;
     beta_total: number;
 
+    // Payment metrics
+    payments_pending: number;
+
     // GitHub integration
     users_with_github: number;
     projects_with_repo: number;
