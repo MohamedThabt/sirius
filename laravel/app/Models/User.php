@@ -270,12 +270,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(FeedbackVote::class);
     }
-
-    /**
-     * Get the user's questionnaire answers.
-     */
-    public function questionnaireAnswers(): HasMany
-    {
-        return $this->hasMany(UserQuestionAnswer::class);
-    }
 }
