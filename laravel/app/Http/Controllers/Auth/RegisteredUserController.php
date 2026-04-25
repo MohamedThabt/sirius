@@ -96,7 +96,7 @@ class RegisteredUserController extends Controller
                 'email' => $user->email,
             ], 'info');
 
-            return redirect()->intended(route('projects.index'));
+            return redirect()->route('user.questionnaire.create');
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'register']);
             throw $e;

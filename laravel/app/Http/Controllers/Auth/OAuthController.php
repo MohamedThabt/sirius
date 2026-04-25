@@ -24,7 +24,6 @@ class OAuthController extends Controller
      */
     public function handleGitHubCallback(Request $request): RedirectResponse
     {
-        // If already authenticated, redirect to projects
         if (Auth::check()) {
             return redirect()->intended(route('projects.index'));
         }
@@ -46,76 +45,112 @@ class OAuthController extends Controller
         return redirect()->intended(route('projects.index'));
     }
 
-    /**
-     * Redirect to Google OAuth
-     */
-    public function redirectToGoogle(): RedirectResponse
+    // -------------------------------------------------------------------------
+    // Google — Login
+    // -------------------------------------------------------------------------
+
+    public function redirectToGoogleLogin(): RedirectResponse
     {
-        return Socialite::driver('google')->redirect();
+        session(['oauth_intent' => 'login']);
+
+        return Socialite::driver('google')
+            ->redirectUrl(config('app.url') . '/auth/google/login/callback')
+            ->redirect();
     }
 
-    /**
-     * Handle Google OAuth callback
-     */
-    public function handleGoogleCallback(Request $request): RedirectResponse
+    public function handleGoogleLoginCallback(Request $request): RedirectResponse
     {
-        // If already authenticated, redirect to projects
         if (Auth::check()) {
-            return redirect()->intended(route('projects.index'));
+            return redirect()->route('projects.index');
         }
 
         try {
-            $socialUser = Socialite::driver('google')->user();
+            $socialUser = Socialite::driver('google')
+                ->redirectUrl(config('app.url') . '/auth/google/login/callback')
+                ->user();
         } catch (\Exception $e) {
             return redirect()->route('login')->withErrors([
                 'oauth' => 'Google authentication failed. Please try again.',
             ]);
         }
 
-        $user = $this->findOrCreateUser($socialUser, 'google');
+        $user = User::where('provider', 'google')
+            ->where('provider_id', $socialUser->getId())
+            ->orWhere('email', $socialUser->getEmail())
+            ->first();
+
+        if (! $user) {
+            return redirect()->route('login')->withErrors([
+                'oauth' => 'No account found for this Google account. Please register first.',
+            ]);
+        }
+
+        $this->updateUserFromSocial($user, $socialUser, 'google');
 
         Auth::login($user);
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('projects.index'));
+        return redirect()->route('projects.index');
     }
 
-    /**
-     * Find or create user from OAuth data
-     */
-    private function findOrCreateUser($socialUser, string $provider)
+    // -------------------------------------------------------------------------
+    // Google — Register
+    // -------------------------------------------------------------------------
+
+    public function redirectToGoogleRegister(): RedirectResponse
     {
-        // First, try to find by provider and provider_id
-        $user = User::where('provider', $provider)
+        session(['oauth_intent' => 'register']);
+
+        return Socialite::driver('google')
+            ->redirectUrl(config('app.url') . '/auth/google/register/callback')
+            ->redirect();
+    }
+
+    public function handleGoogleRegisterCallback(Request $request): RedirectResponse
+    {
+        if (Auth::check()) {
+            return redirect()->route('projects.index');
+        }
+
+        try {
+            $socialUser = Socialite::driver('google')
+                ->redirectUrl(config('app.url') . '/auth/google/register/callback')
+                ->user();
+        } catch (\Exception $e) {
+            return redirect()->route('register')->withErrors([
+                'oauth' => 'Google authentication failed. Please try again.',
+            ]);
+        }
+
+        $isNewUser = false;
+
+        $user = User::where('provider', 'google')
             ->where('provider_id', $socialUser->getId())
+            ->orWhere('email', $socialUser->getEmail())
             ->first();
 
         if ($user) {
-            // Update user data if found by provider ID
-            $this->updateUserFromSocial($user, $socialUser, $provider);
-
-            return $user;
+            $this->updateUserFromSocial($user, $socialUser, 'google');
+        } else {
+            $user = $this->createUserFromSocial($socialUser, 'google');
+            $isNewUser = true;
         }
 
-        // If not found by provider ID, check by email for auto-merge
-        $user = User::where('email', $socialUser->getEmail())->first();
+        Auth::login($user);
 
-        if ($user) {
-            // Auto-merge: Update existing user with OAuth data
-            $this->updateUserFromSocial($user, $socialUser, $provider);
+        $request->session()->regenerate();
 
-            return $user;
-        }
-
-        // Create new user
-        return $this->createUserFromSocial($socialUser, $provider);
+        return $isNewUser
+            ? redirect()->route('user.questionnaire.create')
+            : redirect()->route('projects.index');
     }
 
-    /**
-     * Create new user from OAuth data
-     */
-    private function createUserFromSocial($socialUser, string $provider)
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function createUserFromSocial($socialUser, string $provider): User
     {
         return User::create([
             'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? 'User',
@@ -123,14 +158,11 @@ class OAuthController extends Controller
             'provider' => $provider,
             'provider_id' => $socialUser->getId(),
             'avatar' => $socialUser->getAvatar(),
-            'email_verified_at' => now(), // OAuth emails are considered verified
+            'email_verified_at' => now(),
         ]);
     }
 
-    /**
-     * Update existing user with OAuth data
-     */
-    private function updateUserFromSocial(User $user, $socialUser, string $provider)
+    private function updateUserFromSocial(User $user, $socialUser, string $provider): void
     {
         $user->update([
             'provider' => $provider,
@@ -138,14 +170,12 @@ class OAuthController extends Controller
             'avatar' => $socialUser->getAvatar(),
         ]);
 
-        // Update name if it's empty or generic
         if (empty($user->name) || $user->name === 'User') {
             $user->update([
                 'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? $user->name,
             ]);
         }
 
-        // Mark email as verified if not already
         if (! $user->email_verified_at) {
             $user->update(['email_verified_at' => now()]);
         }

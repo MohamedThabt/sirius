@@ -222,6 +222,7 @@ Route::middleware(['auth'])->group(function () {
 
 // User Questionnaire
 Route::middleware(['auth'])->group(function () {
+    Route::get('/user/questionnaire', [\App\Http\Controllers\User\UserQuestionController::class, 'create'])->name('user.questionnaire.create');
     Route::post('/user/questionnaire', [\App\Http\Controllers\User\UserQuestionController::class, 'store'])->name('user.questionnaire.store');
 });
 

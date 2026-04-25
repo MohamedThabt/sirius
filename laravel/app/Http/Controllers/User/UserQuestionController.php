@@ -3,38 +3,43 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\UserQuestionAnswer;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class UserQuestionController extends Controller
 {
-    /**
-     * Store or update user questions and answers.
-     */
-    public function store(Request $request)
+    public function create(): Response
+    {
+        return Inertia::render('user/questionnaire');
+    }
+
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'questionnaire' => 'required|array',
-            'questionnaire.*.question' => 'required|string|max:1000',
-            'questionnaire.*.answer' => 'required|string|max:2000',
+            'questionnaire' => 'nullable|array',
+            'questionnaire.*.question' => 'required_with:questionnaire.*|string|max:1000',
+            'questionnaire.*.answer' => 'nullable|string|max:2000',
         ]);
 
         $user = Auth::user();
 
-        // Upsert the answers for the user
-        foreach ($request->questionnaire as $item) {
-            UserQuestionAnswer::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'question' => $item['question'],
-                ],
-                [
-                    'answer' => $item['answer'],
-                ]
-            );
+        if ($request->has('questionnaire') && is_array($request->questionnaire)) {
+            foreach ($request->questionnaire as $item) {
+                if (empty(trim($item['answer'] ?? ''))) {
+                    continue;
+                }
+
+                UserQuestionAnswer::updateOrCreate(
+                    ['user_id' => $user->id, 'question' => $item['question']],
+                    ['answer' => $item['answer']]
+                );
+            }
         }
 
-        return back()->with('success', 'Questionnaire submitted successfully.');
+        return redirect()->route('projects.index');
     }
 }

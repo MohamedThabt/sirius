@@ -404,7 +404,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
 
                         {/* Google OAuth */}
                         <a
-                            href="/auth/google"
+                            href={isLogin ? '/auth/google/login' : '/auth/google/register'}
                             className="flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-zinc-200/20 bg-white px-4 text-sm font-medium text-zinc-800 shadow-sm transition-all hover:bg-zinc-50 hover:shadow focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:outline-none"
                         >
                             <GoogleIcon />
