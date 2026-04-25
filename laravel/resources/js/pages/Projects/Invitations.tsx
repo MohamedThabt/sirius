@@ -1,27 +1,21 @@
-import { Head, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
-import { 
-    Mail, 
-    CheckCircle, 
-    XCircle, 
-    Clock,
-    MenuIcon,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ClientDateTime } from '@/components/ClientDateTime';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useInitials } from "@/hooks/use-initials";
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { useInitials } from '@/hooks/use-initials';
+import { type Invitation, type SharedData } from '@/types';
 import { getRoleBadgeColor } from '@/utils/role-colors';
-import { type SharedData, type Invitation } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { CheckCircle, Clock, Mail, MenuIcon, XCircle } from 'lucide-react';
+import { useState } from 'react';
 
 // Invitation type now imported from @/types
 
@@ -71,11 +65,15 @@ export default function ProjectInvitations({ invitations }: Props) {
                             <div className="mb-6 flex items-center gap-3">
                                 <Sheet>
                                     <SheetTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                        >
                                             <MenuIcon className="h-4 w-4" />
                                         </Button>
                                     </SheetTrigger>
-                                    <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                    <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                         <ProjectsIndexSidebar
                                             auth={auth}
                                             isSidebarCollapsed={false}
@@ -87,17 +85,11 @@ export default function ProjectInvitations({ invitations }: Props) {
                                         />
                                     </SheetContent>
                                 </Sheet>
-                                <SidebarToggle
-                                    isCollapsed={isSidebarCollapsed}
-                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                />
+                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
 
-                            <PageHeader
-                                title="Project Invitations"
-                                description="Review and respond to your pending project invitations"
-                            />
+                            <PageHeader title="Project Invitations" description="Review and respond to your pending project invitations" />
 
                             <div className="space-y-6">
                                 {invitations.length === 0 ? (
@@ -128,35 +120,38 @@ export default function ProjectInvitations({ invitations }: Props) {
                                                 {invitations.map((invitation) => (
                                                     <div key={invitation.id} className="rounded-lg border p-4">
                                                         <div className="flex items-start justify-between gap-4">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-start gap-3 mb-3">
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="mb-3 flex items-start gap-3">
                                                                     {invitation.invited_by && (
                                                                         <Avatar className="h-10 w-10 shrink-0">
-                                                                            <AvatarImage 
-                                                                                src={invitation.invited_by.avatar} 
-                                                                                alt={invitation.invited_by.name} 
+                                                                            <AvatarImage
+                                                                                src={invitation.invited_by.avatar}
+                                                                                alt={invitation.invited_by.name}
                                                                             />
                                                                             <AvatarFallback className="bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                                                                 {getInitials(invitation.invited_by.name)}
                                                                             </AvatarFallback>
                                                                         </Avatar>
                                                                     )}
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <h3 className="font-semibold text-foreground text-lg mb-1">
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <h3 className="mb-1 text-lg font-semibold text-foreground">
                                                                             {invitation.project.name}
                                                                         </h3>
                                                                         {invitation.invited_by && (
-                                                                            <p className="text-sm text-muted-foreground mb-2">
-                                                                                <span className="font-medium">{invitation.invited_by.name}</span> invited you to join this project
+                                                                            <p className="mb-2 text-sm text-muted-foreground">
+                                                                                <span className="font-medium">{invitation.invited_by.name}</span>{' '}
+                                                                                invited you to join this project
                                                                             </p>
                                                                         )}
                                                                         {invitation.project.brief && (
-                                                                            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                                                            <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
                                                                                 {invitation.project.brief}
                                                                             </p>
                                                                         )}
                                                                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                                                            <Badge className={`border text-xs capitalize ${getRoleBadgeColor(invitation.role)}`}>
+                                                                            <Badge
+                                                                                className={`border text-xs capitalize ${getRoleBadgeColor(invitation.role)}`}
+                                                                            >
                                                                                 {invitation.role}
                                                                             </Badge>
                                                                             <span className="flex items-center gap-1">
@@ -167,20 +162,17 @@ export default function ProjectInvitations({ invitations }: Props) {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex gap-2 shrink-0">
+                                                            <div className="flex shrink-0 gap-2">
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"
                                                                     onClick={() => handleDeny(invitation.id)}
-                                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
                                                                 >
                                                                     <XCircle className="mr-2 h-4 w-4" />
                                                                     Decline
                                                                 </Button>
-                                                                <Button
-                                                                    size="sm"
-                                                                    onClick={() => handleApprove(invitation.id)}
-                                                                >
+                                                                <Button size="sm" onClick={() => handleApprove(invitation.id)}>
                                                                     <CheckCircle className="mr-2 h-4 w-4" />
                                                                     Accept
                                                                 </Button>

@@ -22,8 +22,8 @@ export function NavUser() {
             <SidebarMenuItem>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <SidebarMenuButton 
-                            size="lg" 
+                        <SidebarMenuButton
+                            size="lg"
                             className="group rounded-lg transition-all duration-200 hover:bg-primary/5 data-[state=open]:bg-primary/5"
                         >
                             <UserInfo user={currentUser as any} />

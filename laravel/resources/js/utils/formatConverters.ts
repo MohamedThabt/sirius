@@ -47,7 +47,7 @@ export const dbmlToMermaid = (dbmlContent: string): string => {
 
                 const [, name, type, attributes] = fieldMatch;
                 const attrs = attributes?.toLowerCase() || '';
-                
+
                 // Check for FK references in attributes
                 const refMatch = attributes?.match(/ref:\s*>\s*(\w+)\.(\w+)/) || attributes?.match(/ref:\s*(\w+)\.(\w+)/);
                 const isForeignKey = attrs.includes('ref') || attrs.includes('fk') || !!refMatch;
@@ -155,10 +155,10 @@ export const mermaidToDbml = (mermaidContent: string): string => {
 
     while ((tableMatch = tableRegex.exec(cleanedContent)) !== null) {
         const tableName = tableMatch[1];
-        
+
         // Skip if tableName is a keyword
         if (tableName.toLowerCase() === 'erdiagram') continue;
-        
+
         const fieldsBlock = tableMatch[2];
 
         const fields = fieldsBlock
@@ -169,7 +169,7 @@ export const mermaidToDbml = (mermaidContent: string): string => {
                 // Remove inline comments
                 const lineWithoutComment = line.split('--')[0].trim();
                 if (!lineWithoutComment) return null;
-                
+
                 // Parse Mermaid field: type name "constraints"
                 // Handles: bigint user_id "FK, NOT NULL, ref:users.id"
                 const fieldMatch = lineWithoutComment.match(/^(\w+)\s+(\w+)(?:\s+"([^"]*)")?$/);
@@ -180,7 +180,7 @@ export const mermaidToDbml = (mermaidContent: string): string => {
 
                 // Check for FK reference in constraints (ref:table.field)
                 const refMatch = (constraints || '').match(/ref:(\w+)\.(\w+)/i);
-                
+
                 // Parse constraints
                 const isPrimaryKey = constraintsStr.includes('PK');
                 const isForeignKey = constraintsStr.includes('FK') || !!refMatch;
@@ -229,7 +229,7 @@ export const mermaidToDbml = (mermaidContent: string): string => {
         // }o--o{ : many-to-many
         // }|--|{ : many-to-many (mandatory)
         let type: ParsedRelation['type'] = 'one-to-many';
-        
+
         if (relationSymbol.includes('||--||') || relationSymbol.includes('||--o|')) {
             type = 'one-to-one';
         } else if (relationSymbol.includes('}o--o{') || relationSymbol.includes('}|--|{')) {
@@ -316,7 +316,7 @@ export const detectFormat = (content: string): DiagramFormat => {
     if (lowerTrimmed.startsWith('erdiagram')) {
         return 'mermaid';
     }
-    
+
     // Also check for Mermaid relationship patterns (}o--||, ||--o{, etc.)
     if (/[|}][|o]--[|o][{|}]/.test(trimmed)) {
         return 'mermaid';
@@ -326,7 +326,7 @@ export const detectFormat = (content: string): DiagramFormat => {
     if (/\bTable\s+\w+\s*\{/i.test(trimmed)) {
         return 'dbml';
     }
-    
+
     // Check for DBML Ref: syntax
     if (/\bRef:\s*\w+\.\w+/.test(trimmed)) {
         return 'dbml';

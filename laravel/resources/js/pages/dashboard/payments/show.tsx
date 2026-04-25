@@ -1,21 +1,15 @@
-import { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { ClientDateTime } from '@/components/ClientDateTime';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, GlowingBadge } from '@/components/ui/futuristic';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, GlowingBadge } from '@/components/ui/futuristic';
-import { Badge } from '@/components/ui/badge';
-import {
-    Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
-import { ClientDateTime } from '@/components/ClientDateTime';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import {
-    ArrowLeftIcon, CheckCircleIcon, ClockIcon, CreditCardIcon, ExternalLinkIcon,
-    ImageIcon, UserIcon, XCircleIcon,
-} from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { ArrowLeftIcon, CheckCircleIcon, ClockIcon, CreditCardIcon, ExternalLinkIcon, ImageIcon, UserIcon, XCircleIcon } from 'lucide-react';
+import { useState } from 'react';
 
 interface Payment {
     id: number;
@@ -48,28 +42,35 @@ const statusVariant = (s: string): 'warning' | 'success' | 'danger' | 'slate' =>
 export default function PaymentShow({ payment, imageUrl }: PageProps) {
     useFlashToasts();
 
-    const [acceptOpen, setAcceptOpen]   = useState(false);
-    const [denyOpen, setDenyOpen]       = useState(false);
-    const [deleteOpen, setDeleteOpen]   = useState(false);
-    const [adminNote, setAdminNote]     = useState('');
-    const [processing, setProcessing]   = useState(false);
+    const [acceptOpen, setAcceptOpen] = useState(false);
+    const [denyOpen, setDenyOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [adminNote, setAdminNote] = useState('');
+    const [processing, setProcessing] = useState(false);
 
     const submit = (action: 'accept' | 'deny') => {
         setProcessing(true);
-        router.put(`/admin/payments/${payment.id}`, { action, admin_note: adminNote }, {
-            onFinish: () => {
-                setProcessing(false);
-                setAcceptOpen(false);
-                setDenyOpen(false);
-                setAdminNote('');
+        router.put(
+            `/admin/payments/${payment.id}`,
+            { action, admin_note: adminNote },
+            {
+                onFinish: () => {
+                    setProcessing(false);
+                    setAcceptOpen(false);
+                    setDenyOpen(false);
+                    setAdminNote('');
+                },
             },
-        });
+        );
     };
 
     const handleDelete = () => {
         setProcessing(true);
         router.delete(`/admin/payments/${payment.id}`, {
-            onFinish: () => { setProcessing(false); setDeleteOpen(false); },
+            onFinish: () => {
+                setProcessing(false);
+                setDeleteOpen(false);
+            },
         });
     };
 
@@ -130,7 +131,15 @@ export default function PaymentShow({ payment, imageUrl }: PageProps) {
                                 <span className="text-sm text-muted-foreground">Status</span>
                                 <GlowingBadge
                                     variant={statusVariant(payment.status)}
-                                    icon={payment.status === 'accepted' ? <CheckCircleIcon className="h-3 w-3" /> : payment.status === 'denied' ? <XCircleIcon className="h-3 w-3" /> : <ClockIcon className="h-3 w-3" />}
+                                    icon={
+                                        payment.status === 'accepted' ? (
+                                            <CheckCircleIcon className="h-3 w-3" />
+                                        ) : payment.status === 'denied' ? (
+                                            <XCircleIcon className="h-3 w-3" />
+                                        ) : (
+                                            <ClockIcon className="h-3 w-3" />
+                                        )
+                                    }
                                 >
                                     {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                                 </GlowingBadge>
@@ -237,12 +246,10 @@ export default function PaymentShow({ payment, imageUrl }: PageProps) {
                         />
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" className="border-border/40" onClick={() => setAcceptOpen(false)}>Cancel</Button>
-                        <Button
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                            onClick={() => submit('accept')}
-                            disabled={processing}
-                        >
+                        <Button variant="outline" className="border-border/40" onClick={() => setAcceptOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => submit('accept')} disabled={processing}>
                             {processing ? 'Processing...' : 'Accept & Upgrade to Pro'}
                         </Button>
                     </DialogFooter>
@@ -256,9 +263,7 @@ export default function PaymentShow({ payment, imageUrl }: PageProps) {
                         <DialogTitle className="flex items-center gap-2 text-destructive">
                             <XCircleIcon className="h-5 w-5" /> Deny Payment
                         </DialogTitle>
-                        <DialogDescription>
-                            This will mark the payment as denied. No email will be sent to the user.
-                        </DialogDescription>
+                        <DialogDescription>This will mark the payment as denied. No email will be sent to the user.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
                         <Label htmlFor="deny-note">Admin Note (optional)</Label>
@@ -272,7 +277,9 @@ export default function PaymentShow({ payment, imageUrl }: PageProps) {
                         />
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" className="border-border/40" onClick={() => setDenyOpen(false)}>Cancel</Button>
+                        <Button variant="outline" className="border-border/40" onClick={() => setDenyOpen(false)}>
+                            Cancel
+                        </Button>
                         <Button variant="destructive" onClick={() => submit('deny')} disabled={processing}>
                             {processing ? 'Processing...' : 'Deny Payment'}
                         </Button>
@@ -287,12 +294,12 @@ export default function PaymentShow({ payment, imageUrl }: PageProps) {
                         <DialogTitle className="flex items-center gap-2 text-destructive">
                             <XCircleIcon className="h-5 w-5" /> Delete Record
                         </DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to permanently delete this payment record? This cannot be undone.
-                        </DialogDescription>
+                        <DialogDescription>Are you sure you want to permanently delete this payment record? This cannot be undone.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" className="border-border/40" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+                        <Button variant="outline" className="border-border/40" onClick={() => setDeleteOpen(false)}>
+                            Cancel
+                        </Button>
                         <Button variant="destructive" onClick={handleDelete} disabled={processing}>
                             {processing ? 'Deleting...' : 'Delete'}
                         </Button>

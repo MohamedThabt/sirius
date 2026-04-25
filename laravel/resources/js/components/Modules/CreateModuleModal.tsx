@@ -1,17 +1,11 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { AlertCircleIcon, Loader2Icon, SparklesIcon } from 'lucide-react';
-import { router } from '@inertiajs/react';
 import { createModuleSchema } from '@/lib/validations';
+import { router } from '@inertiajs/react';
+import { AlertCircleIcon, Loader2Icon, SparklesIcon } from 'lucide-react';
+import { useState } from 'react';
 
 interface CreateModuleModalProps {
     open: boolean;
@@ -19,11 +13,7 @@ interface CreateModuleModalProps {
     projectId: number;
 }
 
-export default function CreateModuleModal({
-    open,
-    onOpenChange,
-    projectId,
-}: CreateModuleModalProps) {
+export default function CreateModuleModal({ open, onOpenChange, projectId }: CreateModuleModalProps) {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -31,9 +21,7 @@ export default function CreateModuleModal({
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
@@ -106,7 +94,8 @@ export default function CreateModuleModal({
                         Create New Module
                     </DialogTitle>
                     <DialogDescription>
-                        Provide a name and description for your module. Our AI will automatically generate success metrics and determine the optimal implementation order.
+                        Provide a name and description for your module. Our AI will automatically generate success metrics and determine the optimal
+                        implementation order.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -132,17 +121,12 @@ export default function CreateModuleModal({
                                 {errors.name}
                             </div>
                         )}
-                        <div className="text-xs text-muted-foreground">
-                            {formData.name.length}/255 characters
-                        </div>
+                        <div className="text-xs text-muted-foreground">{formData.name.length}/255 characters</div>
                     </div>
 
                     {/* Module Description Field */}
                     <div className="space-y-2">
-                        <label
-                            htmlFor="description"
-                            className="block text-sm font-medium text-foreground"
-                        >
+                        <label htmlFor="description" className="block text-sm font-medium text-foreground">
                             Module Description <span className="text-red-500">*</span>
                         </label>
                         <Textarea
@@ -161,9 +145,7 @@ export default function CreateModuleModal({
                                 {errors.description}
                             </div>
                         )}
-                        <div className="text-xs text-muted-foreground">
-                            {formData.description.length}/5000 characters
-                        </div>
+                        <div className="text-xs text-muted-foreground">{formData.description.length}/5000 characters</div>
                     </div>
 
                     {/* AI Info Banner */}
@@ -179,24 +161,11 @@ export default function CreateModuleModal({
 
                     {/* Action Buttons */}
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={isLoading}
-                        >
+                        <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
                             Cancel
                         </Button>
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="gap-2"
-                        >
-                            {isLoading ? (
-                                <Loader2Icon className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <SparklesIcon className="h-4 w-4" />
-                            )}
+                        <Button type="submit" disabled={isLoading} className="gap-2">
+                            {isLoading ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <SparklesIcon className="h-4 w-4" />}
                             {isLoading ? 'Generating...' : 'Generate Module'}
                         </Button>
                     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { type WireframeMode, getStyles, getSelectionStyles } from '../wireframe-styles';
+import { type WireframeMode, getSelectionStyles, getStyles } from '../wireframe-styles';
 
 interface DatatableNodeProps {
     node: any;
@@ -38,13 +38,15 @@ export function DatatableNode({ node, selectedNodeId, onSelectNode, mode }: Data
 
     return (
         <div onClick={handleSelect} style={{ ...selectionStyle, cursor: 'pointer', width: '100%' }}>
-            <div style={{ 
-                overflowX: 'auto', 
-                border: `1px solid ${s.border}`, 
-                borderRadius: s.radius.lg, 
-                background: s.card,
-                boxShadow: isPreview ? s.shadow.md : 'none',
-            }}>
+            <div
+                style={{
+                    overflowX: 'auto',
+                    border: `1px solid ${s.border}`,
+                    borderRadius: s.radius.lg,
+                    background: s.card,
+                    boxShadow: isPreview ? s.shadow.md : 'none',
+                }}
+            >
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead>
                         <tr>
@@ -68,9 +70,7 @@ export function DatatableNode({ node, selectedNodeId, onSelectNode, mode }: Data
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: s.spacing.xs }}>
                                         {col}
-                                        {isPreview && (
-                                            <span style={{ opacity: 0.5, fontSize: 10 }}>↕</span>
-                                        )}
+                                        {isPreview && <span style={{ opacity: 0.5, fontSize: 10 }}>↕</span>}
                                     </div>
                                 </th>
                             ))}
@@ -78,7 +78,7 @@ export function DatatableNode({ node, selectedNodeId, onSelectNode, mode }: Data
                     </thead>
                     <tbody>
                         {rows.map((row: any, rIdx: number) => (
-                            <tr 
+                            <tr
                                 key={rIdx}
                                 style={{
                                     background: isPreview && rIdx % 2 === 1 ? `${s.muted}50` : 'transparent',
@@ -86,12 +86,12 @@ export function DatatableNode({ node, selectedNodeId, onSelectNode, mode }: Data
                                 }}
                             >
                                 {columns.map((col: string, cIdx: number) => (
-                                    <td 
-                                        key={col + cIdx} 
-                                        style={{ 
-                                            padding: `${s.spacing.md}px ${s.spacing.lg}px`, 
-                                            borderBottom: `1px solid ${s.border}`, 
-                                            fontSize: s.fontSize.sm, 
+                                    <td
+                                        key={col + cIdx}
+                                        style={{
+                                            padding: `${s.spacing.md}px ${s.spacing.lg}px`,
+                                            borderBottom: `1px solid ${s.border}`,
+                                            fontSize: s.fontSize.sm,
                                             color: s.foreground,
                                         }}
                                     >
@@ -102,11 +102,11 @@ export function DatatableNode({ node, selectedNodeId, onSelectNode, mode }: Data
                         ))}
                         {rows.length === 0 && (
                             <tr>
-                                <td 
-                                    colSpan={Math.max(columns.length, 1)} 
-                                    style={{ 
-                                        padding: s.spacing.xl, 
-                                        fontSize: s.fontSize.sm, 
+                                <td
+                                    colSpan={Math.max(columns.length, 1)}
+                                    style={{
+                                        padding: s.spacing.xl,
+                                        fontSize: s.fontSize.sm,
                                         color: s.mutedForeground,
                                         textAlign: 'center',
                                     }}
@@ -121,43 +121,51 @@ export function DatatableNode({ node, selectedNodeId, onSelectNode, mode }: Data
                     </tbody>
                 </table>
             </div>
-            
+
             {/* Table Footer with pagination hint */}
             {isPreview && rows.length > 0 && (
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: `${s.spacing.sm}px ${s.spacing.md}px`,
-                    fontSize: s.fontSize.xs,
-                    color: s.mutedForeground,
-                    borderTop: `1px solid ${s.border}`,
-                    background: s.muted,
-                    borderRadius: `0 0 ${s.radius.lg} ${s.radius.lg}`,
-                    marginTop: -1,
-                }}>
-                    <span>Showing {rows.length} of {rows.length} results</span>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: `${s.spacing.sm}px ${s.spacing.md}px`,
+                        fontSize: s.fontSize.xs,
+                        color: s.mutedForeground,
+                        borderTop: `1px solid ${s.border}`,
+                        background: s.muted,
+                        borderRadius: `0 0 ${s.radius.lg} ${s.radius.lg}`,
+                        marginTop: -1,
+                    }}
+                >
+                    <span>
+                        Showing {rows.length} of {rows.length} results
+                    </span>
                     <div style={{ display: 'flex', gap: s.spacing.xs }}>
-                        <button style={{
-                            padding: `${s.spacing.xs}px ${s.spacing.sm}px`,
-                            borderRadius: s.radius.sm,
-                            border: `1px solid ${s.border}`,
-                            background: 'transparent',
-                            fontSize: s.fontSize.xs,
-                            color: s.mutedForeground,
-                            cursor: 'pointer',
-                        }}>
+                        <button
+                            style={{
+                                padding: `${s.spacing.xs}px ${s.spacing.sm}px`,
+                                borderRadius: s.radius.sm,
+                                border: `1px solid ${s.border}`,
+                                background: 'transparent',
+                                fontSize: s.fontSize.xs,
+                                color: s.mutedForeground,
+                                cursor: 'pointer',
+                            }}
+                        >
                             Previous
                         </button>
-                        <button style={{
-                            padding: `${s.spacing.xs}px ${s.spacing.sm}px`,
-                            borderRadius: s.radius.sm,
-                            border: `1px solid ${s.border}`,
-                            background: 'transparent',
-                            fontSize: s.fontSize.xs,
-                            color: s.mutedForeground,
-                            cursor: 'pointer',
-                        }}>
+                        <button
+                            style={{
+                                padding: `${s.spacing.xs}px ${s.spacing.sm}px`,
+                                borderRadius: s.radius.sm,
+                                border: `1px solid ${s.border}`,
+                                background: 'transparent',
+                                fontSize: s.fontSize.xs,
+                                color: s.mutedForeground,
+                                cursor: 'pointer',
+                            }}
+                        >
                             Next
                         </button>
                     </div>

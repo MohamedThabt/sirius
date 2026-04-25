@@ -1,18 +1,18 @@
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
-import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { type User, type Project, type Sections } from '@/types';
+import { Toaster } from '@/components/ui/sonner';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { MenuIcon } from 'lucide-react';
-import { Excalidraw, exportToBlob, serializeAsJSON } from '@excalidraw/excalidraw';
+import { useThemeDetection } from '@/hooks/use-theme-detection';
+import { type Project, type Sections, type User } from '@/types';
+import { Excalidraw } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import { Head, router, usePage } from '@inertiajs/react';
+import { MenuIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Toaster } from '@/components/ui/sonner';
-import { useThemeDetection } from '@/hooks/use-theme-detection';
 
 // Project and Sections types now imported from @/types
 
@@ -33,7 +33,7 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSavingRef = useRef(false);
-    
+
     // Use refs to store latest values for handleSave
     const elementsRef = useRef<any[] | null>(null);
     const appStateRef = useRef<any | null>(null);
@@ -67,12 +67,12 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
         setElements(elementsArray);
         setAppState(app);
         setFiles(f);
-        
+
         // Update refs with latest values
         elementsRef.current = elementsArray;
         appStateRef.current = app;
         filesRef.current = f;
-        
+
         setSaveStatus('idle');
     }, []);
 
@@ -150,7 +150,7 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
             // If there's a pending save timeout, save immediately
             if (saveTimeoutRef.current && (elementsRef.current !== null || appStateRef.current !== null || filesRef.current !== null)) {
                 clearTimeout(saveTimeoutRef.current);
-                
+
                 // Use synchronous approach for beforeunload
                 const payload = {
                     scene: {
@@ -159,7 +159,7 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
                         files: filesRef.current ?? {},
                     },
                 };
-                
+
                 // Use sendBeacon for reliable save on page unload
                 const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
                 navigator.sendBeacon(`/projects/${project.id}/brainstorming/scene`, blob);
@@ -176,7 +176,7 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
-        
+
         // Listen to Inertia's before event for SPA navigation
         router.on('before', handleInertiaNavigate);
 
@@ -206,11 +206,15 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
                                 <div className="flex items-center gap-3">
                                     <Sheet>
                                         <SheetTrigger asChild>
-                                            <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                            >
                                                 <MenuIcon className="h-4 w-4" />
                                             </Button>
                                         </SheetTrigger>
-                                        <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                        <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                             <ProjectSidebarPanel
                                                 project={project}
                                                 navGroups={navGroups}
@@ -221,19 +225,16 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
                                             />
                                         </SheetContent>
                                     </Sheet>
-                                    <SidebarToggle
-                                        isCollapsed={isSidebarCollapsed}
-                                        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    />
+                                    <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                     <Breadcrumbs breadcrumbs={breadcrumbs} />
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {saveStatus === 'saving' && <span className="text-sm text-muted-foreground">Saving...</span>}
                                     {saveStatus === 'saved' && <span className="text-sm text-emerald-600">All changes saved</span>}
                                     {saveStatus === 'error' && <span className="text-sm text-destructive">Autosave failed</span>}
-                                    <Button 
-                                        size="sm" 
-                                        onClick={handleSave} 
+                                    <Button
+                                        size="sm"
+                                        onClick={handleSave}
                                         variant={saveStatus === 'error' ? 'default' : 'outline'}
                                         disabled={saveStatus === 'saving'}
                                     >

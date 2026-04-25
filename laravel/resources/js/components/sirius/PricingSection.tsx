@@ -1,24 +1,13 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useRef, useEffect } from "react";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-    CardContent,
-    CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Check, Sparkles } from "lucide-react";
-import { BentoPricing } from "@/components/bento-pricing";
+import { BentoPricing } from '@/components/bento-pricing';
+import { useEffect, useRef } from 'react';
 
 export default function PricingSection() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     useEffect(() => {
         const canvas = canvasRef.current;
-        const ctx = canvas?.getContext("2d");
+        const ctx = canvas?.getContext('2d');
         if (!canvas || !ctx) return;
 
         let raf = 0;
@@ -88,7 +77,7 @@ export default function PricingSection() {
     }, []);
 
     return (
-        <section className="relative w-full py-24 bg-background text-foreground overflow-hidden">
+        <section className="relative w-full overflow-hidden bg-background py-24 text-foreground">
             <style>{`
         .accent-lines{position:absolute;inset:0;pointer-events:none;opacity:.7}
         .hline,.vline{position:absolute;background:hsl(var(--border));will-change:transform,opacity}
@@ -126,7 +115,7 @@ export default function PricingSection() {
       `}</style>
 
             {/* Subtle vignette */}
-            <div className="absolute inset-0 pointer-events-none [background:radial-gradient(80%_60%_at_50%_30%,rgba(0,0,0,0.02),transparent_60%)] dark:[background:radial-gradient(80%_60%_at_50%_30%,rgba(255,255,255,0.06),transparent_60%)]" />
+            <div className="pointer-events-none absolute inset-0 [background:radial-gradient(80%_60%_at_50%_30%,rgba(0,0,0,0.02),transparent_60%)] dark:[background:radial-gradient(80%_60%_at_50%_30%,rgba(255,255,255,0.06),transparent_60%)]" />
 
             {/* Animated accent lines */}
             <div className="accent-lines">
@@ -139,27 +128,22 @@ export default function PricingSection() {
             </div>
 
             {/* Particles */}
-            <canvas
-                ref={canvasRef}
-                className="absolute inset-0 w-full h-full opacity-50 mix-blend-screen pointer-events-none z-0"
-            />
-            
+            <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-50 mix-blend-screen" />
+
             {/* Dotted Background */}
             <div className="pointer-events-none absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80 [mask-image:radial-gradient(farthest-side_at_top,white,transparent)]">
                     <div
                         aria-hidden="true"
-                        className="absolute inset-0 size-full mix-blend-overlay bg-[linear-gradient(to_right,hsl(var(--foreground))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground))_1px,transparent_1px)] bg-[size:24px_24px] opacity-[0.03]"
+                        className="absolute inset-0 size-full bg-[linear-gradient(to_right,hsl(var(--foreground))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground))_1px,transparent_1px)] bg-[size:24px_24px] opacity-[0.03] mix-blend-overlay"
                     />
                 </div>
             </div>
 
             <div className="relative z-10 w-full px-4 md:px-6">
-                <div className="text-center mb-16 space-y-4">
-                    <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Simple, transparent pricing</h2>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                        Choose the perfect plan for your team's needs.
-                    </p>
+                <div className="mb-16 space-y-4 text-center">
+                    <h2 className="text-3xl font-bold tracking-tight md:text-5xl">Simple, transparent pricing</h2>
+                    <p className="mx-auto max-w-2xl text-lg text-muted-foreground">Choose the perfect plan for your team's needs.</p>
                 </div>
 
                 <BentoPricing />

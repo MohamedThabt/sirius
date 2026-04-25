@@ -1,6 +1,6 @@
 /**
  * Status and Priority Color Utilities
- * 
+ *
  * Centralized color mapping functions for consistent badge/status styling.
  * Follows design-styling-standards with semantic colors and dark mode support.
  */

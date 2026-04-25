@@ -10,11 +10,7 @@ interface UseIntersectionObserverOptions {
  * Hook to detect when an element enters the viewport
  * Useful for lazy loading and animations
  */
-export function useIntersectionObserver({
-    threshold = 0.1,
-    rootMargin = '0px',
-    triggerOnce = true,
-}: UseIntersectionObserverOptions = {}) {
+export function useIntersectionObserver({ threshold = 0.1, rootMargin = '0px', triggerOnce = true }: UseIntersectionObserverOptions = {}) {
     const [isIntersecting, setIsIntersecting] = useState(false);
     const [hasIntersected, setHasIntersected] = useState(false);
     const ref = useRef<HTMLElement | null>(null);
@@ -30,12 +26,12 @@ export function useIntersectionObserver({
             ([entry]) => {
                 const isVisible = entry.isIntersecting;
                 setIsIntersecting(isVisible);
-                
+
                 if (isVisible && triggerOnce) {
                     setHasIntersected(true);
                 }
             },
-            { threshold, rootMargin }
+            { threshold, rootMargin },
         );
 
         observer.observe(element);
@@ -47,4 +43,3 @@ export function useIntersectionObserver({
 
     return { ref, isIntersecting, hasIntersected };
 }
-

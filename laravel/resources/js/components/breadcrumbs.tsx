@@ -17,7 +17,10 @@ export function Breadcrumbs({ breadcrumbs }: { breadcrumbs: BreadcrumbItemType[]
                                         {isLast ? (
                                             <BreadcrumbPage className="font-medium">{item.title}</BreadcrumbPage>
                                         ) : (
-                                            <BreadcrumbLink asChild className="text-muted-foreground/70 transition-colors duration-150 hover:text-foreground">
+                                            <BreadcrumbLink
+                                                asChild
+                                                className="text-muted-foreground/70 transition-colors duration-150 hover:text-foreground"
+                                            >
                                                 <Link href={item.href}>{item.title}</Link>
                                             </BreadcrumbLink>
                                         )}

@@ -1,17 +1,17 @@
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { User, Mail, Shield, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Mail, Trash2, User } from 'lucide-react';
 
 import DeleteUser from '@/components/delete-user';
 import InputError from '@/components/input-error';
+import { PlanBadge } from '@/components/plan-badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { PlanBadge } from '@/components/plan-badge';
 import SettingsLayout from '@/layouts/settings/layout';
 
 function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
@@ -63,7 +63,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                     <div className="p-6">
                         {/* Avatar Section */}
                         <div className="mb-8 flex items-center gap-6 rounded-lg border border-dashed border-border bg-muted/20 p-4">
-                            <Avatar className="h-20 w-20 ring-4 ring-background shadow-lg">
+                            <Avatar className="h-20 w-20 shadow-lg ring-4 ring-background">
                                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-xl font-semibold text-primary-foreground">
                                     {getInitials(auth.user.name)}
                                 </AvatarFallback>
@@ -78,12 +78,18 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                     {auth.user.email}
                                 </div>
                                 {auth.user.email_verified_at ? (
-                                    <Badge variant="secondary" className="mt-2 gap-1 bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-500/20">
+                                    <Badge
+                                        variant="secondary"
+                                        className="mt-2 gap-1 bg-emerald-100 text-emerald-600 hover:bg-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                                    >
                                         <CheckCircle2 className="h-3 w-3" />
                                         Verified
                                     </Badge>
                                 ) : (
-                                    <Badge variant="secondary" className="mt-2 gap-1 bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-500/20">
+                                    <Badge
+                                        variant="secondary"
+                                        className="mt-2 gap-1 bg-amber-100 text-amber-600 hover:bg-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400"
+                                    >
                                         <AlertCircle className="h-3 w-3" />
                                         Unverified
                                     </Badge>
@@ -106,7 +112,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                         Full Name
                                     </Label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <User className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
                                             id="name"
                                             className="pl-10"
@@ -125,11 +131,11 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                         Email Address
                                     </Label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
                                             id="email"
                                             type="email"
-                                            className="pl-10 bg-muted/50"
+                                            className="bg-muted/50 pl-10"
                                             value={auth.user.email}
                                             disabled
                                             autoComplete="username"
@@ -145,9 +151,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                     <div className="flex items-start gap-3">
                                         <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
                                         <div>
-                                            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                                                Email verification required
-                                            </p>
+                                            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Email verification required</p>
                                             <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
                                                 Your email address is unverified.{' '}
                                                 <button
@@ -162,8 +166,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                                             </p>
                                             {status === 'verification-link-sent' && (
                                                 <div className="mt-2 flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                                                    <CheckCircle2 className="h-4 w-4" />
-                                                    A new verification link has been sent to your email address.
+                                                    <CheckCircle2 className="h-4 w-4" />A new verification link has been sent to your email address.
                                                 </div>
                                             )}
                                         </div>

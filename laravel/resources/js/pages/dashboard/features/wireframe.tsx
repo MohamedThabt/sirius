@@ -1,12 +1,10 @@
-import AppLayout from '@/layouts/app-layout';
-import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { TextShimmer } from '@/components/ui/text-shimmer';
-import { Head, usePage } from '@inertiajs/react';
-import { Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import AppLayout from '@/layouts/app-layout';
+import { Head } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { WireframeRenderer, type SchemaNode as RendererSchemaNode } from '../../features/components/WireframeRenderer';
 
 type SchemaNode = RendererSchemaNode;
@@ -351,7 +349,6 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
         return null;
     };
 
-
     const toggleFullScreen = () => setIsFullScreen((v) => !v);
 
     const handleSendMessage = async () => {
@@ -412,27 +409,23 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
     };
 
     const renderContent = () => (
-        <div className="flex flex-col h-[calc(100vh-4rem)]">
-             <div className="flex items-center justify-between border-b border-border bg-card/50 px-4 py-3">
+        <div className="flex h-[calc(100vh-4rem)] flex-col">
+            <div className="flex items-center justify-between border-b border-border bg-card/50 px-4 py-3">
                 <div className="flex items-center space-x-4">
                     {/* Breadcrumbs are already in AppLayout, but we can add controls here if needed */}
-                    <div className="text-sm text-muted-foreground">
-                        Interactive Wireframe Editor
-                    </div>
+                    <div className="text-sm text-muted-foreground">Interactive Wireframe Editor</div>
                 </div>
             </div>
 
             <div className="relative flex flex-1 overflow-hidden">
-                <div className={`relative flex h-full w-[32%] min-w-0 flex-col transition-all duration-300 ease-in-out border-r border-border`}>
+                <div className={`relative flex h-full w-[32%] min-w-0 flex-col border-r border-border transition-all duration-300 ease-in-out`}>
                     <div className="flex items-center justify-between border-b border-border/50 bg-gradient-to-r from-background via-background/98 to-background px-4 py-2">
                         <div className="text-sm font-medium opacity-80">AI Chat</div>
                     </div>
                     <div className="flex-1 space-y-2 overflow-y-auto p-3">
                         {messages.length === 0 && (
                             <div className="text-xs text-muted-foreground">
-                                {feature
-                                    ? 'Ask the AI to suggest layout changes or add elements.'
-                                    : 'Feature data not available for AI editing.'}
+                                {feature ? 'Ask the AI to suggest layout changes or add elements.' : 'Feature data not available for AI editing.'}
                             </div>
                         )}
                         {messages.map((m) => (
@@ -456,8 +449,8 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                                     !feature
                                         ? 'Feature data required for AI editing'
                                         : isGenerating
-                                            ? 'AI is generating...'
-                                            : selectedNodeId
+                                          ? 'AI is generating...'
+                                          : selectedNodeId
                                             ? 'e.g. Add a button inside selected element'
                                             : 'e.g. Add a hero section'
                                 }
@@ -477,9 +470,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                         </div>
                     </div>
                 </div>
-                <div
-                    className={`relative flex min-w-0 flex-col transition-all duration-300 ease-in-out w-[68%]`}
-                >
+                <div className={`relative flex w-[68%] min-w-0 flex-col transition-all duration-300 ease-in-out`}>
                     <div className="flex items-center justify-between border-b border-border/50 bg-gradient-to-r from-background via-background/98 to-background px-4 py-2">
                         <div className="flex items-center gap-3 text-sm">
                             <span className="font-medium opacity-80">Wireframe Preview</span>
@@ -693,9 +684,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
         return (
             <>
                 <Head title={`Wireframe - ${feature.name}`} />
-                <div className="fixed inset-0 z-50 flex h-screen flex-col bg-background">
-                    {renderContent()}
-                </div>
+                <div className="fixed inset-0 z-50 flex h-screen flex-col bg-background">{renderContent()}</div>
             </>
         );
     }
@@ -703,9 +692,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Wireframe - ${feature.name}`} />
-            <div className="flex flex-col h-[calc(100vh-8rem)] rounded-xl border border-border bg-background overflow-hidden">
-                {renderContent()}
-            </div>
+            <div className="flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-xl border border-border bg-background">{renderContent()}</div>
         </AppLayout>
     );
 }

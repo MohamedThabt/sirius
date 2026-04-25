@@ -17,7 +17,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { type BreadcrumbItem } from '@/types';import { getLogLevelColor } from '@/utils/semantic-colors';import { Head, router } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';
+import { getLogLevelColor } from '@/utils/semantic-colors';
+import { Head, router } from '@inertiajs/react';
 import {
     AlertCircleIcon,
     AlertOctagonIcon,
@@ -180,7 +182,7 @@ function extractLogSummary(log: LogEntry): {
     // Try to parse context as JSON
     const contextTrimmed = log.context?.trim() ?? '';
     let contextData: Record<string, unknown> | null = null;
-    
+
     if (contextTrimmed) {
         try {
             const parsed = JSON.parse(contextTrimmed);
@@ -191,43 +193,45 @@ function extractLogSummary(log: LogEntry): {
             // Not JSON, ignore
         }
     }
-    
+
     // Try to extract embedded JSON from message
     const msgExtract = extractJsonFromMessage(log.message);
     const messageData: Record<string, unknown> | null = msgExtract.json;
-    
+
     // Extract system context — check data.sys nesting (AppLogger format), then top-level sys, then top-level keys
-    const msgDataSys = (messageData?.data && typeof messageData.data === 'object' && 'sys' in (messageData.data as Record<string, unknown>))
-        ? (messageData.data as Record<string, unknown>).sys as Record<string, unknown>
-        : {};
-    const ctxDataSys = (contextData?.data && typeof contextData.data === 'object' && 'sys' in (contextData.data as Record<string, unknown>))
-        ? (contextData.data as Record<string, unknown>).sys as Record<string, unknown>
-        : {};
+    const msgDataSys =
+        messageData?.data && typeof messageData.data === 'object' && 'sys' in (messageData.data as Record<string, unknown>)
+            ? ((messageData.data as Record<string, unknown>).sys as Record<string, unknown>)
+            : {};
+    const ctxDataSys =
+        contextData?.data && typeof contextData.data === 'object' && 'sys' in (contextData.data as Record<string, unknown>)
+            ? ((contextData.data as Record<string, unknown>).sys as Record<string, unknown>)
+            : {};
     const ctxSys = (contextData?.sys as Record<string, unknown>) || {};
     const msgSys = (messageData?.sys as Record<string, unknown>) || {};
-    
+
     // Merge all sys sources (priority: ctxDataSys > ctxSys > msgDataSys > msgSys > top-level fields)
     const sys = { ...msgSys, ...msgDataSys, ...ctxSys, ...ctxDataSys };
-    
+
     // Extract exception info (check multiple sources)
     const exceptionMessage = (contextData?.exception_message || messageData?.exception_message) as string | null;
     const exceptionType = (contextData?.exception_type || messageData?.exception_type) as string | null;
     const exceptionFile = (contextData?.exception_file || messageData?.exception_file) as string | null;
     const exceptionLine = (contextData?.exception_line || messageData?.exception_line) as number | null;
-    
+
     // Extract user info
     const userName = (sys.user_name || contextData?.user_name || messageData?.user_name) as string | null;
     const userEmail = (sys.user_email || contextData?.user_email || messageData?.user_email) as string | null;
     const userId = (sys.user_id || contextData?.user_id || messageData?.user_id) as string | number | null;
-    
+
     // Extract route info
     const route = (sys.route || contextData?.route_name || messageData?.route || sys.url || messageData?.url) as string | null;
     const method = (sys.method || contextData?.method || messageData?.method) as string | null;
     const action = (sys.action || contextData?.route_action || messageData?.action) as string | null;
-    
+
     // Extract request ID
     const requestId = (sys.request_id || contextData?.request_id || messageData?.request_id) as string | null;
-    
+
     // Build summary strings
     let userInfo: string | null = null;
     if (userName || userEmail) {
@@ -235,14 +239,14 @@ function extractLogSummary(log: LogEntry): {
         if (userId) parts.push(`#${userId}`);
         userInfo = parts.join(' • ');
     }
-    
+
     let routeInfo: string | null = null;
     if (route) {
         routeInfo = method ? `${method} ${route}` : route;
     } else if (action) {
         routeInfo = method ? `${method} ${action}` : action;
     }
-    
+
     let exceptionInfo: string | null = null;
     if (exceptionType || exceptionFile) {
         const parts: string[] = [];
@@ -257,7 +261,7 @@ function extractLogSummary(log: LogEntry): {
         }
         exceptionInfo = parts.join(' @ ');
     }
-    
+
     // Determine main message
     let mainMessage = log.message;
     if (msgExtract.prefix && msgExtract.json) {
@@ -266,7 +270,7 @@ function extractLogSummary(log: LogEntry): {
     if (exceptionMessage && exceptionMessage !== mainMessage) {
         mainMessage = exceptionMessage;
     }
-    
+
     return {
         mainMessage,
         userInfo,
@@ -436,9 +440,7 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
                                 <p className="text-sm text-muted-foreground/60">Monitor and analyze Laravel application logs</p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-xs text-muted-foreground/60">
-                                    Last refreshed: {formatLastRefreshed(lastRefreshed)}
-                                </span>
+                                <span className="text-xs text-muted-foreground/60">Last refreshed: {formatLastRefreshed(lastRefreshed)}</span>
                                 <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
                                     <RefreshCwIcon className={cn('mr-2 h-4 w-4', isLoading && 'animate-spin')} />
                                     Refresh
@@ -622,8 +624,10 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
                             if (levelFilter !== 'all') queryParams.set('level', levelFilter);
                             if (search) queryParams.set('search', search);
                             if (meta?.current_page) queryParams.set('page', meta.current_page.toString());
-                            
-                            router.visit(`/admin/logs/laravel/show/${encodeURIComponent(selectedLogFile)}/${log.line_number}?${queryParams.toString()}`);
+
+                            router.visit(
+                                `/admin/logs/laravel/show/${encodeURIComponent(selectedLogFile)}/${log.line_number}?${queryParams.toString()}`,
+                            );
                         }}
                     />
                 </div>
@@ -699,11 +703,11 @@ function LogsTable({
                         {logs.map((log, index) => {
                             const LevelIcon = getLevelIcon(log.level);
                             const summary = extractLogSummary(log);
-                            
+
                             return (
                                 <TableRow
                                     key={`${log.line_number}-${index}`}
-                                    className="border-border/20 cursor-pointer hover:bg-muted/30 transition-colors"
+                                    className="cursor-pointer border-border/20 transition-colors hover:bg-muted/30"
                                     onClick={() => onSelectLog(log)}
                                 >
                                     <TableCell className="align-top font-mono text-xs text-muted-foreground/80" title={log.timestamp}>
@@ -718,10 +722,10 @@ function LogsTable({
                                     <TableCell className="max-w-[600px]">
                                         <div className="flex flex-col gap-1.5">
                                             {/* Main message */}
-                                            <div className="font-mono text-xs text-foreground/90 line-clamp-2" title={summary.mainMessage}>
+                                            <div className="line-clamp-2 font-mono text-xs text-foreground/90" title={summary.mainMessage}>
                                                 {summary.mainMessage}
                                             </div>
-                                            
+
                                             {/* Structured summary line */}
                                             {(summary.userInfo || summary.routeInfo || summary.exceptionInfo) && (
                                                 <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -753,7 +757,7 @@ function LogsTable({
                                             )}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="align-top text-right font-mono text-xs text-muted-foreground/60">
+                                    <TableCell className="text-right align-top font-mono text-xs text-muted-foreground/60">
                                         {log.line_number}
                                     </TableCell>
                                 </TableRow>

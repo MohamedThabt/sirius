@@ -28,52 +28,54 @@ export function ResetPasswordForm({ token, email }: ResetPasswordFormProps) {
                             </div>
                         )}
                         <div className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="email" className="text-foreground">Email</Label>
-                            <Input 
-                                id="email" 
-                                type="email" 
-                                name="email" 
-                                autoComplete="email" 
-                                value={email} 
-                                className="mt-1 block w-full bg-muted border-border text-muted-foreground" 
-                                readOnly 
-                            />
-                        </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="email" className="text-foreground">
+                                    Email
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    autoComplete="email"
+                                    value={email}
+                                    className="mt-1 block w-full border-border bg-muted text-muted-foreground"
+                                    readOnly
+                                />
+                            </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password" className="text-foreground">Password</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                name="password"
-                                autoComplete="new-password"
-                                className="mt-1 block w-full bg-background border-border text-foreground placeholder:text-muted-foreground"
-                                autoFocus
-                                placeholder="Password"
-                            />
-                        </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="password" className="text-foreground">
+                                    Password
+                                </Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    autoComplete="new-password"
+                                    className="mt-1 block w-full border-border bg-background text-foreground placeholder:text-muted-foreground"
+                                    autoFocus
+                                    placeholder="Password"
+                                />
+                            </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation" className="text-foreground">Confirm password</Label>
-                            <Input
-                                id="password_confirmation"
-                                type="password"
-                                name="password_confirmation"
-                                autoComplete="new-password"
-                                className="mt-1 block w-full bg-background border-border text-foreground placeholder:text-muted-foreground"
-                                placeholder="Confirm password"
-                            />
-                        </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="password_confirmation" className="text-foreground">
+                                    Confirm password
+                                </Label>
+                                <Input
+                                    id="password_confirmation"
+                                    type="password"
+                                    name="password_confirmation"
+                                    autoComplete="new-password"
+                                    className="mt-1 block w-full border-border bg-background text-foreground placeholder:text-muted-foreground"
+                                    placeholder="Confirm password"
+                                />
+                            </div>
 
-                        <Button 
-                            type="submit" 
-                            className="mt-4 w-full h-11 font-semibold rounded-lg" 
-                            disabled={processing}
-                        >
-                            {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                            Reset password
-                        </Button>
+                            <Button type="submit" className="mt-4 h-11 w-full rounded-lg font-semibold" disabled={processing}>
+                                {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                                Reset password
+                            </Button>
                         </div>
                     </>
                 )}

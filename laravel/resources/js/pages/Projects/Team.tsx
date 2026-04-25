@@ -1,8 +1,8 @@
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
-import { buildProjectNavGroups } from '@/components/Projects/projectNav';
-import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ClientDateTime } from '@/components/ClientDateTime';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,28 +11,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageHeader } from '@/components/ui/page-header';
-import { useInitials } from '@/hooks/use-initials';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { useInitials } from '@/hooks/use-initials';
+import { searchUserSchema } from '@/lib/validations';
+import { type User as AuthUser, type ProjectTeamMember as TeamMember, type Invitation as UserInvitation } from '@/types';
 import { getRoleBadgeColor } from '@/utils/role-colors';
-import { type User as AuthUser, type Invitation as UserInvitation, type ProjectTeamMember as TeamMember } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { searchUserSchema, teamRoleEnum } from '@/lib/validations';
-import {
-    AlertCircle,
-    CheckCircle,
-    Clock,
-    Loader2,
-    Mail,
-    MoreVertical,
-    Search,
-    Shield,
-    UserMinus,
-    UserPlus,
-    Users,
-    XCircle,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Loader2, Mail, MoreVertical, Search, Shield, UserMinus, UserPlus, Users, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 // Types: UserInvitation and TeamMember now imported from '@/types'
@@ -107,11 +94,7 @@ export default function Team({ project, members, invitations, userInvitations, u
     const filteredMembers = useMemo(() => {
         if (!memberSearch) return members;
         const lowerSearch = memberSearch.toLowerCase();
-        return members.filter(
-            (member) =>
-                member.name.toLowerCase().includes(lowerSearch) ||
-                member.email.toLowerCase().includes(lowerSearch)
-        );
+        return members.filter((member) => member.name.toLowerCase().includes(lowerSearch) || member.email.toLowerCase().includes(lowerSearch));
     }, [members, memberSearch]);
 
     const breadcrumbs = [
@@ -173,7 +156,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                     // However, onSuccess runs after props update.
                 },
                 onFinish: () => setIsSearching(false),
-            }
+            },
         );
     };
 
@@ -228,15 +211,18 @@ export default function Team({ project, members, invitations, userInvitations, u
 
             <div className="min-h-screen bg-background">
                 <div className="flex">
-                    <ProjectSidebarPanel project={project} navGroups={navGroups} completionPercentage={project.progress} isCollapsed={isSidebarCollapsed} user={auth.user} />
+                    <ProjectSidebarPanel
+                        project={project}
+                        navGroups={navGroups}
+                        completionPercentage={project.progress}
+                        isCollapsed={isSidebarCollapsed}
+                        user={auth.user}
+                    />
 
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-6 flex items-center gap-3">
-                                <SidebarToggle
-                                    isCollapsed={isSidebarCollapsed}
-                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                />
+                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
 
@@ -347,7 +333,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                             </div>
                                             <div className="w-64">
                                                 <div className="relative">
-                                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                    <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
                                                     <Input
                                                         placeholder="Search members..."
                                                         value={memberSearch}
@@ -372,67 +358,72 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                             member.role === 'owner' ? 'border-muted-foreground/20 bg-muted/30' : ''
                                                         }`}
                                                     >
-                                                    <div className="flex items-center gap-4">
-                                                        <Avatar className="h-10 w-10">
-                                                            <AvatarImage src={member.avatar} alt={member.name} />
-                                                            <AvatarFallback className="bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                                {getInitials(member.name)}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <div className="font-medium text-foreground">
-                                                                {member.name}
-                                                                {member.id === auth.user.id && (
-                                                                    <span className="ml-2 text-xs text-muted-foreground">(You)</span>
-                                                                )}
-                                                            </div>
-                                                            <div className="text-sm text-muted-foreground">{member.email}</div>
-                                                            <div className="mt-1 text-xs text-muted-foreground">
-                                                                {member.role === 'owner'
-                                                                    ? 'Project Owner'
-                                                                    : <span>Joined <ClientDateTime value={member.joined_at} dateStyle="short" /></span>}
+                                                        <div className="flex items-center gap-4">
+                                                            <Avatar className="h-10 w-10">
+                                                                <AvatarImage src={member.avatar} alt={member.name} />
+                                                                <AvatarFallback className="bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                                                    {getInitials(member.name)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <div className="font-medium text-foreground">
+                                                                    {member.name}
+                                                                    {member.id === auth.user.id && (
+                                                                        <span className="ml-2 text-xs text-muted-foreground">(You)</span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="text-sm text-muted-foreground">{member.email}</div>
+                                                                <div className="mt-1 text-xs text-muted-foreground">
+                                                                    {member.role === 'owner' ? (
+                                                                        'Project Owner'
+                                                                    ) : (
+                                                                        <span>
+                                                                            Joined <ClientDateTime value={member.joined_at} dateStyle="short" />
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <Badge className={`border text-xs capitalize ${getRoleBadgeColor(member.role)}`}>
+                                                                {member.role}
+                                                            </Badge>
+                                                            {canManageTeam && member.role !== 'owner' && member.id !== auth.user.id && (
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button variant="ghost" size="sm">
+                                                                            <MoreVertical className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end">
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => {
+                                                                                setSelectedMember(member);
+                                                                                setNewRole(member.role as 'admin' | 'developer' | 'viewer');
+                                                                                setIsEditRoleModalOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <Shield className="mr-2 h-4 w-4" />
+                                                                            Edit Role
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                            className="text-red-600 dark:text-red-400"
+                                                                            onClick={() => {
+                                                                                setSelectedMember(member);
+                                                                                setIsRemoveMemberModalOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <UserMinus className="mr-2 h-4 w-4" />
+                                                                            Remove Member
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <Badge className={`border text-xs capitalize ${getRoleBadgeColor(member.role)}`}>
-                                                            {member.role}
-                                                        </Badge>
-                                                        {canManageTeam && member.role !== 'owner' && member.id !== auth.user.id && (
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" size="sm">
-                                                                        <MoreVertical className="h-4 w-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => {
-                                                                            setSelectedMember(member);
-                                                                            setNewRole(member.role as 'admin' | 'developer' | 'viewer');
-                                                                            setIsEditRoleModalOpen(true);
-                                                                        }}
-                                                                    >
-                                                                        <Shield className="mr-2 h-4 w-4" />
-                                                                        Edit Role
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuSeparator />
-                                                                    <DropdownMenuItem
-                                                                        className="text-red-600 dark:text-red-400"
-                                                                        onClick={() => {
-                                                                            setSelectedMember(member);
-                                                                            setIsRemoveMemberModalOpen(true);
-                                                                        }}
-                                                                    >
-                                                                        <UserMinus className="mr-2 h-4 w-4" />
-                                                                        Remove Member
-                                                                    </DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )))}
+                                                ))
+                                            )}
                                         </div>
                                     </CardContent>
                                 </Card>

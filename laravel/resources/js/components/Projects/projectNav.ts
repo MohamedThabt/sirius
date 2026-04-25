@@ -144,7 +144,9 @@ export function buildProjectNavGroups({
                         emphasize: !sections?.prd && hasModules,
                         disabled: !hasModules,
                         onClick: () =>
-                            sections?.prd ? router.visit(`/projects/${project.id}/prd`) : hasModules && router.post(`/projects/${project.id}/prd/generate`),
+                            sections?.prd
+                                ? router.visit(`/projects/${project.id}/prd`)
+                                : hasModules && router.post(`/projects/${project.id}/prd/generate`),
                     },
                     {
                         key: 'c4',
@@ -154,7 +156,9 @@ export function buildProjectNavGroups({
                         emphasize: !project.c4 && hasModules,
                         disabled: !hasModules,
                         onClick: () =>
-                            project.c4 ? router.visit(`/projects/${project.id}/c4`) : hasModules && router.post(`/projects/${project.id}/c4/generate`),
+                            project.c4
+                                ? router.visit(`/projects/${project.id}/c4`)
+                                : hasModules && router.post(`/projects/${project.id}/c4/generate`),
                     },
                     {
                         key: 'erd',
@@ -172,4 +176,3 @@ export function buildProjectNavGroups({
 
     return [...groups, ...extraGroups];
 }
-

@@ -1,14 +1,13 @@
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Link } from '@inertiajs/react';
-import { useState, useRef, useEffect, type PropsWithChildren } from 'react';
-import AppLogoIcon from '@/components/app-logo-icon';
-import { Button } from '@/components/ui/button';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
+import { useEffect, useRef, type PropsWithChildren } from 'react';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -26,17 +25,13 @@ interface AuthSplitLayoutProps {
     visualVariant?: 'login' | 'register';
 }
 
-export default function AuthSplitLayout({
-    children,
-    title,
-    description,
-}: PropsWithChildren<AuthSplitLayoutProps>) {
+export default function AuthSplitLayout({ children, title, description }: PropsWithChildren<AuthSplitLayoutProps>) {
     useFlashToasts();
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     useEffect(() => {
         const canvas = canvasRef.current;
-        const ctx = canvas?.getContext("2d");
+        const ctx = canvas?.getContext('2d');
         if (!canvas || !ctx) return;
 
         const setSize = () => {
@@ -83,11 +78,11 @@ export default function AuthSplitLayout({
             init();
         };
 
-        window.addEventListener("resize", onResize);
+        window.addEventListener('resize', onResize);
         init();
         raf = requestAnimationFrame(draw);
         return () => {
-            window.removeEventListener("resize", onResize);
+            window.removeEventListener('resize', onResize);
             cancelAnimationFrame(raf);
         };
     }, []);
@@ -97,8 +92,8 @@ export default function AuthSplitLayout({
             <TooltipProvider>
                 <Toaster />
                 <Sonner />
-                
-                <section className="fixed inset-0 bg-zinc-950 text-zinc-50 overflow-y-auto">
+
+                <section className="fixed inset-0 overflow-y-auto bg-zinc-950 text-zinc-50">
                     <style>{`
                         .accent-lines{position:fixed;inset:0;pointer-events:none;opacity:.7}
                         .hline,.vline{position:absolute;background:#27272a;will-change:transform,opacity}
@@ -136,7 +131,7 @@ export default function AuthSplitLayout({
                     `}</style>
 
                     {/* Subtle vignette */}
-                    <div className="fixed inset-0 pointer-events-none [background:radial-gradient(80%_60%_at_50%_30%,rgba(255,255,255,0.06),transparent_60%)]" />
+                    <div className="pointer-events-none fixed inset-0 [background:radial-gradient(80%_60%_at_50%_30%,rgba(255,255,255,0.06),transparent_60%)]" />
 
                     {/* Animated accent lines */}
                     <div className="accent-lines">
@@ -149,23 +144,14 @@ export default function AuthSplitLayout({
                     </div>
 
                     {/* Particles */}
-                    <canvas
-                        ref={canvasRef}
-                        className="fixed inset-0 w-full h-full opacity-50 mix-blend-screen pointer-events-none"
-                    />
+                    <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 h-full w-full opacity-50 mix-blend-screen" />
 
                     {/* Header */}
-                    <header className="absolute left-0 right-0 top-0 flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 z-20">
+                    <header className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between border-b border-zinc-800/80 px-6 py-4">
                         <Link href="/" className="flex items-center gap-2">
-                            <span className="text-xs tracking-[0.14em] uppercase text-zinc-400">
-                            SIRIUS
-                            </span>
+                            <span className="text-xs tracking-[0.14em] text-zinc-400 uppercase">SIRIUS</span>
                         </Link>
-                        <Button
-                            variant="outline"
-                            className="h-9 rounded-lg border-zinc-800 bg-zinc-900 text-zinc-50 hover:bg-zinc-900/80"
-                            asChild
-                        >
+                        <Button variant="outline" className="h-9 rounded-lg border-zinc-800 bg-zinc-900 text-zinc-50 hover:bg-zinc-900/80" asChild>
                             <Link href="/">
                                 <span className="mr-2">Home</span>
                                 <ArrowRight className="h-4 w-4" />
@@ -174,14 +160,12 @@ export default function AuthSplitLayout({
                     </header>
 
                     {/* Centered Login Card */}
-                    <div className="relative z-10 flex min-h-screen items-center justify-center p-4 sm:p-6 pb-20 pt-24">
+                    <div className="relative z-10 flex min-h-screen items-center justify-center p-4 pt-24 pb-20 sm:p-6">
                         <div className="w-full max-w-sm space-y-8">
-                            <Card className="card-animate border-zinc-800 bg-zinc-900/70 backdrop-blur supports-[backdrop-filter]:bg-zinc-900/60 text-zinc-50">
+                            <Card className="card-animate border-zinc-800 bg-zinc-900/70 text-zinc-50 backdrop-blur supports-[backdrop-filter]:bg-zinc-900/60">
                                 <CardHeader className="space-y-1">
                                     <CardTitle className="text-2xl text-zinc-50">{title}</CardTitle>
-                                    <CardDescription className="text-zinc-400">
-                                        {description}
-                                    </CardDescription>
+                                    <CardDescription className="text-zinc-400">{description}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-6">{children}</CardContent>
                             </Card>

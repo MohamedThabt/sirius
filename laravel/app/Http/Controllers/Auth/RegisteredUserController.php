@@ -37,6 +37,9 @@ class RegisteredUserController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                'questionnaire' => 'nullable|array',
+                'questionnaire.*.question' => 'required_with:questionnaire|string|max:1000',
+                'questionnaire.*.answer' => 'required_with:questionnaire|string|max:2000',
             ];
 
             if (config('services.turnstile.secret_key')) {
@@ -63,11 +66,26 @@ class RegisteredUserController extends Controller
                 }
             }
 
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+            $user = \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                ]);
+
+                if ($request->has('questionnaire') && is_array($request->questionnaire)) {
+                    $answers = collect($request->questionnaire)->map(function ($item) {
+                        return [
+                            'question' => $item['question'],
+                            'answer' => $item['answer'],
+                        ];
+                    })->toArray();
+
+                    $user->questionnaireAnswers()->createMany($answers);
+                }
+
+                return $user;
+            });
 
             event(new Registered($user));
 

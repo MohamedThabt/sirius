@@ -145,7 +145,7 @@ export default function IssueShow({ issue, severities, statuses }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Issue: ${issue.title}`} />
 
-                <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -417,7 +417,7 @@ export default function IssueShow({ issue, severities, statuses }: Props) {
                         </DialogContent>
                     </Dialog>
                 )}
-                </div>
+            </div>
         </AppLayout>
     );
 }

@@ -18,16 +18,14 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
             <AppSidebar />
             <AppContent variant="sidebar" className="overflow-x-auto">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                <main className="flex flex-1 flex-col">
-                    {children}
-                </main>
+                <main className="flex flex-1 flex-col">{children}</main>
             </AppContent>
             <Toaster />
         </AppShell>
     );
 
     if (isAdmin) {
-        return <div className="bg-background text-foreground min-h-screen">{shell}</div>;
+        return <div className="min-h-screen bg-background text-foreground">{shell}</div>;
     }
 
     return shell;

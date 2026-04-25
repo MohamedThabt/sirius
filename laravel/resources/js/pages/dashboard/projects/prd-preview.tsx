@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Head } from '@inertiajs/react';
 import { ArrowLeftIcon, CodeIcon, CopyIcon, DownloadIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import mermaid from 'mermaid';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface User {
@@ -197,9 +197,7 @@ export default function PRDPreview({ content, title, projectName, project }: Pro
                                     <div className="mt-2 space-y-2">
                                         <div>
                                             <p className="text-xs font-medium text-destructive-foreground">Raw code:</p>
-                                            <pre className="mt-1 overflow-x-auto rounded border bg-muted p-3 text-xs">
-                                                {content}
-                                            </pre>
+                                            <pre className="mt-1 overflow-x-auto rounded border bg-muted p-3 text-xs">{content}</pre>
                                         </div>
                                         <div>
                                             <p className="text-xs font-medium text-destructive-foreground">Cleaned code:</p>

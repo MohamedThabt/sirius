@@ -1,15 +1,15 @@
+import { PaginationControls } from '@/components/PaginationControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Receipt, UsersIcon, TrendingUpIcon, XCircle, CheckCircle, Clock } from 'lucide-react';
+import { CheckCircle, Clock, Receipt, TrendingUpIcon, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import { PaginationControls } from '@/components/PaginationControls';
 
 interface User {
     id: number;
@@ -79,11 +79,26 @@ const breadcrumbs: BreadcrumbItem[] = [
 const getStatusBadge = (status: string) => {
     switch (status) {
         case 'active':
-            return <Badge variant="default" className="bg-green-500/10 text-green-600 dark:text-green-400"><CheckCircle className="h-3 w-3 mr-1" />Active</Badge>;
+            return (
+                <Badge variant="default" className="bg-green-500/10 text-green-600 dark:text-green-400">
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    Active
+                </Badge>
+            );
         case 'cancelled':
-            return <Badge variant="secondary"><XCircle className="h-3 w-3 mr-1" />Cancelled</Badge>;
+            return (
+                <Badge variant="secondary">
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Cancelled
+                </Badge>
+            );
         case 'expired':
-            return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />Expired</Badge>;
+            return (
+                <Badge variant="outline">
+                    <Clock className="mr-1 h-3 w-3" />
+                    Expired
+                </Badge>
+            );
         default:
             return <Badge variant="outline">{status}</Badge>;
     }
@@ -169,7 +184,7 @@ export default function SubscriptionsIndex({ subscriptions, filters, summary, pl
                 </div>
 
                 {/* Filters */}
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex flex-wrap gap-2">
                     <Input
                         type="text"
                         placeholder="Search by user name or email..."
@@ -229,7 +244,11 @@ export default function SubscriptionsIndex({ subscriptions, filters, summary, pl
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-2">
                                             {subscription.user.avatar ? (
-                                                <img src={subscription.user.avatar} alt={subscription.user.name} className="h-8 w-8 rounded-full object-cover" />
+                                                <img
+                                                    src={subscription.user.avatar}
+                                                    alt={subscription.user.name}
+                                                    className="h-8 w-8 rounded-full object-cover"
+                                                />
                                             ) : (
                                                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
                                                     {subscription.user.name.charAt(0).toUpperCase()}
@@ -246,15 +265,9 @@ export default function SubscriptionsIndex({ subscriptions, filters, summary, pl
                                     </TableCell>
                                     <TableCell>{getStatusBadge(subscription.status)}</TableCell>
                                     <TableCell>{new Date(subscription.started_at).toLocaleDateString()}</TableCell>
+                                    <TableCell>{subscription.ends_at ? new Date(subscription.ends_at).toLocaleDateString() : '-'}</TableCell>
                                     <TableCell>
-                                        {subscription.ends_at ? new Date(subscription.ends_at).toLocaleDateString() : '-'}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button
-                                            onClick={() => router.visit(`/admin/subscriptions/${subscription.id}`)}
-                                            variant="outline"
-                                            size="sm"
-                                        >
+                                        <Button onClick={() => router.visit(`/admin/subscriptions/${subscription.id}`)} variant="outline" size="sm">
                                             View Details
                                         </Button>
                                     </TableCell>
@@ -275,13 +288,13 @@ export default function SubscriptionsIndex({ subscriptions, filters, summary, pl
                 )}
 
                 {/* Pagination */}
-                <PaginationControls 
+                <PaginationControls
                     data={subscriptions}
                     baseUrl="/admin/subscriptions"
                     preserveFilters={{
                         search: search || undefined,
-                        status: (statusFilter && statusFilter !== 'all') ? statusFilter : undefined,
-                        plan_id: (planFilter && planFilter !== 'all') ? planFilter : undefined,
+                        status: statusFilter && statusFilter !== 'all' ? statusFilter : undefined,
+                        plan_id: planFilter && planFilter !== 'all' ? planFilter : undefined,
                     }}
                 />
             </div>

@@ -1,23 +1,16 @@
-import { type ReactNode, useRef, useState } from 'react';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { BentoPricing } from '@/components/bento-pricing';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { QRCode } from '@/components/ui/qr-code';
-import { type SharedData } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { BentoPricing } from '@/components/bento-pricing';
-import {
-    CheckCircleIcon,
-    CopyIcon,
-    ExternalLinkIcon,
-    MailIcon,
-    ShieldCheckIcon,
-    UploadCloudIcon,
-} from 'lucide-react';
+import { type SharedData } from '@/types';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { CheckCircleIcon, CopyIcon, ExternalLinkIcon, MailIcon, ShieldCheckIcon, UploadCloudIcon } from 'lucide-react';
+import { type ReactNode, useRef, useState } from 'react';
 
 interface ProPlan {
     name: string;
@@ -133,10 +126,7 @@ export default function UpgradePro({
                     <main className="min-w-0 flex-1">
                         <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
                             <div className="mb-6 flex items-center gap-3">
-                                <SidebarToggle
-                                    isCollapsed={isSidebarCollapsed}
-                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                />
+                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={[{ title: 'Upgrade to Pro', href: '/upgrade/pro' }]} />
                             </div>
 
@@ -170,13 +160,19 @@ export default function UpgradePro({
                                     <div className="space-y-6 rounded-2xl border border-border/60 bg-card p-4 shadow-sm sm:p-6">
                                         <div>
                                             <h2 className="text-xl font-semibold text-foreground">How to Pay</h2>
-                                            <p className="mt-1 text-sm text-muted-foreground">Scan the QR code, transfer the amount, then upload the proof below.</p>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                Scan the QR code, transfer the amount, then upload the proof below.
+                                            </p>
                                         </div>
 
                                         <div className="grid gap-3 sm:grid-cols-3">
                                             {[
                                                 { step: '1', title: 'Scan QR', desc: 'Open the InstaPay payment link from the QR code or button.' },
-                                                { step: '2', title: `Transfer ${amountEgp} EGP`, desc: `Send exactly ${amountEgp} EGP to the InstaPay account.` },
+                                                {
+                                                    step: '2',
+                                                    title: `Transfer ${amountEgp} EGP`,
+                                                    desc: `Send exactly ${amountEgp} EGP to the InstaPay account.`,
+                                                },
                                                 { step: '3', title: 'Upload proof', desc: 'Attach the completed transfer screenshot for review.' },
                                             ].map((s) => (
                                                 <div key={s.step} className="rounded-xl border border-border/60 bg-muted/20 p-4">
@@ -238,22 +234,32 @@ export default function UpgradePro({
                                                 />
 
                                                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                                                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Amount to transfer</p>
+                                                    <p className="text-xs font-semibold tracking-wide text-primary uppercase">Amount to transfer</p>
                                                     <p className="mt-1 text-3xl font-bold text-foreground">
-                                                        {amountEgp.toLocaleString()} <span className="text-base font-medium text-muted-foreground">EGP / month</span>
+                                                        {amountEgp.toLocaleString()}{' '}
+                                                        <span className="text-base font-medium text-muted-foreground">EGP / month</span>
                                                     </p>
-                                                    <p className="mt-2 text-xs text-muted-foreground">Please transfer this exact amount so we can match your payment quickly.</p>
+                                                    <p className="mt-2 text-xs text-muted-foreground">
+                                                        Please transfer this exact amount so we can match your payment quickly.
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-4 sm:p-5">
+                                        <form
+                                            onSubmit={handleSubmit}
+                                            className="space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-4 sm:p-5"
+                                        >
                                             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
                                                     <h3 className="text-base font-semibold text-foreground">Upload transfer screenshot</h3>
-                                                    <p className="text-sm text-muted-foreground">JPEG, PNG, WebP or HEIC. Maximum file size is 5 MB.</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        JPEG, PNG, WebP or HEIC. Maximum file size is 5 MB.
+                                                    </p>
                                                 </div>
-                                                <Badge variant="secondary" className="w-fit">Required</Badge>
+                                                <Badge variant="secondary" className="w-fit">
+                                                    Required
+                                                </Badge>
                                             </div>
 
                                             <div
@@ -270,7 +276,11 @@ export default function UpgradePro({
 
                                                 {preview ? (
                                                     <div className="space-y-3">
-                                                        <img src={preview} alt="Transfer screenshot preview" className="mx-auto max-h-72 rounded-xl object-contain shadow-sm" />
+                                                        <img
+                                                            src={preview}
+                                                            alt="Transfer screenshot preview"
+                                                            className="mx-auto max-h-72 rounded-xl object-contain shadow-sm"
+                                                        />
                                                         <p className="text-sm text-muted-foreground">Click to change image</p>
                                                     </div>
                                                 ) : (
@@ -280,15 +290,15 @@ export default function UpgradePro({
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-semibold text-foreground">Click to upload screenshot</p>
-                                                            <p className="mt-1 text-xs text-muted-foreground">A clear screenshot helps us approve faster.</p>
+                                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                                A clear screenshot helps us approve faster.
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 )}
                                             </div>
 
-                                            {errors.transfer_image && (
-                                                <p className="text-sm text-destructive">{errors.transfer_image}</p>
-                                            )}
+                                            {errors.transfer_image && <p className="text-sm text-destructive">{errors.transfer_image}</p>}
 
                                             <Button type="submit" disabled={processing || !data.transfer_image} className="h-11 w-full">
                                                 {processing ? 'Submitting proof...' : 'Submit payment proof'}
@@ -321,10 +331,13 @@ export default function UpgradePro({
                                                     <p className="text-sm font-semibold text-foreground">Need help?</p>
                                                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
                                                         Contact us at{' '}
-                                                        <a href={`mailto:${supportEmail}`} className="break-all text-primary underline underline-offset-2">
+                                                        <a
+                                                            href={`mailto:${supportEmail}`}
+                                                            className="break-all text-primary underline underline-offset-2"
+                                                        >
                                                             {supportEmail}
-                                                        </a>
-                                                        {' '}for payment or upgrade questions.
+                                                        </a>{' '}
+                                                        for payment or upgrade questions.
                                                     </p>
                                                 </div>
                                             </div>
@@ -355,9 +368,9 @@ function CopyField({
 }) {
     return (
         <div className="rounded-xl border border-border/60 bg-background p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{label}</p>
             <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-                <code className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg bg-muted/40 px-3 py-2 text-sm font-medium text-foreground">
+                <code className="min-w-0 flex-1 overflow-hidden rounded-lg bg-muted/40 px-3 py-2 text-sm font-medium text-ellipsis whitespace-nowrap text-foreground">
                     {value}
                 </code>
                 <div className="flex shrink-0 gap-2">

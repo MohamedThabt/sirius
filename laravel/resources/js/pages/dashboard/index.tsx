@@ -1,3 +1,4 @@
+import { ClientDateTime, useIsClient } from '@/components/ClientDateTime';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,6 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { ClientDateTime, useIsClient } from '@/components/ClientDateTime';
 import {
     AlertCircleIcon,
     ArrowUpRightIcon,
@@ -56,12 +56,26 @@ function getGreeting(): string {
     return 'Good evening';
 }
 
-function SectionHeader({ title, icon: Icon, description, action, iconClassName, iconBgClassName }: { title: string; icon: React.ElementType; description?: string; action?: React.ReactNode; iconClassName?: string; iconBgClassName?: string }) {
+function SectionHeader({
+    title,
+    icon: Icon,
+    description,
+    action,
+    iconClassName,
+    iconBgClassName,
+}: {
+    title: string;
+    icon: React.ElementType;
+    description?: string;
+    action?: React.ReactNode;
+    iconClassName?: string;
+    iconBgClassName?: string;
+}) {
     return (
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-                <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", iconBgClassName || "bg-primary/10")}>
-                    <Icon className={cn("h-4.5 w-4.5", iconClassName || "text-primary")} />
+                <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg', iconBgClassName || 'bg-primary/10')}>
+                    <Icon className={cn('h-4.5 w-4.5', iconClassName || 'text-primary')} />
                 </div>
                 <div>
                     <h2 className="text-base font-semibold text-foreground">{title}</h2>
@@ -86,14 +100,15 @@ export default function AdminDashboard({ stats }: DashboardProps) {
           }).format(new Date())
         : '';
 
-    const docCoveragePercent = stats.total_projects > 0
-        ? Math.round(((stats.projects_with_prd + stats.projects_with_erd + stats.projects_with_c4) / (stats.total_projects * 3)) * 100)
-        : 0;
+    const docCoveragePercent =
+        stats.total_projects > 0
+            ? Math.round(((stats.projects_with_prd + stats.projects_with_erd + stats.projects_with_c4) / (stats.total_projects * 3)) * 100)
+            : 0;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Dashboard" />
-                <div className="scrollbar-styled flex h-full flex-1 flex-col gap-8 overflow-y-auto p-6">
+            <div className="scrollbar-styled flex h-full flex-1 flex-col gap-8 overflow-y-auto p-6">
                 {/* Header Section */}
                 <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -102,9 +117,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                 <SparklesIcon className="h-5 w-5 text-amber-500" />
                                 <span className="text-sm font-medium text-muted-foreground">{getGreeting()}, Admin</span>
                             </div>
-                            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                                Dashboard Overview
-                            </h1>
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Dashboard Overview</h1>
                             <p className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <CalendarIcon className="h-3.5 w-3.5 text-blue-500" />
                                 {today}
@@ -133,7 +146,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
 
                 {/* Quick Links */}
                 <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
                         <LayoutDashboardIcon className="h-3.5 w-3.5 text-indigo-500" />
                         Quick Navigation
                     </div>
@@ -142,8 +155,20 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                         <QuickLink href="/admin/projects" icon={FolderIcon} label="Projects" iconClassName="text-amber-500" />
                         <QuickLink href="/admin/modules" icon={BoxIcon} label="Modules" iconClassName="text-cyan-500" />
                         <QuickLink href="/admin/admins" icon={ShieldIcon} label="Admins" iconClassName="text-violet-500" />
-                        <QuickLink href="/admin/payments" icon={CreditCardIcon} label="Payments" badge={stats.payments_pending} iconClassName="text-violet-500" />
-                        <QuickLink href="/admin/beta" icon={MailIcon} label="Beta Invitations" badge={stats.beta_pending} iconClassName="text-pink-500" />
+                        <QuickLink
+                            href="/admin/payments"
+                            icon={CreditCardIcon}
+                            label="Payments"
+                            badge={stats.payments_pending}
+                            iconClassName="text-violet-500"
+                        />
+                        <QuickLink
+                            href="/admin/beta"
+                            icon={MailIcon}
+                            label="Beta Invitations"
+                            badge={stats.beta_pending}
+                            iconClassName="text-pink-500"
+                        />
                         <QuickLink href="/admin/issues" icon={BugIcon} label="Issues" iconClassName="text-red-500" />
                         <QuickLink href="/admin/feedback" icon={MessageSquareIcon} label="Feedback" iconClassName="text-green-500" />
                         <QuickLink href="/admin/usage-logs" icon={CoinsIcon} label="Usage Logs" iconClassName="text-amber-500" />
@@ -222,8 +247,8 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                         title="Total Feedback"
                         value={stats.total_feedback}
                         icon={MessageSquareIcon}
-                            iconClassName="text-emerald-500"
-                            iconBgClassName="bg-emerald-500/10"
+                        iconClassName="text-emerald-500"
+                        iconBgClassName="bg-emerald-500/10"
                         trend={{ value: stats.feedback_this_month, label: 'this month' }}
                         subtitle={stats.new_feedback > 0 ? `${stats.new_feedback} new` : undefined}
                     />
@@ -272,13 +297,20 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                     { value: stats.total_usage_logs?.toLocaleString() || 0, label: 'Total Logs', color: 'text-foreground' },
                                     { value: stats.total_credits_used?.toLocaleString() || 0, label: 'Total Credits', color: 'text-amber-500' },
                                     { value: stats.total_tokens_used?.toLocaleString() || 0, label: 'Total Tokens', color: 'text-blue-500' },
-                                    { value: `$${typeof stats.total_cost === 'number' ? stats.total_cost.toFixed(2) : stats.total_cost || '0.00'}`, label: 'Total Cost', color: 'text-emerald-500' },
+                                    {
+                                        value: `$${typeof stats.total_cost === 'number' ? stats.total_cost.toFixed(2) : stats.total_cost || '0.00'}`,
+                                        label: 'Total Cost',
+                                        color: 'text-emerald-500',
+                                    },
                                     { value: stats.usage_today?.toLocaleString() || 0, label: 'Today', color: 'text-orange-500' },
                                     { value: stats.usage_this_week?.toLocaleString() || 0, label: 'This Week', color: 'text-purple-500' },
                                     { value: stats.usage_this_month?.toLocaleString() || 0, label: 'This Month', color: 'text-indigo-500' },
                                 ].map((stat, index) => (
-                                    <div key={index} className="rounded-lg border border-border bg-muted/50 p-4 text-center transition-all duration-200 hover:shadow-sm">
-                                        <div className={cn("text-2xl font-bold tabular-nums", stat.color)}>{stat.value}</div>
+                                    <div
+                                        key={index}
+                                        className="rounded-lg border border-border bg-muted/50 p-4 text-center transition-all duration-200 hover:shadow-sm"
+                                    >
+                                        <div className={cn('text-2xl font-bold tabular-nums', stat.color)}>{stat.value}</div>
                                         <div className="mt-0.5 text-xs text-muted-foreground">{stat.label}</div>
                                     </div>
                                 ))}
@@ -288,24 +320,33 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                             <div className="grid gap-6 md:grid-cols-2">
                                 {/* Top Action Types */}
                                 <div className="space-y-3">
-                                    <h4 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    <h4 className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         <TrendingUpIcon className="h-3 w-3 text-amber-500" />
                                         Top Actions by Credits
                                     </h4>
                                     {stats.usage_by_action_type && stats.usage_by_action_type.length > 0 ? (
                                         <div className="space-y-2">
                                             {stats.usage_by_action_type.map((action, index) => {
-                                                const maxCredits = Math.max(...stats.usage_by_action_type.map(a => a.credits || 0));
+                                                const maxCredits = Math.max(...stats.usage_by_action_type.map((a) => a.credits || 0));
                                                 const percentage = maxCredits > 0 ? ((action.credits || 0) / maxCredits) * 100 : 0;
                                                 return (
-                                                    <div key={index} className="group relative overflow-hidden rounded-lg border border-border bg-muted/30 p-3 transition-all duration-200 hover:bg-muted/50">
+                                                    <div
+                                                        key={index}
+                                                        className="group relative overflow-hidden rounded-lg border border-border bg-muted/30 p-3 transition-all duration-200 hover:bg-muted/50"
+                                                    >
                                                         <div className="relative flex items-center justify-between">
                                                             <span className="text-sm font-medium text-foreground">
-                                                                {action.action_type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                                {action.action_type
+                                                                    .split('_')
+                                                                    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                                                                    .join(' ')}
                                                             </span>
                                                             <div className="flex items-center gap-3">
                                                                 <span className="text-xs text-muted-foreground tabular-nums">{action.count}×</span>
-                                                                <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-600 tabular-nums">
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className="border-amber-500/30 bg-amber-500/10 text-amber-600 tabular-nums"
+                                                                >
                                                                     {action.credits?.toLocaleString() || 0}
                                                                 </Badge>
                                                             </div>
@@ -323,22 +364,28 @@ export default function AdminDashboard({ stats }: DashboardProps) {
 
                                 {/* Top AI Models */}
                                 <div className="space-y-3">
-                                    <h4 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    <h4 className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         <CpuIcon className="h-3 w-3 text-blue-500" />
                                         Top Models by Credits
                                     </h4>
                                     {stats.usage_by_model && stats.usage_by_model.length > 0 ? (
                                         <div className="space-y-2">
                                             {stats.usage_by_model.map((model, index) => {
-                                                const maxCredits = Math.max(...stats.usage_by_model.map(m => m.credits || 0));
+                                                const maxCredits = Math.max(...stats.usage_by_model.map((m) => m.credits || 0));
                                                 const percentage = maxCredits > 0 ? ((model.credits || 0) / maxCredits) * 100 : 0;
                                                 return (
-                                                    <div key={index} className="rounded-lg border border-border bg-muted/30 p-3 transition-all duration-200 hover:bg-muted/50">
+                                                    <div
+                                                        key={index}
+                                                        className="rounded-lg border border-border bg-muted/30 p-3 transition-all duration-200 hover:bg-muted/50"
+                                                    >
                                                         <div className="flex items-center justify-between">
-                                                            <span className="text-sm font-medium font-mono text-foreground">{model.model}</span>
+                                                            <span className="font-mono text-sm font-medium text-foreground">{model.model}</span>
                                                             <div className="flex items-center gap-3">
                                                                 <span className="text-xs text-muted-foreground tabular-nums">{model.count}×</span>
-                                                                <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-600 tabular-nums">
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className="border-blue-500/30 bg-blue-500/10 text-blue-600 tabular-nums"
+                                                                >
                                                                     {model.credits?.toLocaleString() || 0}
                                                                 </Badge>
                                                             </div>
@@ -380,19 +427,40 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 {[
-                                    { label: 'PRD', value: stats.projects_with_prd, icon: FileTextIcon, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-                                    { label: 'ERD', value: stats.projects_with_erd, icon: DatabaseIcon, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                                    {
+                                        label: 'PRD',
+                                        value: stats.projects_with_prd,
+                                        icon: FileTextIcon,
+                                        color: 'text-blue-500',
+                                        bg: 'bg-blue-500/10',
+                                    },
+                                    {
+                                        label: 'ERD',
+                                        value: stats.projects_with_erd,
+                                        icon: DatabaseIcon,
+                                        color: 'text-emerald-500',
+                                        bg: 'bg-emerald-500/10',
+                                    },
                                     { label: 'C4', value: stats.projects_with_c4, icon: BoxIcon, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-                                    { label: 'Repo', value: stats.projects_with_repo, icon: GitBranchIcon, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+                                    {
+                                        label: 'Repo',
+                                        value: stats.projects_with_repo,
+                                        icon: GitBranchIcon,
+                                        color: 'text-orange-500',
+                                        bg: 'bg-orange-500/10',
+                                    },
                                 ].map((item) => (
-                                    <div key={item.label} className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50">
+                                    <div
+                                        key={item.label}
+                                        className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50"
+                                    >
                                         <span className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <div className={cn('rounded-md p-1', item.bg)}>
                                                 <item.icon className={cn('h-3 w-3', item.color)} />
                                             </div>
                                             {item.label}
                                         </span>
-                                        <span className="font-semibold tabular-nums text-foreground">{item.value}</span>
+                                        <span className="font-semibold text-foreground tabular-nums">{item.value}</span>
                                     </div>
                                 ))}
                             </CardContent>
@@ -410,11 +478,27 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 {[
-                                    { label: 'Pending', value: stats.beta_pending, icon: ClockIcon, highlight: stats.beta_pending > 0, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                                    { label: 'Approved', value: stats.beta_approved, icon: CheckCircleIcon, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                                    {
+                                        label: 'Pending',
+                                        value: stats.beta_pending,
+                                        icon: ClockIcon,
+                                        highlight: stats.beta_pending > 0,
+                                        color: 'text-amber-500',
+                                        bg: 'bg-amber-500/10',
+                                    },
+                                    {
+                                        label: 'Approved',
+                                        value: stats.beta_approved,
+                                        icon: CheckCircleIcon,
+                                        color: 'text-emerald-500',
+                                        bg: 'bg-emerald-500/10',
+                                    },
                                     { label: 'Denied', value: stats.beta_denied, icon: AlertCircleIcon, color: 'text-red-500', bg: 'bg-red-500/10' },
                                 ].map((item) => (
-                                    <div key={item.label} className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50">
+                                    <div
+                                        key={item.label}
+                                        className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50"
+                                    >
                                         <span className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <div className={cn('rounded-md p-1', item.bg)}>
                                                 <item.icon className={cn('h-3 w-3', item.color)} />
@@ -424,7 +508,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                         <Badge
                                             variant="secondary"
                                             className={cn(
-                                                'tabular-nums bg-muted/50 text-muted-foreground',
+                                                'bg-muted/50 text-muted-foreground tabular-nums',
                                                 item.highlight && 'animate-pulse bg-destructive/10 text-destructive',
                                             )}
                                         >
@@ -455,9 +539,18 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                             low: 'border-green-500/30 bg-green-500/10 text-green-600',
                                         };
                                         return (
-                                            <div key={priority} className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50">
+                                            <div
+                                                key={priority}
+                                                className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50"
+                                            >
                                                 <span className="text-sm text-muted-foreground capitalize">{priority}</span>
-                                                <Badge variant="outline" className={cn('tabular-nums', priorityColors[priority.toLowerCase()] || 'border-border text-muted-foreground')}>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                        'tabular-nums',
+                                                        priorityColors[priority.toLowerCase()] || 'border-border text-muted-foreground',
+                                                    )}
+                                                >
                                                     {count}
                                                 </Badge>
                                             </div>
@@ -484,12 +577,15 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                             <CardContent className="space-y-2">
                                 {Object.keys(stats.issues_by_status || {}).length > 0 ? (
                                     Object.entries(stats.issues_by_status).map(([status, count]) => (
-                                        <div key={status} className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50">
+                                        <div
+                                            key={status}
+                                            className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50"
+                                        >
                                             <span className="text-sm text-muted-foreground capitalize">{status.replace('_', ' ')}</span>
                                             <Badge
                                                 variant="outline"
                                                 className={cn(
-                                                    'tabular-nums border-border text-muted-foreground',
+                                                    'border-border text-muted-foreground tabular-nums',
                                                     status === 'open' && 'border-destructive/30 bg-destructive/10 text-destructive',
                                                     status === 'closed' && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600',
                                                 )}
@@ -519,12 +615,15 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                             <CardContent className="space-y-2">
                                 {Object.keys(stats.feedback_by_status || {}).length > 0 ? (
                                     Object.entries(stats.feedback_by_status).map(([status, count]) => (
-                                        <div key={status} className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50">
+                                        <div
+                                            key={status}
+                                            className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50"
+                                        >
                                             <span className="text-sm text-muted-foreground capitalize">{status}</span>
                                             <Badge
                                                 variant="outline"
                                                 className={cn(
-                                                    'tabular-nums border-border text-muted-foreground',
+                                                    'border-border text-muted-foreground tabular-nums',
                                                     status === 'new' && 'border-blue-500/30 bg-blue-500/10 text-blue-600',
                                                     status === 'reviewed' && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600',
                                                 )}
@@ -598,12 +697,12 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <p className="text-sm font-medium leading-none text-foreground">{user.name}</p>
+                                                    <p className="text-sm leading-none font-medium text-foreground">{user.name}</p>
                                                     <p className="mt-1 text-xs text-muted-foreground">{user.email}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-xs tabular-nums text-muted-foreground">
+                                                <span className="text-xs text-muted-foreground tabular-nums">
                                                     <ClientDateTime value={user.created_at} dateStyle="short" />
                                                 </span>
                                                 <ExternalLinkIcon className="h-3 w-3 text-muted-foreground/60 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
@@ -627,7 +726,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                     <Link href={`/admin/projects/${project.id}`}>
                                         <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
                                             <div>
-                                                <p className="text-sm font-medium leading-none text-foreground">{project.name}</p>
+                                                <p className="text-sm leading-none font-medium text-foreground">{project.name}</p>
                                                 <p className="mt-1 text-xs text-muted-foreground">by {project.user.name}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -658,7 +757,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                                 {admin.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium leading-none text-foreground">{admin.name}</p>
+                                                <p className="text-sm leading-none font-medium text-foreground">{admin.name}</p>
                                                 <p className="mt-1 text-xs text-muted-foreground">{admin.email}</p>
                                             </div>
                                         </div>
@@ -694,7 +793,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                                 {invitation.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium leading-none text-foreground">{invitation.name}</p>
+                                                <p className="text-sm leading-none font-medium text-foreground">{invitation.name}</p>
                                                 <p className="mt-1 text-xs text-muted-foreground">{invitation.email}</p>
                                             </div>
                                         </div>
@@ -731,7 +830,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                     <Link href={`/admin/issues/${issue.id}`}>
                                         <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium leading-none text-foreground">{issue.title}</p>
+                                                <p className="truncate text-sm leading-none font-medium text-foreground">{issue.title}</p>
                                                 <p className="mt-1 text-xs text-muted-foreground">by {issue.user.name}</p>
                                             </div>
                                             <div className="flex shrink-0 items-center gap-2">
@@ -759,7 +858,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                                     <Link href={`/admin/feedback/${feedback.id}`}>
                                         <div className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-muted/50">
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium leading-none text-foreground">
+                                                <p className="truncate text-sm leading-none font-medium text-foreground">
                                                     {feedback.message.slice(0, 50)}
                                                     {feedback.message.length > 50 ? '...' : ''}
                                                 </p>
@@ -780,7 +879,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
                         </div>
                     </div>
                 </div>
-                </div>
+            </div>
         </AppLayout>
     );
 }

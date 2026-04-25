@@ -1,3 +1,9 @@
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import CreateModuleModal from '@/components/Modules/CreateModuleModal';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { SyncIndicator } from '@/components/SyncIndicator';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -8,15 +14,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Breadcrumbs } from '@/components/breadcrumbs';
-import CreateModuleModal from '@/components/Modules/CreateModuleModal';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
-import { buildProjectNavGroups } from '@/components/Projects/projectNav';
-import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Progress } from '@/components/ui/progress';
-import { SyncIndicator } from '@/components/SyncIndicator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData, type User } from '@/types';
@@ -25,7 +25,6 @@ import { getModuleStatusConfig } from '@/utils/statusHelpers';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Layers, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
-
 
 interface Props {
     project: Project;
@@ -43,7 +42,7 @@ export default function ModulesIndex({ project, modules }: Props) {
 
     const handleConfirmDelete = () => {
         if (!moduleToDelete) return;
-        
+
         setIsDeleting(true);
         router.delete(`/projects/${project.id}/modules/${moduleToDelete.id}`, {
             preserveScroll: true,
@@ -71,19 +70,20 @@ export default function ModulesIndex({ project, modules }: Props) {
 
     // WHY: Memoize counts to avoid recalculating on every render.
     // Previously, modules.filter() was called 9+ times in the JSX.
-    const moduleCounts = useMemo(() => ({
-        total: modules.length,
-        completed: modules.filter((m) => m.status === 'completed').length,
-        inProgress: modules.filter((m) => m.status === 'in_progress').length,
-        planned: modules.filter((m) => m.status === 'planned').length,
-    }), [modules]);
+    const moduleCounts = useMemo(
+        () => ({
+            total: modules.length,
+            completed: modules.filter((m) => m.status === 'completed').length,
+            inProgress: modules.filter((m) => m.status === 'in_progress').length,
+            planned: modules.filter((m) => m.status === 'planned').length,
+        }),
+        [modules],
+    );
 
     // Calculate average module progress from backend-computed progress values
     const averageProgress = useMemo(
-        () => moduleCounts.total > 0 
-            ? Math.round(modules.reduce((sum, m) => sum + (m.progress ?? 0), 0) / moduleCounts.total) 
-            : 0,
-        [modules, moduleCounts.total]
+        () => (moduleCounts.total > 0 ? Math.round(modules.reduce((sum, m) => sum + (m.progress ?? 0), 0) / moduleCounts.total) : 0),
+        [modules, moduleCounts.total],
     );
 
     // WHY: useCallback prevents recreating handler on each render.
@@ -117,213 +117,239 @@ export default function ModulesIndex({ project, modules }: Props) {
 
                         <div className="flex-1 overflow-y-auto">
                             <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
-
-                        <header className="mb-8">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="flex items-center gap-3">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => router.visit(`/projects/${project.id}`)}
-                                            className="gap-2"
-                                        >
-                                            <ArrowLeft className="h-4 w-4" />
-                                            Back to Project
-                                        </Button>
-                                    </div>
-                                    <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{project.name} - Modules</h1>
-                                    <p className="mt-1 text-sm text-muted-foreground">DDD bounded contexts and system architecture</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button onClick={() => setIsCreateModuleModalOpen(true)} className="gap-2">
-                                        <Plus className="h-4 w-4" />
-                                        Add Module
-                                    </Button>
-                                </div>
-                            </div>
-                        </header>
-
-                        {modules.length === 0 ? (
-                            <EmptyState
-                                icon={Layers}
-                                title="No modules yet"
-                                description="Add your first module to get started with your project's architecture."
-                                action={{
-                                    label: 'Add Module',
-                                    onClick: () => setIsCreateModuleModalOpen(true),
-                                    icon: Plus,
-                                }}
-                                variant="dashed"
-                            />
-                        ) : (
-                            <div className="space-y-8">
-                                {/* Minimal Stats Bar */}
-                                <div className="flex flex-wrap items-center gap-6 text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl font-semibold text-foreground">{modules.length}</span>
-                                        <span className="text-muted-foreground">modules</span>
-                                    </div>
-                                    <div className="h-4 w-px bg-border" />
-                                        <div className="flex items-center gap-4">
-                                            <TooltipProvider delayDuration={200}>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <div className="flex items-center gap-1.5 cursor-help transition-opacity hover:opacity-80">
-                                                            <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                                                            <span className="text-muted-foreground">{moduleCounts.completed} completed</span>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="bottom" className="max-w-xs border-border/40 bg-zinc-950 shadow-2xl p-3">
-                                                        <p className="font-semibold text-xs mb-1">Completed Modules</p>
-                                                        <p className="text-xs text-muted-foreground">Modules where all features are 100% complete.</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-
-                                            <TooltipProvider delayDuration={200}>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <div className="flex items-center gap-1.5 cursor-help transition-opacity hover:opacity-80">
-                                                            <div className="h-2 w-2 rounded-full bg-blue-500" />
-                                                            <span className="text-muted-foreground">{moduleCounts.inProgress} in progress</span>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="bottom" className="max-w-xs border-border/40 bg-zinc-950 shadow-2xl p-3">
-                                                        <p className="font-semibold text-xs mb-1">Active Modules</p>
-                                                        <p className="text-xs text-muted-foreground">Modules with at least one feature currently being worked on.</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-
-                                            <TooltipProvider delayDuration={200}>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <div className="flex items-center gap-1.5 cursor-help transition-opacity hover:opacity-80">
-                                                            <div className="h-2 w-2 rounded-full bg-amber-500" />
-                                                            <span className="text-muted-foreground">{moduleCounts.planned} planned</span>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="bottom" className="max-w-xs border-border/40 bg-zinc-950 shadow-2xl p-3">
-                                                        <p className="font-semibold text-xs mb-1">Planned Modules</p>
-                                                        <p className="text-xs text-muted-foreground">Modules that have been created but have no features yet.</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
-                                    <div className="h-4 w-px bg-border" />
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs text-muted-foreground">Avg Progress</span>
-                                        <Progress value={averageProgress} className="w-24 h-1.5" />
-                                        <span className="text-xs font-medium text-muted-foreground">{averageProgress}%</span>
-                                    </div>
-                                </div>
-
-                                {/* Module Cards Grid */}
-                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    {modules.map((module) => {
-                                        const statusConfig = getModuleStatusConfig(module.status);
-                                        const StatusIcon = statusConfig.icon;
-                                        
-                                        // Determine icon color based on status
-                                        const iconColorClass = module.status === 'completed' 
-                                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                            : module.status === 'in_progress'
-                                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
-                                        
-                                        return (
-                                            <div
-                                                key={module.id}
-                                                className="group relative"
-                                            >
-                                                <SyncIndicator isSynced={module.erd_is_synced} className="z-10" />
-                                                <div
-                                                    className="flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                                    onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}`)}
-                                                    role="button"
-                                                    tabIndex={0}
-                                                    onKeyDown={(e) => e.key === 'Enter' && router.visit(`/projects/${project.id}/modules/${module.id}`)}
-                                                    aria-label={`View module ${module.name}`}
+                                <header className="mb-8">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="flex items-center gap-3">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => router.visit(`/projects/${project.id}`)}
+                                                    className="gap-2"
                                                 >
-                                                    {/* Header with colored icon */}
-                                                    <div className="mb-3 flex items-start justify-between gap-3">
-                                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconColorClass}`}>
-                                                            <Layers className="h-5 w-5" />
-                                                        </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-7 w-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                                            onClick={(e) => handleDeleteClick(e, module)}
-                                                            disabled={isDeleting && moduleToDelete?.id === module.id}
-                                                            aria-label={`Delete module ${module.name}`}
-                                                        >
-                                                            <Trash2 className="h-3.5 w-3.5" />
-                                                        </Button>
-                                                    </div>
-                                                    
-                                                    {/* Content */}
-                                                    <div className="flex-1">
-                                                        <h3 className="text-base font-medium text-foreground transition-colors group-hover:text-primary">
-                                                            {module.name}
-                                                        </h3>
-                                                        {module.description && (
-                                                            <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground/80 leading-relaxed">
-                                                                {module.description}
-                                                            </p>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Footer with status and progress */}
-                                                    <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40">
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <div className="flex items-center gap-1.5 cursor-help">
-                                                                        <StatusIcon className={`h-3.5 w-3.5 ${
-                                                                            module.status === 'completed' ? 'text-emerald-500' :
-                                                                            module.status === 'in_progress' ? 'text-blue-500' : 'text-amber-500'
-                                                                        }`} />
-                                                                        <span className="text-xs font-medium text-muted-foreground">
-                                                                            {statusConfig.label}
-                                                                        </span>
-                                                                    </div>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent side="top" align="start" className="max-w-[280px] p-0 border-border/40 bg-zinc-950 shadow-2xl">
-                                                                    <div className="space-y-2 p-3">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <statusConfig.icon className={`h-4 w-4 ${statusConfig.color}`} />
-                                                                            <p className="font-semibold text-sm">{statusConfig.label}</p>
-                                                                        </div>
-                                                                        <p className="text-xs text-muted-foreground leading-relaxed">
-                                                                            {module.status === 'planned' && 'Module created but no features have been generated yet. Add features to start development.'}
-                                                                            {module.status === 'in_progress' && `Active development with ${module.features?.length || 0} feature${(module.features?.length || 0) !== 1 ? 's' : ''}. Complete all features to mark as done.`}
-                                                                            {module.status === 'completed' && 'All features have been completed with 100% progress. Module is ready for deployment.'}
-                                                                        </p>
-                                                                        <div className="border-t border-border/40 pt-2 mt-2">
-                                                                            <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium">
-                                                                                Auto-managed
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-                                                        <div className="flex items-center gap-2">
-                                                            <Progress value={module.progress ?? 0} className="w-12 h-1.5" />
-                                                            <span className="text-xs text-muted-foreground/60">
-                                                                {module.progress ?? 0}%
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                    <ArrowLeft className="h-4 w-4" />
+                                                    Back to Project
+                                                </Button>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
+                                            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{project.name} - Modules</h1>
+                                            <p className="mt-1 text-sm text-muted-foreground">DDD bounded contexts and system architecture</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button onClick={() => setIsCreateModuleModalOpen(true)} className="gap-2">
+                                                <Plus className="h-4 w-4" />
+                                                Add Module
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </header>
+
+                                {modules.length === 0 ? (
+                                    <EmptyState
+                                        icon={Layers}
+                                        title="No modules yet"
+                                        description="Add your first module to get started with your project's architecture."
+                                        action={{
+                                            label: 'Add Module',
+                                            onClick: () => setIsCreateModuleModalOpen(true),
+                                            icon: Plus,
+                                        }}
+                                        variant="dashed"
+                                    />
+                                ) : (
+                                    <div className="space-y-8">
+                                        {/* Minimal Stats Bar */}
+                                        <div className="flex flex-wrap items-center gap-6 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl font-semibold text-foreground">{modules.length}</span>
+                                                <span className="text-muted-foreground">modules</span>
+                                            </div>
+                                            <div className="h-4 w-px bg-border" />
+                                            <div className="flex items-center gap-4">
+                                                <TooltipProvider delayDuration={200}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex cursor-help items-center gap-1.5 transition-opacity hover:opacity-80">
+                                                                <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                                                                <span className="text-muted-foreground">{moduleCounts.completed} completed</span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent
+                                                            side="bottom"
+                                                            className="max-w-xs border-border/40 bg-zinc-950 p-3 shadow-2xl"
+                                                        >
+                                                            <p className="mb-1 text-xs font-semibold">Completed Modules</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Modules where all features are 100% complete.
+                                                            </p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+
+                                                <TooltipProvider delayDuration={200}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex cursor-help items-center gap-1.5 transition-opacity hover:opacity-80">
+                                                                <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                                                <span className="text-muted-foreground">{moduleCounts.inProgress} in progress</span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent
+                                                            side="bottom"
+                                                            className="max-w-xs border-border/40 bg-zinc-950 p-3 shadow-2xl"
+                                                        >
+                                                            <p className="mb-1 text-xs font-semibold">Active Modules</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Modules with at least one feature currently being worked on.
+                                                            </p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+
+                                                <TooltipProvider delayDuration={200}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex cursor-help items-center gap-1.5 transition-opacity hover:opacity-80">
+                                                                <div className="h-2 w-2 rounded-full bg-amber-500" />
+                                                                <span className="text-muted-foreground">{moduleCounts.planned} planned</span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent
+                                                            side="bottom"
+                                                            className="max-w-xs border-border/40 bg-zinc-950 p-3 shadow-2xl"
+                                                        >
+                                                            <p className="mb-1 text-xs font-semibold">Planned Modules</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Modules that have been created but have no features yet.
+                                                            </p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                            <div className="h-4 w-px bg-border" />
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-muted-foreground">Avg Progress</span>
+                                                <Progress value={averageProgress} className="h-1.5 w-24" />
+                                                <span className="text-xs font-medium text-muted-foreground">{averageProgress}%</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Module Cards Grid */}
+                                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                            {modules.map((module) => {
+                                                const statusConfig = getModuleStatusConfig(module.status);
+                                                const StatusIcon = statusConfig.icon;
+
+                                                // Determine icon color based on status
+                                                const iconColorClass =
+                                                    module.status === 'completed'
+                                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                        : module.status === 'in_progress'
+                                                          ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+
+                                                return (
+                                                    <div key={module.id} className="group relative">
+                                                        <SyncIndicator isSynced={module.erd_is_synced} className="z-10" />
+                                                        <div
+                                                            className="flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5 focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                                                            onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}`)}
+                                                            role="button"
+                                                            tabIndex={0}
+                                                            onKeyDown={(e) =>
+                                                                e.key === 'Enter' && router.visit(`/projects/${project.id}/modules/${module.id}`)
+                                                            }
+                                                            aria-label={`View module ${module.name}`}
+                                                        >
+                                                            {/* Header with colored icon */}
+                                                            <div className="mb-3 flex items-start justify-between gap-3">
+                                                                <div
+                                                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconColorClass}`}
+                                                                >
+                                                                    <Layers className="h-5 w-5" />
+                                                                </div>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
+                                                                    onClick={(e) => handleDeleteClick(e, module)}
+                                                                    disabled={isDeleting && moduleToDelete?.id === module.id}
+                                                                    aria-label={`Delete module ${module.name}`}
+                                                                >
+                                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </div>
+
+                                                            {/* Content */}
+                                                            <div className="flex-1">
+                                                                <h3 className="text-base font-medium text-foreground transition-colors group-hover:text-primary">
+                                                                    {module.name}
+                                                                </h3>
+                                                                {module.description && (
+                                                                    <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground/80">
+                                                                        {module.description}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Footer with status and progress */}
+                                                            <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <div className="flex cursor-help items-center gap-1.5">
+                                                                                <StatusIcon
+                                                                                    className={`h-3.5 w-3.5 ${
+                                                                                        module.status === 'completed'
+                                                                                            ? 'text-emerald-500'
+                                                                                            : module.status === 'in_progress'
+                                                                                              ? 'text-blue-500'
+                                                                                              : 'text-amber-500'
+                                                                                    }`}
+                                                                                />
+                                                                                <span className="text-xs font-medium text-muted-foreground">
+                                                                                    {statusConfig.label}
+                                                                                </span>
+                                                                            </div>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent
+                                                                            side="top"
+                                                                            align="start"
+                                                                            className="max-w-[280px] border-border/40 bg-zinc-950 p-0 shadow-2xl"
+                                                                        >
+                                                                            <div className="space-y-2 p-3">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <statusConfig.icon className={`h-4 w-4 ${statusConfig.color}`} />
+                                                                                    <p className="text-sm font-semibold">{statusConfig.label}</p>
+                                                                                </div>
+                                                                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                                                                    {module.status === 'planned' &&
+                                                                                        'Module created but no features have been generated yet. Add features to start development.'}
+                                                                                    {module.status === 'in_progress' &&
+                                                                                        `Active development with ${module.features?.length || 0} feature${(module.features?.length || 0) !== 1 ? 's' : ''}. Complete all features to mark as done.`}
+                                                                                    {module.status === 'completed' &&
+                                                                                        'All features have been completed with 100% progress. Module is ready for deployment.'}
+                                                                                </p>
+                                                                                <div className="mt-2 border-t border-border/40 pt-2">
+                                                                                    <p className="text-[10px] font-medium tracking-wider text-muted-foreground/60 uppercase">
+                                                                                        Auto-managed
+                                                                                    </p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Progress value={module.progress ?? 0} className="h-1.5 w-12" />
+                                                                    <span className="text-xs text-muted-foreground/60">{module.progress ?? 0}%</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </main>
@@ -335,8 +361,8 @@ export default function ModulesIndex({ project, modules }: Props) {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Module</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete <span className="font-semibold">"{moduleToDelete?.name}"</span>? 
-                            This will also delete all features associated with this module. This action cannot be undone.
+                            Are you sure you want to delete <span className="font-semibold">"{moduleToDelete?.name}"</span>? This will also delete all
+                            features associated with this module. This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -352,11 +378,7 @@ export default function ModulesIndex({ project, modules }: Props) {
                 </AlertDialogContent>
             </AlertDialog>
 
-            <CreateModuleModal
-                open={isCreateModuleModalOpen}
-                onOpenChange={setIsCreateModuleModalOpen}
-                projectId={project.id}
-            />
+            <CreateModuleModal open={isCreateModuleModalOpen} onOpenChange={setIsCreateModuleModalOpen} projectId={project.id} />
         </>
     );
 }

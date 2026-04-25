@@ -1,11 +1,11 @@
 import { Head } from '@inertiajs/react';
 import { useEffect } from 'react';
 
-import SiriusNavbar from '@/components/sirius/SiriusNavbar';
 import { Footer } from '@/components/footer';
+import { OptimizedImage } from '@/components/OptimizedImage';
+import SiriusNavbar from '@/components/sirius/SiriusNavbar';
 import { Card } from '@/components/ui/card';
 import { GridPattern } from '@/components/ui/shadcn-io/grid-pattern';
-import { OptimizedImage } from '@/components/OptimizedImage';
 import type { TeamMember } from '@/types';
 import { preloadImages } from '@/utils/image-preloader';
 import { Globe, Linkedin } from 'lucide-react';
@@ -94,48 +94,56 @@ export default function Team() {
                             height={40}
                             x={-1}
                             y={-1}
-                            className="absolute inset-0 h-full w-full fill-primary/[0.02] stroke-border/40 [mask-image:radial-gradient(900px_circle_at_center,white,transparent)]"
+                            className="absolute inset-0 h-full w-full [mask-image:radial-gradient(900px_circle_at_center,white,transparent)] fill-primary/[0.02] stroke-border/40"
                             squares={[
-                                [2, 3], [5, 1], [8, 4], [12, 2], [15, 5],
-                                [3, 8], [7, 6], [10, 9], [14, 7], [18, 3],
-                                [1, 12], [6, 10], [11, 13], [16, 11], [20, 8],
-                                [4, 15], [9, 14], [13, 16], [17, 12], [21, 6],
+                                [2, 3],
+                                [5, 1],
+                                [8, 4],
+                                [12, 2],
+                                [15, 5],
+                                [3, 8],
+                                [7, 6],
+                                [10, 9],
+                                [14, 7],
+                                [18, 3],
+                                [1, 12],
+                                [6, 10],
+                                [11, 13],
+                                [16, 11],
+                                [20, 8],
+                                [4, 15],
+                                [9, 14],
+                                [13, 16],
+                                [17, 12],
+                                [21, 6],
                             ]}
                         />
 
                         {/* Subtle radial accent */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.04] rounded-full blur-3xl z-0" />
+                        <div className="absolute top-0 left-1/2 z-0 h-[400px] w-[800px] -translate-x-1/2 rounded-full bg-primary/[0.04] blur-3xl" />
 
                         {/* Content */}
                         <div className="sirius-container relative z-10">
                             {/* Header */}
-                            <div className="flex flex-col items-center justify-center mb-12">
-                                <div className="flex flex-col gap-4 max-w-2xl">
+                            <div className="mb-12 flex flex-col items-center justify-center">
+                                <div className="flex max-w-2xl flex-col gap-4">
                                     <span className="text-kicker text-center">Our Team</span>
-                                    <h1 className="text-center text-section-title text-foreground">
-                                        The People Behind Sirius
-                                    </h1>
-                                    <p className="text-center text-body text-muted-foreground">
+                                    <h1 className="text-section-title text-center text-foreground">The People Behind Sirius</h1>
+                                    <p className="text-body text-center text-muted-foreground">
                                         7 Engineers · Building the future of project planning
                                     </p>
                                 </div>
                             </div>
 
                             {/* Team Cards Grid */}
-                            <div className="flex justify-center items-stretch gap-6 flex-wrap">
+                            <div className="flex flex-wrap items-stretch justify-center gap-6">
                                 {teamMembers.map((member, index) => {
                                     const primaryLink = member.linkedin || member.website;
                                     const avatarUrl = member.image || getAvatarUrl(member.name);
 
                                     return (
-                                        <a
-                                            key={index}
-                                            href={primaryLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="block"
-                                        >
-                                            <Card className="w-72 h-auto p-6 relative bg-card/80 backdrop-blur-sm border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg group cursor-pointer">
+                                        <a key={index} href={primaryLink} target="_blank" rel="noopener noreferrer" className="block">
+                                            <Card className="group relative h-auto w-72 cursor-pointer border-border bg-card/80 p-6 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
                                                 {/* Avatar & Info */}
                                                 <div className="flex items-center">
                                                     <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-border shadow-md transition-transform duration-300 group-hover:scale-105">
@@ -148,22 +156,18 @@ export default function Team() {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col pl-4">
-                                                        <span className="font-semibold text-base text-foreground">
-                                                            {member.name}
-                                                        </span>
-                                                        <span className="text-sm text-muted-foreground">
-                                                            {member.role}
-                                                        </span>
+                                                        <span className="text-base font-semibold text-foreground">{member.name}</span>
+                                                        <span className="text-sm text-muted-foreground">{member.role}</span>
                                                     </div>
                                                 </div>
 
                                                 {/* Social Icon */}
                                                 {primaryLink && (
-                                                    <div className="absolute top-5 right-5 p-2 rounded-full bg-accent/50 group-hover:bg-accent transition-colors">
+                                                    <div className="absolute top-5 right-5 rounded-full bg-accent/50 p-2 transition-colors group-hover:bg-accent">
                                                         {member.linkedin ? (
-                                                            <Linkedin className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                            <Linkedin className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
                                                         ) : (
-                                                            <Globe className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                            <Globe className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
                                                         )}
                                                     </div>
                                                 )}

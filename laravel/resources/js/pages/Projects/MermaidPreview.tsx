@@ -1,22 +1,17 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import SidebarToggle from '@/components/Projects/SidebarToggle';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { UserMenuContent } from '@/components/user-menu-content';
 import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
-import { useInitials } from '@/hooks/use-initials';
-import { type User, type Project, type Sections } from '@/types';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { getStatusColor } from '@/utils/status-colors';
+import { useInitials } from '@/hooks/use-initials';
+import { useThemeDetection } from '@/hooks/use-theme-detection';
+import { type Project, type Sections, type User } from '@/types';
+import { convertEscapedMermaid } from '@/utils/mermaid';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     AlertCircleIcon,
     CheckCircleIcon,
-    ChevronDownIcon,
-    CircleIcon,
-    ClockIcon,
     CodeIcon,
     CopyIcon,
     DatabaseIcon,
@@ -31,10 +26,8 @@ import {
     ZoomInIcon,
     ZoomOutIcon,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
 import mermaid from 'mermaid';
-import { convertEscapedMermaid } from '@/utils/mermaid';
-import { useThemeDetection } from '@/hooks/use-theme-detection';
+import { useEffect, useMemo, useState } from 'react';
 
 // Project and Sections types now imported from @/types
 
@@ -85,13 +78,7 @@ interface Props {
 // Minimal stub to keep calls working while the validator is commented out
 const validateMermaidSyntax = (_code: string): { isValid: boolean; error?: string } => ({ isValid: true });
 
-export default function MermaidPreview({
-    content,
-    title = 'Mermaid Diagram',
-    projectName,
-    project,
-    sections,
-}: Props) {
+export default function MermaidPreview({ content, title = 'Mermaid Diagram', projectName, project, sections }: Props) {
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const getInitials = useInitials();
@@ -209,10 +196,14 @@ export default function MermaidPreview({
                           label: project.c4 ? 'System Architecture' : 'Generate C4',
                           emphasize: !project.c4,
                           disabled: !project.c4,
-                          onClick: () =>
-                              project.c4 ? router.get(`/projects/${project.id}/c4`) : router.post(`/projects/${project.id}/c4/generate`),
+                          onClick: () => (project.c4 ? router.get(`/projects/${project.id}/c4`) : router.post(`/projects/${project.id}/c4/generate`)),
                       },
-                      { key: 'technology', icon: CodeIcon, label: 'Technology Stack', onClick: () => router.get(`/projects/${project.id}/technology`) },
+                      {
+                          key: 'technology',
+                          icon: CodeIcon,
+                          label: 'Technology Stack',
+                          onClick: () => router.get(`/projects/${project.id}/technology`),
+                      },
                   ],
               },
           ]
@@ -311,11 +302,15 @@ export default function MermaidPreview({
                                         <div className="flex items-center gap-3">
                                             <Sheet>
                                                 <SheetTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                                    >
                                                         <MenuIcon className="h-4 w-4" />
                                                     </Button>
                                                 </SheetTrigger>
-                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                                     <ProjectSidebarPanel
                                                         project={project}
                                                         navGroups={navGroups}
@@ -375,9 +370,7 @@ export default function MermaidPreview({
                                                 <div className="mt-2 space-y-2">
                                                     <div>
                                                         <p className="text-xs font-medium text-destructive-foreground">Raw code:</p>
-                                                        <pre className="mt-1 overflow-x-auto rounded border bg-muted p-3 text-xs">
-                                                            {content}
-                                                        </pre>
+                                                        <pre className="mt-1 overflow-x-auto rounded border bg-muted p-3 text-xs">{content}</pre>
                                                     </div>
                                                     <div>
                                                         <p className="text-xs font-medium text-destructive-foreground">Cleaned code:</p>

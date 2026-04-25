@@ -1,5 +1,5 @@
-import { AlertCircleIcon, CheckCircle2, CircleIcon, ClockIcon, type LucideIcon } from 'lucide-react';
 import type { FeaturePriority, FeatureStatus } from '@/types/modules';
+import { AlertCircleIcon, CheckCircle2, CircleIcon, ClockIcon, type LucideIcon } from 'lucide-react';
 
 /**
  * Feature priority color classes for badges.

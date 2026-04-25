@@ -1,17 +1,11 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { AlertCircleIcon, Loader2Icon } from 'lucide-react';
-import { router } from '@inertiajs/react';
 import { createFeatureSchema } from '@/lib/validations';
+import { router } from '@inertiajs/react';
+import { AlertCircleIcon, Loader2Icon } from 'lucide-react';
+import { useState } from 'react';
 
 interface CreateFeatureModalProps {
     open: boolean;
@@ -19,11 +13,7 @@ interface CreateFeatureModalProps {
     projectId: number;
 }
 
-export default function CreateFeatureModal({
-    open,
-    onOpenChange,
-    projectId,
-}: CreateFeatureModalProps) {
+export default function CreateFeatureModal({ open, onOpenChange, projectId }: CreateFeatureModalProps) {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -31,9 +21,7 @@ export default function CreateFeatureModal({
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
@@ -103,7 +91,8 @@ export default function CreateFeatureModal({
                 <DialogHeader>
                     <DialogTitle>Create New Feature</DialogTitle>
                     <DialogDescription>
-                        Provide a name and description for your feature. Our AI will generate comprehensive details including acceptance criteria, user flows, and more.
+                        Provide a name and description for your feature. Our AI will generate comprehensive details including acceptance criteria,
+                        user flows, and more.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -129,17 +118,12 @@ export default function CreateFeatureModal({
                                 {errors.name}
                             </div>
                         )}
-                        <div className="text-xs text-muted-foreground">
-                            {formData.name.length}/255 characters
-                        </div>
+                        <div className="text-xs text-muted-foreground">{formData.name.length}/255 characters</div>
                     </div>
 
                     {/* Feature Description Field */}
                     <div className="space-y-2">
-                        <label
-                            htmlFor="description"
-                            className="block text-sm font-medium text-foreground"
-                        >
+                        <label htmlFor="description" className="block text-sm font-medium text-foreground">
                             Feature Description <span className="text-red-500">*</span>
                         </label>
                         <Textarea
@@ -158,29 +142,16 @@ export default function CreateFeatureModal({
                                 {errors.description}
                             </div>
                         )}
-                        <div className="text-xs text-muted-foreground">
-                            {formData.description.length}/5000 characters
-                        </div>
+                        <div className="text-xs text-muted-foreground">{formData.description.length}/5000 characters</div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex justify-end gap-3 pt-6">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={isLoading}
-                        >
+                        <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
                             Cancel
                         </Button>
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="gap-2"
-                        >
-                            {isLoading && (
-                                <Loader2Icon className="h-4 w-4 animate-spin" />
-                            )}
+                        <Button type="submit" disabled={isLoading} className="gap-2">
+                            {isLoading && <Loader2Icon className="h-4 w-4 animate-spin" />}
                             {isLoading ? 'Creating...' : 'Create Feature'}
                         </Button>
                     </div>

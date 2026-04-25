@@ -22,9 +22,8 @@ export function useAppearance() {
         // No-op
     }, []);
 
-    return { 
-        appearance: 'dark' as Appearance, 
-        updateAppearance 
+    return {
+        appearance: 'dark' as Appearance,
+        updateAppearance,
     } as const;
 }
-

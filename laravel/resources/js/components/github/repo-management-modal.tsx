@@ -11,27 +11,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
 import { router, usePage } from '@inertiajs/react';
-import {
-    AlertTriangle,
-    ArrowUpRight,
-    CheckCircle2,
-    ExternalLink,
-    GitBranch,
-    GitFork,
-    Github,
-    Globe,
-    Loader2,
-    Lock,
-    RefreshCw,
-    Settings2,
-    Trash2,
-    Unlink,
-    User,
-} from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, GitBranch, GitFork, Github, Globe, Loader2, Lock, RefreshCw, Settings2, Unlink, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Repository {
@@ -71,7 +54,7 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
         if (props.flash?.success) {
             const filesCount = props.flash?.files_count;
             const message = props.flash.success;
-            
+
             if (message === 'Repository unlinked successfully.') {
                 toast.success('Repository unlinked successfully', {
                     description: 'The GitHub repository has been disconnected from this project.',
@@ -123,24 +106,20 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                     {/* Enhanced Header */}
                     <div className="relative overflow-hidden bg-[#0d1117] px-6 py-8 text-white">
                         {/* Animated gradient orbs */}
-                        <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-500/20 via-cyan-500/10 to-transparent blur-3xl" />
+                        <div className="pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-500/20 via-cyan-500/10 to-transparent blur-3xl" />
                         <div className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-transparent blur-3xl" />
-                        
+
                         {/* Grid pattern overlay */}
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
-                        
+
                         {/* GitHub contribution-style dots pattern */}
-                        <div className="absolute right-6 top-6 grid grid-cols-7 gap-1 opacity-30">
+                        <div className="absolute top-6 right-6 grid grid-cols-7 gap-1 opacity-30">
                             {Array.from({ length: 28 }).map((_, i) => (
                                 <div
                                     key={i}
                                     className={cn(
                                         'h-2 w-2 rounded-sm',
-                                        Math.random() > 0.6
-                                            ? 'bg-emerald-400'
-                                            : Math.random() > 0.3
-                                              ? 'bg-emerald-600'
-                                              : 'bg-slate-700',
+                                        Math.random() > 0.6 ? 'bg-emerald-400' : Math.random() > 0.3 ? 'bg-emerald-600' : 'bg-slate-700',
                                     )}
                                 />
                             ))}
@@ -155,12 +134,10 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                                         <Github className="h-8 w-8 transition-transform group-hover:scale-110" />
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3">
-                                        <DialogTitle className="text-2xl font-bold tracking-tight text-white">
-                                            GitHub Connected
-                                        </DialogTitle>
+                                        <DialogTitle className="text-2xl font-bold tracking-tight text-white">GitHub Connected</DialogTitle>
                                         <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-400 ring-1 ring-emerald-500/30">
                                             <span className="relative flex h-2 w-2">
                                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -169,9 +146,7 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                                             Active
                                         </div>
                                     </div>
-                                    <p className="mt-1 text-sm text-slate-400">
-                                        Manage your repository integration and sync specifications
-                                    </p>
+                                    <p className="mt-1 text-sm text-slate-400">Manage your repository integration and sync specifications</p>
                                 </div>
                             </div>
 
@@ -202,11 +177,7 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                                             : 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30',
                                     )}
                                 >
-                                    {repository.visibility === 'private' ? (
-                                        <Lock className="mr-1.5 h-3 w-3" />
-                                    ) : (
-                                        <Globe className="mr-1.5 h-3 w-3" />
-                                    )}
+                                    {repository.visibility === 'private' ? <Lock className="mr-1.5 h-3 w-3" /> : <Globe className="mr-1.5 h-3 w-3" />}
                                     {repository.visibility === 'private' ? 'Private' : 'Public'}
                                 </Badge>
                                 <Button
@@ -238,11 +209,7 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/20 transition-transform group-hover:scale-105 dark:text-blue-400">
-                                        {isSyncing ? (
-                                            <Loader2 className="h-5 w-5 animate-spin" />
-                                        ) : (
-                                            <RefreshCw className="h-5 w-5" />
-                                        )}
+                                        {isSyncing ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <h5 className="font-medium text-blue-900 dark:text-blue-100">
@@ -268,9 +235,7 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <h5 className="font-medium text-red-900 dark:text-red-100">Disconnect Repository</h5>
-                                        <p className="mt-0.5 text-sm text-red-700/70 dark:text-red-300/70">
-                                            Unlink this repository from the project
-                                        </p>
+                                        <p className="mt-0.5 text-sm text-red-700/70 dark:text-red-300/70">Unlink this repository from the project</p>
                                     </div>
                                     <ArrowUpRight className="h-5 w-5 shrink-0 text-red-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
                                 </div>

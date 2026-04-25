@@ -2,8 +2,8 @@ import InputError from '@/components/input-error';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Transition } from '@headlessui/react';
 import { Head, useForm } from '@inertiajs/react';
+import { CheckCircle2, Eye, EyeOff, Info, KeyRound, Lock, Shield } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { Lock, KeyRound, Shield, Eye, EyeOff, CheckCircle2, Info } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +60,7 @@ function Password() {
 
             <div className="space-y-6">
                 {/* Security Tips */}
-                                                                        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-500/30 dark:bg-blue-500/10">
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-500/30 dark:bg-blue-500/10">
                     <div className="flex items-start gap-3">
                         <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
                         <div>
@@ -102,7 +102,7 @@ function Password() {
                                     Current Password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         id="current_password"
                                         ref={currentPasswordInput}
@@ -110,14 +110,14 @@ function Password() {
                                         type={showCurrentPassword ? 'text' : 'password'}
                                         value={data.current_password}
                                         onChange={(e) => setData('current_password', e.target.value)}
-                                        className="pl-10 pr-10"
+                                        className="pr-10 pl-10"
                                         autoComplete="current-password"
                                         placeholder="Enter your current password"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                                        className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                                     >
                                         {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
@@ -133,7 +133,7 @@ function Password() {
                                         New Password
                                     </Label>
                                     <div className="relative">
-                                        <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <KeyRound className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
                                             id="password"
                                             ref={passwordInput}
@@ -141,14 +141,14 @@ function Password() {
                                             type={showNewPassword ? 'text' : 'password'}
                                             value={data.password}
                                             onChange={(e) => setData('password', e.target.value)}
-                                            className="pl-10 pr-10"
+                                            className="pr-10 pl-10"
                                             autoComplete="new-password"
                                             placeholder="Enter new password"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowNewPassword(!showNewPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                                            className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                                         >
                                             {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
@@ -161,21 +161,21 @@ function Password() {
                                         Confirm New Password
                                     </Label>
                                     <div className="relative">
-                                        <Shield className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Shield className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
                                             id="password_confirmation"
                                             name="password_confirmation"
                                             type={showConfirmPassword ? 'text' : 'password'}
                                             value={data.password_confirmation}
                                             onChange={(e) => setData('password_confirmation', e.target.value)}
-                                            className="pl-10 pr-10"
+                                            className="pr-10 pl-10"
                                             autoComplete="new-password"
                                             placeholder="Confirm new password"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                                            className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                                         >
                                             {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
@@ -194,7 +194,7 @@ function Password() {
                                     leaveFrom="opacity-100 translate-x-0"
                                     leaveTo="opacity-0 translate-x-2"
                                 >
-                                        <span className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                                    <span className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Password updated successfully
                                     </span>

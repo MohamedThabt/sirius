@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 
 interface StarConfettiProps {
@@ -32,26 +32,26 @@ export function StarConfetti({ show, onComplete }: StarConfettiProps) {
                         return (
                             <motion.div
                                 key={i}
-                                className="absolute left-1/2 top-1/2 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]"
-                                initial={{ 
-                                    x: 0, 
-                                    y: 0, 
-                                    scale: 0, 
+                                className="absolute top-1/2 left-1/2 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]"
+                                initial={{
+                                    x: 0,
+                                    y: 0,
+                                    scale: 0,
                                     opacity: 1,
-                                    rotate: 0
+                                    rotate: 0,
                                 }}
-                                animate={{ 
-                                    x: endX, 
-                                    y: endY, 
-                                    scale: 1, 
+                                animate={{
+                                    x: endX,
+                                    y: endY,
+                                    scale: 1,
                                     opacity: 0,
-                                    rotate: 360
+                                    rotate: 360,
                                 }}
                                 exit={{ opacity: 0 }}
-                                transition={{ 
-                                    duration: 0.8, 
+                                transition={{
+                                    duration: 0.8,
                                     delay,
-                                    ease: 'easeOut'
+                                    ease: 'easeOut',
                                 }}
                                 style={{ fontSize: size }}
                             >
@@ -74,7 +74,7 @@ export function ShootingStar({ containerClass = '' }: { containerClass?: string 
     // Trigger periodically
     useEffect(() => {
         const interval = setInterval(() => {
-            setTrigger(prev => prev + 1);
+            setTrigger((prev) => prev + 1);
         }, 5000); // Every 5 seconds
         return () => clearInterval(interval);
     }, []);
@@ -86,18 +86,18 @@ export function ShootingStar({ containerClass = '' }: { containerClass?: string 
                     <motion.div
                         key={trigger}
                         initial={{ top: '20%', left: '100%', opacity: 0, scale: 0.5 }}
-                        animate={{ 
-                            top: '80%', 
-                            left: '-20%', 
+                        animate={{
+                            top: '80%',
+                            left: '-20%',
                             opacity: [0, 1, 1, 0],
-                            scale: 1 
+                            scale: 1,
                         }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        transition={{ duration: 1.5, ease: 'easeOut' }}
                         className="absolute h-0.5 w-16 bg-gradient-to-l from-transparent via-white to-transparent"
                         style={{ rotate: '45deg' }}
                     >
                         {/* Star at the head */}
-                        <div className="absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 -translate-x-1/2 rounded-full bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.8)]" />
+                        <div className="absolute top-1/2 left-0 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.8)]" />
                     </motion.div>
                 )}
             </AnimatePresence>

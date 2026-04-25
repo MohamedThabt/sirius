@@ -38,11 +38,14 @@ interface ParsedJourneySchema {
 const parseSequenceDiagram = (mermaid: string): ParsedSequenceSchema => {
     const participants: ParsedParticipant[] = [];
     const messages: ParsedMessage[] = [];
-    
-    const lines = mermaid.split('\n').map(line => line.trim()).filter(line => line);
-    
+
+    const lines = mermaid
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line);
+
     let messageIndex = 0;
-    
+
     for (const line of lines) {
         // Parse participants
         if (line.startsWith('participant ')) {
@@ -52,13 +55,13 @@ const parseSequenceDiagram = (mermaid: string): ParsedSequenceSchema => {
             const name = line.replace('actor ', '').trim();
             participants.push({ name, type: 'actor' });
         }
-        
+
         // Parse messages
         const messageMatch = line.match(/^(\w+)(->>?|-->>?)(\w+):\s*(.+)$/);
         if (messageMatch) {
             const [, from, arrow, to, message] = messageMatch;
             const type = arrow.includes('--') ? 'dashed' : 'solid';
-            
+
             messages.push({
                 id: `msg-${messageIndex++}`,
                 from,
@@ -67,7 +70,7 @@ const parseSequenceDiagram = (mermaid: string): ParsedSequenceSchema => {
                 type,
             });
         }
-        
+
         // Parse notes
         const noteMatch = line.match(/^Note\s+(?:right of|left of|over)\s+(\w+):\s*(.+)$/);
         if (noteMatch) {
@@ -81,25 +84,28 @@ const parseSequenceDiagram = (mermaid: string): ParsedSequenceSchema => {
             });
         }
     }
-    
+
     return { participants, messages };
 };
 
 // Simple Mermaid User Journey parser
 const parseUserJourney = (mermaid: string): ParsedJourneySchema => {
     const sections: Array<{ name: string; steps: ParsedJourneyStep[] }> = [];
-    const lines = mermaid.split('\n').map(line => line.trim()).filter(line => line);
-    
+    const lines = mermaid
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line);
+
     let currentSection: { name: string; steps: ParsedJourneyStep[] } | null = null;
     let stepIndex = 0;
-    
+
     for (const line of lines) {
         // Parse title
         if (line.startsWith('title ')) {
             // Title is handled separately
             continue;
         }
-        
+
         // Parse sections
         if (line.startsWith('section ')) {
             if (currentSection) {
@@ -108,7 +114,7 @@ const parseUserJourney = (mermaid: string): ParsedJourneySchema => {
             const sectionName = line.replace('section ', '').trim();
             currentSection = { name: sectionName, steps: [] };
         }
-        
+
         // Parse steps
         if (currentSection && line.includes(':')) {
             const stepMatch = line.match(/^\s*([^:]+):\s*(\d+):\s*(.+)$/);
@@ -123,11 +129,11 @@ const parseUserJourney = (mermaid: string): ParsedJourneySchema => {
             }
         }
     }
-    
+
     if (currentSection) {
         sections.push(currentSection);
     }
-    
+
     return {
         title: 'User Journey',
         sections,
@@ -139,14 +145,14 @@ const calculateSequenceLayout = (participants: ParsedParticipant[]): { x: number
     const positions: { x: number; y: number }[] = [];
     const nodeWidth = 200;
     const spacing = 100;
-    
+
     participants.forEach((_, index) => {
         positions.push({
             x: index * (nodeWidth + spacing),
             y: 0,
         });
     });
-    
+
     return positions;
 };
 
@@ -156,9 +162,9 @@ const calculateJourneyLayout = (sections: Array<{ name: string; steps: ParsedJou
     const nodeWidth = 300;
     const nodeHeight = 150;
     const spacing = 50;
-    
+
     let currentY = 0;
-    
+
     sections.forEach((section, sectionIndex) => {
         section.steps.forEach((_, stepIndex) => {
             positions.push({
@@ -168,7 +174,7 @@ const calculateJourneyLayout = (sections: Array<{ name: string; steps: ParsedJou
         });
         currentY += nodeHeight + spacing;
     });
-    
+
     return positions;
 };
 
@@ -237,7 +243,7 @@ export const useMermaidParser = (content: string, diagramType: 'sequence' | 'jou
                 schema.sections.forEach((section, sectionIndex) => {
                     section.steps.forEach((step, stepIndex) => {
                         const nodeId = `${section.name}-${step.id}`;
-                        
+
                         flowNodes.push({
                             id: nodeId,
                             type: 'default',

@@ -20,5 +20,3 @@ export default function SidebarToggle({ isCollapsed, onToggle, className }: Side
         </Button>
     );
 }
-
-

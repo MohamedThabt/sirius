@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Sparkles, XCircle } from 'lucide-react';
+import { AlertTriangle, Sparkles } from 'lucide-react';
 
 interface DiagramErrorPanelProps {
     /** The error message to display */
@@ -31,12 +31,7 @@ interface DiagramErrorPanelProps {
  * />
  * ```
  */
-export function DiagramErrorPanel({
-    error,
-    onFixRequest,
-    title = 'Parse Error',
-    className,
-}: DiagramErrorPanelProps) {
+export function DiagramErrorPanel({ error, onFixRequest, title = 'Parse Error', className }: DiagramErrorPanelProps) {
     const handleFix = () => {
         const fixPrompt = `Fix the following syntax error in the diagram:\n\n${error}`;
         onFixRequest(fixPrompt);
@@ -46,26 +41,22 @@ export function DiagramErrorPanel({
         <div
             className={cn(
                 'relative overflow-hidden rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 shadow-sm',
-                className
+                className,
             )}
         >
             {/* Subtle background pattern */}
             <div className="absolute inset-0 opacity-5">
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,currentColor_10px,currentColor_11px)]" />
             </div>
-            
+
             <div className="relative flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 ring-1 ring-amber-500/30">
                         <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-amber-900 dark:text-amber-100">
-                            {title}
-                        </p>
-                        <p className="mt-1.5 text-sm leading-relaxed text-amber-800/90 dark:text-amber-200/80">
-                            {error}
-                        </p>
+                        <p className="font-semibold text-amber-900 dark:text-amber-100">{title}</p>
+                        <p className="mt-1.5 text-sm leading-relaxed text-amber-800/90 dark:text-amber-200/80">{error}</p>
                     </div>
                 </div>
                 <Button

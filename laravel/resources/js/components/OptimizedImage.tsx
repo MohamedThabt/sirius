@@ -1,4 +1,4 @@
-import { useState, useEffect, ImgHTMLAttributes } from 'react';
+import { ImgHTMLAttributes, useEffect, useState } from 'react';
 
 interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'loading'> {
     src: string;
@@ -11,17 +11,7 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
     onError?: () => void;
 }
 
-export function OptimizedImage({
-    src,
-    alt,
-    width,
-    height,
-    priority = false,
-    className = '',
-    onLoad,
-    onError,
-    ...props
-}: OptimizedImageProps) {
+export function OptimizedImage({ src, alt, width, height, priority = false, className = '', onLoad, onError, ...props }: OptimizedImageProps) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [hasError, setHasError] = useState(false);
 
@@ -52,24 +42,15 @@ export function OptimizedImage({
 
     if (hasError) {
         return (
-            <div
-                className={`bg-muted flex items-center justify-center ${className}`}
-                style={{ width, height }}
-                aria-label={alt}
-            >
-                <span className="text-muted-foreground text-xs">Image failed to load</span>
+            <div className={`flex items-center justify-center bg-muted ${className}`} style={{ width, height }} aria-label={alt}>
+                <span className="text-xs text-muted-foreground">Image failed to load</span>
             </div>
         );
     }
 
     return (
         <div className={`relative overflow-hidden ${className}`} style={{ width, height }}>
-            {!isLoaded && (
-                <div
-                    className="absolute inset-0 animate-pulse bg-muted"
-                    aria-hidden="true"
-                />
-            )}
+            {!isLoaded && <div className="absolute inset-0 animate-pulse bg-muted" aria-hidden="true" />}
             <img
                 src={src}
                 alt={alt}
@@ -86,4 +67,3 @@ export function OptimizedImage({
         </div>
     );
 }
-

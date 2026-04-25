@@ -12,16 +12,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Toaster } from '@/components/ui/sonner';
+import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useDBMLParser } from '@/hooks/useDBMLParser';
-import { exportAsSQL } from '@/utils/exportUtils';
-import { convertFormat, detectFormat, DiagramFormat } from '@/utils/formatConverters';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { exportAsSQL } from '@/utils/exportUtils';
+import { convertFormat, detectFormat, DiagramFormat } from '@/utils/formatConverters';
 import { Head } from '@inertiajs/react';
 import { BackgroundVariant } from '@xyflow/react';
-import { ChevronLeft, ChevronRight, Database as DatabaseIcon, Download, FileCode, FileText, Grid3X3, Layers, Maximize2, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Database as DatabaseIcon,
+    Download,
+    FileCode,
+    FileText,
+    Grid3X3,
+    Layers,
+    Maximize2,
+    Palette,
+    Plus,
+    Search,
+    Snowflake,
+    TreePine,
+} from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -309,9 +324,7 @@ export default function ProjectERD({ project, initialContent }: Props) {
                                                 <Plus className="mr-2 h-4 w-4" />
                                                 Cross
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleBackgroundChange('none' as any)}>
-                                                None
-                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleBackgroundChange('none' as any)}>None</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
 
@@ -385,13 +398,13 @@ export default function ProjectERD({ project, initialContent }: Props) {
                                         <div className="mt-2 text-sm text-muted-foreground">
                                             <p>This is a consolidated view of all your feature database schemas.</p>
                                             <p className="mt-1">
-                                                To create or edit tables, please go to the <strong>Feature ERD</strong> section for each
-                                                individual feature.
+                                                To create or edit tables, please go to the <strong>Feature ERD</strong> section for each individual
+                                                feature.
                                             </p>
                                             {!content && (
                                                 <p className="mt-2 font-medium text-foreground">
-                                                    No feature diagrams have been created yet. Start by creating a feature and designing
-                                                    its database schema.
+                                                    No feature diagrams have been created yet. Start by creating a feature and designing its database
+                                                    schema.
                                                 </p>
                                             )}
                                         </div>
@@ -407,9 +420,7 @@ export default function ProjectERD({ project, initialContent }: Props) {
                                         ) : (
                                             <div className="flex h-full items-center justify-center p-8">
                                                 <div className="text-center">
-                                                    <p className="text-lg font-medium text-muted-foreground">
-                                                        No feature diagrams available
-                                                    </p>
+                                                    <p className="text-lg font-medium text-muted-foreground">No feature diagrams available</p>
                                                     <p className="mt-2 text-sm text-muted-foreground">
                                                         Create features and their ERD schemas to see the consolidated diagram here.
                                                     </p>
@@ -476,13 +487,11 @@ export default function ProjectERD({ project, initialContent }: Props) {
                                                             />
                                                         </svg>
                                                     </div>
-                                                    <h3 className="mb-2 text-xl font-semibold text-foreground">
-                                                        No Database Schema Available
-                                                    </h3>
+                                                    <h3 className="mb-2 text-xl font-semibold text-foreground">No Database Schema Available</h3>
                                                     <p className="mb-4 text-muted-foreground">No feature diagrams have been created yet.</p>
                                                     <p className="text-sm text-muted-foreground">
-                                                        Start by creating features and designing their database schemas. All feature ERDs will
-                                                        be consolidated and displayed here.
+                                                        Start by creating features and designing their database schemas. All feature ERDs will be
+                                                        consolidated and displayed here.
                                                     </p>
                                                 </div>
                                             </div>
@@ -531,12 +540,7 @@ export default function ProjectERD({ project, initialContent }: Props) {
                                     <div className="flex h-full items-center justify-center bg-muted/10">
                                         <div className="max-w-md p-8 text-center">
                                             <div className="mb-4 text-muted-foreground">
-                                                <svg
-                                                    className="mx-auto h-24 w-24 opacity-20"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                >
+                                                <svg className="mx-auto h-24 w-24 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path
                                                         strokeLinecap="round"
                                                         strokeLinejoin="round"
@@ -548,8 +552,8 @@ export default function ProjectERD({ project, initialContent }: Props) {
                                             <h3 className="mb-2 text-xl font-semibold text-foreground">No Database Schema Available</h3>
                                             <p className="mb-4 text-muted-foreground">No feature diagrams have been created yet.</p>
                                             <p className="text-sm text-muted-foreground">
-                                                Start by creating features and designing their database schemas. All feature ERDs will be
-                                                consolidated and displayed here.
+                                                Start by creating features and designing their database schemas. All feature ERDs will be consolidated
+                                                and displayed here.
                                             </p>
                                         </div>
                                     </div>

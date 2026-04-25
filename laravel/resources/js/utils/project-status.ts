@@ -18,5 +18,3 @@ export const getHealthStatus = (percentage: number) => {
     if (percentage >= 40) return { label: 'fair', Icon: AlertCircleIcon, color: 'text-orange-600 dark:text-orange-300' };
     return { label: 'needs attention', Icon: AlertCircleIcon, color: 'text-red-600 dark:text-red-300' };
 };
-
-

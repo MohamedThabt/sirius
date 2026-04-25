@@ -8,7 +8,7 @@ import type { PropsWithChildren } from 'react';
 
 export default function AppHeaderLayout({ children, breadcrumbs }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     useFlashToasts();
-    
+
     return (
         <AppShell>
             <AppHeader breadcrumbs={breadcrumbs} />

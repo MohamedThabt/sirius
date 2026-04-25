@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Brain, FileText, GitBranch, Layers, Lightbulb, SparklesIcon, Users } from 'lucide-react';
+import { Brain, GitBranch, Lightbulb, SparklesIcon, Users } from 'lucide-react';
 import React from 'react';
 
 interface SiriusAiFlowCardProps {
@@ -48,7 +48,7 @@ const SiriusAiFlowCard: React.FC<SiriusAiFlowCardProps> = ({
                 </div>
 
                 {/* Box outer circle with icon - now at top */}
-                <div className="absolute -top-8 z-30 grid h-[60px] w-[60px] place-items-center rounded-full border-b border-border bg-card font-semibold text-xs">
+                <div className="absolute -top-8 z-30 grid h-[60px] w-[60px] place-items-center rounded-full border-b border-border bg-card text-xs font-semibold">
                     <div className="flex flex-col items-center justify-center">
                         <Brain className="h-4 w-4 text-primary" />
                         <span className="mt-0.5 text-[8px] text-foreground">{circleText}</span>

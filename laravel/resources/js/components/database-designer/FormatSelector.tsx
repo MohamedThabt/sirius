@@ -12,7 +12,7 @@ const FormatSelector = ({ content }: FormatSelectorProps) => {
         <div className="flex items-center bg-muted/20 px-4 py-2">
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-muted-foreground">Format:</span>
-                <Badge variant="secondary" className="uppercase font-mono text-xs">
+                <Badge variant="secondary" className="font-mono text-xs uppercase">
                     {currentFormat}
                 </Badge>
             </div>

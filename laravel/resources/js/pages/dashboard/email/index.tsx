@@ -1,17 +1,17 @@
 import { PaginationControls } from '@/components/PaginationControls';
 import { Button } from '@/components/ui/button';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, GlowingBadge, PageHeader } from '@/components/ui/futuristic';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
-import { MailIcon, SendIcon, UsersIcon, SearchIcon, XIcon, CheckIcon, CheckCircleIcon } from 'lucide-react';
+import { CheckCircleIcon, CheckIcon, MailIcon, SearchIcon, SendIcon, UsersIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
 
 interface User {
     id: number;
@@ -86,7 +86,7 @@ export default function EmailIndex({ users, filters }: Props) {
             setSelectedUserIds(new Set());
             setSelectAll(false);
         } else {
-            const allIds = new Set(users.data.map(u => u.id));
+            const allIds = new Set(users.data.map((u) => u.id));
             setSelectedUserIds(allIds);
             setSelectAll(true);
         }
@@ -94,7 +94,7 @@ export default function EmailIndex({ users, filters }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (selectedUserIds.size === 0) {
             toast({
                 title: 'No recipients selected',
@@ -106,7 +106,7 @@ export default function EmailIndex({ users, filters }: Props) {
 
         const userIdsArray = Array.from(selectedUserIds);
         setData('user_ids', userIdsArray);
-        
+
         post('/admin/emails/send', {
             preserveScroll: true,
             onSuccess: () => {
@@ -129,7 +129,7 @@ export default function EmailIndex({ users, filters }: Props) {
     };
 
     const selectedUsers = Array.from(selectedUserIds)
-        .map(id => users.data.find(u => u.id === id))
+        .map((id) => users.data.find((u) => u.id === id))
         .filter(Boolean) as User[];
 
     return (
@@ -160,7 +160,7 @@ export default function EmailIndex({ users, filters }: Props) {
                             </div>
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
-                            <div className="text-3xl font-bold tabular-nums tracking-tight">{users.total.toLocaleString()}</div>
+                            <div className="text-3xl font-bold tracking-tight tabular-nums">{users.total.toLocaleString()}</div>
                             <p className="mt-1 text-xs text-muted-foreground/60">Available recipients</p>
                         </EnhancedCardContent>
                     </EnhancedCard>
@@ -173,7 +173,9 @@ export default function EmailIndex({ users, filters }: Props) {
                             </div>
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
-                            <div className="text-3xl font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">{selectedUserIds.size}</div>
+                            <div className="text-3xl font-bold tracking-tight text-emerald-600 tabular-nums dark:text-emerald-400">
+                                {selectedUserIds.size}
+                            </div>
                             <p className="mt-1 text-xs text-muted-foreground/60">Recipients chosen</p>
                         </EnhancedCardContent>
                     </EnhancedCard>
@@ -186,7 +188,7 @@ export default function EmailIndex({ users, filters }: Props) {
                             </div>
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
-                            <div className="text-3xl font-bold tabular-nums tracking-tight">{users.data.length}</div>
+                            <div className="text-3xl font-bold tracking-tight tabular-nums">{users.data.length}</div>
                             <p className="mt-1 text-xs text-muted-foreground/60">Showing on current page</p>
                         </EnhancedCardContent>
                     </EnhancedCard>
@@ -205,12 +207,8 @@ export default function EmailIndex({ users, filters }: Props) {
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
                             <div className="flex flex-wrap gap-2">
-                                {selectedUsers.map(user => (
-                                    <GlowingBadge
-                                        key={user.id}
-                                        variant="info"
-                                        className="group flex items-center gap-1.5 pr-1"
-                                    >
+                                {selectedUsers.map((user) => (
+                                    <GlowingBadge key={user.id} variant="info" className="group flex items-center gap-1.5 pr-1">
                                         <span>{user.name}</span>
                                         <button
                                             type="button"
@@ -229,7 +227,7 @@ export default function EmailIndex({ users, filters }: Props) {
                 {/* Search Bar */}
                 <div className="flex gap-3">
                     <div className="relative max-w-md flex-1">
-                        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
+                        <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
                         <Input
                             type="text"
                             placeholder="Search users by name or email... (Press Enter)"
@@ -240,8 +238,8 @@ export default function EmailIndex({ users, filters }: Props) {
                         />
                     </div>
                     {search && (
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={clearSearch}
                             className="border-border/40 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:bg-card/80"
                         >
@@ -261,9 +259,7 @@ export default function EmailIndex({ users, filters }: Props) {
                                         type="button"
                                         onClick={toggleSelectAll}
                                         className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${
-                                            selectAll
-                                                ? 'border-primary bg-primary'
-                                                : 'border-border hover:border-primary/50 hover:bg-primary/10'
+                                            selectAll ? 'border-primary bg-primary' : 'border-border hover:border-primary/50 hover:bg-primary/10'
                                         }`}
                                     >
                                         {selectAll && <CheckIcon className="h-4 w-4 text-white" />}
@@ -276,7 +272,7 @@ export default function EmailIndex({ users, filters }: Props) {
                         </TableHeader>
                         <TableBody>
                             {users.data.map((user) => (
-                                <TableRow 
+                                <TableRow
                                     key={user.id}
                                     className="group cursor-pointer border-border/30 transition-all duration-200 hover:bg-primary/[0.03]"
                                     onClick={() => toggleUserSelection(user.id)}
@@ -294,9 +290,7 @@ export default function EmailIndex({ users, filters }: Props) {
                                                     : 'border-border hover:border-primary/50 hover:bg-primary/10'
                                             }`}
                                         >
-                                            {selectedUserIds.has(user.id) && (
-                                                <CheckIcon className="h-4 w-4 text-white" />
-                                            )}
+                                            {selectedUserIds.has(user.id) && <CheckIcon className="h-4 w-4 text-white" />}
                                         </button>
                                     </TableCell>
                                     <TableCell>
@@ -304,16 +298,15 @@ export default function EmailIndex({ users, filters }: Props) {
                                             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-sm font-medium text-primary/70 ring-2 ring-border/20 transition-all duration-300 group-hover:ring-primary/30">
                                                 {user.name.charAt(0).toUpperCase()}
                                             </div>
-                                            <span className="font-medium text-foreground/90 transition-colors duration-200 group-hover:text-foreground">{user.name}</span>
+                                            <span className="font-medium text-foreground/90 transition-colors duration-200 group-hover:text-foreground">
+                                                {user.name}
+                                            </span>
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-muted-foreground/70">{user.email}</TableCell>
                                     <TableCell>
-                                        <GlowingBadge
-                                            variant={selectedUserIds.has(user.id) ? "success" : "slate"}
-                                            size="sm"
-                                        >
-                                            {selectedUserIds.has(user.id) ? "Selected" : "—"}
+                                        <GlowingBadge variant={selectedUserIds.has(user.id) ? 'success' : 'slate'} size="sm">
+                                            {selectedUserIds.has(user.id) ? 'Selected' : '—'}
                                         </GlowingBadge>
                                     </TableCell>
                                 </TableRow>
@@ -369,9 +362,7 @@ export default function EmailIndex({ users, filters }: Props) {
                                     className="border-border/40 bg-card/50 backdrop-blur-sm transition-all duration-300 focus:border-primary/50 focus:bg-card/80"
                                     required
                                 />
-                                {errors.subject && (
-                                    <p className="text-sm text-destructive">{errors.subject}</p>
-                                )}
+                                {errors.subject && <p className="text-sm text-destructive">{errors.subject}</p>}
                             </div>
 
                             {/* Message */}
@@ -388,12 +379,8 @@ export default function EmailIndex({ users, filters }: Props) {
                                     className="resize-none border-border/40 bg-card/50 backdrop-blur-sm transition-all duration-300 focus:border-primary/50 focus:bg-card/80"
                                     required
                                 />
-                                {errors.message && (
-                                    <p className="text-sm text-destructive">{errors.message}</p>
-                                )}
-                                <p className="text-xs text-muted-foreground">
-                                    {data.message.length} / 10,000 characters
-                                </p>
+                                {errors.message && <p className="text-sm text-destructive">{errors.message}</p>}
+                                <p className="text-xs text-muted-foreground">{data.message.length} / 10,000 characters</p>
                             </div>
 
                             {/* Submit */}

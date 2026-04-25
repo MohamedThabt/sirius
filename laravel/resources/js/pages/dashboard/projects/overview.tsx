@@ -1,3 +1,4 @@
+import { MermaidDiagram } from '@/components/MermaidDiagram';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +26,6 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
-import { MermaidDiagram } from '@/components/MermaidDiagram';
 
 // Mermaid initialization moved to useEffect for theme awareness
 

@@ -1,14 +1,14 @@
 import '../css/app.css';
 
-import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { CreditLimitModal } from '@/components/CreditLimitModal';
+import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { Toaster } from '@/components/ui/sonner';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import { createElement, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'sonner';
 import { initializeTheme } from './hooks/use-appearance';
-import { createElement, useState } from 'react';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -72,27 +72,30 @@ router.on('error', (event) => {
 // Handle HTTP errors (including 402 Credit Limit)
 router.on('exception', (event) => {
     const response = event.detail.response;
-    
+
     if (response?.status === 402) {
         event.preventDefault(); // Prevent default error handling
-        
+
         // Try to parse response
-        response.json().then((data: any) => {
-            const message = data.message || 'Credit limit reached. Please upgrade your plan or purchase additional credits.';
-            const balance = data.credits_balance;
-            
-            if (showCreditLimitModal) {
-                showCreditLimitModal(message, balance);
-            } else {
-                toast.error(message);
-            }
-        }).catch(() => {
-            if (showCreditLimitModal) {
-                showCreditLimitModal('Credit limit reached. Please upgrade your plan or purchase additional credits.');
-            } else {
-                toast.error('Credit limit reached. Please upgrade your plan or purchase additional credits.');
-            }
-        });
+        response
+            .json()
+            .then((data: any) => {
+                const message = data.message || 'Credit limit reached. Please upgrade your plan or purchase additional credits.';
+                const balance = data.credits_balance;
+
+                if (showCreditLimitModal) {
+                    showCreditLimitModal(message, balance);
+                } else {
+                    toast.error(message);
+                }
+            })
+            .catch(() => {
+                if (showCreditLimitModal) {
+                    showCreditLimitModal('Credit limit reached. Please upgrade your plan or purchase additional credits.');
+                } else {
+                    toast.error('Credit limit reached. Please upgrade your plan or purchase additional credits.');
+                }
+            });
     }
 });
 

@@ -1,11 +1,11 @@
+import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Download, Maximize2, Minimize2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
 
 interface Project {
     id: number;
@@ -61,7 +61,7 @@ export default function SequenceDiagram({ project, feature, initialContent }: Pr
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title={`Sequence Diagram - ${feature.name}`} />
 
-                <div className="w-full max-w-7xl mx-auto space-y-4 rounded-xl p-4 md:p-6">
+                <div className="mx-auto w-full max-w-7xl space-y-4 rounded-xl p-4 md:p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Sequence Diagram</h1>

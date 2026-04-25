@@ -1,27 +1,9 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type GraphData } from '@/types';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-    type ChartConfig,
-} from '@/components/ui/chart';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { useState } from 'react';
 
 interface UsageChartProps {
     graphData: GraphData[];
@@ -62,15 +44,10 @@ export function UsageChart({ graphData }: UsageChartProps) {
             <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
                 <div className="grid flex-1 gap-1">
                     <CardTitle>Usage Analytics</CardTitle>
-                    <CardDescription>
-                        Track your credit consumption over time
-                    </CardDescription>
+                    <CardDescription>Track your credit consumption over time</CardDescription>
                 </div>
                 <Select value={timeRange} onValueChange={setTimeRange}>
-                    <SelectTrigger
-                        className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
-                        aria-label="Select a value"
-                    >
+                    <SelectTrigger className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex" aria-label="Select a value">
                         <SelectValue placeholder="Last 30 days" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -87,23 +64,12 @@ export function UsageChart({ graphData }: UsageChartProps) {
                 </Select>
             </CardHeader>
             <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-                <ChartContainer
-                    config={chartConfig}
-                    className="aspect-auto h-[250px] w-full"
-                >
+                <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
                     <AreaChart data={filteredData}>
                         <defs>
                             <linearGradient id="fillCredits" x1="0" y1="0" x2="0" y2="1">
-                                <stop
-                                    offset="5%"
-                                    stopColor="var(--color-credits)"
-                                    stopOpacity={0.8}
-                                />
-                                <stop
-                                    offset="95%"
-                                    stopColor="var(--color-credits)"
-                                    stopOpacity={0.1}
-                                />
+                                <stop offset="5%" stopColor="var(--color-credits)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-credits)" stopOpacity={0.1} />
                             </linearGradient>
                         </defs>
                         <CartesianGrid vertical={false} />
@@ -138,12 +104,7 @@ export function UsageChart({ graphData }: UsageChartProps) {
                                 />
                             }
                         />
-                        <Area
-                            dataKey="credits"
-                            type="natural"
-                            fill="url(#fillCredits)"
-                            stroke="var(--color-credits)"
-                        />
+                        <Area dataKey="credits" type="natural" fill="url(#fillCredits)" stroke="var(--color-credits)" />
                     </AreaChart>
                 </ChartContainer>
             </CardContent>

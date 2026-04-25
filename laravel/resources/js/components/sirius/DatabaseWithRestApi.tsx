@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Brain, FileText, GitBranch, Layers, SparklesIcon, Users } from 'lucide-react';
+import { Brain, GitBranch, SparklesIcon, Users } from 'lucide-react';
 import React from 'react';
 
 interface DatabaseWithRestApiProps {
@@ -140,7 +140,7 @@ const DatabaseWithRestApi: React.FC<DatabaseWithRestApiProps> = ({
                 </div>
 
                 {/* Box outer circle with icon */}
-                <div className="absolute -bottom-8 z-30 grid h-[60px] w-[60px] place-items-center rounded-full border-t border-border bg-card font-semibold text-xs">
+                <div className="absolute -bottom-8 z-30 grid h-[60px] w-[60px] place-items-center rounded-full border-t border-border bg-card text-xs font-semibold">
                     <div className="flex flex-col items-center justify-center">
                         <Brain className="h-4 w-4 text-primary" />
                         <span className="mt-0.5 text-[8px] text-foreground">{circleText}</span>
@@ -154,7 +154,7 @@ const DatabaseWithRestApi: React.FC<DatabaseWithRestApiProps> = ({
                         <Users className="size-4 text-primary" />
                         <span className="text-foreground">{leftBadgeText}</span>
                     </div>
-                    <div className="absolute right-8 top-6 z-10 hidden h-7 items-center gap-2 rounded-full border border-border bg-card px-3 text-xs sm:right-16 sm:flex">
+                    <div className="absolute top-6 right-8 z-10 hidden h-7 items-center gap-2 rounded-full border border-border bg-card px-3 text-xs sm:right-16 sm:flex">
                         <GitBranch className="size-4 text-primary" />
                         <span className="text-foreground">{buttonText}</span>
                     </div>

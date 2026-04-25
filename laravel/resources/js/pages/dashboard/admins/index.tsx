@@ -1,26 +1,20 @@
+import { ClientDateTime } from '@/components/ClientDateTime';
+import { PaginationControls } from '@/components/PaginationControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ClientDateTime } from '@/components/ClientDateTime';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { createAdminSchema, updateAdminSchema } from '@/lib/validations';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
-import { PencilIcon, PlusIcon, TrashIcon, ShieldIcon, ShieldCheckIcon, AlertCircleIcon } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { AlertCircleIcon, PencilIcon, PlusIcon, ShieldCheckIcon, ShieldIcon, TrashIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { createAdminSchema, updateAdminSchema } from '@/lib/validations';
-import { PaginationControls } from '@/components/PaginationControls';
 
 interface Admin {
     id: number;
@@ -171,7 +165,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
 
     const handleCreateSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Validate with Zod
         const result = createAdminSchema.safeParse(createForm.data);
         if (!result.success) {
@@ -309,9 +303,9 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                         </TableHeader>
                         <TableBody>
                             {admins.data.map((admin) => (
-                                <TableRow 
-                                    key={admin.id} 
-                                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                <TableRow
+                                    key={admin.id}
+                                    className="cursor-pointer transition-colors hover:bg-muted/50"
                                     onClick={() => handleRowClick(admin)}
                                 >
                                     <TableCell className="font-medium">{admin.name}</TableCell>
@@ -322,14 +316,12 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                         </Badge>
                                     </TableCell>
                                     <TableCell>{admin.creator ? admin.creator.name : 'System'}</TableCell>
-                                    <TableCell><ClientDateTime value={admin.created_at} dateStyle="short" /></TableCell>
+                                    <TableCell>
+                                        <ClientDateTime value={admin.created_at} dateStyle="short" />
+                                    </TableCell>
                                     <TableCell>
                                         <div className="flex gap-2">
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm"
-                                                onClick={(e) => handleEditClick(admin, e)}
-                                            >
+                                            <Button variant="outline" size="sm" onClick={(e) => handleEditClick(admin, e)}>
                                                 <PencilIcon className="h-4 w-4" />
                                             </Button>
                                             <Button
@@ -358,12 +350,12 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                 )}
 
                 {/* Pagination */}
-                <PaginationControls 
+                <PaginationControls
                     data={admins}
                     baseUrl="/admin/admins"
                     preserveFilters={{
                         search: search || undefined,
-                        role: (roleFilter && roleFilter !== 'all') ? roleFilter : undefined,
+                        role: roleFilter && roleFilter !== 'all' ? roleFilter : undefined,
                     }}
                 />
 
@@ -383,7 +375,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     onChange={(e) => {
                                         createForm.setData('name', e.target.value);
                                         if (createValidationErrors.name) {
-                                            setCreateValidationErrors(prev => ({ ...prev, name: '' }));
+                                            setCreateValidationErrors((prev) => ({ ...prev, name: '' }));
                                         }
                                     }}
                                     className={createValidationErrors.name || createForm.errors.name ? 'border-red-500' : ''}
@@ -407,7 +399,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     onChange={(e) => {
                                         createForm.setData('email', e.target.value);
                                         if (createValidationErrors.email) {
-                                            setCreateValidationErrors(prev => ({ ...prev, email: '' }));
+                                            setCreateValidationErrors((prev) => ({ ...prev, email: '' }));
                                         }
                                     }}
                                     className={createValidationErrors.email || createForm.errors.email ? 'border-red-500' : ''}
@@ -431,7 +423,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     onChange={(e) => {
                                         createForm.setData('password', e.target.value);
                                         if (createValidationErrors.password) {
-                                            setCreateValidationErrors(prev => ({ ...prev, password: '' }));
+                                            setCreateValidationErrors((prev) => ({ ...prev, password: '' }));
                                         }
                                     }}
                                     className={createValidationErrors.password || createForm.errors.password ? 'border-red-500' : ''}
@@ -453,7 +445,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     onValueChange={(value) => {
                                         createForm.setData('role', value);
                                         if (createValidationErrors.role) {
-                                            setCreateValidationErrors(prev => ({ ...prev, role: '' }));
+                                            setCreateValidationErrors((prev) => ({ ...prev, role: '' }));
                                         }
                                     }}
                                 >
@@ -474,11 +466,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                             </div>
 
                             <DialogFooter>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setIsCreateModalOpen(false)}
-                                >
+                                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                                     Cancel
                                 </Button>
                                 <Button type="submit" disabled={createForm.processing}>
@@ -505,7 +493,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     onChange={(e) => {
                                         editForm.setData('name', e.target.value);
                                         if (editValidationErrors.name) {
-                                            setEditValidationErrors(prev => ({ ...prev, name: '' }));
+                                            setEditValidationErrors((prev) => ({ ...prev, name: '' }));
                                         }
                                     }}
                                     className={editValidationErrors.name || editForm.errors.name ? 'border-red-500' : ''}
@@ -529,7 +517,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     onChange={(e) => {
                                         editForm.setData('email', e.target.value);
                                         if (editValidationErrors.email) {
-                                            setEditValidationErrors(prev => ({ ...prev, email: '' }));
+                                            setEditValidationErrors((prev) => ({ ...prev, email: '' }));
                                         }
                                     }}
                                     className={editValidationErrors.email || editForm.errors.email ? 'border-red-500' : ''}
@@ -553,7 +541,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     onChange={(e) => {
                                         editForm.setData('password', e.target.value);
                                         if (editValidationErrors.password) {
-                                            setEditValidationErrors(prev => ({ ...prev, password: '' }));
+                                            setEditValidationErrors((prev) => ({ ...prev, password: '' }));
                                         }
                                     }}
                                     className={editValidationErrors.password || editForm.errors.password ? 'border-red-500' : ''}
@@ -565,9 +553,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                         {editValidationErrors.password || editForm.errors.password}
                                     </div>
                                 )}
-                                <p className="text-sm text-muted-foreground">
-                                    Leave blank to keep the current password
-                                </p>
+                                <p className="text-sm text-muted-foreground">Leave blank to keep the current password</p>
                             </div>
 
                             <div className="space-y-2">
@@ -577,7 +563,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                                     onValueChange={(value) => {
                                         editForm.setData('role', value);
                                         if (editValidationErrors.role) {
-                                            setEditValidationErrors(prev => ({ ...prev, role: '' }));
+                                            setEditValidationErrors((prev) => ({ ...prev, role: '' }));
                                         }
                                     }}
                                 >
@@ -598,11 +584,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                             </div>
 
                             <DialogFooter>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setIsEditModalOpen(false)}
-                                >
+                                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
                                     Cancel
                                 </Button>
                                 <Button type="submit" disabled={editForm.processing}>

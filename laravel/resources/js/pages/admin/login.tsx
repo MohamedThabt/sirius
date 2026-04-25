@@ -1,10 +1,10 @@
+import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GridPattern } from '@/components/ui/shadcn-io/grid-pattern';
-import AppLogoIcon from '@/components/app-logo-icon';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ShieldIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -32,26 +32,38 @@ export default function AdminLogin() {
         <>
             <Head title="Admin Login" />
 
-            <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+            <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
                 {/* Grid Pattern Background */}
                 <GridPattern
                     width={40}
                     height={40}
                     x={-1}
                     y={-1}
-                    className="absolute inset-0 h-full w-full fill-primary/[0.02] stroke-border/40 [mask-image:radial-gradient(700px_circle_at_center,white,transparent)]"
+                    className="absolute inset-0 h-full w-full [mask-image:radial-gradient(700px_circle_at_center,white,transparent)] fill-primary/[0.02] stroke-border/40"
                     squares={[
-                        [2, 3], [5, 1], [8, 4], [12, 2], [15, 5],
-                        [3, 8], [7, 6], [10, 9], [14, 7], [18, 3],
-                        [1, 12], [6, 10], [11, 13], [16, 11], [20, 8],
+                        [2, 3],
+                        [5, 1],
+                        [8, 4],
+                        [12, 2],
+                        [15, 5],
+                        [3, 8],
+                        [7, 6],
+                        [10, 9],
+                        [14, 7],
+                        [18, 3],
+                        [1, 12],
+                        [6, 10],
+                        [11, 13],
+                        [16, 11],
+                        [20, 8],
                     ]}
                 />
 
                 {/* Subtle radial accent */}
-                <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.03] rounded-full blur-3xl z-0" />
+                <div className="absolute top-1/3 left-1/2 z-0 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.03] blur-3xl" />
 
                 <div className="relative z-10 flex min-h-screen items-center justify-center p-4 sm:p-6">
-                    <div 
+                    <div
                         className="w-full max-w-md space-y-8"
                         style={{
                             opacity: isVisible ? 1 : 0,
@@ -60,22 +72,19 @@ export default function AdminLogin() {
                         }}
                     >
                         {/* Logo */}
-                        <Link 
-                            href="/" 
-                            className="flex items-center justify-center transition-all duration-300 hover:opacity-80 hover:scale-105"
-                        >
+                        <Link href="/" className="flex items-center justify-center transition-all duration-300 hover:scale-105 hover:opacity-80">
                             <AppLogoIcon className="h-10 w-auto" />
                         </Link>
 
-                        <Card className="border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl">
-                            <CardHeader className="text-center space-y-3 pb-6">
-                                <div className="flex justify-center mb-2">
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
+                        <Card className="border-border/50 bg-card/80 shadow-2xl backdrop-blur-xl">
+                            <CardHeader className="space-y-3 pb-6 text-center">
+                                <div className="mb-2 flex justify-center">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
                                         <ShieldIcon className="h-6 w-6 text-primary" />
                                     </div>
                                 </div>
                                 <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
-                                <CardDescription className="text-sm text-muted-foreground leading-relaxed">
+                                <CardDescription className="text-sm leading-relaxed text-muted-foreground">
                                     Sign in to access the admin dashboard
                                 </CardDescription>
                             </CardHeader>
@@ -138,4 +147,3 @@ export default function AdminLogin() {
         </>
     );
 }
-

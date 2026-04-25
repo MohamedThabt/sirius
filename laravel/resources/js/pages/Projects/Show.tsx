@@ -2,31 +2,18 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
 import ProjectFlowCanvas from '@/components/Projects/ProjectFlowCanvas';
 import ProjectMetricsPanel from '@/components/Projects/ProjectMetricsPanel';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useInitials } from '@/hooks/use-initials';
-import { type User, type Project, type Sections } from '@/types';
+import { type Project, type Sections, type User } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
-import { getPriorityColor } from '@/utils/status-colors';
 import { Head, router, usePage } from '@inertiajs/react';
-import { 
-    ChevronDown, 
-    ChevronUp, 
-    ClipboardList,
-    Code2,
-    Database,
-    FileText,
-    LayoutGrid,
-    MenuIcon,
-    Network,
-    ScrollText,
-    Target
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, ClipboardList, Code2, Database, LayoutGrid, MenuIcon, Network, ScrollText, Target } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 // WHY: Using shared Project and Sections types from @/types instead of duplicate definitions
@@ -302,7 +289,7 @@ export default function ProjectShow({
             isGeneratingPRD,
             isGeneratingArchitecture,
             navigatingStepId,
-        ]
+        ],
     );
     const currentStep = roadmapSteps.find((step) => step.isCurrent);
     const completedStepsCount = roadmapSteps.filter((step) => step.isCompleted).length;
@@ -460,11 +447,15 @@ export default function ProjectShow({
                             <div className="flex items-center gap-3">
                                 <Sheet>
                                     <SheetTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                        >
                                             <MenuIcon className="h-4 w-4" />
                                         </Button>
                                     </SheetTrigger>
-                                    <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                    <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                         <ProjectSidebarPanel
                                             project={project}
                                             navGroups={navGroups}
@@ -484,11 +475,7 @@ export default function ProjectShow({
                         {/* Split layout container - Always vertical */}
                         <div className="relative flex flex-1 flex-col overflow-hidden">
                             {/* Canvas Section */}
-                            <div
-                                className={`relative flex flex-col overflow-hidden transition-all ${
-                                    isCanvasExpanded ? 'h-full' : 'flex-1'
-                                }`}
-                            >
+                            <div className={`relative flex flex-col overflow-hidden transition-all ${isCanvasExpanded ? 'h-full' : 'flex-1'}`}>
                                 <ProjectFlowCanvas
                                     steps={roadmapSteps.map((step) => ({
                                         ...step,
@@ -524,7 +511,7 @@ export default function ProjectShow({
 
                             {/* Metrics Panel Section */}
                             {!isCanvasExpanded && (
-                                <div className="border-t border-border/50 shrink-0">
+                                <div className="shrink-0 border-t border-border/50">
                                     <ProjectMetricsPanel
                                         projectId={project.id}
                                         completionPercentage={completionPercentage}

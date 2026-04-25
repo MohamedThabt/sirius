@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData } from '@/types';
-import { type FeatureItem, type ModuleItem } from '@/types/modules';
+import { type FeatureItem } from '@/types/modules';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant, Edge, Node } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
@@ -626,13 +626,7 @@ export default function DatabaseDesigner({ project, feature, initialContent, fea
                                     </div>
 
                                     {/* Error Panel - Placed at top for visibility */}
-                                    {error && (
-                                        <DiagramErrorPanel
-                                            error={error}
-                                            onFixRequest={handleFixError}
-                                            className="mx-3 mt-3 shrink-0"
-                                        />
-                                    )}
+                                    {error && <DiagramErrorPanel error={error} onFixRequest={handleFixError} className="mx-3 mt-3 shrink-0" />}
 
                                     {/* Editor Content Area */}
                                     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">

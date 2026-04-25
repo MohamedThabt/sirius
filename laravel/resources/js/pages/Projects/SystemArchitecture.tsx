@@ -2,42 +2,24 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import JsonEditor from '@/components/c4-diagram/JsonEditor';
 import ReactFlowDiagram from '@/components/c4-diagram/ReactFlowDiagram';
 import { DiagramErrorPanel } from '@/components/diagram/DiagramErrorPanel';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Toaster } from '@/components/ui/sonner';
 import { TextShimmer } from '@/components/ui/text-shimmer';
-import { useC4Parser } from '@/hooks/useC4Parser';
-import { type User, type Project, type Sections } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { useResizablePanel } from '@/hooks/use-resizable-panel';
+import { useIsDarkMode } from '@/hooks/use-theme-detection';
+import { useC4Parser } from '@/hooks/useC4Parser';
+import { type Project, type Sections, type User } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    ChevronLeft,
-    ChevronRight,
-    Code,
-    Download,
-    Layout,
-    Maximize2,
-    Menu,
-    Minimize2,
-    PanelLeftClose,
-    PanelLeftOpen,
-    Save,
-    Settings,
-    Share2,
-    Sparkles,
-    ZoomIn,
-    ZoomOut,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, Menu, Minimize2, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
-import { useIsDarkMode } from '@/hooks/use-theme-detection';
-import { useResizablePanel } from '@/hooks/use-resizable-panel';
 
 // Project and Sections types now imported from '@/types' via the SidebarToggle and other imports
 
@@ -78,7 +60,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
     const [isGenerating, setIsGenerating] = useState(initialIsGenerating);
     const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
-    
+
     // Handle flash data from AI edit
     useEffect(() => {
         if (flash?.updatedC4) {
@@ -87,7 +69,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
             toast.success('C4 diagram updated successfully! Click Save to persist changes.');
         }
     }, [flash?.updatedC4]);
-    
+
     // Track content changes for isDirty state
     useEffect(() => {
         setIsDirty(content !== lastSavedContent);
@@ -102,7 +84,12 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
     const isDarkMode = useIsDarkMode();
 
     // WHY: Replaced ~60 lines of resize logic with shared hook
-    const { width: leftWidth, isResizing, handleMouseDown, containerRef } = useResizablePanel({
+    const {
+        width: leftWidth,
+        isResizing,
+        handleMouseDown,
+        containerRef,
+    } = useResizablePanel({
         initialWidth: 50,
         minWidth: 20,
         maxWidth: 80,
@@ -194,7 +181,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
         if (!prompt.trim()) return;
 
         setIsConverting(true);
-        
+
         router.post(
             `/projects/${project.id}/c4/ai-edit`,
             { engineer_notes: prompt },
@@ -207,13 +194,13 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                 onFinish: () => {
                     setIsConverting(false);
                 },
-            }
+            },
         );
     };
 
     const handleSave = async () => {
         setIsConverting(true);
-        
+
         router.post(
             `/projects/${project.id}/c4/save`,
             { c4_content: content },
@@ -226,7 +213,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                 onFinish: () => {
                     setIsConverting(false);
                 },
-            }
+            },
         );
     };
 
@@ -257,11 +244,15 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                     <div className="mb-4 flex items-center gap-3">
                                         <Sheet>
                                             <SheetTrigger asChild>
-                                                <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                                >
                                                     <Menu className="h-4 w-4" />
                                                 </Button>
                                             </SheetTrigger>
-                                            <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                            <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                                 <ProjectSidebarPanel
                                                     project={project}
                                                     navGroups={navGroups}
@@ -366,7 +357,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
 
                                             {/* Left Panel - Editor - Hidden in full screen */}
                                             {!isFullScreen && (
-                                                <div 
+                                                <div
                                                     className={`flex min-h-0 min-w-0 flex-col overflow-hidden transition-all duration-300 ease-in-out ${isEditorCollapsed ? 'pointer-events-none w-0 opacity-0' : 'opacity-100'} ${isResizing ? 'pointer-events-none' : ''}`}
                                                     style={{ width: isEditorCollapsed ? '0' : `${leftWidth}%` }}
                                                 >
@@ -374,8 +365,8 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                                         {/* Editor Header with Save Button */}
                                                         {isDirty && (
                                                             <div className="absolute top-2 right-2 z-50">
-                                                                <Button 
-                                                                    onClick={handleSave} 
+                                                                <Button
+                                                                    onClick={handleSave}
                                                                     disabled={isConverting || !!error}
                                                                     className="bg-primary px-4 text-primary-foreground shadow-md transition-colors hover:bg-primary/90"
                                                                 >
@@ -432,7 +423,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                                     className="group relative z-10 w-1 cursor-col-resize bg-border transition-colors hover:bg-primary/50"
                                                     onMouseDown={handleMouseDown}
                                                 >
-                                                    <div className="absolute inset-y-0 -left-1 -right-1" />
+                                                    <div className="absolute inset-y-0 -right-1 -left-1" />
                                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                                                         <div className="h-8 w-1 rounded-full bg-primary" />
                                                     </div>

@@ -67,19 +67,19 @@ const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
         // Enhanced spacing for nodes with special handling for external nodes
         let nodes: Node[] = c4Diagram.elements.map((element, index) => {
             let position = element.position;
-            
+
             // If element has position and is external, push it away from boundary
             if (position && (element.type === 'external-person' || element.type === 'external-system' || element.isExternal)) {
                 if (boundaryInfo) {
                     const boundaryCenterX = boundaryInfo.x + boundaryInfo.width / 2;
                     const boundaryCenterY = boundaryInfo.y + boundaryInfo.height / 2;
-                    
+
                     const offsetMultiplier = 1.15; // Push external elements 15% further from center
-                    
+
                     // Calculate direction from boundary center to element
                     const deltaX = position.x - boundaryCenterX;
                     const deltaY = position.y - boundaryCenterY;
-                    
+
                     // Push element further in that direction
                     position = {
                         x: boundaryCenterX + deltaX * offsetMultiplier,
@@ -87,7 +87,7 @@ const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
                     };
                 }
             }
-            
+
             // Fallback for elements without position
             if (!position) {
                 const isExternal = element.type === 'external-person' || element.type === 'external-system';
@@ -98,7 +98,7 @@ const Diagram = ({ c4Diagram }: { c4Diagram: C4Diagram }) => {
                     y: 100 + Math.floor(index / 4) * verticalGap,
                 };
             }
-            
+
             return {
                 id: element.id,
                 type: 'c4Node',

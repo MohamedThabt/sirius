@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { ActivityIcon, CoinsIcon, CpuIcon, DollarSignIcon, ZapIcon, CalendarIcon } from 'lucide-react';
+import { ActivityIcon, CalendarIcon, CoinsIcon, CpuIcon, DollarSignIcon, ZapIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 interface User {
     id: number;
@@ -94,13 +94,13 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
 
     const applyFilters = (newFilters: Partial<typeof filters> = {}) => {
         const filterData: Record<string, string> = {};
-        
+
         const searchValue = newFilters.search !== undefined ? newFilters.search : search;
-        const actionTypeValue = newFilters.action_type !== undefined ? newFilters.action_type : (filters.action_type || 'all');
-        const modelValue = newFilters.model !== undefined ? newFilters.model : (filters.model || 'all');
+        const actionTypeValue = newFilters.action_type !== undefined ? newFilters.action_type : filters.action_type || 'all';
+        const modelValue = newFilters.model !== undefined ? newFilters.model : filters.model || 'all';
         const dateFromValue = newFilters.date_from !== undefined ? newFilters.date_from : dateFrom;
         const dateToValue = newFilters.date_to !== undefined ? newFilters.date_to : dateTo;
-        
+
         if (searchValue) filterData.search = searchValue;
         if (actionTypeValue && actionTypeValue !== 'all') filterData.action_type = actionTypeValue;
         if (modelValue && modelValue !== 'all') filterData.model = modelValue;
@@ -329,9 +329,9 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
                         </TableHeader>
                         <TableBody>
                             {logs.data.map((log) => (
-                                <TableRow 
-                                    key={log.id} 
-                                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                <TableRow
+                                    key={log.id}
+                                    className="cursor-pointer transition-colors hover:bg-muted/50"
                                     onClick={() => router.visit(`/admin/usage-logs/${log.id}`)}
                                 >
                                     <TableCell>
@@ -346,27 +346,13 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {log.model ? (
-                                            <Badge variant="outline">{log.model}</Badge>
-                                        ) : (
-                                            <span className="text-muted-foreground">-</span>
-                                        )}
+                                        {log.model ? <Badge variant="outline">{log.model}</Badge> : <span className="text-muted-foreground">-</span>}
                                     </TableCell>
-                                    <TableCell className="text-right font-mono">
-                                        {log.input_tokens.toLocaleString()}
-                                    </TableCell>
-                                    <TableCell className="text-right font-mono">
-                                        {log.output_tokens.toLocaleString()}
-                                    </TableCell>
-                                    <TableCell className="text-right font-mono font-medium">
-                                        {log.credits_used.toLocaleString()}
-                                    </TableCell>
-                                    <TableCell className="text-right font-mono">
-                                        {log.cost ? `$${parseFloat(log.cost).toFixed(4)}` : '-'}
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {new Date(log.created_at).toLocaleString()}
-                                    </TableCell>
+                                    <TableCell className="text-right font-mono">{log.input_tokens.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right font-mono">{log.output_tokens.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right font-mono font-medium">{log.credits_used.toLocaleString()}</TableCell>
+                                    <TableCell className="text-right font-mono">{log.cost ? `$${parseFloat(log.cost).toFixed(4)}` : '-'}</TableCell>
+                                    <TableCell className="text-sm text-muted-foreground">{new Date(log.created_at).toLocaleString()}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -375,11 +361,9 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
 
                 {logs.data.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-12">
-                        <ActivityIcon className="h-12 w-12 text-muted-foreground/20 mb-3" />
+                        <ActivityIcon className="mb-3 h-12 w-12 text-muted-foreground/20" />
                         <p className="text-lg font-medium text-muted-foreground">No usage logs found</p>
-                        {hasFilters && (
-                            <p className="text-sm text-muted-foreground">Try adjusting your search criteria</p>
-                        )}
+                        {hasFilters && <p className="text-sm text-muted-foreground">Try adjusting your search criteria</p>}
                     </div>
                 )}
 
@@ -389,8 +373,8 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
                     baseUrl="/admin/usage-logs"
                     preserveFilters={{
                         search: search || undefined,
-                        action_type: (filters.action_type && filters.action_type !== 'all') ? filters.action_type : undefined,
-                        model: (filters.model && filters.model !== 'all') ? filters.model : undefined,
+                        action_type: filters.action_type && filters.action_type !== 'all' ? filters.action_type : undefined,
+                        model: filters.model && filters.model !== 'all' ? filters.model : undefined,
                         date_from: dateFrom || undefined,
                         date_to: dateTo || undefined,
                         user_id: filters.user_id || undefined,

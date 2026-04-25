@@ -114,9 +114,9 @@ const FlowCanvas = ({
     const incompleteEdgeColor = isDarkMode ? '#404040' : '#d4d4d4';
 
     const toggleModuleExpanded = useCallback((moduleId: number) => {
-        setExpandedModules(prev => ({
+        setExpandedModules((prev) => ({
             ...prev,
-            [moduleId]: !prev[moduleId]
+            [moduleId]: !prev[moduleId],
         }));
     }, []);
 
@@ -201,37 +201,38 @@ const FlowCanvas = ({
             const startModuleX = modulesNodeX - totalWidth / 2 + moduleNodeWidth / 2;
 
             // Calculate which modules are expanded and their feature counts
-            const expandedModuleIndices = modules.map((m, i) => ({
-                index: i,
-                isExpanded: expandedModules[m.id] || false,
-                featureCount: m.features?.length || 0,
-                module: m
-            })).filter(m => m.isExpanded);
+            const expandedModuleIndices = modules
+                .map((m, i) => ({
+                    index: i,
+                    isExpanded: expandedModules[m.id] || false,
+                    featureCount: m.features?.length || 0,
+                    module: m,
+                }))
+                .filter((m) => m.isExpanded);
 
             // Calculate cumulative horizontal offset for each expanded module's features
             let cumulativeFeatureOffset = 0;
             const featureOffsets: Record<number, { startX: number; rowY: number }> = {};
-            
+
             const featureNodeWidth = 200;
             const featureSpacing = 60;
             const featureStride = featureNodeWidth + featureSpacing;
             const baseFeatureRowY = moduleRowY + 280;
 
             expandedModuleIndices.forEach((expandedModule, expandedIndex) => {
-                const totalFeatureWidth = expandedModule.featureCount * featureNodeWidth + 
-                    (expandedModule.featureCount - 1) * featureSpacing;
-                
+                const totalFeatureWidth = expandedModule.featureCount * featureNodeWidth + (expandedModule.featureCount - 1) * featureSpacing;
+
                 // Stagger rows: even indices at one level, odd at another
                 const rowOffset = expandedIndex % 2 === 1 ? 250 : 0;
-                
+
                 featureOffsets[expandedModule.module.id] = {
                     startX: cumulativeFeatureOffset,
-                    rowY: baseFeatureRowY + rowOffset
+                    rowY: baseFeatureRowY + rowOffset,
                 };
-                
+
                 cumulativeFeatureOffset += totalFeatureWidth + 100; // Add gap between module's features
             });
-            
+
             // Center all features under the modules
             const totalAllFeaturesWidth = cumulativeFeatureOffset - 100; // Remove last gap
             const centerOffset = totalAllFeaturesWidth > 0 ? -totalAllFeaturesWidth / 2 + modulesNodeX : 0;
@@ -239,7 +240,7 @@ const FlowCanvas = ({
             modules.forEach((module, index) => {
                 const hasFeatures = module.features && module.features.length > 0;
                 const isModuleExpanded = expandedModules[module.id] || false;
-                
+
                 nodes.push({
                     id: `module-${module.id}`,
                     type: 'workflowNode',
@@ -277,10 +278,10 @@ const FlowCanvas = ({
                 // Generate feature child nodes when this module is expanded
                 if (isModuleExpanded && module.features && module.features.length > 0) {
                     const offset = featureOffsets[module.id];
-                    
+
                     module.features.forEach((feature, featureIndex) => {
                         const featureX = centerOffset + offset.startX + featureIndex * featureStride;
-                        
+
                         nodes.push({
                             id: `feature-${feature.id}`,
                             type: 'workflowNode',
@@ -360,7 +361,7 @@ const FlowCanvas = ({
             modules.forEach((module) => {
                 const isCompleted = module.progress === 100 || module.status === 'completed';
                 const isModuleExpanded = expandedModules[module.id] || false;
-                
+
                 edges.push({
                     id: `edge-modules-module-${module.id}`,
                     source: 'modules',
@@ -443,17 +444,17 @@ const FlowCanvas = ({
                 {/* Enhanced gradient background */}
                 <div className="pointer-events-none absolute inset-0">
                     {/* Base gradient - neutral background */}
-                    <div 
+                    <div
                         className="absolute inset-0"
                         style={{
-                            background: isDarkMode 
+                            background: isDarkMode
                                 ? 'linear-gradient(135deg, #141414 0%, #1a1a1a 25%, #171717 50%, #141414 75%, #0f0f0f 100%)'
-                                : 'linear-gradient(135deg, #fafafa 0%, #e5e5e5 25%, #f5f5f5 50%, #e5e5e5 75%, #fafafa 100%)'
+                                : 'linear-gradient(135deg, #fafafa 0%, #e5e5e5 25%, #f5f5f5 50%, #e5e5e5 75%, #fafafa 100%)',
                         }}
                     />
-                    
+
                     {/* Radial glow effects */}
-                    <div 
+                    <div
                         className="absolute inset-0"
                         style={{
                             background: isDarkMode
@@ -461,47 +462,47 @@ const FlowCanvas = ({
                                    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
                                    radial-gradient(ellipse 50% 30% at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 50%)`
                                 : `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 0, 0, 0.03) 0%, transparent 50%),
-                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 0, 0, 0.02) 0%, transparent 50%)`
+                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 0, 0, 0.02) 0%, transparent 50%)`,
                         }}
                     />
-                    
+
                     {/* Subtle noise texture overlay for depth */}
-                    <div 
+                    <div
                         className="absolute inset-0 opacity-[0.015]"
                         style={{
                             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
                         }}
                     />
-                    
+
                     {/* Corner accent glows */}
-                    <div 
+                    <div
                         className="absolute -top-32 -left-32 h-64 w-64 rounded-full blur-3xl"
                         style={{
-                            background: isDarkMode 
+                            background: isDarkMode
                                 ? 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, transparent 70%)',
                         }}
                     />
-                    <div 
+                    <div
                         className="absolute -right-32 -bottom-32 h-64 w-64 rounded-full blur-3xl"
                         style={{
-                            background: isDarkMode 
+                            background: isDarkMode
                                 ? 'radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%)',
                         }}
                     />
-                    
+
                     {/* Subtle vignette effect */}
-                    <div 
+                    <div
                         className="absolute inset-0"
                         style={{
                             background: isDarkMode
                                 ? 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%)'
-                                : 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.05) 100%)'
+                                : 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.05) 100%)',
                         }}
                     />
                 </div>
-                
+
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -537,26 +538,22 @@ const FlowCanvas = ({
                             <div className="flex items-center gap-2 border-b border-border/30 pb-2">
                                 <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10">
                                     <svg className="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                        />
                                     </svg>
                                 </div>
-                                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Project Status</span>
+                                <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Project Status</span>
                             </div>
-                            
+
                             {/* Content */}
                             <div className="flex items-center gap-4">
                                 {/* Progress Ring */}
                                 <div className="relative h-12 w-12">
                                     <svg className="h-12 w-12 -rotate-90 transform">
-                                        <circle
-                                            cx="24"
-                                            cy="24"
-                                            r="20"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                            className="text-muted/20"
-                                        />
+                                        <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="4" className="text-muted/20" />
                                         <circle
                                             cx="24"
                                             cy="24"
@@ -568,9 +565,13 @@ const FlowCanvas = ({
                                             strokeDasharray={`${(completionPercentage / 100) * 125.6} 125.6`}
                                             className={cn(
                                                 'transition-all duration-700 ease-out',
-                                                completionPercentage >= 80 ? 'text-emerald-500' :
-                                                completionPercentage >= 50 ? 'text-blue-500' :
-                                                completionPercentage >= 25 ? 'text-amber-500' : 'text-primary'
+                                                completionPercentage >= 80
+                                                    ? 'text-emerald-500'
+                                                    : completionPercentage >= 50
+                                                      ? 'text-blue-500'
+                                                      : completionPercentage >= 25
+                                                        ? 'text-amber-500'
+                                                        : 'text-primary',
                                             )}
                                         />
                                     </svg>
@@ -578,24 +579,42 @@ const FlowCanvas = ({
                                         <span className="text-sm font-bold text-foreground">{completionPercentage}%</span>
                                     </div>
                                 </div>
-                                
+
                                 {/* Stats */}
                                 <div className="flex flex-col gap-1.5">
                                     <div className="flex items-center gap-2">
                                         <div className="flex h-5 w-5 items-center justify-center rounded bg-muted/50">
-                                            <svg className="h-3 w-3 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            <svg
+                                                className="h-3 w-3 text-muted-foreground"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                                />
                                             </svg>
                                         </div>
-                                        <span className="text-sm font-medium text-foreground">{completedStepsCount} of {totalStepsCount} steps</span>
+                                        <span className="text-sm font-medium text-foreground">
+                                            {completedStepsCount} of {totalStepsCount} steps
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className={cn(
-                                            'flex h-5 w-5 items-center justify-center rounded',
-                                            completionPercentage >= 80 ? 'bg-emerald-500/10' :
-                                            completionPercentage >= 50 ? 'bg-blue-500/10' :
-                                            completionPercentage >= 25 ? 'bg-amber-500/10' : 'bg-primary/10'
-                                        )}>
+                                        <div
+                                            className={cn(
+                                                'flex h-5 w-5 items-center justify-center rounded',
+                                                completionPercentage >= 80
+                                                    ? 'bg-emerald-500/10'
+                                                    : completionPercentage >= 50
+                                                      ? 'bg-blue-500/10'
+                                                      : completionPercentage >= 25
+                                                        ? 'bg-amber-500/10'
+                                                        : 'bg-primary/10',
+                                            )}
+                                        >
                                             <health.Icon className={cn('h-3 w-3', health.color)} />
                                         </div>
                                         <span className={cn('text-sm font-medium capitalize', health.color)}>{health.label}</span>

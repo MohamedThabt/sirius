@@ -22,20 +22,18 @@ export function RecentActivityCard<T extends { id: number }>({
     items,
     renderItem,
     iconClassName,
-    iconBgClassName
+    iconBgClassName,
 }: RecentActivityCardProps<T>) {
     return (
         <Card className="border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <CardTitle className="flex items-center gap-2.5 text-base font-medium text-foreground">
-                    <div className={cn("rounded-lg p-2", iconBgClassName || "bg-primary/10")}>
-                        <Icon className={cn("h-4 w-4", iconClassName || "text-primary")} />
+                    <div className={cn('rounded-lg p-2', iconBgClassName || 'bg-primary/10')}>
+                        <Icon className={cn('h-4 w-4', iconClassName || 'text-primary')} />
                     </div>
                     {title}
                     {items.length > 0 && (
-                        <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">
-                            {items.length}
-                        </span>
+                        <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground tabular-nums">{items.length}</span>
                     )}
                 </CardTitle>
                 <Link href={viewAllHref}>

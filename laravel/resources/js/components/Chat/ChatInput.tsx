@@ -1,10 +1,5 @@
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { ArrowUpIcon, ChevronDownIcon, MessageCircleQuestionIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -24,7 +19,7 @@ function AgentModeIcon({ className = '' }: { className?: string }) {
     return (
         <span className={`relative inline-flex items-center justify-center ${className}`}>
             <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            <span className="absolute -left-0.5 top-0.5 h-1 w-1 rounded-full bg-current/70" />
+            <span className="absolute top-0.5 -left-0.5 h-1 w-1 rounded-full bg-current/70" />
             <span className="absolute -right-0.5 bottom-0.5 h-1 w-1 rounded-full bg-current/70" />
         </span>
     );
@@ -140,7 +135,13 @@ export function ChatInput({
                             )}
                         </div>
 
-                        <Button type="submit" size="icon" className="h-9 w-9 shrink-0 rounded-lg sm:h-8 sm:w-8" disabled={isDisabled} aria-label="Send message">
+                        <Button
+                            type="submit"
+                            size="icon"
+                            className="h-9 w-9 shrink-0 rounded-lg sm:h-8 sm:w-8"
+                            disabled={isDisabled}
+                            aria-label="Send message"
+                        >
                             {isGenerating ? <TextShimmer className="text-[10px]">...</TextShimmer> : <ArrowUpIcon className="h-4 w-4" />}
                         </Button>
                     </div>

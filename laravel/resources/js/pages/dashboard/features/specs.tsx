@@ -1,13 +1,13 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Download, FileText, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { toast } from 'sonner';
 
 interface Project {
     id: number;
@@ -69,7 +69,7 @@ export default function Specs({ project, feature, specsMarkdown }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Specifications - ${feature.name}`} />
 
-            <div className="w-full max-w-7xl mx-auto space-y-6 rounded-xl p-4 md:p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 rounded-xl p-4 md:p-6">
                 {/* Header */}
                 <div className="flex items-center gap-4">
                     <Link href={`/admin/features/${feature.id}`}>
@@ -115,7 +115,7 @@ export default function Specs({ project, feature, specsMarkdown }: Props) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-6">
-                                <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-p:text-muted-foreground prose-strong:text-foreground prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border">
+                                <div className="prose prose-sm dark:prose-invert prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-p:text-muted-foreground prose-strong:text-foreground prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border max-w-none">
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{specsMarkdown}</ReactMarkdown>
                                 </div>
                             </CardContent>
@@ -131,7 +131,7 @@ export default function Specs({ project, feature, specsMarkdown }: Props) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-6">
-                                <pre className="bg-muted/50 p-4 rounded-lg overflow-x-auto text-sm font-mono whitespace-pre-wrap border">
+                                <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-4 font-mono text-sm whitespace-pre-wrap">
                                     {specsMarkdown}
                                 </pre>
                             </CardContent>
@@ -142,4 +142,3 @@ export default function Specs({ project, feature, specsMarkdown }: Props) {
         </AppLayout>
     );
 }
-

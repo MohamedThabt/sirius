@@ -1,15 +1,7 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
-import {
-    ArrowUpRight,
-    GitBranch,
-    Lightbulb,
-    Users as UsersIcon,
-    Zap,
-} from 'lucide-react';
+import { ArrowUpRight, GitBranch, Lightbulb, Users as UsersIcon, Zap } from 'lucide-react';
 
 interface Health {
     label: string;
@@ -65,7 +57,7 @@ export default function ProjectMetricsPanel({
                     {/* Brainstorming Card */}
                     <button
                         onClick={() => router.visit(`/projects/${projectId}/brainstorming`)}
-                        className="cursor-pointer group flex items-center gap-3 rounded-xl border border-amber-200/50 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 transition-all hover:border-amber-300 hover:shadow-md dark:border-amber-500/20 dark:from-amber-500/10 dark:to-orange-500/10 dark:hover:border-amber-500/40"
+                        className="group flex cursor-pointer items-center gap-3 rounded-xl border border-amber-200/50 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 transition-all hover:border-amber-300 hover:shadow-md dark:border-amber-500/20 dark:from-amber-500/10 dark:to-orange-500/10 dark:hover:border-amber-500/40"
                     >
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-500/20">
                             <Lightbulb className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400" />
@@ -81,7 +73,7 @@ export default function ProjectMetricsPanel({
                     {modulesCount > 0 && (
                         <button
                             onClick={() => router.visit(`/projects/${projectId}/modules`)}
-                            className="cursor-pointer group flex items-center gap-3 rounded-xl border border-violet-200/50 bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-3 transition-all hover:border-violet-300 hover:shadow-md dark:border-violet-500/20 dark:from-violet-500/10 dark:to-purple-500/10 dark:hover:border-violet-500/40"
+                            className="group flex cursor-pointer items-center gap-3 rounded-xl border border-violet-200/50 bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-3 transition-all hover:border-violet-300 hover:shadow-md dark:border-violet-500/20 dark:from-violet-500/10 dark:to-purple-500/10 dark:hover:border-violet-500/40"
                         >
                             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-500/20">
                                 <Zap className="h-4.5 w-4.5 text-violet-600 dark:text-violet-400" />
@@ -98,7 +90,7 @@ export default function ProjectMetricsPanel({
                     {teamMembers.length > 0 && (
                         <button
                             onClick={() => router.visit(`/projects/${projectId}/team`)}
-                            className="cursor-pointer group flex items-center gap-3 rounded-xl border border-blue-200/50 bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-3 transition-all hover:border-blue-300 hover:shadow-md dark:border-blue-500/20 dark:from-blue-500/10 dark:to-cyan-500/10 dark:hover:border-blue-500/40"
+                            className="group flex cursor-pointer items-center gap-3 rounded-xl border border-blue-200/50 bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-3 transition-all hover:border-blue-300 hover:shadow-md dark:border-blue-500/20 dark:from-blue-500/10 dark:to-cyan-500/10 dark:hover:border-blue-500/40"
                         >
                             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20">
                                 <UsersIcon className="h-4.5 w-4.5 text-blue-600 dark:text-blue-400" />
@@ -135,7 +127,7 @@ export default function ProjectMetricsPanel({
                     {repository && (
                         <button
                             onClick={() => window.open(repository.html_url, '_blank')}
-                            className="cursor-pointer group flex items-center gap-3 rounded-xl border border-slate-200/50 bg-gradient-to-r from-slate-50 to-gray-50 px-4 py-3 transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-500/20 dark:from-slate-500/10 dark:to-gray-500/10 dark:hover:border-slate-500/40"
+                            className="group flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/50 bg-gradient-to-r from-slate-50 to-gray-50 px-4 py-3 transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-500/20 dark:from-slate-500/10 dark:to-gray-500/10 dark:hover:border-slate-500/40"
                         >
                             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-500/20">
                                 <GitBranch className="h-4.5 w-4.5 text-slate-600 dark:text-slate-400" />

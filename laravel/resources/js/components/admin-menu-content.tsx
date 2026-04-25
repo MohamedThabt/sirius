@@ -35,7 +35,10 @@ export function AdminMenuContent({ admin }: AdminMenuContentProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-border/50" />
             <div className="p-1">
-                <DropdownMenuItem asChild className="rounded-lg text-red-600 transition-colors duration-150 focus:bg-red-500/10 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400">
+                <DropdownMenuItem
+                    asChild
+                    className="rounded-lg text-red-600 transition-colors duration-150 focus:bg-red-500/10 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                >
                     <Link className="block w-full" href="/admin/logout" as="button" method="post" onClick={handleLogout}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Log out

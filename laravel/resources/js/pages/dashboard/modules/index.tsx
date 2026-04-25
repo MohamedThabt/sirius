@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { BoxIcon, DatabaseIcon, ZapIcon, CheckCircleIcon, ClockIcon, FolderIcon } from 'lucide-react';
+import { BoxIcon, CheckCircleIcon, ClockIcon, DatabaseIcon, FolderIcon, ZapIcon } from 'lucide-react';
 import { useState } from 'react';
 
 interface Project {
@@ -140,9 +140,7 @@ export default function ModulesIndex({ modules, stats }: Props) {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.modules_with_erd}</div>
-                            <p className="text-xs text-muted-foreground">
-                                {stats.modules_with_synced_erd} synced
-                            </p>
+                            <p className="text-xs text-muted-foreground">{stats.modules_with_synced_erd} synced</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -214,18 +212,16 @@ export default function ModulesIndex({ modules, stats }: Props) {
                                 </TableRow>
                             ) : (
                                 modules.data.map((module) => (
-                                    <TableRow 
+                                    <TableRow
                                         key={module.id}
-                                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                        className="cursor-pointer transition-colors hover:bg-muted/50"
                                         onClick={() => router.visit(`/admin/modules/${module.id}`)}
                                     >
                                         <TableCell>
                                             <div className="flex flex-col">
                                                 <span className="font-medium">{module.name}</span>
                                                 {module.description && (
-                                                    <span className="text-xs text-muted-foreground line-clamp-1">
-                                                        {module.description}
-                                                    </span>
+                                                    <span className="line-clamp-1 text-xs text-muted-foreground">{module.description}</span>
                                                 )}
                                             </div>
                                         </TableCell>
@@ -240,13 +236,19 @@ export default function ModulesIndex({ modules, stats }: Props) {
                                         </TableCell>
                                         <TableCell>
                                             {module.erd_is_synced ? (
-                                                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
-                                                    <CheckCircleIcon className="h-3 w-3 mr-1" />
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                                >
+                                                    <CheckCircleIcon className="mr-1 h-3 w-3" />
                                                     Synced
                                                 </Badge>
                                             ) : (
-                                                <Badge variant="outline" className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20">
-                                                    <ClockIcon className="h-3 w-3 mr-1" />
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                                                >
+                                                    <ClockIcon className="mr-1 h-3 w-3" />
                                                     Pending
                                                 </Badge>
                                             )}
@@ -260,9 +262,7 @@ export default function ModulesIndex({ modules, stats }: Props) {
                                             <span className="text-sm text-muted-foreground">#{module.order_of_implementation}</span>
                                         </TableCell>
                                         <TableCell>
-                                            <span className="text-sm text-muted-foreground">
-                                                {new Date(module.created_at).toLocaleDateString()}
-                                            </span>
+                                            <span className="text-sm text-muted-foreground">{new Date(module.created_at).toLocaleDateString()}</span>
                                         </TableCell>
                                     </TableRow>
                                 ))

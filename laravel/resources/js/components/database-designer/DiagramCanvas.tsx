@@ -368,17 +368,17 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
                 {/* Enhanced gradient background */}
                 <div className="pointer-events-none absolute inset-0">
                     {/* Base gradient - neutral background */}
-                    <div 
+                    <div
                         className="absolute inset-0"
                         style={{
-                            background: isDarkMode 
+                            background: isDarkMode
                                 ? 'linear-gradient(135deg, #141414 0%, #1a1a1a 25%, #171717 50%, #141414 75%, #0f0f0f 100%)'
-                                : 'linear-gradient(135deg, #fafafa 0%, #e5e5e5 25%, #f5f5f5 50%, #e5e5e5 75%, #fafafa 100%)'
+                                : 'linear-gradient(135deg, #fafafa 0%, #e5e5e5 25%, #f5f5f5 50%, #e5e5e5 75%, #fafafa 100%)',
                         }}
                     />
-                    
+
                     {/* Radial glow effects */}
-                    <div 
+                    <div
                         className="absolute inset-0"
                         style={{
                             background: isDarkMode
@@ -386,47 +386,47 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
                                    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
                                    radial-gradient(ellipse 50% 30% at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 50%)`
                                 : `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 0, 0, 0.03) 0%, transparent 50%),
-                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 0, 0, 0.02) 0%, transparent 50%)`
+                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 0, 0, 0.02) 0%, transparent 50%)`,
                         }}
                     />
-                    
+
                     {/* Subtle noise texture overlay for depth */}
-                    <div 
+                    <div
                         className="absolute inset-0 opacity-[0.015]"
                         style={{
                             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
                         }}
                     />
-                    
+
                     {/* Corner accent glows */}
-                    <div 
+                    <div
                         className="absolute -top-32 -left-32 h-64 w-64 rounded-full blur-3xl"
                         style={{
-                            background: isDarkMode 
+                            background: isDarkMode
                                 ? 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, transparent 70%)',
                         }}
                     />
-                    <div 
+                    <div
                         className="absolute -right-32 -bottom-32 h-64 w-64 rounded-full blur-3xl"
                         style={{
-                            background: isDarkMode 
+                            background: isDarkMode
                                 ? 'radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%)',
                         }}
                     />
-                    
+
                     {/* Subtle vignette effect */}
-                    <div 
+                    <div
                         className="absolute inset-0"
                         style={{
                             background: isDarkMode
                                 ? 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%)'
-                                : 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.05) 100%)'
+                                : 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.05) 100%)',
                         }}
                     />
                 </div>
-                
+
                 <ReactFlow
                     nodes={enhancedNodes}
                     edges={filteredEdges}

@@ -1,26 +1,17 @@
-import { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { ClientDateTime } from '@/components/ClientDateTime';
+import { PaginationControls } from '@/components/PaginationControls';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, GlowingBadge, PageHeader } from '@/components/ui/futuristic';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, PageHeader, GlowingBadge } from '@/components/ui/futuristic';
-import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
-import {
-    Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import {
-    Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
-import { PaginationControls } from '@/components/PaginationControls';
-import { ClientDateTime } from '@/components/ClientDateTime';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import {
-    AlertCircle, CheckCircleIcon, ClockIcon, CreditCardIcon, ExternalLinkIcon,
-    FilterIcon, SearchIcon, XCircleIcon,
-} from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { AlertCircle, CheckCircleIcon, ClockIcon, CreditCardIcon, ExternalLinkIcon, FilterIcon, SearchIcon, XCircleIcon } from 'lucide-react';
+import { useState } from 'react';
 
 interface Payment {
     id: number;
@@ -65,17 +56,21 @@ const statusVariant = (s: string): 'warning' | 'success' | 'danger' | 'slate' =>
     s === 'pending' ? 'warning' : s === 'accepted' ? 'success' : s === 'denied' ? 'danger' : 'slate';
 
 const statusIcon = (s: string) =>
-    s === 'accepted' ? <CheckCircleIcon className="h-3 w-3" />
-    : s === 'denied'   ? <XCircleIcon className="h-3 w-3" />
-    : <ClockIcon className="h-3 w-3" />;
+    s === 'accepted' ? (
+        <CheckCircleIcon className="h-3 w-3" />
+    ) : s === 'denied' ? (
+        <XCircleIcon className="h-3 w-3" />
+    ) : (
+        <ClockIcon className="h-3 w-3" />
+    );
 
 export default function PaymentsIndex({ payments, filters, summary }: PageProps) {
     useFlashToasts();
 
-    const [search, setSearch]       = useState(filters.search || '');
+    const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatus] = useState(filters.status || '');
-    const [deleteId, setDeleteId]   = useState<number | null>(null);
-    const [deleting, setDeleting]   = useState(false);
+    const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -86,7 +81,10 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
         if (deleteId === null) return;
         setDeleting(true);
         router.delete(`/admin/payments/${deleteId}`, {
-            onFinish: () => { setDeleting(false); setDeleteId(null); },
+            onFinish: () => {
+                setDeleting(false);
+                setDeleteId(null);
+            },
         });
     };
 
@@ -112,7 +110,9 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                     <EnhancedCard variant="gradient" glowColor="blue">
                         <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
                             <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Total</EnhancedCardTitle>
-                            <div className="rounded-xl bg-blue-500/10 p-2.5"><CreditCardIcon className="h-4 w-4 text-blue-500" /></div>
+                            <div className="rounded-xl bg-blue-500/10 p-2.5">
+                                <CreditCardIcon className="h-4 w-4 text-blue-500" />
+                            </div>
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
                             <div className="text-3xl font-bold tabular-nums">{summary.total}</div>
@@ -121,28 +121,34 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                     <EnhancedCard variant="gradient" glowColor="amber">
                         <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
                             <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Pending</EnhancedCardTitle>
-                            <div className="rounded-xl bg-amber-500/10 p-2.5"><ClockIcon className="h-4 w-4 text-amber-500" /></div>
+                            <div className="rounded-xl bg-amber-500/10 p-2.5">
+                                <ClockIcon className="h-4 w-4 text-amber-500" />
+                            </div>
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
-                            <div className="text-3xl font-bold tabular-nums text-amber-500">{summary.pending}</div>
+                            <div className="text-3xl font-bold text-amber-500 tabular-nums">{summary.pending}</div>
                         </EnhancedCardContent>
                     </EnhancedCard>
                     <EnhancedCard variant="gradient" glowColor="emerald">
                         <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
                             <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Accepted</EnhancedCardTitle>
-                            <div className="rounded-xl bg-emerald-500/10 p-2.5"><CheckCircleIcon className="h-4 w-4 text-emerald-500" /></div>
+                            <div className="rounded-xl bg-emerald-500/10 p-2.5">
+                                <CheckCircleIcon className="h-4 w-4 text-emerald-500" />
+                            </div>
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
-                            <div className="text-3xl font-bold tabular-nums text-emerald-500">{summary.accepted}</div>
+                            <div className="text-3xl font-bold text-emerald-500 tabular-nums">{summary.accepted}</div>
                         </EnhancedCardContent>
                     </EnhancedCard>
                     <EnhancedCard variant="gradient" glowColor="pink">
                         <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
                             <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Denied</EnhancedCardTitle>
-                            <div className="rounded-xl bg-red-500/10 p-2.5"><XCircleIcon className="h-4 w-4 text-red-500" /></div>
+                            <div className="rounded-xl bg-red-500/10 p-2.5">
+                                <XCircleIcon className="h-4 w-4 text-red-500" />
+                            </div>
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
-                            <div className="text-3xl font-bold tabular-nums text-red-500">{summary.denied}</div>
+                            <div className="text-3xl font-bold text-red-500 tabular-nums">{summary.denied}</div>
                         </EnhancedCardContent>
                     </EnhancedCard>
                 </div>
@@ -150,7 +156,7 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                 {/* Search & Filter */}
                 <form onSubmit={handleSearch} className="flex flex-wrap gap-3">
                     <div className="relative max-w-md flex-1">
-                        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
+                        <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
                         <Input
                             placeholder="Search by name or email..."
                             value={search}
@@ -170,9 +176,20 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                             <SelectItem value="denied">Denied</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button type="submit" variant="secondary" className="border-border/40 bg-card/50">Filter</Button>
+                    <Button type="submit" variant="secondary" className="border-border/40 bg-card/50">
+                        Filter
+                    </Button>
                     {(search || statusFilter) && (
-                        <Button type="button" variant="outline" className="border-border/40" onClick={() => { setSearch(''); setStatus(''); router.get('/admin/payments'); }}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="border-border/40"
+                            onClick={() => {
+                                setSearch('');
+                                setStatus('');
+                                router.get('/admin/payments');
+                            }}
+                        >
                             Clear
                         </Button>
                     )}
@@ -195,13 +212,13 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                         <TableBody>
                             {payments.data.map((p) => (
                                 <TableRow key={p.id} className="group border-border/30 transition-all duration-200 hover:bg-primary/[0.03]">
-                                    <TableCell className="tabular-nums text-muted-foreground/60">{p.id}</TableCell>
+                                    <TableCell className="text-muted-foreground/60 tabular-nums">{p.id}</TableCell>
                                     <TableCell>
                                         <div className="text-sm font-medium text-foreground/90">{p.user.name}</div>
                                         <div className="text-xs text-muted-foreground/60">{p.user.email}</div>
                                     </TableCell>
-                                    <TableCell className="capitalize text-muted-foreground/80">{p.plan_slug}</TableCell>
-                                    <TableCell className="tabular-nums text-muted-foreground/80">
+                                    <TableCell className="text-muted-foreground/80 capitalize">{p.plan_slug}</TableCell>
+                                    <TableCell className="text-muted-foreground/80 tabular-nums">
                                         {Number(p.amount).toLocaleString()} {p.currency}
                                     </TableCell>
                                     <TableCell>
@@ -215,7 +232,7 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <Link href={`/admin/payments/${p.id}`}>
-                                                <Button variant="outline" size="sm" className="border-border/40 gap-1">
+                                                <Button variant="outline" size="sm" className="gap-1 border-border/40">
                                                     <ExternalLinkIcon className="h-3.5 w-3.5" />
                                                     Review
                                                 </Button>
@@ -226,8 +243,21 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                                                 className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                                 onClick={() => setDeleteId(p.id)}
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                                                    <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    className="h-4 w-4"
+                                                >
+                                                    <path d="M3 6h18" />
+                                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                                                 </svg>
                                             </Button>
                                         </div>
@@ -264,12 +294,12 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                         <DialogTitle className="flex items-center gap-2 text-destructive">
                             <XCircleIcon className="h-5 w-5" /> Delete Payment Record
                         </DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete this payment record? This action cannot be undone.
-                        </DialogDescription>
+                        <DialogDescription>Are you sure you want to delete this payment record? This action cannot be undone.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" className="border-border/40" onClick={() => setDeleteId(null)}>Cancel</Button>
+                        <Button variant="outline" className="border-border/40" onClick={() => setDeleteId(null)}>
+                            Cancel
+                        </Button>
                         <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                             {deleting ? 'Deleting...' : 'Delete'}
                         </Button>

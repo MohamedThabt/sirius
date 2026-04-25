@@ -17,28 +17,26 @@ export function ConfirmPasswordForm() {
                             </div>
                         )}
                         <div className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="password" className="text-foreground">Password</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                name="password"
-                                required
-                                autoFocus
-                                autoComplete="current-password"
-                                placeholder="Password"
-                                className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                            />
-                        </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="password" className="text-foreground">
+                                    Password
+                                </Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    required
+                                    autoFocus
+                                    autoComplete="current-password"
+                                    placeholder="Password"
+                                    className="border-border bg-background text-foreground placeholder:text-muted-foreground"
+                                />
+                            </div>
 
-                        <Button 
-                            type="submit" 
-                            className="w-full h-11 font-semibold rounded-lg" 
-                            disabled={processing}
-                        >
-                            {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                            Confirm password
-                        </Button>
+                            <Button type="submit" className="h-11 w-full rounded-lg font-semibold" disabled={processing}>
+                                {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                                Confirm password
+                            </Button>
                         </div>
                     </>
                 )}
@@ -46,4 +44,3 @@ export function ConfirmPasswordForm() {
         </div>
     );
 }
-

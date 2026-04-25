@@ -2,16 +2,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { TextShimmer } from '@/components/ui/text-shimmer';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeftIcon, FileTextIcon, Download, Maximize2, Minimize2, Copy, ExternalLink, RefreshCw } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
+import { ArrowLeftIcon, Code as CodeIcon, Copy, Download, ExternalLink, FileTextIcon, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
 import mermaid from 'mermaid';
-import { Code as CodeIcon } from 'lucide-react';
-import { TextShimmer } from '@/components/ui/text-shimmer';
+import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { toast } from 'sonner';
 
 mermaid.initialize({
     startOnLoad: true,
@@ -217,7 +216,10 @@ export default function ProjectPRD({ project, featuresMarkdown = '' }: Props) {
                 try {
                     setError('');
                     const cleanChildren = convertEscapedMermaid(children);
-                    const { svg: renderedSvg } = await mermaid.render(`mermaid${Date.now()}${Math.random().toString(36).substring(2, 9)}`, cleanChildren);
+                    const { svg: renderedSvg } = await mermaid.render(
+                        `mermaid${Date.now()}${Math.random().toString(36).substring(2, 9)}`,
+                        cleanChildren,
+                    );
                     setSvg(renderedSvg);
                 } catch (err) {
                     console.error('Mermaid rendering error:', err);
@@ -332,10 +334,7 @@ export default function ProjectPRD({ project, featuresMarkdown = '' }: Props) {
                         <code>{convertEscapedMermaid(children)}</code>
                     </pre>
                 ) : (
-                    <div
-                        className="overflow-auto rounded-lg border bg-white p-4 dark:bg-slate-900"
-                        dangerouslySetInnerHTML={{ __html: svg }}
-                    />
+                    <div className="overflow-auto rounded-lg border bg-white p-4 dark:bg-slate-900" dangerouslySetInnerHTML={{ __html: svg }} />
                 )}
             </div>
         );
@@ -348,7 +347,7 @@ export default function ProjectPRD({ project, featuresMarkdown = '' }: Props) {
             <div className={`flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : 'h-full flex-1 gap-6 rounded-xl'}`}>
                 {/* Header */}
                 <div className={`flex items-center justify-between gap-4 ${isFullscreen ? 'border-b p-4' : 'p-4'}`}>
-                    <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex min-w-0 items-center gap-4">
                         {!isFullscreen && (
                             <Link href={`/admin/projects/${project.id}`}>
                                 <Button variant="outline" size="sm" className="whitespace-nowrap">
@@ -360,7 +359,7 @@ export default function ProjectPRD({ project, featuresMarkdown = '' }: Props) {
                         <div className="min-w-0">
                             <h1 className="text-2xl font-bold">Product Requirements Document</h1>
                             <div className="flex items-center gap-2">
-                                <p className="text-sm text-muted-foreground truncate">{project.name}</p>
+                                <p className="truncate text-sm text-muted-foreground">{project.name}</p>
                                 {!project.prd_is_synced && (
                                     <Badge variant="destructive" className="text-xs">
                                         Out of Sync
@@ -374,13 +373,17 @@ export default function ProjectPRD({ project, featuresMarkdown = '' }: Props) {
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex flex-shrink-0 items-center gap-2">
                         {!project.prd_is_synced && (
                             <Button
                                 variant="default"
                                 size="sm"
                                 onClick={() => {
-                                    if (confirm('Synchronize PRD with current modules and features? This will update the PRD to reflect all recent changes.')) {
+                                    if (
+                                        confirm(
+                                            'Synchronize PRD with current modules and features? This will update the PRD to reflect all recent changes.',
+                                        )
+                                    ) {
                                         router.post(`/admin/projects/${project.id}/prd/sync`);
                                     }
                                 }}

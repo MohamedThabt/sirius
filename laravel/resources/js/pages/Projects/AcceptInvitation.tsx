@@ -3,18 +3,12 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useInitials } from '@/hooks/use-initials';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { getRoleBadgeColor } from '@/utils/role-colors';
+import { useInitials } from '@/hooks/use-initials';
 import { type AcceptableInvitation, type Project } from '@/types';
+import { getRoleBadgeColor } from '@/utils/role-colors';
 import { Head, router } from '@inertiajs/react';
-import {
-    CheckCircleIcon,
-    ClockIcon,
-    MailIcon,
-    ShieldIcon,
-    UsersIcon,
-} from 'lucide-react';
+import { CheckCircleIcon, ClockIcon, MailIcon, ShieldIcon, UsersIcon } from 'lucide-react';
 
 // AcceptableInvitation and Project types now imported from '@/types'
 
@@ -55,7 +49,7 @@ export default function AcceptInvitation({ invitation, project }: Props) {
         <>
             <Head title="Accept Project Invitation" />
 
-            <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
                 <div className="w-full max-w-2xl">
                     {/* Logo/Brand */}
                     <div className="mb-8 text-center">
@@ -66,50 +60,38 @@ export default function AcceptInvitation({ invitation, project }: Props) {
 
                     {/* Main Card */}
                     <Card className="p-8 shadow-lg">
-                        <div className="text-center mb-6">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                        <div className="mb-6 text-center">
+                            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                                 <MailIcon className="h-8 w-8 text-primary" />
                             </div>
-                            <h1 className="text-2xl font-bold text-foreground mb-2">
-                                You've been invited!
-                            </h1>
+                            <h1 className="mb-2 text-2xl font-bold text-foreground">You've been invited!</h1>
                             <p className="text-muted-foreground">You've been invited to join a project on Sirius</p>
                         </div>
 
                         {/* Project Info */}
-                        <div className="bg-muted/50 rounded-lg p-6 mb-6">
+                        <div className="mb-6 rounded-lg bg-muted/50 p-6">
                             <div className="flex items-start gap-4">
                                 <Avatar className="h-12 w-12 shrink-0">
-                                    <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                                        {getInitials(project.name)}
-                                    </AvatarFallback>
+                                    <AvatarFallback className="bg-primary/10 text-lg text-primary">{getInitials(project.name)}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex-1 min-w-0">
-                                    <h2 className="text-xl font-semibold text-foreground mb-1">
-                                        {project.name}
-                                    </h2>
-                                    {project.brief && (
-                                        <p className="text-sm text-muted-foreground line-clamp-2">
-                                            {project.brief}
-                                        </p>
-                                    )}
+                                <div className="min-w-0 flex-1">
+                                    <h2 className="mb-1 text-xl font-semibold text-foreground">{project.name}</h2>
+                                    {project.brief && <p className="line-clamp-2 text-sm text-muted-foreground">{project.brief}</p>}
                                 </div>
                             </div>
                         </div>
 
                         {/* Invitation Details */}
-                        <div className="space-y-4 mb-6">
-                            <div className="flex items-center justify-between py-3 border-b">
+                        <div className="mb-6 space-y-4">
+                            <div className="flex items-center justify-between border-b py-3">
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <MailIcon className="h-4 w-4" />
                                     <span>Invited Email</span>
                                 </div>
-                                <span className="text-sm font-medium text-foreground">
-                                    {invitation.email}
-                                </span>
+                                <span className="text-sm font-medium text-foreground">{invitation.email}</span>
                             </div>
 
-                            <div className="flex items-center justify-between py-3 border-b">
+                            <div className="flex items-center justify-between border-b py-3">
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <ShieldIcon className="h-4 w-4" />
                                     <span>Role</span>
@@ -134,11 +116,11 @@ export default function AcceptInvitation({ invitation, project }: Props) {
                         </div>
 
                         {/* Role Permissions Info */}
-                        <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-lg p-4 mb-6">
-                            <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
+                        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-500/30 dark:bg-blue-500/10">
+                            <h3 className="mb-2 text-sm font-semibold text-blue-900 dark:text-blue-300">
                                 As a {invitation.role}, you will be able to:
                             </h3>
-                            <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-1">
+                            <ul className="space-y-1 text-sm text-blue-800 dark:text-blue-400">
                                 {invitation.role === 'admin' && (
                                     <>
                                         <li className="flex items-center gap-2">
@@ -192,26 +174,18 @@ export default function AcceptInvitation({ invitation, project }: Props) {
 
                         {/* Action Buttons */}
                         <div className="flex gap-3">
-                            <Button
-                                onClick={handleAccept}
-                                className="flex-1"
-                                size="lg"
-                            >
-                                <CheckCircleIcon className="h-4 w-4 mr-2" />
+                            <Button onClick={handleAccept} className="flex-1" size="lg">
+                                <CheckCircleIcon className="mr-2 h-4 w-4" />
                                 Accept Invitation
                             </Button>
-                            <Button
-                                onClick={handleDecline}
-                                variant="outline"
-                                size="lg"
-                            >
+                            <Button onClick={handleDecline} variant="outline" size="lg">
                                 Decline
                             </Button>
                         </div>
                     </Card>
 
                     {/* Footer Text */}
-                    <p className="text-center text-sm text-muted-foreground mt-6">
+                    <p className="mt-6 text-center text-sm text-muted-foreground">
                         By accepting this invitation, you agree to collaborate on this project.
                     </p>
                 </div>

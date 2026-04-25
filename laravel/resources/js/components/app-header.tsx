@@ -69,8 +69,6 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 </Link>
                                             ))}
                                         </div>
-
-
                                     </div>
                                 </div>
                             </SheetContent>

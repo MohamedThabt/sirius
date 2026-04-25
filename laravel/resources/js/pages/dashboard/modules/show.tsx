@@ -4,20 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { getModuleStatusColor, getPriorityColor } from '@/utils/status-colors';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    ArrowLeftIcon, 
-    BoxIcon, 
-    CheckCircleIcon, 
-    ClockIcon, 
-    DatabaseIcon, 
-    FileTextIcon, 
-    FolderIcon, 
-    UserIcon, 
-    ZapIcon,
+import {
+    ArrowLeftIcon,
     BarChart3Icon,
-    LayersIcon
+    BoxIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    DatabaseIcon,
+    FileTextIcon,
+    FolderIcon,
+    LayersIcon,
+    UserIcon,
+    ZapIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -148,7 +147,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Module: ${module.name}`} />
 
-            <div className="w-full max-w-7xl mx-auto space-y-6 p-4 md:p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -157,40 +156,43 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                 <ArrowLeftIcon className="h-4 w-4" />
                             </Button>
                         </Link>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{module.name}</h1>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{module.name}</h1>
                                 <Badge variant="outline" className={`${getStatusColor(module.status)} text-xs font-medium`}>
                                     {module.status?.replace('_', ' ') || 'N/A'}
                                 </Badge>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                <Link href={`/admin/projects/${project.id}`} className="hover:text-foreground transition-colors flex items-center gap-1">
+                            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                                <Link
+                                    href={`/admin/projects/${project.id}`}
+                                    className="flex items-center gap-1 transition-colors hover:text-foreground"
+                                >
                                     <FolderIcon className="h-3.5 w-3.5" />
                                     {project.name}
                                 </Link>
                                 <span>•</span>
-                                <span>Module {moduleStats.position_in_project} of {moduleStats.total_modules_in_project}</span>
+                                <span>
+                                    Module {moduleStats.position_in_project} of {moduleStats.total_modules_in_project}
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Key Metrics Dashboard */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Completion Score */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Completion
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Completion</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="text-3xl font-semibold">{moduleStats.completion_score}%</div>
                             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                                <div 
-                                    className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500" 
-                                    style={{ width: `${moduleStats.completion_score}%` }} 
+                                <div
+                                    className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500"
+                                    style={{ width: `${moduleStats.completion_score}%` }}
                                 />
                             </div>
                         </CardContent>
@@ -199,9 +201,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                     {/* Features Count */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Features
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Features</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="text-3xl font-semibold">{moduleStats.total_features}</div>
@@ -227,9 +227,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                     {/* ERD Status */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                ERD Status
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">ERD Status</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {moduleStats.has_erd ? (
@@ -248,8 +246,8 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                         )}
                                     </div>
                                     <Link href={`/admin/modules/${module.id}/erd`}>
-                                        <Button variant="outline" size="sm" className="w-full mt-2">
-                                            <DatabaseIcon className="h-3.5 w-3.5 mr-2" />
+                                        <Button variant="outline" size="sm" className="mt-2 w-full">
+                                            <DatabaseIcon className="mr-2 h-3.5 w-3.5" />
                                             View ERD
                                         </Button>
                                     </Link>
@@ -266,9 +264,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                     {/* Implementation Order */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Implementation
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Implementation</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="text-3xl font-semibold">#{module.order_of_implementation}</div>
@@ -295,7 +291,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                     </TabsList>
 
                     {/* Overview Tab */}
-                    <TabsContent value="overview" className="space-y-4 mt-4">
+                    <TabsContent value="overview" className="mt-4 space-y-4">
                         {/* Project Info & Description */}
                         <div className="grid gap-4 md:grid-cols-3">
                             <Card>
@@ -305,27 +301,21 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                 <CardContent className="space-y-3">
                                     <div className="flex flex-col items-center text-center">
                                         {project.user?.avatar ? (
-                                            <img 
-                                                src={project.user.avatar} 
-                                                alt={project.user.name}
-                                                className="h-16 w-16 rounded-full object-cover"
-                                            />
+                                            <img src={project.user.avatar} alt={project.user.name} className="h-16 w-16 rounded-full object-cover" />
                                         ) : (
                                             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                                                 <UserIcon className="h-7 w-7 text-muted-foreground" />
                                             </div>
                                         )}
-                                        <div className="mt-3 space-y-1 w-full">
-                                            <Link 
+                                        <div className="mt-3 w-full space-y-1">
+                                            <Link
                                                 href={`/admin/projects/${project.id}`}
-                                                className="text-sm font-medium truncate hover:text-primary transition-colors"
+                                                className="truncate text-sm font-medium transition-colors hover:text-primary"
                                             >
                                                 {project.name}
                                             </Link>
-                                            <div className="text-xs text-muted-foreground truncate">
-                                                by {project.user?.name}
-                                            </div>
-                                            <Badge variant="outline" className={`${getStatusColor(project.status)} text-xs mt-2`}>
+                                            <div className="truncate text-xs text-muted-foreground">by {project.user?.name}</div>
+                                            <Badge variant="outline" className={`${getStatusColor(project.status)} mt-2 text-xs`}>
                                                 {project.status?.replace('_', ' ')}
                                             </Badge>
                                         </div>
@@ -342,9 +332,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                 </CardHeader>
                                 <CardContent>
                                     {module.description ? (
-                                        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                                            {module.description}
-                                        </p>
+                                        <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">{module.description}</p>
                                     ) : (
                                         <p className="text-sm text-muted-foreground italic">No description provided</p>
                                     )}
@@ -384,7 +372,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                                 month: 'long',
                                                 day: 'numeric',
                                                 hour: '2-digit',
-                                                minute: '2-digit'
+                                                minute: '2-digit',
                                             })}
                                         </p>
                                     </div>
@@ -396,7 +384,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                                 month: 'long',
                                                 day: 'numeric',
                                                 hour: '2-digit',
-                                                minute: '2-digit'
+                                                minute: '2-digit',
                                             })}
                                         </p>
                                     </div>
@@ -406,7 +394,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                     </TabsContent>
 
                     {/* Features Tab */}
-                    <TabsContent value="features" className="space-y-4 mt-4">
+                    <TabsContent value="features" className="mt-4 space-y-4">
                         {features && features.length > 0 ? (
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {features.map((feature) => (
@@ -414,11 +402,12 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                         <Card className="h-full cursor-pointer transition-colors hover:bg-muted/50">
                                             <CardHeader className="pb-3">
                                                 <div className="flex items-start justify-between gap-2">
-                                                    <CardTitle className="text-sm line-clamp-2 leading-tight font-medium">
-                                                        {feature.name}
-                                                    </CardTitle>
+                                                    <CardTitle className="line-clamp-2 text-sm leading-tight font-medium">{feature.name}</CardTitle>
                                                     {feature.priority && (
-                                                        <Badge variant="outline" className={`${getPriorityColor(feature.priority)} text-xs flex-shrink-0`}>
+                                                        <Badge
+                                                            variant="outline"
+                                                            className={`${getPriorityColor(feature.priority)} flex-shrink-0 text-xs`}
+                                                        >
                                                             {feature.priority.charAt(0).toUpperCase()}
                                                         </Badge>
                                                     )}
@@ -426,7 +415,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                             </CardHeader>
                                             <CardContent className="space-y-3">
                                                 {(feature.summary || feature.description) && (
-                                                    <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed">
+                                                    <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                                                         {feature.summary || feature.description}
                                                     </p>
                                                 )}
@@ -434,30 +423,36 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                                 <div className="space-y-1">
                                                     <div className="flex items-center justify-between text-xs">
                                                         <span className="text-muted-foreground">Progress</span>
-                                                        <span className={`font-medium ${
-                                                            feature.progress >= 80 ? 'text-emerald-600 dark:text-emerald-400' :
-                                                            feature.progress >= 50 ? 'text-amber-600 dark:text-amber-400' :
-                                                            'text-muted-foreground'
-                                                        }`}>{feature.progress}%</span>
+                                                        <span
+                                                            className={`font-medium ${
+                                                                feature.progress >= 80
+                                                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                                                    : feature.progress >= 50
+                                                                      ? 'text-amber-600 dark:text-amber-400'
+                                                                      : 'text-muted-foreground'
+                                                            }`}
+                                                        >
+                                                            {feature.progress}%
+                                                        </span>
                                                     </div>
                                                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                                                        <div 
+                                                        <div
                                                             className={`h-full transition-all duration-300 ${
-                                                                feature.progress >= 80 ? 'bg-emerald-500' :
-                                                                feature.progress >= 50 ? 'bg-amber-500' :
-                                                                'bg-slate-400'
+                                                                feature.progress >= 80
+                                                                    ? 'bg-emerald-500'
+                                                                    : feature.progress >= 50
+                                                                      ? 'bg-amber-500'
+                                                                      : 'bg-slate-400'
                                                             }`}
                                                             style={{ width: `${feature.progress}%` }}
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center justify-between pt-2 border-t">
+                                                <div className="flex items-center justify-between border-t pt-2">
                                                     <Badge variant="outline" className={`${getStatusColor(feature.status)} text-xs`}>
                                                         {feature.status?.replace('_', ' ') || 'draft'}
                                                     </Badge>
-                                                    <span className="text-xs text-muted-foreground">
-                                                        #{feature.order_of_implementation}
-                                                    </span>
+                                                    <span className="text-xs text-muted-foreground">#{feature.order_of_implementation}</span>
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -467,23 +462,23 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                         ) : (
                             <Card>
                                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                                    <ZapIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                                    <ZapIcon className="mb-4 h-12 w-12 text-muted-foreground/30" />
                                     <h3 className="text-lg font-medium text-muted-foreground">No Features Yet</h3>
-                                    <p className="text-sm text-muted-foreground/70 mt-1">
-                                        This module doesn't have any features defined
-                                    </p>
+                                    <p className="mt-1 text-sm text-muted-foreground/70">This module doesn't have any features defined</p>
                                 </CardContent>
                             </Card>
                         )}
                     </TabsContent>
 
                     {/* Sibling Modules Tab */}
-                    <TabsContent value="siblings" className="space-y-4 mt-4">
+                    <TabsContent value="siblings" className="mt-4 space-y-4">
                         {siblingModules && siblingModules.length > 0 ? (
                             <div className="grid gap-3">
                                 {siblingModules.map((sibling) => (
                                     <Link key={sibling.id} href={`/admin/modules/${sibling.id}`}>
-                                        <Card className={`cursor-pointer transition-colors hover:bg-muted/50 ${sibling.id === module.id ? 'ring-2 ring-primary/50' : ''}`}>
+                                        <Card
+                                            className={`cursor-pointer transition-colors hover:bg-muted/50 ${sibling.id === module.id ? 'ring-2 ring-primary/50' : ''}`}
+                                        >
                                             <CardContent className="flex items-center justify-between p-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
@@ -493,7 +488,9 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                                                         <p className="text-sm font-medium">
                                                             {sibling.name}
                                                             {sibling.id === module.id && (
-                                                                <Badge variant="secondary" className="ml-2 text-xs">Current</Badge>
+                                                                <Badge variant="secondary" className="ml-2 text-xs">
+                                                                    Current
+                                                                </Badge>
                                                             )}
                                                         </p>
                                                     </div>
@@ -509,11 +506,9 @@ export default function ModuleShow({ module, project, features, siblingModules, 
                         ) : (
                             <Card>
                                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                                    <LayersIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                                    <LayersIcon className="mb-4 h-12 w-12 text-muted-foreground/30" />
                                     <h3 className="text-lg font-medium text-muted-foreground">Only Module</h3>
-                                    <p className="text-sm text-muted-foreground/70 mt-1">
-                                        This is the only module in the project
-                                    </p>
+                                    <p className="mt-1 text-sm text-muted-foreground/70">This is the only module in the project</p>
                                 </CardContent>
                             </Card>
                         )}

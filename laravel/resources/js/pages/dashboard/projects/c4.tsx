@@ -2,20 +2,15 @@ import JsonEditor from '@/components/c4-diagram/JsonEditor';
 import ReactFlowDiagram from '@/components/c4-diagram/ReactFlowDiagram';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Toaster } from '@/components/ui/sonner';
-import { useC4Parser } from '@/hooks/useC4Parser';
+import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { useC4Parser } from '@/hooks/useC4Parser';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import {
-    ChevronLeft,
-    ChevronRight,
-    Maximize2,
-    Sparkles,
-} from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Maximize2, Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 interface User {
@@ -302,12 +297,10 @@ export default function ProjectC4({ project, errorMessage, isGenerating: initial
                                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                                                 <Sparkles className="h-8 w-8 text-muted-foreground" />
                                             </div>
-                                            <h1 className="mb-4 text-2xl font-semibold tracking-tight">
-                                                Generate C4 Architecture Diagram
-                                            </h1>
+                                            <h1 className="mb-4 text-2xl font-semibold tracking-tight">Generate C4 Architecture Diagram</h1>
                                             <p className="text-sm text-muted-foreground">
-                                                Create a comprehensive C4 model diagram for your project using AI. Describe your system
-                                                architecture and we'll generate a detailed diagram.
+                                                Create a comprehensive C4 model diagram for your project using AI. Describe your system architecture
+                                                and we'll generate a detailed diagram.
                                             </p>
                                         </div>
 
@@ -344,8 +337,8 @@ export default function ProjectC4({ project, errorMessage, isGenerating: initial
 
                                             <div className="text-sm text-muted-foreground">
                                                 <p>
-                                                    💡 <strong>Tip:</strong> Be specific about your system components, technologies, and
-                                                    relationships for better results.
+                                                    💡 <strong>Tip:</strong> Be specific about your system components, technologies, and relationships
+                                                    for better results.
                                                 </p>
                                             </div>
 
@@ -451,9 +444,7 @@ export default function ProjectC4({ project, errorMessage, isGenerating: initial
                                         {isGenerating ? (
                                             <div className="flex h-full items-center justify-center bg-muted/10">
                                                 <div className="text-center">
-                                                    <TextShimmer className="text-2xl font-semibold">
-                                                        Generating C4 Architecture...
-                                                    </TextShimmer>
+                                                    <TextShimmer className="text-2xl font-semibold">Generating C4 Architecture...</TextShimmer>
                                                     <p className="mt-4 text-sm text-muted-foreground">
                                                         Please wait while we create your system diagram
                                                     </p>
@@ -464,9 +455,7 @@ export default function ProjectC4({ project, errorMessage, isGenerating: initial
                                                 <div className="text-center">
                                                     <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary/30 border-t-primary"></div>
                                                     <TextShimmer className="text-2xl font-semibold">Loading Diagram...</TextShimmer>
-                                                    <p className="mt-4 text-sm text-muted-foreground">
-                                                        Parsing and rendering your C4 architecture
-                                                    </p>
+                                                    <p className="mt-4 text-sm text-muted-foreground">Parsing and rendering your C4 architecture</p>
                                                 </div>
                                             </div>
                                         ) : (

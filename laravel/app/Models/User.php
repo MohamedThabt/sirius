@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable 
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -89,6 +89,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
+    }
+    
+    /**
+     * Get the user's questionnaire answers.
+     */
+    public function questionnaireAnswers(): HasMany
+    {
+        return $this->hasMany(UserQuestionAnswer::class);
     }
 
     /**
@@ -261,5 +269,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function feedbackVotes(): HasMany
     {
         return $this->hasMany(FeedbackVote::class);
+    }
+
+    /**
+     * Get the user's questionnaire answers.
+     */
+    public function questionnaireAnswers(): HasMany
+    {
+        return $this->hasMany(UserQuestionAnswer::class);
     }
 }

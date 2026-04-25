@@ -1,10 +1,9 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { CodeIcon, DatabaseIcon, LightbulbIcon, MonitorSmartphoneIcon, PlugIcon, ArrowLeftIcon, CalendarIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { ArrowLeftIcon, CalendarIcon, CodeIcon, DatabaseIcon, LightbulbIcon, MonitorSmartphoneIcon, PlugIcon } from 'lucide-react';
 
 interface User {
     id: number;
@@ -53,8 +52,8 @@ export default function ProjectTechnicalDetails({ project, technicalIntake }: Pr
         description,
         icon: Icon,
         content,
-        colorClass = "text-blue-600 dark:text-blue-400",
-        bgClass = "bg-blue-500/10"
+        colorClass = 'text-blue-600 dark:text-blue-400',
+        bgClass = 'bg-blue-500/10',
     }: {
         title: string;
         description: string;
@@ -71,7 +70,7 @@ export default function ProjectTechnicalDetails({ project, technicalIntake }: Pr
                     </div>
                     <div>
                         <div className="font-medium">{title}</div>
-                        <div className="text-xs text-muted-foreground font-normal">{description}</div>
+                        <div className="text-xs font-normal text-muted-foreground">{description}</div>
                     </div>
                 </CardTitle>
             </CardHeader>
@@ -94,7 +93,7 @@ export default function ProjectTechnicalDetails({ project, technicalIntake }: Pr
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Technical Details - ${project.name}`} />
 
-            <div className="w-full max-w-7xl mx-auto space-y-6 p-4 md:p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6">
                 {/* Header */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -103,11 +102,9 @@ export default function ProjectTechnicalDetails({ project, technicalIntake }: Pr
                                 <ArrowLeftIcon className="h-4 w-4" />
                             </Button>
                         </Link>
-                        <div className="flex-1 min-w-0">
-                            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Technology Stack</h1>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Technical specifications and architecture for {project.name}
-                            </p>
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Technology Stack</h1>
+                            <p className="mt-1 text-sm text-muted-foreground">Technical specifications and architecture for {project.name}</p>
                         </div>
                     </div>
                 </div>
@@ -173,24 +170,27 @@ export default function ProjectTechnicalDetails({ project, technicalIntake }: Pr
                         {technicalIntake.updated_at && (
                             <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                                 <CalendarIcon className="h-3.5 w-3.5" />
-                                <span>Last updated {new Date(technicalIntake.updated_at).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })}</span>
+                                <span>
+                                    Last updated{' '}
+                                    {new Date(technicalIntake.updated_at).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
+                                </span>
                             </div>
                         )}
                     </div>
                 ) : (
                     <Card className="border-dashed">
                         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                                 <CodeIcon className="h-6 w-6 text-muted-foreground" />
                             </div>
                             <h3 className="text-sm font-medium">No Technology Details</h3>
-                            <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                            <p className="mt-1 max-w-xs text-xs text-muted-foreground">
                                 Technology details will appear here once the technical intake is completed.
                             </p>
                         </CardContent>

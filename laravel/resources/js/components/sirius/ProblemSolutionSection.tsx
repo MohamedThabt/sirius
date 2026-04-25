@@ -1,6 +1,6 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
 import { specDrivenDevelopment } from '@/lib/sirius/content';
+import { cn } from '@/lib/utils';
+import React from 'react';
 
 const Feature = ({
     title,
@@ -16,33 +16,29 @@ const Feature = ({
     return (
         <div
             className={cn(
-                'flex flex-col py-10 relative group/feature border-border',
+                'group/feature relative flex flex-col border-border py-10',
                 'border-b',
                 index === 3 && 'border-b-0',
                 index < 2 ? 'md:border-b' : 'md:border-b-0',
                 index % 2 === 0 ? 'md:border-r' : 'md:border-r-0',
                 'lg:border-b-0',
-                index < 3 ? 'lg:border-r' : 'lg:border-r-0'
+                index < 3 ? 'lg:border-r' : 'lg:border-r-0',
             )}
         >
             {index < 4 && (
-                <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-t from-muted to-transparent pointer-events-none" />
+                <div className="pointer-events-none absolute inset-0 h-full w-full bg-gradient-to-t from-muted to-transparent opacity-0 transition duration-200 group-hover/feature:opacity-100" />
             )}
             {index >= 4 && (
-                <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-b from-muted to-transparent pointer-events-none" />
+                <div className="pointer-events-none absolute inset-0 h-full w-full bg-gradient-to-b from-muted to-transparent opacity-0 transition duration-200 group-hover/feature:opacity-100" />
             )}
-            <div className="mb-4 relative z-10 px-10 text-muted-foreground">
-                <Icon className="w-6 h-6" />
+            <div className="relative z-10 mb-4 px-10 text-muted-foreground">
+                <Icon className="h-6 w-6" />
             </div>
-            <div className="text-lg font-bold mb-2 relative z-10 px-10">
-                <div className="absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1 rounded-tr-full rounded-br-full bg-muted-foreground/30 group-hover/feature:bg-primary transition-all duration-200 origin-center" />
-                <span className="group-hover/feature:translate-x-2 transition duration-200 inline-block text-foreground">
-                    {title}
-                </span>
+            <div className="relative z-10 mb-2 px-10 text-lg font-bold">
+                <div className="absolute inset-y-0 left-0 h-6 w-1 origin-center rounded-tr-full rounded-br-full bg-muted-foreground/30 transition-all duration-200 group-hover/feature:h-8 group-hover/feature:bg-primary" />
+                <span className="inline-block text-foreground transition duration-200 group-hover/feature:translate-x-2">{title}</span>
             </div>
-            <p className="text-sm text-muted-foreground max-w-xs relative z-10 px-10">
-                {description}
-            </p>
+            <p className="relative z-10 max-w-xs px-10 text-sm text-muted-foreground">{description}</p>
         </div>
     );
 };
@@ -54,25 +50,17 @@ export const ProblemSolutionSection: React.FC = () => {
         <section className="sirius-section relative overflow-hidden bg-background" id="why-sirius">
             <div className="sirius-container relative z-10">
                 {/* Header */}
-                <div className="flex flex-col items-center justify-center mb-12 md:mb-16">
-                    <div className="flex flex-col gap-4 max-w-2xl">
+                <div className="mb-12 flex flex-col items-center justify-center md:mb-16">
+                    <div className="flex max-w-2xl flex-col gap-4">
                         <span className="text-kicker text-center">{eyebrow}</span>
-                        <h2 className="text-center text-section-title text-foreground">
-                            {title}
-                        </h2>
+                        <h2 className="text-section-title text-center text-foreground">{title}</h2>
                     </div>
                 </div>
 
                 {/* Features Grid with Hover Effects */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative z-10 max-w-7xl mx-auto border border-border rounded-xl overflow-hidden">
+                <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 overflow-hidden rounded-xl border border-border md:grid-cols-2 lg:grid-cols-4">
                     {problem.painPoints.map((point, index) => (
-                        <Feature
-                            key={point.title}
-                            title={point.title}
-                            description={point.description}
-                            icon={point.icon}
-                            index={index}
-                        />
+                        <Feature key={point.title} title={point.title} description={point.description} icon={point.icon} index={index} />
                     ))}
                 </div>
             </div>

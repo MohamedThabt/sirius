@@ -22,7 +22,7 @@ interface ContentCardProps {
  * WHY: Extracted from ModuleShow.tsx to prevent re-creation on each render.
  * When defined inline in a component, this function component is recreated
  * on every parent render, causing unnecessary re-renders of all its children.
- * 
+ *
  * Now supports markdown rendering and collapsible content for long text.
  */
 export function ContentCard({
@@ -37,7 +37,7 @@ export function ContentCard({
     maxCollapsedHeight = 200,
 }: ContentCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
-    
+
     // Check if content is likely to be long (simple heuristic: more than 300 chars or 5 newlines)
     const isLongContent = value && (value.length > 300 || (value.match(/\n/g) || []).length > 5);
 
@@ -50,10 +50,10 @@ export function ContentCard({
                     <Icon className="h-4 w-4 text-muted-foreground" />
                     <h3 className="text-sm font-medium text-foreground">{title}</h3>
                 </div>
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => onEdit(field)} 
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(field)}
                     className="h-7 px-2 opacity-0 transition-opacity group-hover:opacity-100"
                 >
                     <PencilIcon className="h-3 w-3" />
@@ -61,28 +61,24 @@ export function ContentCard({
             </div>
             {value ? (
                 <div className="relative">
-                    <div 
+                    <div
                         className={`overflow-hidden transition-all duration-300 ease-out ${!isExpanded && isLongContent ? '' : ''}`}
                         style={{ maxHeight: !isExpanded && isLongContent ? `${maxCollapsedHeight}px` : 'none' }}
                     >
                         {renderMarkdown ? (
-                            <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-medium prose-headings:text-sm prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                    {value}
-                                </ReactMarkdown>
+                            <div className="prose prose-sm dark:prose-invert prose-headings:text-foreground prose-headings:font-medium prose-headings:text-sm prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none max-w-none text-muted-foreground">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
                             </div>
                         ) : (
-                            <div className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
-                                {value}
-                            </div>
+                            <div className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">{value}</div>
                         )}
                     </div>
-                    
+
                     {/* Gradient overlay and expand button for long content */}
                     {isLongContent && !isExpanded && (
-                        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card/90 to-transparent pointer-events-none" />
+                        <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-16 bg-gradient-to-t from-card/90 to-transparent" />
                     )}
-                    
+
                     {isLongContent && (
                         <Button
                             variant="ghost"

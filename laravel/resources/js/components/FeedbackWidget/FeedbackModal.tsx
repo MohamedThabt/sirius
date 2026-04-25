@@ -1,6 +1,6 @@
 import { router, useForm } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, Eye, Loader2, Pencil, Send, XCircle } from 'lucide-react';
+import { CheckCircle, Eye, Loader2, Pencil, Send, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
@@ -14,8 +14,8 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { cn } from '@/lib/utils';
+import { bugReportSchema, submitFeedbackSchema } from '@/lib/validations';
 import { type FeedbackType } from '@/types';
-import { submitFeedbackSchema, bugReportSchema } from '@/lib/validations';
 
 import { StarConfetti } from './StarConfetti';
 
@@ -269,15 +269,19 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                 });
             } else {
                 // Post feedback
-                router.post('/beta/feedback', {
-                    type: data.type,
-                    message: data.message,
-                    page_url: data.page_url,
-                }, {
-                    preserveScroll: true,
-                    onSuccess: handleSuccess,
-                    onError: handleError,
-                });
+                router.post(
+                    '/beta/feedback',
+                    {
+                        type: data.type,
+                        message: data.message,
+                        page_url: data.page_url,
+                    },
+                    {
+                        preserveScroll: true,
+                        onSuccess: handleSuccess,
+                        onError: handleError,
+                    },
+                );
             }
         },
         [data, handleSuccess, handleError, screenshot, screenshotPreview, captureScreenshot],
@@ -323,29 +327,27 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                         <div className="flex flex-1 flex-col gap-2 p-4">
                             {/* Type Selection Pills */}
                             <div className="mb-2 flex items-center gap-1.5">
-                                {(Object.entries(feedbackConfig) as [FeedbackType, (typeof feedbackConfig)['suggestion']][]).map(
-                                    ([type, cfg]) => {
-                                        const isSelected = data.type === type;
-                                        return (
-                                            <motion.button
-                                                key={type}
-                                                type="button"
-                                                onClick={() => handleTypeSelect(type)}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.98 }}
-                                                className={cn(
-                                                    'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200',
-                                                    isSelected
-                                                        ? cn('border-2 bg-card shadow-sm', cfg.borderColor)
-                                                        : 'border-2 border-transparent bg-muted/50 text-muted-foreground hover:bg-muted',
-                                                )}
-                                            >
-                                                <span>{cfg.emoji}</span>
-                                                <span>{cfg.label}</span>
-                                            </motion.button>
-                                        );
-                                    },
-                                )}
+                                {(Object.entries(feedbackConfig) as [FeedbackType, (typeof feedbackConfig)['suggestion']][]).map(([type, cfg]) => {
+                                    const isSelected = data.type === type;
+                                    return (
+                                        <motion.button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => handleTypeSelect(type)}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            className={cn(
+                                                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200',
+                                                isSelected
+                                                    ? cn('border-2 bg-card shadow-sm', cfg.borderColor)
+                                                    : 'border-2 border-transparent bg-muted/50 text-muted-foreground hover:bg-muted',
+                                            )}
+                                        >
+                                            <span>{cfg.emoji}</span>
+                                            <span>{cfg.label}</span>
+                                        </motion.button>
+                                    );
+                                })}
                             </div>
 
                             {/* Write/Preview Toggle */}
@@ -356,9 +358,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                                         onClick={() => setPreviewMode(false)}
                                         className={cn(
                                             'flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all duration-200',
-                                            !previewMode
-                                                ? 'bg-card text-foreground shadow-sm'
-                                                : 'text-muted-foreground hover:text-foreground',
+                                            !previewMode ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
                                         )}
                                     >
                                         <Pencil className="size-3" />
@@ -369,9 +369,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                                         onClick={() => setPreviewMode(true)}
                                         className={cn(
                                             'flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all duration-200',
-                                            previewMode
-                                                ? 'bg-card text-foreground shadow-sm'
-                                                : 'text-muted-foreground hover:text-foreground',
+                                            previewMode ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
                                         )}
                                     >
                                         <Eye className="size-3" />

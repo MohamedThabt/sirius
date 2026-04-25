@@ -1,23 +1,16 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { MermaidDiagram } from '@/components/MermaidDiagram';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type Project, type Sections, type User } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
-import { type User, type Project, type Sections } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
-import {
-    CodeIcon,
-    CopyIcon,
-    DownloadIcon,
-    MenuIcon,
-    ZoomInIcon,
-    ZoomOutIcon,
-} from 'lucide-react';
+import { CodeIcon, CopyIcon, DownloadIcon, MenuIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -31,12 +24,7 @@ interface Props {
     sections?: Sections;
 }
 
-export default function PrdPreview({
-    content,
-    title = 'Product Requirements Document',
-    projectName,
-    project,
-}: Props) {
+export default function PrdPreview({ content, title = 'Product Requirements Document', projectName, project }: Props) {
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const [showCode, setShowCode] = useState(false);
@@ -116,11 +104,15 @@ export default function PrdPreview({
                                         <div className="flex items-center gap-3">
                                             <Sheet>
                                                 <SheetTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                                    >
                                                         <MenuIcon className="h-4 w-4" />
                                                     </Button>
                                                 </SheetTrigger>
-                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                                     <ProjectSidebarPanel
                                                         project={project}
                                                         navGroups={navGroups}

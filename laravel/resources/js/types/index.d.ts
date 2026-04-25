@@ -352,4 +352,3 @@ export interface WidgetBugReport {
     page_url: string;
     screenshot?: File;
 }
-

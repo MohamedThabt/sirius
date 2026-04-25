@@ -1,27 +1,19 @@
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
-import { buildProjectNavGroups } from '@/components/Projects/projectNav';
-import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ClientDateTime } from '@/components/ClientDateTime';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckboxGrid } from '@/components/ui/checkbox-grid';
 import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/ui/page-header';
 import { Textarea } from '@/components/ui/textarea';
-import { type User, type Project, type Sections } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { type Project, type Sections, type User } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import {
-    BrainIcon,
-    CodeIcon,
-    DatabaseIcon,
-    LightbulbIcon,
-    MonitorSmartphoneIcon,
-    PlugIcon,
-    SaveIcon,
-} from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
+import { CodeIcon, DatabaseIcon, LightbulbIcon, MonitorSmartphoneIcon, PlugIcon, SaveIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 // TechnicalIntake specific to this page
 interface TechnicalIntake {
@@ -109,13 +101,16 @@ const externalServiceOptions = [
 // Helper to parse stored labels back to option values
 const labelsToValues = (labels: string | null, options: { value: string; label: string }[]): string[] => {
     if (!labels) return [];
-    const labelArray = labels.split(', ').map(l => l.trim());
-    return options.filter(o => labelArray.includes(o.label)).map(o => o.value);
+    const labelArray = labels.split(', ').map((l) => l.trim());
+    return options.filter((o) => labelArray.includes(o.label)).map((o) => o.value);
 };
 
 // Helper to convert values to labels
 const valuesToLabels = (values: string[], options: { value: string; label: string }[]): string => {
-    return values.map(v => options.find(o => o.value === v)?.label).filter(Boolean).join(', ');
+    return values
+        .map((v) => options.find((o) => o.value === v)?.label)
+        .filter(Boolean)
+        .join(', ');
 };
 
 export default function Technology({ project, technicalIntake, sections }: Props) {
@@ -172,7 +167,7 @@ export default function Technology({ project, technicalIntake, sections }: Props
 
     const handleSubmit = () => {
         setIsSaving(true);
-        
+
         const formData = {
             platform_targets: valuesToLabels(selectedPlatforms, platformOptions) || platformAdditional || null,
             frontend_tech: valuesToLabels(selectedFrontend, frontendFrameworkOptions) || frontendAdditional || null,
@@ -241,13 +236,13 @@ export default function Technology({ project, technicalIntake, sections }: Props
                         options={platformOptions}
                         selected={selectedPlatforms}
                         onToggle={(value, checked) => {
-                            setSelectedPlatforms(prev => 
-                                checked ? [...prev, value] : prev.filter(v => v !== value)
-                            );
+                            setSelectedPlatforms((prev) => (checked ? [...prev, value] : prev.filter((v) => v !== value)));
                         }}
                     />
                     <div className="mt-4">
-                        <Label htmlFor="platform_additional" className="text-sm">Additional Details (Optional)</Label>
+                        <Label htmlFor="platform_additional" className="text-sm">
+                            Additional Details (Optional)
+                        </Label>
                         <Textarea
                             id="platform_additional"
                             value={platformAdditional}
@@ -276,13 +271,13 @@ export default function Technology({ project, technicalIntake, sections }: Props
                         options={frontendFrameworkOptions}
                         selected={selectedFrontend}
                         onToggle={(value, checked) => {
-                            setSelectedFrontend(prev => 
-                                checked ? [...prev, value] : prev.filter(v => v !== value)
-                            );
+                            setSelectedFrontend((prev) => (checked ? [...prev, value] : prev.filter((v) => v !== value)));
                         }}
                     />
                     <div className="mt-4">
-                        <Label htmlFor="frontend_additional" className="text-sm">UI Libraries & State Management (Optional)</Label>
+                        <Label htmlFor="frontend_additional" className="text-sm">
+                            UI Libraries & State Management (Optional)
+                        </Label>
                         <Textarea
                             id="frontend_additional"
                             value={frontendAdditional}
@@ -311,13 +306,13 @@ export default function Technology({ project, technicalIntake, sections }: Props
                         options={backendOptions}
                         selected={selectedBackend}
                         onToggle={(value, checked) => {
-                            setSelectedBackend(prev => 
-                                checked ? [...prev, value] : prev.filter(v => v !== value)
-                            );
+                            setSelectedBackend((prev) => (checked ? [...prev, value] : prev.filter((v) => v !== value)));
                         }}
                     />
                     <div className="mt-4">
-                        <Label htmlFor="backend_additional" className="text-sm">API Style, Auth & Queue Details (Optional)</Label>
+                        <Label htmlFor="backend_additional" className="text-sm">
+                            API Style, Auth & Queue Details (Optional)
+                        </Label>
                         <Textarea
                             id="backend_additional"
                             value={backendAdditional}
@@ -346,13 +341,13 @@ export default function Technology({ project, technicalIntake, sections }: Props
                         options={databaseOptions}
                         selected={selectedDatabase}
                         onToggle={(value, checked) => {
-                            setSelectedDatabase(prev => 
-                                checked ? [...prev, value] : prev.filter(v => v !== value)
-                            );
+                            setSelectedDatabase((prev) => (checked ? [...prev, value] : prev.filter((v) => v !== value)));
                         }}
                     />
                     <div className="mt-4">
-                        <Label htmlFor="database_additional" className="text-sm">Sharding, Replication, Caching Details (Optional)</Label>
+                        <Label htmlFor="database_additional" className="text-sm">
+                            Sharding, Replication, Caching Details (Optional)
+                        </Label>
                         <Textarea
                             id="database_additional"
                             value={databaseAdditional}
@@ -381,13 +376,13 @@ export default function Technology({ project, technicalIntake, sections }: Props
                         options={aiUseCaseOptions}
                         selected={selectedAiUseCases}
                         onToggle={(value, checked) => {
-                            setSelectedAiUseCases(prev => 
-                                checked ? [...prev, value] : prev.filter(v => v !== value)
-                            );
+                            setSelectedAiUseCases((prev) => (checked ? [...prev, value] : prev.filter((v) => v !== value)));
                         }}
                     />
                     <div className="mt-4">
-                        <Label htmlFor="ai_additional" className="text-sm">AI Provider & Safety Details (Optional)</Label>
+                        <Label htmlFor="ai_additional" className="text-sm">
+                            AI Provider & Safety Details (Optional)
+                        </Label>
                         <Textarea
                             id="ai_additional"
                             value={aiAdditional}
@@ -416,13 +411,13 @@ export default function Technology({ project, technicalIntake, sections }: Props
                         options={externalServiceOptions}
                         selected={selectedExternalServices}
                         onToggle={(value, checked) => {
-                            setSelectedExternalServices(prev => 
-                                checked ? [...prev, value] : prev.filter(v => v !== value)
-                            );
+                            setSelectedExternalServices((prev) => (checked ? [...prev, value] : prev.filter((v) => v !== value)));
                         }}
                     />
                     <div className="mt-4">
-                        <Label htmlFor="services_additional" className="text-sm">Other Services (Optional)</Label>
+                        <Label htmlFor="services_additional" className="text-sm">
+                            Other Services (Optional)
+                        </Label>
                         <Textarea
                             id="services_additional"
                             value={servicesAdditional}
@@ -537,21 +532,13 @@ export default function Technology({ project, technicalIntake, sections }: Props
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-6 flex items-center gap-3">
-                                <SidebarToggle
-                                    isCollapsed={isSidebarCollapsed}
-                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                />
+                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>
 
-                            <PageHeader
-                                title="Technology Stack"
-                                description={`Technical specifications and technology stack for ${project.name}`}
-                            />
+                            <PageHeader title="Technology Stack" description={`Technical specifications and technology stack for ${project.name}`} />
 
-                            <section className="space-y-10">
-                                {isEditing ? renderForm() : (technicalIntake ? renderViewMode() : renderForm())}
-                            </section>
+                            <section className="space-y-10">{isEditing ? renderForm() : technicalIntake ? renderViewMode() : renderForm()}</section>
                         </div>
                     </main>
                 </div>

@@ -1,13 +1,7 @@
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { TextShimmer } from '@/components/ui/text-shimmer';
-import { convertEscapedMermaid, validateMermaidSyntax, parseMermaidError } from '@/utils/mermaid';
+import { convertEscapedMermaid, parseMermaidError, validateMermaidSyntax } from '@/utils/mermaid';
 import { CheckIcon, CodeIcon, CopyIcon, EyeIcon } from 'lucide-react';
 import mermaid from 'mermaid';
 import { memo, useEffect, useState } from 'react';
@@ -40,11 +34,7 @@ interface MermaidDiagramProps {
     previewTitle?: string;
 }
 
-function MermaidDiagramComponent({
-    children,
-    projectId,
-    previewTitle = 'Mermaid Diagram',
-}: MermaidDiagramProps) {
+function MermaidDiagramComponent({ children, projectId, previewTitle = 'Mermaid Diagram' }: MermaidDiagramProps) {
     const [svg, setSvg] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
@@ -110,8 +100,8 @@ function MermaidDiagramComponent({
                     errorElement.parentNode.removeChild(errorElement);
                 }
                 // Clean up mermaid's error rendering (bomb icon with error text)
-                document.querySelectorAll('[id^="mermaid-temp-"]').forEach(el => el.remove());
-                document.querySelectorAll('.mermaid-error, .error-icon, [id*="mermaid"][id*="error"]').forEach(el => el.remove());
+                document.querySelectorAll('[id^="mermaid-temp-"]').forEach((el) => el.remove());
+                document.querySelectorAll('.mermaid-error, .error-icon, [id*="mermaid"][id*="error"]').forEach((el) => el.remove());
             }
         };
 
@@ -179,13 +169,7 @@ function MermaidDiagramComponent({
             <div className="my-4">
                 <div className="mb-2 flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">Diagram Code</span>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={copyCode}
-                        className="h-6 text-xs"
-                        aria-live="polite"
-                    >
+                    <Button variant="outline" size="sm" onClick={copyCode} className="h-6 text-xs" aria-live="polite">
                         {copied ? (
                             <>
                                 <CheckIcon className="mr-1 h-3 w-3 text-emerald-600" />
@@ -212,9 +196,7 @@ function MermaidDiagramComponent({
     if (!svg) {
         return (
             <div className="my-4 flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-8 dark:border-slate-700 dark:bg-slate-800">
-                <TextShimmer className="text-sm text-slate-500 dark:text-slate-400">
-                    Rendering diagram...
-                </TextShimmer>
+                <TextShimmer className="text-sm text-slate-500 dark:text-slate-400">Rendering diagram...</TextShimmer>
             </div>
         );
     }
@@ -224,22 +206,11 @@ function MermaidDiagramComponent({
         <div className="my-4">
             <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowCode(!showCode)}
-                        className="h-8 text-xs"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setShowCode(!showCode)} className="h-8 text-xs">
                         <CodeIcon className="mr-1 h-3 w-3" />
                         {showCode ? 'Show Diagram' : 'Show Code'}
                     </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={copyCode}
-                        className="h-8 text-xs"
-                        aria-live="polite"
-                    >
+                    <Button variant="outline" size="sm" onClick={copyCode} className="h-8 text-xs" aria-live="polite">
                         {copied ? (
                             <>
                                 <CheckIcon className="mr-1 h-3 w-3 text-emerald-600" />
@@ -253,12 +224,7 @@ function MermaidDiagramComponent({
                         )}
                     </Button>
                     {projectId && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={openPreviewInNewTab}
-                            className="h-8 text-xs"
-                        >
+                        <Button variant="outline" size="sm" onClick={openPreviewInNewTab} className="h-8 text-xs">
                             <EyeIcon className="mr-1 h-3 w-3" />
                             Preview in New Tab
                         </Button>
@@ -288,9 +254,7 @@ function MermaidDiagramComponent({
             {/* Validation Warnings */}
             {validationWarnings.length > 0 && (
                 <div className="mb-3 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
-                    <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
-                        ⚠️ Diagram Warnings
-                    </p>
+                    <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">⚠️ Diagram Warnings</p>
                     <ul className="mt-1 list-inside list-disc text-xs text-yellow-600 dark:text-yellow-500">
                         {validationWarnings.map((warning, index) => (
                             <li key={index}>{warning}</li>

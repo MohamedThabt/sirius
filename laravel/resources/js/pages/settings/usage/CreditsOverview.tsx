@@ -1,28 +1,9 @@
-import { type Credits, type UsagePlan, type Subscription } from '@/types';
-import {
-    SparklesIcon,
-    ActivityIcon,
-    ClockIcon,
-    CreditCardIcon,
-    AlertCircleIcon,
-    CoinsIcon,
-    Receipt,
-    CheckCircle,
-    XCircle,
-    ArrowUpCircleIcon,
-} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { formatNumber } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
+import { formatNumber } from '@/lib/formatters';
+import { type Credits, type Subscription, type UsagePlan } from '@/types';
 import { Link } from '@inertiajs/react';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { ActivityIcon, ArrowUpCircleIcon, CheckCircle, ClockIcon, CreditCardIcon, Receipt, SparklesIcon, XCircle } from 'lucide-react';
 
 interface CreditsOverviewProps {
     credits: Credits;
@@ -69,7 +50,7 @@ export function CreditsOverview({
                                 <SparklesIcon className="h-3.5 w-3.5 text-emerald-500" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Remaining</p>
+                                <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Remaining</p>
                                 <p className="text-lg font-bold text-foreground">{formatNumber(remainingCredits)}</p>
                             </div>
                         </div>
@@ -82,7 +63,7 @@ export function CreditsOverview({
                                 <ActivityIcon className="h-3.5 w-3.5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Used</p>
+                                <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Used</p>
                                 <p className="text-lg font-bold text-foreground">{formatNumber(credits.used)}</p>
                             </div>
                         </div>
@@ -95,9 +76,12 @@ export function CreditsOverview({
                                 <ClockIcon className="h-3.5 w-3.5 text-amber-500" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Resets In</p>
+                                <p className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">Resets In</p>
                                 <p className="text-lg font-bold text-foreground">
-                                    {credits.days_until_reset} <span className="text-sm font-normal text-muted-foreground">{credits.days_until_reset === 1 ? 'day' : 'days'}</span>
+                                    {credits.days_until_reset}{' '}
+                                    <span className="text-sm font-normal text-muted-foreground">
+                                        {credits.days_until_reset === 1 ? 'day' : 'days'}
+                                    </span>
                                 </p>
                             </div>
                         </div>
@@ -108,9 +92,7 @@ export function CreditsOverview({
                 <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
                         <span className="font-medium text-foreground">Credits Remaining</span>
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-500">
-                            {Math.round(remainingPercentage)}% left
-                        </span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-500">{Math.round(remainingPercentage)}% left</span>
                     </div>
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
@@ -120,7 +102,9 @@ export function CreditsOverview({
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{formatNumber(remainingCredits)} remaining</span>
-                        <span>{formatNumber(credits.used)} of {formatNumber(credits.total)} used</span>
+                        <span>
+                            {formatNumber(credits.used)} of {formatNumber(credits.total)} used
+                        </span>
                     </div>
                 </div>
 
@@ -130,7 +114,7 @@ export function CreditsOverview({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
                                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                                <CreditCardIcon className="h-3.5 w-3.5 text-primary" />
+                                    <CreditCardIcon className="h-3.5 w-3.5 text-primary" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-foreground">{plan.name}</p>
@@ -157,29 +141,25 @@ export function CreditsOverview({
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-foreground">Active Subscription</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        Started {new Date(subscription.started_at).toLocaleDateString()}
-                                    </p>
+                                    <p className="text-xs text-muted-foreground">Started {new Date(subscription.started_at).toLocaleDateString()}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 {subscription.status === 'active' ? (
                                     <Badge variant="default" className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        <CheckCircle className="mr-1 h-3 w-3" />
                                         Active
                                     </Badge>
                                 ) : subscription.status === 'cancelled' ? (
                                     <Badge variant="secondary">
-                                        <XCircle className="h-3 w-3 mr-1" />
+                                        <XCircle className="mr-1 h-3 w-3" />
                                         Cancelled
                                     </Badge>
                                 ) : (
                                     <Badge variant="outline">{subscription.status}</Badge>
                                 )}
                                 {subscription.ends_at && (
-                                    <p className="text-[10px] text-muted-foreground">
-                                        Ends {new Date(subscription.ends_at).toLocaleDateString()}
-                                    </p>
+                                    <p className="text-[10px] text-muted-foreground">Ends {new Date(subscription.ends_at).toLocaleDateString()}</p>
                                 )}
                             </div>
                         </div>
@@ -193,7 +173,7 @@ export function CreditsOverview({
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
                                 <ArrowUpCircleIcon className="h-4 w-4 text-primary" />
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <div className="min-w-0 flex-1">
                                 <p className="text-sm font-semibold text-foreground">Upgrade to Pro</p>
                                 <p className="text-xs text-muted-foreground">Get 2000 AI Credits/month for 200 EGP</p>
                             </div>

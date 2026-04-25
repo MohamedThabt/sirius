@@ -7,16 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import {
-    AlertCircleIcon,
-    AlertOctagonIcon,
-    AlertTriangleIcon,
-    ArrowLeftIcon,
-    BugIcon,
-    CopyIcon,
-    FilterIcon,
-    InfoIcon,
-} from 'lucide-react';
+import { AlertCircleIcon, AlertOctagonIcon, AlertTriangleIcon, ArrowLeftIcon, BugIcon, CopyIcon, FilterIcon, InfoIcon } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -209,15 +200,12 @@ function JsonOrRawBlock({
 }) {
     const result = tryParseJson(content);
     const [view, setView] = useState<'formatted' | 'raw'>('formatted');
-    const displayText = result.isJson
-        ? view === 'formatted'
-            ? result.formatted
-            : result.raw
-        : result.raw;
+    const displayText = result.isJson ? (view === 'formatted' ? result.formatted : result.raw) : result.raw;
     const isEmpty = !displayText;
-    const eventName = result.isJson && typeof result.parsed === 'object' && result.parsed !== null && 'event' in result.parsed
-        ? String((result.parsed as { event?: unknown }).event)
-        : null;
+    const eventName =
+        result.isJson && typeof result.parsed === 'object' && result.parsed !== null && 'event' in result.parsed
+            ? String((result.parsed as { event?: unknown }).event)
+            : null;
 
     const handleCopy = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -247,9 +235,7 @@ function JsonOrRawBlock({
                                 onClick={() => setView('formatted')}
                                 className={cn(
                                     'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                                    view === 'formatted'
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground',
+                                    view === 'formatted' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
                                 )}
                             >
                                 Formatted
@@ -259,9 +245,7 @@ function JsonOrRawBlock({
                                 onClick={() => setView('raw')}
                                 className={cn(
                                     'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                                    view === 'raw'
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground',
+                                    view === 'raw' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
                                 )}
                             >
                                 Raw
@@ -269,30 +253,23 @@ function JsonOrRawBlock({
                         </div>
                     )}
                     {!isEmpty && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 gap-1.5 text-xs"
-                            onClick={handleCopy}
-                        >
+                        <Button type="button" variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={handleCopy}>
                             <CopyIcon className="h-3.5 w-3.5" />
                             Copy
                         </Button>
                     )}
                 </div>
             </div>
-            <ScrollArea
-                className="w-full rounded-lg border border-border/30 bg-zinc-100 dark:bg-zinc-950/95"
-                style={{ height: scrollHeight }}
-            >
+            <ScrollArea className="w-full rounded-lg border border-border/30 bg-zinc-100 dark:bg-zinc-950/95" style={{ height: scrollHeight }}>
                 <div className="p-4">
-                    <pre className={cn(
-                        'font-mono text-xs leading-relaxed',
-                        result.isJson && view === 'formatted' ? 'whitespace-pre' : 'whitespace-pre-wrap break-words',
-                    )}>
+                    <pre
+                        className={cn(
+                            'font-mono text-xs leading-relaxed',
+                            result.isJson && view === 'formatted' ? 'whitespace-pre' : 'break-words whitespace-pre-wrap',
+                        )}
+                    >
                         {isEmpty ? (
-                            <span className="italic text-muted-foreground">(empty)</span>
+                            <span className="text-muted-foreground italic">(empty)</span>
                         ) : result.isJson && view === 'formatted' ? (
                             <JsonSyntaxHighlight formatted={result.formatted} />
                         ) : (
@@ -353,9 +330,9 @@ const formatTimestamp = (timestamp: string): string => {
 function FormattedMessage({ message }: { message: string }) {
     // Check if message contains exception patterns
     const hasExceptionPattern = /\[object\]|\(TypeError|\(Error|Exception:/i.test(message);
-    
+
     if (!hasExceptionPattern) {
-        return <p className="font-mono text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground/90">{message}</p>;
+        return <p className="font-mono text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground/90">{message}</p>;
     }
 
     // Split message into parts and highlight appropriately
@@ -378,7 +355,7 @@ function FormattedMessage({ message }: { message: string }) {
 
     // Collect all matches with their positions
     const allMatches: Array<{ start: number; end: number; text: string; type: string; lineNum?: string }> = [];
-    
+
     patterns.forEach(({ regex, type }) => {
         regex.lastIndex = 0;
         while ((match = regex.exec(message)) !== null) {
@@ -401,35 +378,37 @@ function FormattedMessage({ message }: { message: string }) {
         // Add text before this match
         if (lastIndex < match.start) {
             const text = message.substring(lastIndex, match.start);
-            parts.push(<span key={key++} className="text-foreground/80">{text}</span>);
+            parts.push(
+                <span key={key++} className="text-foreground/80">
+                    {text}
+                </span>,
+            );
         }
 
         // Add the highlighted match
         if (match.type === 'file') {
             const pathWithoutLine = match.lineNum ? match.text.replace(`:${match.lineNum}`, '') : match.text;
             parts.push(
-                <span key={key++} className="inline-flex items-baseline gap-1 bg-blue-500/10 px-1 rounded">
-                    <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                        {pathWithoutLine}
-                    </span>
+                <span key={key++} className="inline-flex items-baseline gap-1 rounded bg-blue-500/10 px-1">
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">{pathWithoutLine}</span>
                     {match.lineNum && (
-                        <Badge variant="secondary" className="h-4 px-1 text-[10px] bg-orange-500/20 text-orange-600 dark:text-orange-400 font-mono">
+                        <Badge variant="secondary" className="h-4 bg-orange-500/20 px-1 font-mono text-[10px] text-orange-600 dark:text-orange-400">
                             :{match.lineNum}
                         </Badge>
                     )}
-                </span>
+                </span>,
             );
         } else if (match.type === 'exception') {
             parts.push(
-                <span key={key++} className="text-red-600 dark:text-red-400 font-semibold bg-red-500/10 px-1 rounded">
+                <span key={key++} className="rounded bg-red-500/10 px-1 font-semibold text-red-600 dark:text-red-400">
                     {match.text}
-                </span>
+                </span>,
             );
         } else if (match.type === 'function') {
             parts.push(
-                <span key={key++} className="text-purple-600 dark:text-purple-400 font-medium">
+                <span key={key++} className="font-medium text-purple-600 dark:text-purple-400">
                     {match.text}
-                </span>
+                </span>,
             );
         }
 
@@ -438,14 +417,14 @@ function FormattedMessage({ message }: { message: string }) {
 
     // Add remaining text
     if (lastIndex < message.length) {
-        parts.push(<span key={key++} className="text-foreground/80">{message.substring(lastIndex)}</span>);
+        parts.push(
+            <span key={key++} className="text-foreground/80">
+                {message.substring(lastIndex)}
+            </span>,
+        );
     }
 
-    return (
-        <div className="font-mono text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {parts}
-        </div>
-    );
+    return <div className="font-mono text-sm leading-relaxed break-words whitespace-pre-wrap">{parts}</div>;
 }
 
 export default function LaravelLogShow({ log, log_file, filters }: Props) {
@@ -484,7 +463,7 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
 
     if (result.isJson && typeof result.parsed === 'object' && result.parsed !== null) {
         const parsed = { ...(result.parsed as Record<string, unknown>) };
-        
+
         // Extract exception
         if ('exception' in parsed) {
             exceptionObj = parsed.exception;
@@ -499,10 +478,10 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
 
         // Check for legacy top-level system keys
         const legacySysKeys = ['url', 'method', 'ip', 'user_agent', 'request_id', 'request_body'];
-        const foundLegacy = legacySysKeys.filter(k => k in parsed);
+        const foundLegacy = legacySysKeys.filter((k) => k in parsed);
         if (foundLegacy.length > 0) {
             systemContext = systemContext || {};
-            foundLegacy.forEach(k => {
+            foundLegacy.forEach((k) => {
                 systemContext![k] = parsed[k];
                 delete parsed[k];
             });
@@ -530,11 +509,11 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
 
         // Extract exception_* keys from message JSON
         if (mj.exception_message || mj.exception_type) {
-            msgExceptionMessage = mj.exception_message as string || null;
-            msgExceptionType = mj.exception_type as string || null;
-            msgExceptionFile = mj.exception_file as string || null;
-            msgExceptionLine = mj.exception_line as number || null;
-            msgExceptionTrace = mj.exception_trace as string || null;
+            msgExceptionMessage = (mj.exception_message as string) || null;
+            msgExceptionType = (mj.exception_type as string) || null;
+            msgExceptionFile = (mj.exception_file as string) || null;
+            msgExceptionLine = (mj.exception_line as number) || null;
+            msgExceptionTrace = (mj.exception_trace as string) || null;
             delete mj.exception_message;
             delete mj.exception_type;
             delete mj.exception_file;
@@ -543,9 +522,25 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
         }
 
         // Keys that belong in system context (not business data)
-        const sysKeys = ['url', 'method', 'ip', 'user_agent', 'request_id', 'request_body', 'route', 'action',
-                         'user_id', 'user_name', 'user_email', 'route_name', 'route_action', 'referer',
-                         'session_id', 'admin_id', 'admin_email'];
+        const sysKeys = [
+            'url',
+            'method',
+            'ip',
+            'user_agent',
+            'request_id',
+            'request_body',
+            'route',
+            'action',
+            'user_id',
+            'user_name',
+            'user_email',
+            'route_name',
+            'route_action',
+            'referer',
+            'session_id',
+            'admin_id',
+            'admin_email',
+        ];
 
         // Extract data.sys if exists (AppLogger format: data -> { sys: {...}, ...businessKeys })
         if (mj.data && typeof mj.data === 'object') {
@@ -564,7 +559,7 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
 
         // Also pull top-level sys-like keys into system context
         const topSys: Record<string, unknown> = {};
-        sysKeys.forEach(k => {
+        sysKeys.forEach((k) => {
             if (k in mj) {
                 topSys[k] = mj[k];
                 delete mj[k];
@@ -575,9 +570,8 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
         }
 
         // Remove metadata keys we display elsewhere
-        const metaKeys = ['event', 'message', 'timestamp', 'environment', 'app_version',
-                         'memory_usage_mb', 'peak_memory_mb'];
-        metaKeys.forEach(k => delete mj[k]);
+        const metaKeys = ['event', 'message', 'timestamp', 'environment', 'app_version', 'memory_usage_mb', 'peak_memory_mb'];
+        metaKeys.forEach((k) => delete mj[k]);
 
         if (Object.keys(mj).length > 0) {
             messageJson = mj;
@@ -629,7 +623,9 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold tracking-tight text-foreground/90">Log Details</h1>
-                            <p className="text-sm text-muted-foreground/60">{log_file} • {log.environment}</p>
+                            <p className="text-sm text-muted-foreground/60">
+                                {log_file} • {log.environment}
+                            </p>
                         </div>
                         <Button onClick={handleBackClick} variant="outline">
                             <ArrowLeftIcon className="mr-2 h-4 w-4" />
@@ -665,15 +661,15 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
 
                     {/* Error Banner — prominent for errors */}
                     {isError && exceptionObj && (
-                        <Card className="border-red-300 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30">
+                        <Card className="border-red-300 bg-red-50 dark:border-red-900/50 dark:bg-red-950/30">
                             <CardContent className="pt-6">
                                 <div className="flex items-start gap-3">
-                                    <AlertCircleIcon className="h-6 w-6 text-red-500 mt-0.5 shrink-0" />
-                                    <div className="flex-1 min-w-0 space-y-3">
+                                    <AlertCircleIcon className="mt-0.5 h-6 w-6 shrink-0 text-red-500" />
+                                    <div className="min-w-0 flex-1 space-y-3">
                                         {/* Exception type badge + title */}
                                         <div className="flex flex-wrap items-center gap-2">
                                             {exceptionObj.class && (
-                                                <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-800 font-mono text-xs">
+                                                <Badge className="border-red-300 bg-red-100 font-mono text-xs text-red-700 dark:border-red-800 dark:bg-red-900/40 dark:text-red-300">
                                                     {String(exceptionObj.class).split('\\').pop()}
                                                 </Badge>
                                             )}
@@ -682,7 +678,7 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                                             </span>
                                         </div>
                                         {/* Exception message */}
-                                        <div className="rounded-md bg-white dark:bg-zinc-950 border border-red-200 dark:border-red-900/40 p-4">
+                                        <div className="rounded-md border border-red-200 bg-white p-4 dark:border-red-900/40 dark:bg-zinc-950">
                                             <div className="font-mono text-sm leading-relaxed text-red-900 dark:text-red-200">
                                                 <FormattedMessage message={exceptionObj.message || String(log.message)} />
                                             </div>
@@ -693,7 +689,10 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                                                 <span className="text-red-600/60 dark:text-red-400/50">📍</span>
                                                 <span className="text-red-700 dark:text-red-300">{String(exceptionObj.file)}</span>
                                                 {exceptionObj.line && (
-                                                    <Badge variant="secondary" className="font-mono text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="bg-red-100 font-mono text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                                                    >
                                                         Line {String(exceptionObj.line)}
                                                     </Badge>
                                                 )}
@@ -708,22 +707,28 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                     {/* Non-error exception display */}
                     {!isError && exceptionObj && (
                         <Card className="border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
-                            <CardContent className="pt-6 space-y-3">
+                            <CardContent className="space-y-3 pt-6">
                                 <div className="flex items-center gap-2 text-foreground">
                                     <AlertCircleIcon className="h-5 w-5 text-amber-600 dark:text-amber-500" />
                                     <span className="text-base font-semibold">{messagePrefix || 'Exception Occurred'}</span>
                                     {exceptionObj.class && (
-                                        <Badge variant="outline" className="ml-2 font-mono text-xs border-amber-500/30">{exceptionObj.class}</Badge>
+                                        <Badge variant="outline" className="ml-2 border-amber-500/30 font-mono text-xs">
+                                            {exceptionObj.class}
+                                        </Badge>
                                     )}
                                 </div>
-                                <div className="rounded-md bg-background p-4 font-mono text-sm leading-relaxed border border-border/30">
+                                <div className="rounded-md border border-border/30 bg-background p-4 font-mono text-sm leading-relaxed">
                                     <FormattedMessage message={exceptionObj.message || String(log.message)} />
                                 </div>
                                 {exceptionObj.file && (
-                                    <div className="text-sm text-muted-foreground font-mono flex items-center gap-2">
+                                    <div className="flex items-center gap-2 font-mono text-sm text-muted-foreground">
                                         <span>📍</span>
                                         <span>{String(exceptionObj.file)}</span>
-                                        {exceptionObj.line && <Badge variant="secondary" className="font-mono text-xs">Line {String(exceptionObj.line)}</Badge>}
+                                        {exceptionObj.line && (
+                                            <Badge variant="secondary" className="font-mono text-xs">
+                                                Line {String(exceptionObj.line)}
+                                            </Badge>
+                                        )}
                                     </div>
                                 )}
                             </CardContent>
@@ -733,7 +738,7 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                     {/* Non-exception message (when no exception) */}
                     {!exceptionObj && (
                         <Card className="border border-border/30 bg-card/50">
-                            <div className="p-4 border-b border-border/30 bg-muted/20">
+                            <div className="border-b border-border/30 bg-muted/20 p-4">
                                 <h3 className="text-sm font-semibold text-foreground">Message</h3>
                             </div>
                             <CardContent className="pt-6">
@@ -747,11 +752,11 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                     {/* Request & User Context Info Grid */}
                     {systemContext && Object.keys(systemContext).length > 0 && (
                         <Card className="border border-border/30 bg-muted/10">
-                            <div className="p-4 border-b border-border/30 bg-muted/20">
+                            <div className="border-b border-border/30 bg-muted/20 p-4">
                                 <h3 className="text-sm font-semibold text-foreground">Request Context</h3>
                             </div>
                             <CardContent className="pt-6">
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                                     {(() => {
                                         // Render system context as a clean grid
                                         const displayOrder = [
@@ -767,15 +772,20 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                                             { key: 'user_agent', label: 'User Agent', icon: '🖥️' },
                                         ];
                                         return displayOrder
-                                            .filter(({ key }) => systemContext![key] !== null && systemContext![key] !== undefined && systemContext![key] !== '')
+                                            .filter(
+                                                ({ key }) =>
+                                                    systemContext![key] !== null && systemContext![key] !== undefined && systemContext![key] !== '',
+                                            )
                                             .map(({ key, label, icon }) => {
                                                 const val = String(systemContext![key]);
                                                 // url/user_agent span full width
                                                 const isWide = key === 'url' || key === 'user_agent' || key === 'action';
                                                 return (
                                                     <div key={key} className={cn(isWide && 'col-span-2 md:col-span-3 lg:col-span-4')}>
-                                                        <div className="text-xs text-muted-foreground/70 mb-1">{icon} {label}</div>
-                                                        <div className="font-mono text-sm text-foreground/90 break-all" title={val}>
+                                                        <div className="mb-1 text-xs text-muted-foreground/70">
+                                                            {icon} {label}
+                                                        </div>
+                                                        <div className="font-mono text-sm break-all text-foreground/90" title={val}>
                                                             {val.length > 120 ? val.substring(0, 120) + '…' : val}
                                                         </div>
                                                     </div>
@@ -790,7 +800,7 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                     {/* Stack Trace */}
                     {exceptionObj?.trace && (
                         <Card className="border border-border/30 bg-card/50">
-                            <div className="p-4 bg-muted/20 border-b border-border/30 font-medium text-sm flex items-center gap-2">
+                            <div className="flex items-center gap-2 border-b border-border/30 bg-muted/20 p-4 text-sm font-medium">
                                 <FilterIcon className="h-4 w-4 text-muted-foreground" />
                                 Stack Trace
                             </div>
@@ -808,12 +818,10 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                                             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                             {exceptionObj.trace.map((item: any, idx: number) => (
                                                 <TableRow key={idx} className="hover:bg-muted/10">
-                                                    <TableCell className="font-mono text-xs text-muted-foreground text-center">
-                                                        {idx + 1}
-                                                    </TableCell>
+                                                    <TableCell className="text-center font-mono text-xs text-muted-foreground">{idx + 1}</TableCell>
                                                     <TableCell className="font-mono text-xs">
-                                                        <div className="font-medium text-foreground/80 mb-0.5 break-all">
-                                                            {item.file ? (item.file.split(/[\\/]/).slice(-3).join('/')) : 'internal'}
+                                                        <div className="mb-0.5 font-medium break-all text-foreground/80">
+                                                            {item.file ? item.file.split(/[\\/]/).slice(-3).join('/') : 'internal'}
                                                         </div>
                                                         <div className="text-muted-foreground/60">
                                                             {item.class ? `${item.class}${item.type}${item.function}` : item.function}
@@ -828,7 +836,7 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
                                     </Table>
                                 ) : (
                                     <ScrollArea className="w-full" style={{ height: 350 }}>
-                                        <pre className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words text-foreground/80">
+                                        <pre className="p-4 font-mono text-xs leading-relaxed break-words whitespace-pre-wrap text-foreground/80">
                                             {String(exceptionObj.trace)}
                                         </pre>
                                         <ScrollBar orientation="horizontal" />
@@ -840,29 +848,15 @@ export default function LaravelLogShow({ log, log_file, filters }: Props) {
 
                     {/* Business Context */}
                     {businessContext && Object.keys(businessContext).length > 0 && (
-                        <JsonOrRawBlock 
-                            title="Business Context" 
-                            content={JSON.stringify(businessContext, null, 2)} 
-                            scrollHeight={300} 
-                        />
+                        <JsonOrRawBlock title="Business Context" content={JSON.stringify(businessContext, null, 2)} scrollHeight={300} />
                     )}
 
                     {/* Remaining message JSON (non-exception, non-system keys) */}
-                    {messageJson && messageFormatted && (
-                        <JsonOrRawBlock
-                            title="Additional Data"
-                            content={messageFormatted}
-                            scrollHeight={300}
-                        />
-                    )}
+                    {messageJson && messageFormatted && <JsonOrRawBlock title="Additional Data" content={messageFormatted} scrollHeight={300} />}
 
                     {/* Raw Context Fallback */}
                     {!businessContext && !systemContext && !messageJson && log.context && (
-                        <JsonOrRawBlock
-                            title="Raw Context"
-                            content={log.context}
-                            scrollHeight={350}
-                        />
+                        <JsonOrRawBlock title="Raw Context" content={log.context} scrollHeight={350} />
                     )}
                 </div>
             </AppLayout>

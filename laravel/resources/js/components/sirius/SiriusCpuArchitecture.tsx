@@ -117,7 +117,17 @@ const SiriusCpuArchitecture: React.FC<SiriusCpuArchitectureProps> = ({
                 )}
 
                 {/* Main Sirius Rectangle */}
-                <rect x="85" y="40" width="30" height="20" rx="2" fill="var(--card)" filter="url(#sirius-cpu-light-shadow)" stroke="var(--primary)" strokeWidth="0.5" />
+                <rect
+                    x="85"
+                    y="40"
+                    width="30"
+                    height="20"
+                    rx="2"
+                    fill="var(--card)"
+                    filter="url(#sirius-cpu-light-shadow)"
+                    stroke="var(--primary)"
+                    strokeWidth="0.5"
+                />
 
                 {/* Sirius Text */}
                 <text

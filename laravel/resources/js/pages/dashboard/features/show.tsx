@@ -1,19 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { getStatusColor, getPriorityColor } from '@/utils/status-colors';
 import { getHealthColor } from '@/utils/semantic-colors';
+import { getPriorityColor, getStatusColor } from '@/utils/status-colors';
 import { Head, Link } from '@inertiajs/react';
 import {
     ActivityIcon,
@@ -21,17 +15,13 @@ import {
     ArrowLeftIcon,
     BarChart3Icon,
     BoxIcon,
-    CalendarIcon,
     CheckCircleIcon,
     ClipboardCheckIcon,
     DatabaseIcon,
     ExternalLinkIcon,
     FileTextIcon,
-    FolderIcon,
     GitBranchIcon,
     LayoutIcon,
-    LayersIcon,
-    ListIcon,
     SparklesIcon,
     TrendingUpIcon,
     UserIcon,
@@ -159,8 +149,8 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
         iconBg: string;
         available: boolean;
     }) => (
-        <Card 
-            className="cursor-pointer transition-all hover:bg-muted/50 hover:shadow-sm group"
+        <Card
+            className="group cursor-pointer transition-all hover:bg-muted/50 hover:shadow-sm"
             onClick={() => content && setSelectedContent({ title: `${title} - ${description}`, content })}
         >
             <CardContent className="p-4">
@@ -168,20 +158,18 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                     <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconBg}`}>
                         <Icon className={`h-5 w-5 ${iconColor}`} />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-sm group-hover:text-primary transition-colors">
-                                {title}
-                            </h3>
+                            <h3 className="text-sm font-medium transition-colors group-hover:text-primary">{title}</h3>
                             {available ? (
                                 <CheckCircleIcon className="h-3.5 w-3.5 text-emerald-500" />
                             ) : (
                                 <span className="text-xs text-muted-foreground">Empty</span>
                             )}
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{description}</p>
+                        <p className="truncate text-xs text-muted-foreground">{description}</p>
                     </div>
-                    {available && <ExternalLinkIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />}
+                    {available && <ExternalLinkIcon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />}
                 </div>
             </CardContent>
         </Card>
@@ -206,26 +194,28 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
         bgClass: string;
     }) => {
         const cardContent = (
-            <Card className={`h-full transition-all ${available ? 'hover:bg-muted/50 hover:shadow-sm cursor-pointer group' : 'opacity-50 cursor-not-allowed'}`}>
+            <Card
+                className={`h-full transition-all ${available ? 'group cursor-pointer hover:bg-muted/50 hover:shadow-sm' : 'cursor-not-allowed opacity-50'}`}
+            >
                 <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                         <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${bgClass}`}>
                             <Icon className={`h-5 w-5 ${colorClass}`} />
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                                <h3 className={`font-medium text-sm ${available ? 'group-hover:text-primary' : ''} transition-colors`}>
-                                    {title}
-                                </h3>
+                                <h3 className={`text-sm font-medium ${available ? 'group-hover:text-primary' : ''} transition-colors`}>{title}</h3>
                                 {available ? (
                                     <CheckCircleIcon className="h-3.5 w-3.5 text-emerald-500" />
                                 ) : (
                                     <span className="text-xs text-muted-foreground">Empty</span>
                                 )}
                             </div>
-                            <p className="text-xs text-muted-foreground truncate">{description}</p>
+                            <p className="truncate text-xs text-muted-foreground">{description}</p>
                         </div>
-                        <ExternalLinkIcon className={`h-4 w-4 text-muted-foreground ${available ? 'group-hover:text-primary' : ''} transition-colors`} />
+                        <ExternalLinkIcon
+                            className={`h-4 w-4 text-muted-foreground ${available ? 'group-hover:text-primary' : ''} transition-colors`}
+                        />
                     </div>
                 </CardContent>
             </Card>
@@ -250,8 +240,8 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
         icon: React.ComponentType<{ className?: string }>;
         colorClass?: string;
     }) => (
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-            <div className={`p-2 rounded-lg bg-background ${colorClass}`}>
+        <div className="flex items-center gap-3 rounded-lg bg-muted/30 p-3">
+            <div className={`rounded-lg bg-background p-2 ${colorClass}`}>
                 <Icon className="h-4 w-4" />
             </div>
             <div>
@@ -265,7 +255,7 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Feature: ${feature.name}`} />
 
-            <div className="w-full max-w-7xl mx-auto space-y-6 p-4 md:p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -274,9 +264,9 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                                 <ArrowLeftIcon className="h-4 w-4" />
                             </Button>
                         </Link>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{feature.name}</h1>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{feature.name}</h1>
                                 <Badge variant="outline" className={`${getStatusColor(feature.status)} text-xs font-medium`}>
                                     {feature.status.replace('_', ' ')}
                                 </Badge>
@@ -284,28 +274,24 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                                     {feature.priority} Priority
                                 </Badge>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Created {new Date(feature.created_at).toLocaleDateString()}
-                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">Created {new Date(feature.created_at).toLocaleDateString()}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Key Metrics Dashboard */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Progress Card */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Completion
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Completion</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="text-3xl font-semibold">{featureStats.completion_score}%</div>
                             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                                <div 
-                                    className={`h-full transition-all duration-500 ${health.progressColor}`} 
-                                    style={{ width: `${featureStats.completion_score}%` }} 
+                                <div
+                                    className={`h-full transition-all duration-500 ${health.progressColor}`}
+                                    style={{ width: `${featureStats.completion_score}%` }}
                                 />
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -318,32 +304,23 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                     {/* Order Card */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Order in Module
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Order in Module</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="text-3xl font-semibold">#{feature.order_of_implementation}</div>
-                            <p className="text-sm text-muted-foreground">
-                                of {featureStats.total_features_in_module} features
-                            </p>
+                            <p className="text-sm text-muted-foreground">of {featureStats.total_features_in_module} features</p>
                         </CardContent>
                     </Card>
 
                     {/* Module Card */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Module
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Module</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <Link 
-                                href={`/admin/modules/${module.id}`}
-                                className="flex items-center gap-2 hover:text-primary transition-colors"
-                            >
+                            <Link href={`/admin/modules/${module.id}`} className="flex items-center gap-2 transition-colors hover:text-primary">
                                 <BoxIcon className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium truncate">{module.name}</span>
+                                <span className="truncate font-medium">{module.name}</span>
                             </Link>
                             <Badge variant="outline" className={`${getStatusColor(module.status)} text-xs`}>
                                 {module.status?.replace('_', ' ') || 'N/A'}
@@ -354,26 +331,20 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                     {/* Owner Card */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Owner
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Owner</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex items-center gap-2">
                                 {project.user?.avatar ? (
-                                    <img 
-                                        src={project.user.avatar} 
-                                        alt={project.user.name}
-                                        className="h-10 w-10 rounded-full object-cover"
-                                    />
+                                    <img src={project.user.avatar} alt={project.user.name} className="h-10 w-10 rounded-full object-cover" />
                                 ) : (
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
                                         <UserIcon className="h-5 w-5 text-muted-foreground" />
                                     </div>
                                 )}
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium truncate">{project.user?.name ?? 'Unknown'}</div>
-                                    <div className="text-xs text-muted-foreground truncate">{project.user?.email ?? '-'}</div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="truncate text-sm font-medium">{project.user?.name ?? 'Unknown'}</div>
+                                    <div className="truncate text-xs text-muted-foreground">{project.user?.email ?? '-'}</div>
                                 </div>
                             </div>
                         </CardContent>
@@ -382,24 +353,20 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                     {/* Last Updated Card */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                Last Updated
-                            </CardTitle>
+                            <CardTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Last Updated</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="text-3xl font-semibold">
                                 {Math.floor((Date.now() - new Date(feature.updated_at).getTime()) / (1000 * 60 * 60 * 24))}d
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                {new Date(feature.updated_at).toLocaleDateString()}
-                            </p>
+                            <p className="text-sm text-muted-foreground">{new Date(feature.updated_at).toLocaleDateString()}</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Main Content Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 bg-muted/50">
+                    <TabsList className="grid w-full grid-cols-3 bg-muted/50 lg:grid-cols-4">
                         <TabsTrigger value="overview" className="gap-2">
                             <BoxIcon className="h-4 w-4" />
                             <span className="hidden sm:inline">Overview</span>
@@ -419,29 +386,32 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                     </TabsList>
 
                     {/* Overview Tab */}
-                    <TabsContent value="overview" className="space-y-4 mt-4">
+                    <TabsContent value="overview" className="mt-4 space-y-4">
                         {/* Summary */}
                         {feature.summary && (
                             <Card>
                                 <CardHeader className="pb-3">
-                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    <CardTitle className="flex items-center gap-2 text-sm font-medium">
                                         <SparklesIcon className="h-4 w-4" />
                                         Summary
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.summary}</p>
+                                    <p className="text-sm leading-relaxed text-muted-foreground">{feature.summary}</p>
                                 </CardContent>
                             </Card>
                         )}
 
                         {/* Description */}
-                        <Card 
-                            className={feature.description ? "cursor-pointer transition-colors hover:bg-muted/50" : ""}
-                            onClick={() => feature.description && setSelectedContent({ 
-                                title: 'Feature Description', 
-                                content: feature.description 
-                            })}
+                        <Card
+                            className={feature.description ? 'cursor-pointer transition-colors hover:bg-muted/50' : ''}
+                            onClick={() =>
+                                feature.description &&
+                                setSelectedContent({
+                                    title: 'Feature Description',
+                                    content: feature.description,
+                                })
+                            }
                         >
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center justify-between text-sm font-medium">
@@ -454,7 +424,7 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                             </CardHeader>
                             <CardContent>
                                 {feature.description ? (
-                                    <p className="line-clamp-4 text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                                    <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
                                 ) : (
                                     <p className="text-sm text-muted-foreground italic">No description provided</p>
                                 )}
@@ -464,26 +434,26 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                         {/* Project Info */}
                         <Card>
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                <CardTitle className="flex items-center gap-2 text-sm font-medium">
                                     <ActivityIcon className="h-4 w-4" />
                                     Project Context
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <Link href={`/admin/projects/${project.id}`} className="group">
-                                    <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50">
                                         <div className="flex items-center gap-3">
                                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                                                 <BoxIcon className="h-5 w-5 text-primary" />
                                             </div>
                                             <div>
-                                                <div className="font-medium group-hover:text-primary transition-colors">{project.name}</div>
+                                                <div className="font-medium transition-colors group-hover:text-primary">{project.name}</div>
                                                 <div className="text-xs text-muted-foreground">
                                                     {featureStats.position_in_project} of {featureStats.total_features_in_project} features
                                                 </div>
                                             </div>
                                         </div>
-                                        <ExternalLinkIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                        <ExternalLinkIcon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
                                     </div>
                                 </Link>
                             </CardContent>
@@ -491,8 +461,8 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                     </TabsContent>
 
                     {/* Specifications Tab */}
-                    <TabsContent value="specifications" className="space-y-4 mt-4">
-                        <div className="flex items-center justify-between mb-4">
+                    <TabsContent value="specifications" className="mt-4 space-y-4">
+                        <div className="mb-4 flex items-center justify-between">
                             <div>
                                 <h3 className="text-lg font-medium">Feature Specifications</h3>
                                 <p className="text-sm text-muted-foreground">Requirements, criteria, and success metrics</p>
@@ -529,7 +499,7 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                     </TabsContent>
 
                     {/* Design Tab */}
-                    <TabsContent value="design" className="space-y-4 mt-4">
+                    <TabsContent value="design" className="mt-4 space-y-4">
                         <div className="mb-4">
                             <h3 className="text-lg font-medium">Design & Technical Resources</h3>
                             <p className="text-sm text-muted-foreground">ERDs, diagrams, wireframes, and flows</p>
@@ -567,7 +537,7 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                     </TabsContent>
 
                     {/* Related Features Tab */}
-                    <TabsContent value="features" className="space-y-4 mt-4">
+                    <TabsContent value="features" className="mt-4 space-y-4">
                         <div className="mb-4">
                             <h3 className="text-lg font-medium">Project Features</h3>
                             <p className="text-sm text-muted-foreground">All features in {project.name}</p>
@@ -576,28 +546,29 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                         {siblingFeatures && siblingFeatures.length > 0 ? (
                             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                                 {siblingFeatures.map((sibling) => (
-                                    <Link
-                                        key={sibling.id}
-                                        href={`/admin/features/${sibling.id}`}
-                                    >
-                                        <Card className={`group cursor-pointer transition-all duration-200 hover:shadow-sm ${
-                                            sibling.id === feature.id
-                                                ? 'bg-primary/5 border-primary/30'
-                                                : 'hover:border-muted-foreground/20'
-                                        }`}>
+                                    <Link key={sibling.id} href={`/admin/features/${sibling.id}`}>
+                                        <Card
+                                            className={`group cursor-pointer transition-all duration-200 hover:shadow-sm ${
+                                                sibling.id === feature.id ? 'border-primary/30 bg-primary/5' : 'hover:border-muted-foreground/20'
+                                            }`}
+                                        >
                                             <CardContent className="p-4">
                                                 {/* Header */}
-                                                <div className="flex items-start justify-between gap-2 mb-3">
-                                                    <h4 className={`text-sm font-medium line-clamp-2 leading-snug flex-1 ${
-                                                        sibling.id === feature.id 
-                                                            ? 'text-primary' 
-                                                            : 'group-hover:text-foreground transition-colors'
-                                                    }`}>
+                                                <div className="mb-3 flex items-start justify-between gap-2">
+                                                    <h4
+                                                        className={`line-clamp-2 flex-1 text-sm leading-snug font-medium ${
+                                                            sibling.id === feature.id
+                                                                ? 'text-primary'
+                                                                : 'transition-colors group-hover:text-foreground'
+                                                        }`}
+                                                    >
                                                         {sibling.name}
                                                     </h4>
-                                                    <span className={`text-xs font-medium flex-shrink-0 ${
-                                                        sibling.id === feature.id ? 'text-primary' : 'text-muted-foreground'
-                                                    }`}>
+                                                    <span
+                                                        className={`flex-shrink-0 text-xs font-medium ${
+                                                            sibling.id === feature.id ? 'text-primary' : 'text-muted-foreground'
+                                                        }`}
+                                                    >
                                                         #{sibling.order_of_implementation}
                                                     </span>
                                                 </div>
@@ -606,13 +577,13 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                                                 <div className="flex items-center gap-2">
                                                     <Badge
                                                         variant="outline"
-                                                        className={`${getStatusColor(sibling.status)} text-[10px] h-5 px-2 border-0`}
+                                                        className={`${getStatusColor(sibling.status)} h-5 border-0 px-2 text-[10px]`}
                                                     >
                                                         {sibling.status.replace('_', ' ')}
                                                     </Badge>
                                                     <Badge
                                                         variant="outline"
-                                                        className={`${getPriorityColor(sibling.priority)} text-[10px] h-5 px-2 border-0`}
+                                                        className={`${getPriorityColor(sibling.priority)} h-5 border-0 px-2 text-[10px]`}
                                                     >
                                                         {sibling.priority}
                                                     </Badge>
@@ -625,9 +596,9 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                         ) : (
                             <Card className="border-dashed">
                                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                                    <ZapIcon className="h-10 w-10 text-muted-foreground/20 mb-3" />
+                                    <ZapIcon className="mb-3 h-10 w-10 text-muted-foreground/20" />
                                     <h3 className="text-sm font-medium">No other features</h3>
-                                    <p className="text-xs text-muted-foreground mt-1">This is the only feature in the project</p>
+                                    <p className="mt-1 text-xs text-muted-foreground">This is the only feature in the project</p>
                                 </CardContent>
                             </Card>
                         )}
@@ -636,12 +607,12 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
 
                 {/* Content Modal */}
                 <Dialog open={!!selectedContent} onOpenChange={(open) => !open && setSelectedContent(null)}>
-                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+                    <DialogContent className="max-h-[80vh] max-w-2xl overflow-hidden">
                         <DialogHeader>
                             <DialogTitle>{selectedContent?.title}</DialogTitle>
                         </DialogHeader>
                         <Separator />
-                        <div className="overflow-y-auto max-h-[calc(80vh-8rem)]">
+                        <div className="max-h-[calc(80vh-8rem)] overflow-y-auto">
                             <div className="prose prose-sm dark:prose-invert max-w-none">
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedContent?.content || ''}</ReactMarkdown>
                             </div>

@@ -1,8 +1,8 @@
-﻿import { Card, CardContent, CardHeader } from '@/components/ui/card';
+﻿import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Handle, NodeProps, Position } from '@xyflow/react';
-import { Key, Link2, Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Key, Link2, Trash2 } from 'lucide-react';
 import { memo } from 'react';
-import { Button } from '@/components/ui/button';
 
 interface TableField {
     name: string;
@@ -25,23 +25,17 @@ const TableNode = ({ data }: NodeProps<any>) => {
     const { tableName, fields, onEdit, onDelete } = data as TableNodeData;
 
     return (
-        <Card className="w-64 border border-border/60 bg-card shadow-md group rounded-lg overflow-hidden">
-            <Handle 
-                type="target" 
-                position={Position.Top} 
-                className="!h-2 !w-2 !bg-primary !border-0" 
-            />
+        <Card className="group w-64 overflow-hidden rounded-lg border border-border/60 bg-card shadow-md">
+            <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-primary" />
 
             {/* Header */}
-            <CardHeader className="px-3 py-2.5 border-b border-border/40 bg-muted/30">
+            <CardHeader className="border-b border-border/40 bg-muted/30 px-3 py-2.5">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div className="h-2 w-2 rounded-full bg-primary/80 flex-shrink-0" />
-                        <span className="text-sm font-semibold text-foreground truncate">
-                            {tableName}
-                        </span>
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <div className="h-2 w-2 flex-shrink-0 rounded-full bg-primary/80" />
+                        <span className="truncate text-sm font-semibold text-foreground">{tableName}</span>
                     </div>
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                         {onEdit && (
                             <Button
                                 variant="ghost"
@@ -76,41 +70,28 @@ const TableNode = ({ data }: NodeProps<any>) => {
             <CardContent className="p-0">
                 <div className="divide-y divide-border/30">
                     {fields.map((field: TableField, index: number) => (
-                        <div 
-                            key={index}
-                            className="flex items-center justify-between px-3 py-1.5 hover:bg-muted/30 transition-colors"
-                        >
-                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <div key={index} className="flex items-center justify-between px-3 py-1.5 transition-colors hover:bg-muted/30">
+                            <div className="flex min-w-0 flex-1 items-center gap-1.5">
                                 {/* Constraint indicators */}
-                                <div className="flex items-center gap-0.5 flex-shrink-0">
-                                    {field.isPrimaryKey && (
-                                        <Key className="h-3 w-3 text-amber-500" />
-                                    )}
-                                    {field.isForeignKey && (
-                                        <Link2 className="h-3 w-3 text-blue-500" />
-                                    )}
+                                <div className="flex flex-shrink-0 items-center gap-0.5">
+                                    {field.isPrimaryKey && <Key className="h-3 w-3 text-amber-500" />}
+                                    {field.isForeignKey && <Link2 className="h-3 w-3 text-blue-500" />}
                                 </div>
-                                <span className={`text-xs truncate ${
-                                    field.isPrimaryKey || field.isForeignKey 
-                                        ? 'font-medium text-foreground' 
-                                        : 'text-muted-foreground'
-                                }`}>
+                                <span
+                                    className={`truncate text-xs ${
+                                        field.isPrimaryKey || field.isForeignKey ? 'font-medium text-foreground' : 'text-muted-foreground'
+                                    }`}
+                                >
                                     {field.name}
                                 </span>
                             </div>
-                            <span className="text-[10px] text-muted-foreground/70 font-mono flex-shrink-0 ml-2">
-                                {field.type}
-                            </span>
+                            <span className="ml-2 flex-shrink-0 font-mono text-[10px] text-muted-foreground/70">{field.type}</span>
                         </div>
                     ))}
                 </div>
             </CardContent>
 
-            <Handle 
-                type="source" 
-                position={Position.Bottom} 
-                className="!h-2 !w-2 !bg-primary !border-0" 
-            />
+            <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-0 !bg-primary" />
         </Card>
     );
 };

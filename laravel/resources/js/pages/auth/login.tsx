@@ -6,7 +6,5 @@ interface LoginProps {
 }
 
 export default function Login({ status, canResetPassword }: LoginProps) {
-    return (
-        <LoginSignupPage initialMode="login" status={status} canResetPassword={canResetPassword} />
-    );
+    return <LoginSignupPage initialMode="login" status={status} canResetPassword={canResetPassword} />;
 }

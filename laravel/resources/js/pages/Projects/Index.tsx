@@ -1,33 +1,32 @@
-import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ClientDateTime } from '@/components/ClientDateTime';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { type SharedData, type Project, type Invitation } from '@/types';
+import { createProjectSchema, updateProjectSchema } from '@/lib/validations';
+import { type Invitation, type Project, type SharedData } from '@/types';
 import { getStatusColor } from '@/utils/status-colors';
 import { Head, router, usePage } from '@inertiajs/react';
-import { createProjectSchema, updateProjectSchema } from '@/lib/validations';
-import { AlertCircleIcon } from 'lucide-react';
 import {
+    AlertCircleIcon,
     CalendarIcon,
     CheckCircleIcon,
     CircleIcon,
     ClockIcon,
     EditIcon,
     FolderIcon,
+    MenuIcon,
     PlusIcon,
     SearchIcon,
     TrashIcon,
     XIcon,
-    MenuIcon,
 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 
@@ -62,7 +61,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
 
     const clearValidationError = (field: string) => {
         if (validationErrors[field]) {
-            setValidationErrors(prev => {
+            setValidationErrors((prev) => {
                 const newErrors = { ...prev };
                 delete newErrors[field];
                 return newErrors;
@@ -211,11 +210,15 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                             <div className="mb-8 flex items-center gap-3">
                                 <Sheet>
                                     <SheetTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                        >
                                             <MenuIcon className="h-4 w-4" />
                                         </Button>
                                     </SheetTrigger>
-                                    <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                    <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                         <ProjectsIndexSidebar
                                             auth={auth}
                                             isSidebarCollapsed={false}
@@ -228,10 +231,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                         />
                                     </SheetContent>
                                 </Sheet>
-                                <SidebarToggle 
-                                    isCollapsed={isSidebarCollapsed} 
-                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
-                                />
+                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={[{ title: 'Projects', href: '/projects' }]} />
                             </div>
 
@@ -241,9 +241,9 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                 size="large"
                                 animated
                                 action={
-                                    <Button 
-                                        onClick={() => setIsCreateModalOpen(true)} 
-                                        className="gap-2 bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105"
+                                    <Button
+                                        onClick={() => setIsCreateModalOpen(true)}
+                                        className="gap-2 bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
                                     >
                                         <PlusIcon className="h-4 w-4" />
                                         New Project
@@ -253,7 +253,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                             />
 
                             {/* Search Bar */}
-                            <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                            <div className="mb-8 delay-200 duration-700 animate-in fade-in slide-in-from-bottom-4">
                                 <div className="relative max-w-md">
                                     <SearchIcon className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors peer-focus:text-primary" />
                                     <Input
@@ -261,12 +261,12 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                         value={searchTerm}
                                         onChange={(e) => handleSearchChange(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                        className="peer h-11 pl-10 pr-10 text-sm shadow-sm focus:shadow-md transition-all duration-300 border-border/50 focus:border-primary/50"
+                                        className="peer h-11 border-border/50 pr-10 pl-10 text-sm shadow-sm transition-all duration-300 focus:border-primary/50 focus:shadow-md"
                                     />
                                     {searchTerm && (
                                         <button
                                             onClick={() => handleSearchChange('')}
-                                            className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
                                         >
                                             <XIcon className="h-4 w-4" />
                                         </button>
@@ -300,29 +300,29 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                             }}
                                             title={`${project.name} • Status: ${project.status.replace('_', ' ')}`}
                                             aria-label={`Project ${project.name} with status ${project.status.replace('_', ' ')}`}
-                                            className="group relative cursor-pointer rounded-xl bg-gradient-to-br from-background to-muted/20 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-border/50 hover:border-primary/30 animate-in fade-in slide-in-from-bottom-4"
+                                            className="group relative cursor-pointer rounded-xl border border-border/50 bg-gradient-to-br from-background to-muted/20 p-5 shadow-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl"
                                             style={{ animationDelay: `${index * 50}ms`, animationDuration: '500ms' }}
                                         >
-                                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:to-primary/0 transition-all duration-300" />
-                                            
+                                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/0 to-primary/0 transition-all duration-300 group-hover:from-primary/5 group-hover:to-primary/0" />
+
                                             <div className="relative">
                                                 <div className="mb-4 flex items-start justify-between gap-3">
                                                     <div className="min-w-0 flex-1">
                                                         <div className="mb-3 flex items-center gap-2.5">
-                                                            <div className="rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 p-2 shrink-0 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300">
+                                                            <div className="shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 p-2 transition-all duration-300 group-hover:from-primary/20 group-hover:to-primary/10">
                                                                 <FolderIcon className="h-4 w-4 text-primary" />
                                                             </div>
-                                                            <h3 className="line-clamp-2 text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+                                                            <h3 className="line-clamp-2 text-base font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">
                                                                 {project.name}
                                                             </h3>
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 shrink-0">
+                                                    <div className="flex shrink-0 gap-1 opacity-0 transition-all duration-300 group-hover:opacity-100">
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 hover:bg-primary/10 hover:text-primary backdrop-blur-sm bg-background/50"
+                                                            className="h-8 w-8 bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 openEditModal(project);
@@ -334,7 +334,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 text-destructive hover:bg-destructive/10 backdrop-blur-sm bg-background/50"
+                                                            className="h-8 w-8 bg-background/50 text-destructive backdrop-blur-sm hover:bg-destructive/10"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 openDeleteModal(project);
@@ -378,7 +378,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div>
-                            <label className="text-sm font-medium text-foreground mb-2 block">Project Name</label>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Project Name</label>
                             <Input
                                 value={formData.name}
                                 onChange={(e) => {
@@ -396,22 +396,20 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                 maxLength={255}
                             />
                             {validationErrors.name && (
-                                <div className="flex items-center gap-2 mt-1 text-sm text-red-600 dark:text-red-400">
+                                <div className="mt-1 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
                                     <AlertCircleIcon className="h-4 w-4" />
                                     {validationErrors.name}
                                 </div>
                             )}
-                            <div className="text-xs text-muted-foreground mt-1">
-                                {formData.name.length}/255 characters
-                            </div>
+                            <div className="mt-1 text-xs text-muted-foreground">{formData.name.length}/255 characters</div>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsCreateModalOpen(false)} disabled={isCreating}>
                             Cancel
                         </Button>
-                        <Button 
-                            onClick={handleCreate} 
+                        <Button
+                            onClick={handleCreate}
                             disabled={!formData.name.trim() || isCreating}
                             className="bg-gradient-to-r from-primary to-primary/90"
                         >
@@ -430,7 +428,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div>
-                            <label className="text-sm font-medium text-foreground mb-2 block">Project Name</label>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Project Name</label>
                             <Input
                                 value={formData.name}
                                 onChange={(e) => {
@@ -448,21 +446,22 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                 maxLength={255}
                             />
                             {validationErrors.name && (
-                                <div className="flex items-center gap-2 mt-1 text-sm text-red-600 dark:text-red-400">
+                                <div className="mt-1 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
                                     <AlertCircleIcon className="h-4 w-4" />
                                     {validationErrors.name}
                                 </div>
                             )}
-                            <div className="text-xs text-muted-foreground mt-1">
-                                {formData.name.length}/255 characters
-                            </div>
+                            <div className="mt-1 text-xs text-muted-foreground">{formData.name.length}/255 characters</div>
                         </div>
                         <div>
-                            <label className="text-sm font-medium text-foreground mb-2 block">Status</label>
-                            <Select value={formData.status} onValueChange={(value) => {
-                                setFormData({ ...formData, status: value });
-                                clearValidationError('status');
-                            }}>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Status</label>
+                            <Select
+                                value={formData.status}
+                                onValueChange={(value) => {
+                                    setFormData({ ...formData, status: value });
+                                    clearValidationError('status');
+                                }}
+                            >
                                 <SelectTrigger className={`h-11 ${validationErrors.status ? 'border-red-500' : ''}`}>
                                     <SelectValue />
                                 </SelectTrigger>
@@ -474,7 +473,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                                 </SelectContent>
                             </Select>
                             {validationErrors.status && (
-                                <div className="flex items-center gap-2 mt-1 text-sm text-red-600 dark:text-red-400">
+                                <div className="mt-1 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
                                     <AlertCircleIcon className="h-4 w-4" />
                                     {validationErrors.status}
                                 </div>
@@ -485,11 +484,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                         <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
                             Cancel
                         </Button>
-                        <Button 
-                            onClick={handleEdit} 
-                            disabled={!formData.name.trim()}
-                            className="bg-gradient-to-r from-primary to-primary/90"
-                        >
+                        <Button onClick={handleEdit} disabled={!formData.name.trim()} className="bg-gradient-to-r from-primary to-primary/90">
                             Update Project
                         </Button>
                     </DialogFooter>

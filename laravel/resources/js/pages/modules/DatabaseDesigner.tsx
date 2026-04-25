@@ -81,9 +81,9 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
 
     // WHY: Hook encapsulates ERD sync logic, reducing duplication with ModuleShow.tsx
     // moduleId may be undefined during initial load, so we provide a fallback
-    const { isSyncing, syncErd } = useErdOperations({ 
-        projectId: project.id, 
-        moduleId: moduleId ?? module.id 
+    const { isSyncing, syncErd } = useErdOperations({
+        projectId: project.id,
+        moduleId: moduleId ?? module.id,
     });
 
     // Sync editor content when server provides updated ERD after edits
@@ -127,24 +127,21 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
     const triggerAsyncGeneration = useCallback(async () => {
         setIsGenerating(true);
         setGenerationError(null);
-        
+
         try {
             const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
-            const response = await fetch(
-                `/projects/${project.id}/modules/${moduleId}/erd/generate-async`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken || '',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({}),
-                }
-            );
-            
+            const response = await fetch(`/projects/${project.id}/modules/${moduleId}/erd/generate-async`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
+
             const data = await response.json();
-            
+
             if (data.success && data.erd) {
                 setContent(data.erd);
                 setIsDirty(false);
@@ -631,13 +628,7 @@ export default function ModuleDatabaseDesigner({ project, module, initialContent
                                     </div>
 
                                     {/* Error Panel - Placed at top for visibility */}
-                                    {error && (
-                                        <DiagramErrorPanel
-                                            error={error}
-                                            onFixRequest={handleFixError}
-                                            className="mx-3 mt-3 shrink-0"
-                                        />
-                                    )}
+                                    {error && <DiagramErrorPanel error={error} onFixRequest={handleFixError} className="mx-3 mt-3 shrink-0" />}
 
                                     {/* Editor Content Area */}
                                     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">

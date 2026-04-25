@@ -3,12 +3,11 @@ import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { DiagramErrorPanel } from '@/components/diagram/DiagramErrorPanel';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData } from '@/types';
 import { type FeatureItem } from '@/types/modules';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { WireframeProvider } from './components/WireframeContext';
@@ -269,7 +268,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
         try {
             const parsed = JSON.parse(content);
             setError(null);
-            
+
             // Check if it's new format (screens array)
             if (parsed && typeof parsed === 'object' && 'screens' in parsed && Array.isArray(parsed.screens)) {
                 return {
@@ -277,7 +276,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                     screens: parsed.screens,
                 };
             }
-            
+
             // Check if it's old format (single page object)
             if (parsed && typeof parsed === 'object' && 'type' in parsed && parsed.type === 'page') {
                 return {
@@ -285,7 +284,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                     legacy: parsed,
                 };
             }
-            
+
             // Default to legacy for backward compatibility
             return {
                 format: 'legacy',
@@ -300,7 +299,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
     // Get the current screen/page to render
     const parsedSchema = useMemo<RendererSchemaNode | null>(() => {
         if (!wireframeData) return null;
-        
+
         if (wireframeData.format === 'screens' && wireframeData.screens) {
             const screen = wireframeData.screens[selectedScreenIndex];
             if (screen && screen.type === 'page') {
@@ -308,7 +307,7 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
             }
             return wireframeData.screens[0] as RendererSchemaNode;
         }
-        
+
         return wireframeData.legacy || null;
     }, [wireframeData, selectedScreenIndex]);
 
@@ -375,7 +374,6 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
         return null;
     };
 
-
     const toggleFullScreen = () => setIsFullScreen((v) => !v);
 
     const handleSendMessage = async () => {
@@ -441,16 +439,16 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
     }, []);
 
     const module = feature?.module;
-    
+
     const breadcrumbs = [
         { title: 'Dashboard', href: '/projects' },
         { title: project?.name || 'Project', href: `/projects/${project?.id}` },
-        ...(module ? [
-            { title: module.name, href: `/projects/${project?.id}/modules/${module.id}` },
-            { title: feature?.name || 'Feature', href: `/projects/${project?.id}/modules/${module.id}/features/${feature?.id}` },
-        ] : [
-            { title: feature?.name || 'Feature', href: '#' },
-        ]),
+        ...(module
+            ? [
+                  { title: module.name, href: `/projects/${project?.id}/modules/${module.id}` },
+                  { title: feature?.name || 'Feature', href: `/projects/${project?.id}/modules/${module.id}/features/${feature?.id}` },
+              ]
+            : [{ title: feature?.name || 'Feature', href: '#' }]),
         { title: 'Wireframe', href: '#' },
     ];
 
@@ -487,305 +485,315 @@ export default function WireframePage({ schema, project, feature, isGenerating: 
                             </div>
                         )}
 
-                <div className="relative flex flex-1 overflow-hidden">
-                    {!isFullScreen && (
-                        <div className={`relative flex h-full w-[32%] min-w-0 flex-col transition-all duration-300 ease-in-out`}>
-                            <div className="flex items-center justify-between border-b border-border/50 bg-gradient-to-r from-background via-background/98 to-background px-4 py-2">
-                                <div className="text-sm font-medium opacity-80">AI Chat</div>
-                            </div>
-                            <div className="flex-1 space-y-3 overflow-y-auto p-3">
-                                {messages.length === 0 && (
-                                    <div className="flex h-full items-center justify-center">
-                                        <div className="text-center text-xs text-muted-foreground">
-                                            {feature
-                                                ? 'Ask the AI to suggest layout changes or add elements.'
-                                                : 'Feature data not available for AI editing.'}
-                                        </div>
+                        <div className="relative flex flex-1 overflow-hidden">
+                            {!isFullScreen && (
+                                <div className={`relative flex h-full w-[32%] min-w-0 flex-col transition-all duration-300 ease-in-out`}>
+                                    <div className="flex items-center justify-between border-b border-border/50 bg-gradient-to-r from-background via-background/98 to-background px-4 py-2">
+                                        <div className="text-sm font-medium opacity-80">AI Chat</div>
                                     </div>
-                                )}
-                                {messages.map((m) => (
-                                    <div
-                                        key={m.id}
-                                        className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                    >
-                                        <div
-                                            className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                                                m.role === 'user'
-                                                    ? 'bg-primary text-primary-foreground'
-                                                    : 'bg-muted text-foreground'
-                                            }`}
-                                        >
-                                            <p className="whitespace-pre-wrap">{m.text}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                                {isGenerating && (
-                                    <div className="flex justify-start">
-                                        <div className="max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm">
-                                            <TextShimmer className="text-muted-foreground">Generating wireframe updates...</TextShimmer>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="border-t border-border/50 p-3">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        className="flex-1 rounded-md border border-border bg-background px-2 py-2 text-sm"
-                                        placeholder={
-                                            !feature
-                                                ? 'Feature data required for AI editing'
-                                                : isGenerating
-                                                  ? 'AI is generating...'
-                                                  : selectedNodeId
-                                                    ? 'e.g. Add a button inside selected element'
-                                                    : 'e.g. Add a hero section'
-                                        }
-                                        value={chatInput}
-                                        onChange={(e) => setChatInput(e.target.value)}
-                                        disabled={isGenerating || !feature}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !isGenerating && feature) {
-                                                e.preventDefault();
-                                                handleSendMessage();
-                                            }
-                                        }}
-                                    />
-                                    <Button onClick={handleSendMessage} disabled={!chatInput.trim() || isGenerating || !feature}>
-                                        {isGenerating ? <TextShimmer>Generating...</TextShimmer> : 'Send'}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    <div
-                        className={`relative flex min-w-0 flex-col transition-all duration-300 ease-in-out ${isFullScreen ? 'w-full border-l-0' : 'w-[68%] border-l border-border'}`}
-                    >
-                        <div className="flex items-center justify-between border-b border-border/50 bg-gradient-to-r from-background via-background/98 to-background px-4 py-2">
-                            <div className="flex items-center gap-3 text-sm">
-                                <span className="font-medium opacity-80">Wireframe Preview</span>
-                                {wireframeData?.format === 'screens' && wireframeData.screens && wireframeData.screens.length > 1 && (
-                                    <div className="flex items-center gap-1 border-l border-border pl-3">
-                                        {wireframeData.screens.map((screen, index) => (
-                                            <button
-                                                key={screen.id}
-                                                onClick={() => {
-                                                    setSelectedScreenIndex(index);
-                                                    setSelectedNodeId(null);
-                                                }}
-                                                className={`cursor-pointer rounded px-2 py-1 text-xs transition-colors ${
-                                                    selectedScreenIndex === index
-                                                        ? 'bg-primary text-primary-foreground'
-                                                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                                }`}
-                                                title={screen.name || screen.id}
-                                            >
-                                                {screen.name || `Screen ${index + 1}`}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                                {selectedNodeId && parsedSchema && (
-                                    <div className="hidden items-center gap-1 md:flex">
-                                        {findPath(parsedSchema, selectedNodeId)?.map((crumb, idx, arr) => {
-                                            const [type, id] = crumb.split(':');
-                                            const isLast = idx === arr.length - 1;
-                                            return (
-                                                <button
-                                                    key={crumb}
-                                                    onClick={() => setSelectedNodeId(id)}
-                                                    className={`cursor-pointer rounded px-1.5 py-0.5 text-xs ${isLast ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                                                    title={`${type} • ${id}`}
-                                                >
-                                                    {type}
-                                                    {!isLast && <span className="mx-1 opacity-50">/</span>}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <select
-                                    className="rounded-md border border-border bg-background px-2 py-1 text-xs"
-                                    value={zoom}
-                                    onChange={(e) => setZoom(parseFloat(e.target.value))}
-                                    title="Zoom"
-                                >
-                                    <option value={1}>100%</option>
-                                    <option value={0.9}>90%</option>
-                                    <option value={0.8}>80%</option>
-                                    <option value={0.7}>70%</option>
-                                </select>
-                                <Button variant="outline" size="sm" onClick={toggleFullScreen}>
-                                    {isFullScreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="flex-1 overflow-x-hidden overflow-y-auto p-8">
-                            <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-                                <div>
-                                    <div
-                                        className={``}
-                                        style={{
-                                            width: '100%',
-                                            maxWidth: 1100,
-                                            margin: '0 auto',
-                                            transform: `scale(${Math.min(zoom, 1)})`,
-                                            transformOrigin: 'top center',
-                                            transition: 'transform 0.2s ease',
-                                            padding: 8,
-                                        }}
-                                    >
-                                        {parsedSchema && !isGenerating ? (
-                                            <WireframeProvider
-                                                initialSelectedNodeId={selectedNodeId}
-                                                onSelectionChange={setSelectedNodeId}
-                                            >
-                                                <WireframeRenderer node={parsedSchema} selectedNodeId={selectedNodeId} onSelectNode={setSelectedNodeId} />
-                                            </WireframeProvider>
-                                        ) : isGenerating ? (
-                                            <div className="flex h-full min-h-[400px] items-center justify-center">
-                                                <div className="text-center">
-                                                    <TextShimmer className="text-2xl font-semibold">Generating Wireframe...</TextShimmer>
-                                                    <p className="mt-4 text-sm text-muted-foreground">Please wait while we create your wireframe</p>
+                                    <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                                        {messages.length === 0 && (
+                                            <div className="flex h-full items-center justify-center">
+                                                <div className="text-center text-xs text-muted-foreground">
+                                                    {feature
+                                                        ? 'Ask the AI to suggest layout changes or add elements.'
+                                                        : 'Feature data not available for AI editing.'}
                                                 </div>
                                             </div>
-                                        ) : (
-                                            <div className="text-sm text-muted-foreground">Provide a valid JSON schema to render</div>
+                                        )}
+                                        {messages.map((m) => (
+                                            <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                <div
+                                                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+                                                        m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
+                                                    }`}
+                                                >
+                                                    <p className="whitespace-pre-wrap">{m.text}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {isGenerating && (
+                                            <div className="flex justify-start">
+                                                <div className="max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm">
+                                                    <TextShimmer className="text-muted-foreground">Generating wireframe updates...</TextShimmer>
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
-                                    {error && (
-                                        <DiagramErrorPanel
-                                            error={error}
-                                            onFixRequest={handleFixError}
-                                            title="Syntax Error"
-                                            className="mt-3"
-                                        />
-                                    )}
-                                </div>
-                                <div className="sticky top-0 h-fit rounded-lg border border-border bg-card p-4">
-                                    <div className="mb-3 flex items-center justify-between text-sm">
-                                        <div className="font-semibold">Properties</div>
-                                        {selectedNode && <span className="text-xs text-muted-foreground">{selectedNode.type}</span>}
-                                    </div>
-                                    {selectedNodeId ? (
-                                        <div className="space-y-3 text-sm">
-                                            <div className="text-muted-foreground">Selected: {selectedNodeId}</div>
-                                            <div className="grid gap-2">
-                                                <label className="text-xs">Text</label>
-                                                <input
-                                                    className="rounded-md border border-border bg-background px-2 py-1"
-                                                    placeholder="text"
-                                                    value={(selectedNode as any)?.text ?? ''}
-                                                    onChange={(e) => updateNodeInJson(selectedNodeId, (n) => ({ ...n, text: e.target.value }))}
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <label className="text-xs">Class Name</label>
-                                                <input
-                                                    className="rounded-md border border-border bg-background px-2 py-1"
-                                                    placeholder="className"
-                                                    value={(selectedNode as any)?.className ?? ''}
-                                                    onChange={(e) => updateNodeInJson(selectedNodeId, (n) => ({ ...n, className: e.target.value }))}
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <label className="text-xs">Layout</label>
-                                                <select
-                                                    className="rounded-md border border-border bg-background px-2 py-1"
-                                                    value={(selectedNode as any)?.layout ?? ''}
-                                                    onChange={(e) => updateNodeInJson(selectedNodeId, (n) => ({ ...n, layout: e.target.value }))}
-                                                >
-                                                    <option value="">(inherit)</option>
-                                                    <option value="row">row</option>
-                                                    <option value="column">column</option>
-                                                </select>
-                                            </div>
-                                            <div className="grid gap-2 pt-1">
-                                                <label className="text-xs">Quick add</label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() =>
-                                                            updateNodeInJson(selectedNodeId!, (n) => {
-                                                                const children = Array.isArray(n.children) ? n.children.slice() : [];
-                                                                children.push({ id: `text-${Date.now()}`, type: 'text', text: 'New text' });
-                                                                n.children = children;
-                                                                return n;
-                                                            })
-                                                        }
-                                                    >
-                                                        + Text
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() =>
-                                                            updateNodeInJson(selectedNodeId!, (n) => {
-                                                                const children = Array.isArray(n.children) ? n.children.slice() : [];
-                                                                children.push({ id: `button-${Date.now()}`, type: 'button', text: 'Button' } as any);
-                                                                n.children = children;
-                                                                return n;
-                                                            })
-                                                        }
-                                                    >
-                                                        + Button
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() =>
-                                                            updateNodeInJson(selectedNodeId!, (n) => {
-                                                                const children = Array.isArray(n.children) ? n.children.slice() : [];
-                                                                children.push({
-                                                                    id: `container-${Date.now()}`,
-                                                                    type: 'container',
-                                                                    layout: 'row',
-                                                                    children: [],
-                                                                });
-                                                                n.children = children;
-                                                                return n;
-                                                            })
-                                                        }
-                                                    >
-                                                        + Row
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() =>
-                                                            updateNodeInJson(selectedNodeId!, (n) => {
-                                                                const children = Array.isArray(n.children) ? n.children.slice() : [];
-                                                                children.push({
-                                                                    id: `container-${Date.now()}`,
-                                                                    type: 'container',
-                                                                    layout: 'column',
-                                                                    children: [],
-                                                                });
-                                                                n.children = children;
-                                                                return n;
-                                                            })
-                                                        }
-                                                    >
-                                                        + Column
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                            <div className="pt-2">
-                                                <Button variant="destructive" size="sm" onClick={() => deleteNodeInJson(selectedNodeId!)}>
-                                                    Remove Element
-                                                </Button>
-                                            </div>
+                                    <div className="border-t border-border/50 p-3">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                className="flex-1 rounded-md border border-border bg-background px-2 py-2 text-sm"
+                                                placeholder={
+                                                    !feature
+                                                        ? 'Feature data required for AI editing'
+                                                        : isGenerating
+                                                          ? 'AI is generating...'
+                                                          : selectedNodeId
+                                                            ? 'e.g. Add a button inside selected element'
+                                                            : 'e.g. Add a hero section'
+                                                }
+                                                value={chatInput}
+                                                onChange={(e) => setChatInput(e.target.value)}
+                                                disabled={isGenerating || !feature}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !isGenerating && feature) {
+                                                        e.preventDefault();
+                                                        handleSendMessage();
+                                                    }
+                                                }}
+                                            />
+                                            <Button onClick={handleSendMessage} disabled={!chatInput.trim() || isGenerating || !feature}>
+                                                {isGenerating ? <TextShimmer>Generating...</TextShimmer> : 'Send'}
+                                            </Button>
                                         </div>
-                                    ) : (
-                                        <div className="text-xs text-muted-foreground">Click any element in the preview to edit its properties</div>
-                                    )}
+                                    </div>
+                                </div>
+                            )}
+                            <div
+                                className={`relative flex min-w-0 flex-col transition-all duration-300 ease-in-out ${isFullScreen ? 'w-full border-l-0' : 'w-[68%] border-l border-border'}`}
+                            >
+                                <div className="flex items-center justify-between border-b border-border/50 bg-gradient-to-r from-background via-background/98 to-background px-4 py-2">
+                                    <div className="flex items-center gap-3 text-sm">
+                                        <span className="font-medium opacity-80">Wireframe Preview</span>
+                                        {wireframeData?.format === 'screens' && wireframeData.screens && wireframeData.screens.length > 1 && (
+                                            <div className="flex items-center gap-1 border-l border-border pl-3">
+                                                {wireframeData.screens.map((screen, index) => (
+                                                    <button
+                                                        key={screen.id}
+                                                        onClick={() => {
+                                                            setSelectedScreenIndex(index);
+                                                            setSelectedNodeId(null);
+                                                        }}
+                                                        className={`cursor-pointer rounded px-2 py-1 text-xs transition-colors ${
+                                                            selectedScreenIndex === index
+                                                                ? 'bg-primary text-primary-foreground'
+                                                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                                        }`}
+                                                        title={screen.name || screen.id}
+                                                    >
+                                                        {screen.name || `Screen ${index + 1}`}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {selectedNodeId && parsedSchema && (
+                                            <div className="hidden items-center gap-1 md:flex">
+                                                {findPath(parsedSchema, selectedNodeId)?.map((crumb, idx, arr) => {
+                                                    const [type, id] = crumb.split(':');
+                                                    const isLast = idx === arr.length - 1;
+                                                    return (
+                                                        <button
+                                                            key={crumb}
+                                                            onClick={() => setSelectedNodeId(id)}
+                                                            className={`cursor-pointer rounded px-1.5 py-0.5 text-xs ${isLast ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                                                            title={`${type} • ${id}`}
+                                                        >
+                                                            {type}
+                                                            {!isLast && <span className="mx-1 opacity-50">/</span>}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <select
+                                            className="rounded-md border border-border bg-background px-2 py-1 text-xs"
+                                            value={zoom}
+                                            onChange={(e) => setZoom(parseFloat(e.target.value))}
+                                            title="Zoom"
+                                        >
+                                            <option value={1}>100%</option>
+                                            <option value={0.9}>90%</option>
+                                            <option value={0.8}>80%</option>
+                                            <option value={0.7}>70%</option>
+                                        </select>
+                                        <Button variant="outline" size="sm" onClick={toggleFullScreen}>
+                                            {isFullScreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="flex-1 overflow-x-hidden overflow-y-auto p-8">
+                                    <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+                                        <div>
+                                            <div
+                                                className={``}
+                                                style={{
+                                                    width: '100%',
+                                                    maxWidth: 1100,
+                                                    margin: '0 auto',
+                                                    transform: `scale(${Math.min(zoom, 1)})`,
+                                                    transformOrigin: 'top center',
+                                                    transition: 'transform 0.2s ease',
+                                                    padding: 8,
+                                                }}
+                                            >
+                                                {parsedSchema && !isGenerating ? (
+                                                    <WireframeProvider initialSelectedNodeId={selectedNodeId} onSelectionChange={setSelectedNodeId}>
+                                                        <WireframeRenderer
+                                                            node={parsedSchema}
+                                                            selectedNodeId={selectedNodeId}
+                                                            onSelectNode={setSelectedNodeId}
+                                                        />
+                                                    </WireframeProvider>
+                                                ) : isGenerating ? (
+                                                    <div className="flex h-full min-h-[400px] items-center justify-center">
+                                                        <div className="text-center">
+                                                            <TextShimmer className="text-2xl font-semibold">Generating Wireframe...</TextShimmer>
+                                                            <p className="mt-4 text-sm text-muted-foreground">
+                                                                Please wait while we create your wireframe
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-sm text-muted-foreground">Provide a valid JSON schema to render</div>
+                                                )}
+                                            </div>
+                                            {error && (
+                                                <DiagramErrorPanel
+                                                    error={error}
+                                                    onFixRequest={handleFixError}
+                                                    title="Syntax Error"
+                                                    className="mt-3"
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="sticky top-0 h-fit rounded-lg border border-border bg-card p-4">
+                                            <div className="mb-3 flex items-center justify-between text-sm">
+                                                <div className="font-semibold">Properties</div>
+                                                {selectedNode && <span className="text-xs text-muted-foreground">{selectedNode.type}</span>}
+                                            </div>
+                                            {selectedNodeId ? (
+                                                <div className="space-y-3 text-sm">
+                                                    <div className="text-muted-foreground">Selected: {selectedNodeId}</div>
+                                                    <div className="grid gap-2">
+                                                        <label className="text-xs">Text</label>
+                                                        <input
+                                                            className="rounded-md border border-border bg-background px-2 py-1"
+                                                            placeholder="text"
+                                                            value={(selectedNode as any)?.text ?? ''}
+                                                            onChange={(e) =>
+                                                                updateNodeInJson(selectedNodeId, (n) => ({ ...n, text: e.target.value }))
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="grid gap-2">
+                                                        <label className="text-xs">Class Name</label>
+                                                        <input
+                                                            className="rounded-md border border-border bg-background px-2 py-1"
+                                                            placeholder="className"
+                                                            value={(selectedNode as any)?.className ?? ''}
+                                                            onChange={(e) =>
+                                                                updateNodeInJson(selectedNodeId, (n) => ({ ...n, className: e.target.value }))
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="grid gap-2">
+                                                        <label className="text-xs">Layout</label>
+                                                        <select
+                                                            className="rounded-md border border-border bg-background px-2 py-1"
+                                                            value={(selectedNode as any)?.layout ?? ''}
+                                                            onChange={(e) =>
+                                                                updateNodeInJson(selectedNodeId, (n) => ({ ...n, layout: e.target.value }))
+                                                            }
+                                                        >
+                                                            <option value="">(inherit)</option>
+                                                            <option value="row">row</option>
+                                                            <option value="column">column</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="grid gap-2 pt-1">
+                                                        <label className="text-xs">Quick add</label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                onClick={() =>
+                                                                    updateNodeInJson(selectedNodeId!, (n) => {
+                                                                        const children = Array.isArray(n.children) ? n.children.slice() : [];
+                                                                        children.push({ id: `text-${Date.now()}`, type: 'text', text: 'New text' });
+                                                                        n.children = children;
+                                                                        return n;
+                                                                    })
+                                                                }
+                                                            >
+                                                                + Text
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                onClick={() =>
+                                                                    updateNodeInJson(selectedNodeId!, (n) => {
+                                                                        const children = Array.isArray(n.children) ? n.children.slice() : [];
+                                                                        children.push({
+                                                                            id: `button-${Date.now()}`,
+                                                                            type: 'button',
+                                                                            text: 'Button',
+                                                                        } as any);
+                                                                        n.children = children;
+                                                                        return n;
+                                                                    })
+                                                                }
+                                                            >
+                                                                + Button
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                onClick={() =>
+                                                                    updateNodeInJson(selectedNodeId!, (n) => {
+                                                                        const children = Array.isArray(n.children) ? n.children.slice() : [];
+                                                                        children.push({
+                                                                            id: `container-${Date.now()}`,
+                                                                            type: 'container',
+                                                                            layout: 'row',
+                                                                            children: [],
+                                                                        });
+                                                                        n.children = children;
+                                                                        return n;
+                                                                    })
+                                                                }
+                                                            >
+                                                                + Row
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                onClick={() =>
+                                                                    updateNodeInJson(selectedNodeId!, (n) => {
+                                                                        const children = Array.isArray(n.children) ? n.children.slice() : [];
+                                                                        children.push({
+                                                                            id: `container-${Date.now()}`,
+                                                                            type: 'container',
+                                                                            layout: 'column',
+                                                                            children: [],
+                                                                        });
+                                                                        n.children = children;
+                                                                        return n;
+                                                                    })
+                                                                }
+                                                            >
+                                                                + Column
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="pt-2">
+                                                        <Button variant="destructive" size="sm" onClick={() => deleteNodeInJson(selectedNodeId!)}>
+                                                            Remove Element
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-xs text-muted-foreground">
+                                                    Click any element in the preview to edit its properties
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
                     </div>
                 </div>
             </div>

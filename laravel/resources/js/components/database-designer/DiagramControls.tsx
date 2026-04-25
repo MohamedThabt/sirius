@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { BackgroundVariant } from '@xyflow/react';
-import { ChevronLeft, ChevronRight, Grid3X3, Layers, Layout, Maximize, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
+import { Grid3X3, Layers, Layout, Maximize, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
 import { useState } from 'react';
 
 interface DiagramControlsProps {
@@ -25,10 +25,10 @@ interface DiagramControlsProps {
     isFullScreen?: boolean;
 }
 
-const DiagramControls = ({ 
-    onSearch, 
-    onArrange, 
-    onBackgroundChange, 
+const DiagramControls = ({
+    onSearch,
+    onArrange,
+    onBackgroundChange,
     onAddTable,
     onToggleEditor,
     onToggleFullScreen,
@@ -44,15 +44,15 @@ const DiagramControls = ({
     };
 
     return (
-        <div className="flex items-center justify-between gap-3 border-b border-border bg-card/80 backdrop-blur-sm px-4 py-2.5">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-card/80 px-4 py-2.5 backdrop-blur-sm">
             {/* Left Section - Search */}
-            <div className="relative flex-1 max-w-xs">
+            <div className="relative max-w-xs flex-1">
                 <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
                 <Input
                     placeholder="Search tables..."
                     value={localSearch}
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    className="pl-10 h-9 bg-background/50"
+                    className="h-9 bg-background/50 pl-10"
                 />
             </div>
 
@@ -61,11 +61,11 @@ const DiagramControls = ({
                 {/* Add Table Button */}
                 {onAddTable && (
                     <>
-                        <Button 
-                            variant="default" 
+                        <Button
+                            variant="default"
                             size="sm"
                             onClick={onAddTable}
-                            className="flex items-center gap-2 h-9 shadow-sm"
+                            className="flex h-9 items-center gap-2 shadow-sm"
                             title="Add new table"
                         >
                             <Plus className="h-4 w-4" />
@@ -124,7 +124,9 @@ const DiagramControls = ({
                             <Plus className="mr-2 h-4 w-4" />
                             Cross
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onBackgroundChange('none' as any)} className="cursor-pointer">None</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onBackgroundChange('none' as any)} className="cursor-pointer">
+                            None
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -133,10 +135,10 @@ const DiagramControls = ({
                     <>
                         <Separator orientation="vertical" className="h-5" />
                         <Button
-                            variant={isFullScreen ? "default" : "outline"}
+                            variant={isFullScreen ? 'default' : 'outline'}
                             size="sm"
                             onClick={onToggleFullScreen}
-                            className="flex items-center gap-2 h-9"
+                            className="flex h-9 items-center gap-2"
                             title={isFullScreen ? 'Exit Full Screen' : 'Enter Full Screen'}
                         >
                             <Maximize className="h-4 w-4" />

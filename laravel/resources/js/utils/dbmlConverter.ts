@@ -94,19 +94,19 @@ export const nodesToMermaid = (nodes: Node[], edges: Edge[]): string => {
             // Format: type column_name "constraints"
             // Example: bigint user_id "FK, NOT NULL, ref:users.id"
             const constraints: string[] = [];
-            
+
             if (field.isPrimaryKey) constraints.push('PK');
             if (field.isForeignKey) constraints.push('FK');
             if (field.isUnique && !field.isPrimaryKey) constraints.push('UNIQUE');
             if (field.isNotNull && !field.isPrimaryKey) constraints.push('NOT NULL');
-            
+
             // Add ref: for foreign key references
             if (field.isForeignKey && field.foreignKeyReference) {
                 constraints.push(`ref:${field.foreignKeyReference.referencedTable}.${field.foreignKeyReference.referencedField}`);
             }
 
             let fieldLine = `        ${field.type} ${field.name}`;
-            
+
             if (constraints.length > 0) {
                 fieldLine += ` "${constraints.join(', ')}"`;
             }
@@ -133,8 +133,8 @@ export const nodesToMermaid = (nodes: Node[], edges: Edge[]): string => {
 
         // Determine relationship symbol based on edge label or default to many-to-one
         // FastAPI outputs: }o--|| for many-to-one (child }o--|| parent)
-        let relationshipSymbol = '}o--||';  // Default: many-to-one (most common for FK relationships)
-        
+        let relationshipSymbol = '}o--||'; // Default: many-to-one (most common for FK relationships)
+
         if (typeof edge.label === 'string') {
             if (edge.label.includes('1:1')) {
                 relationshipSymbol = '||--||';

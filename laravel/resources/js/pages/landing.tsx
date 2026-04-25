@@ -1,17 +1,17 @@
+import { CallToAction } from '@/components/call-to-action';
+import { FaqsSection } from '@/components/faqs-section';
+import { Footer } from '@/components/footer';
 import { SEO } from '@/components/SEO';
 import SiriusAiFlowCard from '@/components/sirius/SiriusAiFlowCard';
-import { CallToAction } from '@/components/call-to-action';
-import { Footer } from '@/components/footer';
-import { FaqsSection } from '@/components/faqs-section';
 import SiriusHero from '@/components/sirius/SiriusHero';
-import { FeatureCard } from '@/components/ui/grid-feature-card';
 import SiriusNavbar from '@/components/sirius/SiriusNavbar';
+import { FeatureCard } from '@/components/ui/grid-feature-card';
 
+import PricingSection from '@/components/sirius/PricingSection';
+import ProblemSolutionSection from '@/components/sirius/ProblemSolutionSection';
 import SiriusSectionShell from '@/components/sirius/SiriusSectionShell';
 import SiriusStepTimeline from '@/components/sirius/SiriusStepTimeline';
-import ProblemSolutionSection from '@/components/sirius/ProblemSolutionSection';
 import TeamRolesSection from '@/components/sirius/TeamRolesSection';
-import PricingSection from '@/components/sirius/PricingSection';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { documentationSuite, howItWorks } from '@/lib/sirius/content';
@@ -38,7 +38,8 @@ export default function Landing() {
         operatingSystem: 'Web',
         description:
             'AI-powered software documentation generator. Transform project briefs into complete PRDs, SRS, ERDs, sequence diagrams, wireframes, and user stories. Export directly to GitHub for seamless development workflows.',
-        featureList: 'PRD Generation, SRS Generation, ERD Diagrams, Sequence Diagrams, Wireframes, User Stories, GitHub Export, Team Collaboration, AI-Powered Documentation',
+        featureList:
+            'PRD Generation, SRS Generation, ERD Diagrams, Sequence Diagrams, Wireframes, User Stories, GitHub Export, Team Collaboration, AI-Powered Documentation',
         offers: {
             '@type': 'Offer',
             price: '0',
@@ -72,25 +73,17 @@ export default function Landing() {
 
                         <ProblemSolutionSection />
 
-                        <SiriusSectionShell
-                            id="features"
-                            eyebrow={documentationSuite.eyebrow}
-                            title={documentationSuite.title}
-                        >
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <SiriusSectionShell id="features" eyebrow={documentationSuite.eyebrow} title={documentationSuite.title}>
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {documentationSuite.features.map((feature, index) => (
-                                    <FeatureCard
-                                        key={index}
-                                        feature={feature}
-                                        className="rounded-xl border border-border bg-card/50 h-full"
-                                    />
+                                    <FeatureCard key={index} feature={feature} className="h-full rounded-xl border border-border bg-card/50" />
                                 ))}
                             </div>
                         </SiriusSectionShell>
 
                         <section className="sirius-section bg-card/30" id="how-it-works">
                             <div className="sirius-container">
-                                <div className="mb-10 md:mb-12 grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12">
+                                <div className="mb-10 grid grid-cols-1 items-start gap-8 md:mb-12 lg:grid-cols-2 lg:gap-12">
                                     <div className="lg:sticky lg:top-24">
                                         <span className="text-kicker mb-2 block">{howItWorks.eyebrow}</span>
                                         <h2 className="text-section-title mb-4 text-foreground">{howItWorks.title}</h2>
@@ -116,11 +109,11 @@ export default function Landing() {
                             </div>
                         </section>
 
-						<TeamRolesSection />
+                        <TeamRolesSection />
 
-						<PricingSection />
+                        <PricingSection />
 
-						<FaqsSection />
+                        <FaqsSection />
 
                         <section className="sirius-section">
                             <CallToAction />

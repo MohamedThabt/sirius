@@ -1,4 +1,3 @@
-import { router } from '@inertiajs/react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -9,6 +8,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { router } from '@inertiajs/react';
 import { AlertCircle } from 'lucide-react';
 
 interface CreditLimitModalProps {
@@ -37,7 +37,7 @@ export function CreditLimitModal({ open, onOpenChange, message, creditsBalance }
                         {creditsBalance !== undefined && (
                             <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3">
                                 <p className="text-sm font-medium text-foreground">
-                                    Current balance: <span className="text-destructive font-bold">{creditsBalance}</span> credits
+                                    Current balance: <span className="font-bold text-destructive">{creditsBalance}</span> credits
                                 </p>
                             </div>
                         )}

@@ -1,28 +1,27 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { ClientDateTime } from '@/components/ClientDateTime';
 import { ChatInput } from '@/components/Chat/ChatInput';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import { ClientDateTime } from '@/components/ClientDateTime';
+import { MermaidDiagram } from '@/components/MermaidDiagram';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Toaster } from '@/components/ui/sonner';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
-import { getHealthStatus } from '@/utils/project-status';
-import { type User, type Project, type Sections, type PRDVersion, type ChatMessage } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { Toaster } from '@/components/ui/sonner';
+import { type ChatMessage, type PRDVersion, type Project, type Sections, type User } from '@/types';
+import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
-import { CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, Maximize2, MenuIcon, Minimize2, PencilIcon, SaveIcon } from 'lucide-react';
+import { EyeIcon, FileTextIcon, Maximize2, MenuIcon, Minimize2, PencilIcon, SaveIcon } from 'lucide-react';
 import mermaid from 'mermaid';
 import { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
-import { MermaidDiagram } from '@/components/MermaidDiagram';
 
 // WHY: Removed ~95 lines of duplicate interface and ChatInput definitions.
 // Types now imported from '@/types', ChatInput from '@/components/Chat/ChatInput'
@@ -45,12 +44,7 @@ const SimpleLoader = ({ text = 'Generating' }: { text?: string }) => {
     );
 };
 
-export default function PRD({
-    project,
-    prdVersions: initialPRDVersions,
-    featuresMarkdown = '',
-    sections,
-}: Props) {
+export default function PRD({ project, prdVersions: initialPRDVersions, featuresMarkdown = '', sections }: Props) {
     useFlashToasts();
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const [currentVersion, setCurrentVersion] = useState<PRDVersion | null>(null);
@@ -123,8 +117,6 @@ export default function PRD({
         });
     }, []);
 
-
-
     // Initialize with PRD versions from props
     useEffect(() => {
         if (initialPRDVersions && initialPRDVersions.length > 0) {
@@ -159,8 +151,6 @@ export default function PRD({
             setEditedContent(initialVersion.prd_content);
         }
     }, [initialPRDVersions, project]);
-
-
 
     // Handle AI prompt submission using updateWithAi controller method
     const handlePromptSubmit = async (prompt: string) => {
@@ -308,11 +298,15 @@ export default function PRD({
                                         <div className="flex items-center gap-3">
                                             <Sheet>
                                                 <SheetTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                                    >
                                                         <MenuIcon className="h-4 w-4" />
                                                     </Button>
                                                 </SheetTrigger>
-                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                                     <ProjectSidebarPanel
                                                         project={project}
                                                         navGroups={navGroups}
@@ -354,7 +348,8 @@ export default function PRD({
                                             {currentVersion && (
                                                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                                                     <span>
-                                                        Last updated: <ClientDateTime value={currentVersion.updated_at} dateStyle="medium" timeStyle="short" />
+                                                        Last updated:{' '}
+                                                        <ClientDateTime value={currentVersion.updated_at} dateStyle="medium" timeStyle="short" />
                                                     </span>
                                                     <span>•</span>
                                                     <span>Words: {currentVersion.prd_content.trim().split(/\s+/).filter(Boolean).length}</span>
@@ -418,7 +413,10 @@ export default function PRD({
 
                                                                                     if (language === 'mermaid' && !isInline) {
                                                                                         return (
-                                                                                            <MermaidDiagram projectId={project?.id} previewTitle="PRD Diagram">
+                                                                                            <MermaidDiagram
+                                                                                                projectId={project?.id}
+                                                                                                previewTitle="PRD Diagram"
+                                                                                            >
                                                                                                 {String(children).replace(/\n$/, '')}
                                                                                             </MermaidDiagram>
                                                                                         );
@@ -561,7 +559,11 @@ export default function PRD({
                                                                 const isInline = !className;
 
                                                                 if (isMermaid && !isInline) {
-                                                                    return <MermaidDiagram projectId={project?.id} previewTitle="PRD Diagram">{String(children).replace(/\n$/, '')}</MermaidDiagram>;
+                                                                    return (
+                                                                        <MermaidDiagram projectId={project?.id} previewTitle="PRD Diagram">
+                                                                            {String(children).replace(/\n$/, '')}
+                                                                        </MermaidDiagram>
+                                                                    );
                                                                 }
 
                                                                 return (

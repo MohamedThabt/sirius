@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Navbar05 } from '@/components/ui/shadcn-io/navbar-05';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
 
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import { MermaidViewerPane } from '@/components/database-designer/MermaidViewerPane';
@@ -204,7 +204,7 @@ export default function UserJourney({ project }: Props) {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => router.visit(`/projects/${project.id}`)}
-                                className="flex items-center gap-2 border-primary/20 hover:bg-primary/10 hover:border-primary/30"
+                                className="flex items-center gap-2 border-primary/20 hover:border-primary/30 hover:bg-primary/10"
                                 title="Back to Project"
                             >
                                 <ArrowLeft className="h-4 w-4" />
@@ -281,7 +281,7 @@ export default function UserJourney({ project }: Props) {
                             className="group relative z-10 w-1 cursor-col-resize bg-border transition-colors hover:bg-primary/50"
                             onMouseDown={handleMouseDown}
                         >
-                            <div className="absolute inset-y-0 -left-1 -right-1" />
+                            <div className="absolute inset-y-0 -right-1 -left-1" />
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                                 <div className="h-8 w-1 rounded-full bg-primary" />
                             </div>

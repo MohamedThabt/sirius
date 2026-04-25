@@ -32,11 +32,7 @@ export function preloadImages(sources: string[], priority: 'high' | 'low' = 'low
 /**
  * Preload images when they're about to be visible (using Intersection Observer)
  */
-export function preloadImagesOnVisible(
-    imageSources: string[],
-    container: HTMLElement,
-    rootMargin = '200px'
-): () => void {
+export function preloadImagesOnVisible(imageSources: string[], container: HTMLElement, rootMargin = '200px'): () => void {
     const observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
@@ -49,7 +45,7 @@ export function preloadImagesOnVisible(
                 }
             });
         },
-        { rootMargin }
+        { rootMargin },
     );
 
     container.querySelectorAll('img').forEach((img) => {
@@ -58,4 +54,3 @@ export function preloadImagesOnVisible(
 
     return () => observer.disconnect();
 }
-

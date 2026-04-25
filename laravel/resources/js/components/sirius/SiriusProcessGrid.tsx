@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 
 const SiriusProcessGrid: React.FC = () => {
-  return null;
+    return null;
 };
 
 export default SiriusProcessGrid;

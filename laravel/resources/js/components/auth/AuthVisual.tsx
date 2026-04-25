@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface AuthVisualProps {
     variant?: 'login' | 'register';
@@ -66,34 +66,34 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
                 {/* Connection Lines Container */}
                 <div className="relative z-10 flex h-16 w-full items-start justify-center">
                     {/* Left Connection to Products */}
-                    <div className="absolute left-[calc(50%-140px)] top-0 flex flex-col items-center" style={{ width: '140px' }}>
+                    <div className="absolute top-0 left-[calc(50%-140px)] flex flex-col items-center" style={{ width: '140px' }}>
                         {/* Vertical line down */}
                         <div className="h-6 w-0.5 bg-white/35"></div>
                         {/* Horizontal line */}
                         <div className="relative h-0.5 w-full bg-white/35">
                             {/* Arrow at end */}
-                            <div className="absolute right-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 translate-x-1/2 rotate-45 border-b border-r border-white/50 bg-[hsl(220_13%_8%)]"></div>
+                            <div className="absolute top-1/2 right-0 h-1.5 w-1.5 translate-x-1/2 -translate-y-1/2 rotate-45 border-r border-b border-white/50 bg-[hsl(220_13%_8%)]"></div>
                         </div>
                         {/* Cardinality badge */}
-                        <div className="absolute left-1/2 top-3 -translate-x-1/2">
-                            <div className="rounded bg-[hsl(var(--bg-secondary))] border border-white/10 px-1.5 py-0.5 backdrop-blur-sm">
+                        <div className="absolute top-3 left-1/2 -translate-x-1/2">
+                            <div className="rounded border border-white/10 bg-[hsl(var(--bg-secondary))] px-1.5 py-0.5 backdrop-blur-sm">
                                 <span className="text-[9px] font-medium text-[hsl(var(--text-secondary))]">1:∞</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Right Connection to Orders */}
-                    <div className="absolute right-[calc(50%-140px)] top-0 flex flex-col items-center" style={{ width: '140px' }}>
+                    <div className="absolute top-0 right-[calc(50%-140px)] flex flex-col items-center" style={{ width: '140px' }}>
                         {/* Vertical line down */}
                         <div className="h-6 w-0.5 bg-white/35"></div>
                         {/* Horizontal line */}
                         <div className="relative h-0.5 w-full bg-white/35">
                             {/* Arrow at end */}
-                            <div className="absolute right-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 translate-x-1/2 rotate-45 border-b border-r border-white/50 bg-[hsl(220_13%_8%)]"></div>
+                            <div className="absolute top-1/2 right-0 h-1.5 w-1.5 translate-x-1/2 -translate-y-1/2 rotate-45 border-r border-b border-white/50 bg-[hsl(220_13%_8%)]"></div>
                         </div>
                         {/* Cardinality badge */}
-                        <div className="absolute left-1/2 top-3 -translate-x-1/2">
-                            <div className="rounded bg-[hsl(var(--bg-secondary))] border border-white/10 px-1.5 py-0.5 backdrop-blur-sm">
+                        <div className="absolute top-3 left-1/2 -translate-x-1/2">
+                            <div className="rounded border border-white/10 bg-[hsl(var(--bg-secondary))] px-1.5 py-0.5 backdrop-blur-sm">
                                 <span className="text-[9px] font-medium text-[hsl(var(--text-secondary))]">1:∞</span>
                             </div>
                         </div>
@@ -162,7 +162,6 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     );
@@ -238,9 +237,5 @@ export default function AuthVisual({ variant = 'login' }: AuthVisualProps) {
         </div>
     );
 
-    return (
-        <div className="relative h-[500px] w-full">
-            {variant === 'login' ? <ERDVisual /> : <SequenceDiagramVisual />}
-        </div>
-    );
+    return <div className="relative h-[500px] w-full">{variant === 'login' ? <ERDVisual /> : <SequenceDiagramVisual />}</div>;
 }

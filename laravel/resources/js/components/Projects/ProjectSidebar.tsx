@@ -7,7 +7,18 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { type SharedData, type User } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { AlertCircleIcon, CheckCircleIcon, ChevronDownIcon, ChevronLeftIcon, CircleIcon, ClockIcon, Github as GithubIcon, Search, SquarePen, TrendingUpIcon } from 'lucide-react';
+import {
+    AlertCircleIcon,
+    CheckCircleIcon,
+    ChevronDownIcon,
+    ChevronLeftIcon,
+    CircleIcon,
+    ClockIcon,
+    Github as GithubIcon,
+    Search,
+    SquarePen,
+    TrendingUpIcon,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface Project {
@@ -49,14 +60,7 @@ interface ProjectSidebarProps {
     user: User;
 }
 
-export default function ProjectSidebar({
-    project,
-    navGroups,
-    completionPercentage,
-    health,
-    isCollapsed,
-    user,
-}: ProjectSidebarProps) {
+export default function ProjectSidebar({ project, navGroups, completionPercentage, health, isCollapsed, user }: ProjectSidebarProps) {
     const { repository } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
@@ -102,30 +106,30 @@ export default function ProjectSidebar({
         <>
             <aside className={`${isCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r border-border/30 transition-all duration-300 lg:block`}>
                 <div
-                    className={`sticky top-0 flex h-screen flex-col justify-between py-4 px-3 ${isCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                    className={`sticky top-0 flex h-screen flex-col justify-between px-3 py-4 ${isCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 >
                     <div className="scrollbar-hide overflow-y-auto">
                         {/* Linear-style Header */}
-                        <div className="mb-4 pb-3 border-b border-border/30">
+                        <div className="mb-4 border-b border-border/30 pb-3">
                             <div className="flex items-center justify-between">
                                 {/* Back + Project Selector */}
                                 <div className="flex items-center gap-1">
-                                    <a 
-                                        href="/projects" 
-                                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+                                    <a
+                                        href="/projects"
+                                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                                     >
                                         <ChevronLeftIcon className="h-4 w-4" />
                                     </a>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted/50 transition-colors cursor-pointer">
-                                                <div className={`flex h-5 w-5 items-center justify-center rounded text-[9px] font-medium ${getStatusColor(project.status).replace('border', 'border-0')}`}>
+                                            <button className="flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-muted/50">
+                                                <div
+                                                    className={`flex h-5 w-5 items-center justify-center rounded text-[9px] font-medium ${getStatusColor(project.status).replace('border', 'border-0')}`}
+                                                >
                                                     {project.name.slice(0, 2).toUpperCase()}
                                                 </div>
-                                                <span className="text-sm font-medium text-foreground truncate max-w-[120px]">
-                                                    {project.name}
-                                                </span>
-                                                <ChevronDownIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                                <span className="max-w-[120px] truncate text-sm font-medium text-foreground">{project.name}</span>
+                                                <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="start" className="w-56">
@@ -133,18 +137,18 @@ export default function ProjectSidebar({
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
-                                
+
                                 {/* Action Icons */}
                                 <div className="flex items-center gap-0.5">
-                                    <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors cursor-pointer">
+                                    <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground">
                                         <Search className="h-4 w-4" />
                                     </button>
-                                    <button className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors cursor-pointer">
+                                    <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground">
                                         <SquarePen className="h-4 w-4" />
                                     </button>
                                 </div>
                             </div>
-                            
+
                             {/* Status Badge */}
                             <div className="mt-3 flex items-center gap-2">
                                 <span
@@ -154,19 +158,17 @@ export default function ProjectSidebar({
                                     <span className="capitalize">{project.status.replace('_', ' ')}</span>
                                 </span>
                                 {completionPercentage !== undefined && (
-                                    <span className="text-[10px] text-muted-foreground">
-                                        {completionPercentage}% complete
-                                    </span>
+                                    <span className="text-[10px] text-muted-foreground">{completionPercentage}% complete</span>
                                 )}
                             </div>
-                            
+
                             {/* Progress Bar */}
                             {completionPercentage !== undefined && (
                                 <div className="mt-2">
                                     <div className="h-1 w-full overflow-hidden rounded-full bg-muted/50">
-                                        <div 
-                                            className="h-full bg-foreground/70 transition-all duration-500 ease-out rounded-full" 
-                                            style={{ width: `${completionPercentage}%` }} 
+                                        <div
+                                            className="h-full rounded-full bg-foreground/70 transition-all duration-500 ease-out"
+                                            style={{ width: `${completionPercentage}%` }}
                                         />
                                     </div>
                                 </div>
@@ -190,8 +192,8 @@ export default function ProjectSidebar({
                                                             item.disabled
                                                                 ? 'cursor-not-allowed opacity-50'
                                                                 : item.active
-                                                                  ? 'bg-muted font-medium text-foreground cursor-pointer'
-                                                                  : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground cursor-pointer',
+                                                                  ? 'cursor-pointer bg-muted font-medium text-foreground'
+                                                                  : 'cursor-pointer text-muted-foreground hover:bg-muted/70 hover:text-foreground',
                                                             item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
                                                             item.key === 'brainstorming' && !item.disabled
                                                                 ? 'border border-amber-200 bg-amber-50 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:hover:bg-amber-500/20'
@@ -228,7 +230,7 @@ export default function ProjectSidebar({
                             <div className="space-y-2">
                                 <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Integrations</div>
                                 <button
-                                    className="flex w-full items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground cursor-pointer"
+                                    className="flex w-full cursor-pointer items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                                     onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
                                 >
                                     <span className="inline-flex items-center gap-2">
@@ -244,30 +246,30 @@ export default function ProjectSidebar({
                                         <span className="text-xs">Connect</span>
                                     )}
                                 </button>
-                                
+
                                 {/* Community Link */}
                                 <a
                                     href="https://t.me/sirius_ai_community"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="group relative flex items-center justify-between overflow-hidden rounded-lg px-2.5 py-2 text-sm transition-all duration-300 hover:scale-[1.01] bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 hover:from-cyan-500/20 hover:via-blue-500/20 hover:to-purple-500/20 border border-cyan-500/20 hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] mx-0.5"
+                                    className="group relative mx-0.5 flex items-center justify-between overflow-hidden rounded-lg border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 px-2.5 py-2 text-sm transition-all duration-300 hover:scale-[1.01] hover:border-cyan-400/40 hover:from-cyan-500/20 hover:via-blue-500/20 hover:to-purple-500/20 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]"
                                 >
                                     {/* Animated shine effect */}
-                                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                                    
+                                    <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+
                                     <span className="relative inline-flex items-center gap-2">
                                         <span className="relative">
                                             <svg className="h-4 w-4 shrink-0 text-cyan-500" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
                                             </svg>
-                                            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-ping rounded-full bg-cyan-400/60" />
-                                            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-cyan-400" />
+                                            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 animate-ping rounded-full bg-cyan-400/60" />
+                                            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-cyan-400" />
                                         </span>
                                         <span className="font-medium text-foreground">Community</span>
                                     </span>
                                     <span className="relative flex items-center gap-1 text-xs font-semibold text-cyan-500 group-hover:text-cyan-400">
                                         <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z"/>
+                                            <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z" />
                                         </svg>
                                         Join
                                     </span>
@@ -279,7 +281,7 @@ export default function ProjectSidebar({
                     <div className="shrink-0 border-t pt-3">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted cursor-pointer">
+                                <button className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
                                     <Avatar className="h-5 w-5 shrink-0">
                                         <AvatarImage src={user.avatar} alt={user.name} />
                                         <AvatarFallback className="bg-neutral-200 text-[10px] text-black dark:bg-neutral-700 dark:text-white">
@@ -303,7 +305,12 @@ export default function ProjectSidebar({
 
             <RepoConnectDialog open={isGithubModalOpen} onOpenChange={setIsGithubModalOpen} projectId={project.id} />
 
-            <RepoManagementModal open={isRepoManagementOpen} onOpenChange={setIsRepoManagementOpen} repository={repository ?? null} projectId={project.id} />
+            <RepoManagementModal
+                open={isRepoManagementOpen}
+                onOpenChange={setIsRepoManagementOpen}
+                repository={repository ?? null}
+                projectId={project.id}
+            />
         </>
     );
 }

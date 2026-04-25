@@ -26,8 +26,8 @@ import {
     EyeIcon,
     FileTextIcon,
     MenuIcon,
-    MoreHorizontal as MoreHorizontalIcon,
     MessageSquareIcon,
+    MoreHorizontal as MoreHorizontalIcon,
     PencilIcon,
     SaveIcon,
     SparklesIcon,
@@ -105,7 +105,11 @@ export default function SystemOverview({
         document.body.removeChild(form);
     };
 
-    const { width: leftPaneWidth, handleMouseDown, containerRef } = useResizablePanel({
+    const {
+        width: leftPaneWidth,
+        handleMouseDown,
+        containerRef,
+    } = useResizablePanel({
         initialWidth: 40,
         minWidth: 20,
         maxWidth: 80,
@@ -132,9 +136,14 @@ export default function SystemOverview({
             setEditedContent(baseVersion.overview);
         } else if (project && project.overview && overviewVersions.length === 0 && !isInitialGeneration) {
             const initialVersion: OverviewVersion = {
-                id: 0, project_id: project.id, overview: project.overview, version_number: 1,
-                is_base_version: true, user_prompt: 'Initial project overview',
-                created_at: project.created_at, updated_at: project.updated_at,
+                id: 0,
+                project_id: project.id,
+                overview: project.overview,
+                version_number: 1,
+                is_base_version: true,
+                user_prompt: 'Initial project overview',
+                created_at: project.created_at,
+                updated_at: project.updated_at,
             };
             setOverviewVersions([initialVersion]);
             setCurrentVersion(initialVersion);
@@ -146,11 +155,17 @@ export default function SystemOverview({
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatMessages, isGenerating]);
 
-    const getCsrfToken = useCallback(() =>
-        document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-        document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
-        document.cookie.split('; ').find((row) => row.startsWith('XSRF-TOKEN='))?.split('=')[1] || '',
-    []);
+    const getCsrfToken = useCallback(
+        () =>
+            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+            document.querySelector('meta[name="_token"]')?.getAttribute('content') ||
+            document.cookie
+                .split('; ')
+                .find((row) => row.startsWith('XSRF-TOKEN='))
+                ?.split('=')[1] ||
+            '',
+        [],
+    );
 
     const triggerAsyncGeneration = useCallback(async () => {
         try {
@@ -162,7 +177,9 @@ export default function SystemOverview({
                 const data = await response.json();
                 if (data.success) {
                     setOverviewVersions(data.overviewVersions);
-                    const newestVersion = data.overviewVersions.sort((a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number)[0];
+                    const newestVersion = data.overviewVersions.sort(
+                        (a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number,
+                    )[0];
                     setCurrentVersion(newestVersion);
                     setEditedContent(newestVersion.overview);
                     if (typeof data.hasModules === 'boolean') setProjectHasModules(data.hasModules);
@@ -187,8 +204,13 @@ export default function SystemOverview({
         setIsGenerating(true);
         const newPrompt = prompt.trim();
         const optimisticUserMsg: OverviewChatMessage = {
-            id: `opt-user-${Date.now()}`, type: 'message', role: 'user', content: newPrompt,
-            version_id: null, intent: null, created_at: new Date().toISOString(),
+            id: `opt-user-${Date.now()}`,
+            type: 'message',
+            role: 'user',
+            content: newPrompt,
+            version_id: null,
+            intent: null,
+            created_at: new Date().toISOString(),
         };
         setChatMessages((prev) => [...prev, optimisticUserMsg]);
         try {
@@ -202,7 +224,9 @@ export default function SystemOverview({
                 if (data.chat) setChatMessages(data.chat);
                 if (data.overviewVersions) {
                     setOverviewVersions(data.overviewVersions);
-                    const newestVersion = data.overviewVersions.sort((a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number)[0];
+                    const newestVersion = data.overviewVersions.sort(
+                        (a: OverviewVersion, b: OverviewVersion) => b.version_number - a.version_number,
+                    )[0];
                     setCurrentVersion(newestVersion);
                     setEditedContent(newestVersion.overview);
                 }
@@ -214,9 +238,13 @@ export default function SystemOverview({
         } catch (error) {
             console.error('Error in chat:', error);
             const errorMsg: OverviewChatMessage = {
-                id: `error-${Date.now()}`, type: 'message', role: 'agent',
+                id: `error-${Date.now()}`,
+                type: 'message',
+                role: 'agent',
                 content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
-                version_id: null, intent: null, created_at: new Date().toISOString(),
+                version_id: null,
+                intent: null,
+                created_at: new Date().toISOString(),
             };
             setChatMessages((prev) => [...prev, errorMsg]);
         } finally {
@@ -311,14 +339,10 @@ export default function SystemOverview({
         }
 
         const existingVersionIds = new Set(
-            chatMessages
-                .filter((msg) => msg.type === 'version' && msg.version_id !== null)
-                .map((msg) => msg.version_id as number),
+            chatMessages.filter((msg) => msg.type === 'version' && msg.version_id !== null).map((msg) => msg.version_id as number),
         );
 
-        const missingVersionMessages = fallbackVersionMessages.filter(
-            (msg) => msg.version_id !== null && !existingVersionIds.has(msg.version_id),
-        );
+        const missingVersionMessages = fallbackVersionMessages.filter((msg) => msg.version_id !== null && !existingVersionIds.has(msg.version_id));
 
         return [...missingVersionMessages, ...chatMessages];
     }, [chatMessages, overviewVersions]);
@@ -328,8 +352,7 @@ export default function SystemOverview({
         return buildProjectNavGroups({ project, currentPage: 'overview' });
     }, [project]);
 
-    const hasSecondaryActions =
-        !projectHasModules || Boolean(sections?.prd) || Boolean(currentVersion && !currentVersion.is_base_version);
+    const hasSecondaryActions = !projectHasModules || Boolean(sections?.prd) || Boolean(currentVersion && !currentVersion.is_base_version);
 
     return (
         <>
@@ -355,11 +378,15 @@ export default function SystemOverview({
                                         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                                             <Sheet>
                                                 <SheetTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                                    >
                                                         <MenuIcon className="h-4 w-4" />
                                                     </Button>
                                                 </SheetTrigger>
-                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                                     <ProjectSidebarPanel
                                                         project={project}
                                                         navGroups={navGroups}
@@ -371,7 +398,10 @@ export default function SystemOverview({
                                                     />
                                                 </SheetContent>
                                             </Sheet>
-                                            <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+                                            <SidebarToggle
+                                                isCollapsed={isSidebarCollapsed}
+                                                onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                            />
                                             <div className="min-w-0 flex-1 overflow-hidden">
                                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                                             </div>
@@ -385,11 +415,7 @@ export default function SystemOverview({
 
                                 {isMobile && (
                                     <div className="border-b border-border/40 bg-background px-3 py-2">
-                                        <Tabs
-                                            value={mobilePanel}
-                                            onValueChange={(value) => setMobilePanel(value as MobilePanel)}
-                                            className="w-full"
-                                        >
+                                        <Tabs value={mobilePanel} onValueChange={(value) => setMobilePanel(value as MobilePanel)} className="w-full">
                                             <TabsList className="grid h-8 w-full grid-cols-2">
                                                 <TabsTrigger value="chat" className="text-xs">
                                                     Chat Agent
@@ -416,9 +442,7 @@ export default function SystemOverview({
                                                 </div>
                                                 <div className="leading-tight">
                                                     <h2 className="text-sm font-semibold">Overview Chat</h2>
-                                                    <p className="text-[11px] text-muted-foreground">
-                                                        {displayedChatMessages.length} messages
-                                                    </p>
+                                                    <p className="text-[11px] text-muted-foreground">{displayedChatMessages.length} messages</p>
                                                 </div>
                                             </div>
                                             <Button
@@ -446,29 +470,49 @@ export default function SystemOverview({
                                                     displayedChatMessages.map((msg) => {
                                                         const isUser = msg.role === 'user';
                                                         return (
-                                                            <div key={msg.id} className={`group flex gap-3 py-1.5 ${isUser ? 'flex-row-reverse' : ''}`}>
-                                                                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
-                                                                    isUser
-                                                                        ? 'border-primary/30 bg-primary text-primary-foreground'
-                                                                        : 'border-border/70 bg-card'
-                                                                }`}>
-                                                                    {isUser
-                                                                        ? <UserIcon className="h-3 w-3" />
-                                                                        : <BotIcon className="h-3 w-3 text-muted-foreground" />
-                                                                    }
-                                                                </div>
-                                                                <div className={`max-w-[94%] space-y-1.5 sm:max-w-[88%] ${isUser ? 'text-right' : ''}`}>
-                                                                    <div className={`inline-block rounded-2xl border px-3.5 py-2.5 text-[13px] leading-relaxed ${
+                                                            <div
+                                                                key={msg.id}
+                                                                className={`group flex gap-3 py-1.5 ${isUser ? 'flex-row-reverse' : ''}`}
+                                                            >
+                                                                <div
+                                                                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
                                                                         isUser
-                                                                            ? 'border-primary/50 bg-primary text-primary-foreground shadow-sm'
-                                                                            : 'border-border/70 bg-card text-foreground'
-                                                                    }`}>
+                                                                            ? 'border-primary/30 bg-primary text-primary-foreground'
+                                                                            : 'border-border/70 bg-card'
+                                                                    }`}
+                                                                >
+                                                                    {isUser ? (
+                                                                        <UserIcon className="h-3 w-3" />
+                                                                    ) : (
+                                                                        <BotIcon className="h-3 w-3 text-muted-foreground" />
+                                                                    )}
+                                                                </div>
+                                                                <div
+                                                                    className={`max-w-[94%] space-y-1.5 sm:max-w-[88%] ${isUser ? 'text-right' : ''}`}
+                                                                >
+                                                                    <div
+                                                                        className={`inline-block rounded-2xl border px-3.5 py-2.5 text-[13px] leading-relaxed ${
+                                                                            isUser
+                                                                                ? 'border-primary/50 bg-primary text-primary-foreground shadow-sm'
+                                                                                : 'border-border/70 bg-card text-foreground'
+                                                                        }`}
+                                                                    >
                                                                         <ReactMarkdown
                                                                             remarkPlugins={[remarkGfm]}
                                                                             components={{
-                                                                                p: ({ children }) => <p className="m-0 whitespace-pre-wrap">{children}</p>,
-                                                                                ul: ({ children }) => <ul className="my-1 list-inside list-disc text-left">{children}</ul>,
-                                                                                ol: ({ children }) => <ol className="my-1 list-inside list-decimal text-left">{children}</ol>,
+                                                                                p: ({ children }) => (
+                                                                                    <p className="m-0 whitespace-pre-wrap">{children}</p>
+                                                                                ),
+                                                                                ul: ({ children }) => (
+                                                                                    <ul className="my-1 list-inside list-disc text-left">
+                                                                                        {children}
+                                                                                    </ul>
+                                                                                ),
+                                                                                ol: ({ children }) => (
+                                                                                    <ol className="my-1 list-inside list-decimal text-left">
+                                                                                        {children}
+                                                                                    </ol>
+                                                                                ),
                                                                                 li: ({ children }) => <li className="my-0.5">{children}</li>,
                                                                                 a: ({ href, children }) => (
                                                                                     <a
@@ -496,21 +540,29 @@ export default function SystemOverview({
                                                                                             </code>
                                                                                         );
                                                                                     }
-                                                                                    return <code className={className} {...props}>{children}</code>;
+                                                                                    return (
+                                                                                        <code className={className} {...props}>
+                                                                                            {children}
+                                                                                        </code>
+                                                                                    );
                                                                                 },
                                                                                 pre: ({ children }) => (
-                                                                                    <pre className={`my-2 overflow-x-auto rounded-md border px-2 py-1.5 text-left text-xs ${
-                                                                                        isUser
-                                                                                            ? 'border-primary-foreground/20 bg-primary-foreground/10'
-                                                                                            : 'border-border/70 bg-muted/40'
-                                                                                    }`}>
+                                                                                    <pre
+                                                                                        className={`my-2 overflow-x-auto rounded-md border px-2 py-1.5 text-left text-xs ${
+                                                                                            isUser
+                                                                                                ? 'border-primary-foreground/20 bg-primary-foreground/10'
+                                                                                                : 'border-border/70 bg-muted/40'
+                                                                                        }`}
+                                                                                    >
                                                                                         {children}
                                                                                     </pre>
                                                                                 ),
                                                                                 blockquote: ({ children }) => (
-                                                                                    <blockquote className={`my-2 border-l-2 pl-2 italic ${
-                                                                                        isUser ? 'border-primary-foreground/40' : 'border-border'
-                                                                                    }`}>
+                                                                                    <blockquote
+                                                                                        className={`my-2 border-l-2 pl-2 italic ${
+                                                                                            isUser ? 'border-primary-foreground/40' : 'border-border'
+                                                                                        }`}
+                                                                                    >
                                                                                         {children}
                                                                                     </blockquote>
                                                                                 ),
@@ -534,18 +586,24 @@ export default function SystemOverview({
 
                                                                     <div className={`flex items-center gap-1.5 ${isUser ? 'justify-end' : ''}`}>
                                                                         {msg.intent && !isUser && (
-                                                                            <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${
-                                                                                msg.intent === 'execute'
-                                                                                    ? 'bg-green-500/10 text-green-600 dark:text-green-400'
-                                                                                    : msg.intent === 'suggest'
-                                                                                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                                                                                      : 'bg-muted text-muted-foreground'
-                                                                            }`}>
+                                                                            <span
+                                                                                className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${
+                                                                                    msg.intent === 'execute'
+                                                                                        ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+                                                                                        : msg.intent === 'suggest'
+                                                                                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                                                                          : 'bg-muted text-muted-foreground'
+                                                                                }`}
+                                                                            >
                                                                                 {msg.intent}
                                                                             </span>
                                                                         )}
                                                                         <span className="text-[10px] text-muted-foreground/70">
-                                                                            <ClientDateTime value={msg.created_at} dateStyle="long" timeStyle="short" />
+                                                                            <ClientDateTime
+                                                                                value={msg.created_at}
+                                                                                dateStyle="long"
+                                                                                timeStyle="short"
+                                                                            />
                                                                         </span>
                                                                     </div>
                                                                 </div>
@@ -559,7 +617,9 @@ export default function SystemOverview({
                                                                 <MessageSquareIcon className="h-5 w-5 text-muted-foreground" />
                                                             </div>
                                                             <p className="text-sm text-muted-foreground">No messages yet</p>
-                                                            <p className="text-xs text-muted-foreground/60">Start a conversation to improve your overview</p>
+                                                            <p className="text-xs text-muted-foreground/60">
+                                                                Start a conversation to improve your overview
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -648,7 +708,13 @@ export default function SystemOverview({
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => openInNewTab(`/projects/${project?.id}/system-overview/preview`, currentVersion.overview, 'System Overview')}
+                                                        onClick={() =>
+                                                            openInNewTab(
+                                                                `/projects/${project?.id}/system-overview/preview`,
+                                                                currentVersion.overview,
+                                                                'System Overview',
+                                                            )
+                                                        }
                                                         className="h-7 gap-1 px-2 text-xs"
                                                     >
                                                         <ExternalLinkIcon className="h-3 w-3" />
@@ -726,20 +792,20 @@ export default function SystemOverview({
                                                 </div>
                                                 <div className="overflow-x-auto pb-0.5">
                                                     <div className="flex w-max min-w-full flex-nowrap gap-1.5 sm:w-auto sm:min-w-0 sm:flex-wrap">
-                                                    {overviewVersions.map((version) => (
-                                                        <button
-                                                            key={version.id}
-                                                            onClick={() => handleVersionSelect(version)}
-                                                            className={`inline-flex whitespace-nowrap items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                                                                currentVersion?.id === version.id
-                                                                    ? 'border-primary/60 bg-primary text-primary-foreground shadow-sm'
-                                                                    : 'border-border/60 bg-card text-muted-foreground hover:bg-muted/70 hover:text-foreground'
-                                                            }`}
-                                                        >
-                                                            v{version.version_number.toString().padStart(2, '0')}
-                                                            {version.is_base_version && <StarIcon className="h-2.5 w-2.5" />}
-                                                        </button>
-                                                    ))}
+                                                        {overviewVersions.map((version) => (
+                                                            <button
+                                                                key={version.id}
+                                                                onClick={() => handleVersionSelect(version)}
+                                                                className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium whitespace-nowrap transition-colors ${
+                                                                    currentVersion?.id === version.id
+                                                                        ? 'border-primary/60 bg-primary text-primary-foreground shadow-sm'
+                                                                        : 'border-border/60 bg-card text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                                                                }`}
+                                                            >
+                                                                v{version.version_number.toString().padStart(2, '0')}
+                                                                {version.is_base_version && <StarIcon className="h-2.5 w-2.5" />}
+                                                            </button>
+                                                        ))}
                                                     </div>
                                                 </div>
                                             </div>
@@ -752,7 +818,9 @@ export default function SystemOverview({
                                                     <CardContent className="p-0">
                                                         <div className="flex h-64 items-center justify-center">
                                                             <div className="text-center">
-                                                                <TextShimmer className="text-xl font-semibold">Generating System Overview...</TextShimmer>
+                                                                <TextShimmer className="text-xl font-semibold">
+                                                                    Generating System Overview...
+                                                                </TextShimmer>
                                                                 <p className="mt-3 text-sm text-muted-foreground">This may take a moment</p>
                                                             </div>
                                                         </div>
@@ -766,10 +834,20 @@ export default function SystemOverview({
                                                                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/20 px-4 py-2.5">
                                                                     <h3 className="text-xs font-medium text-muted-foreground">Editing Markdown</h3>
                                                                     <div className="flex items-center gap-1.5">
-                                                                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setIsEditing(false)}>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="h-7 px-2 text-xs"
+                                                                            onClick={() => setIsEditing(false)}
+                                                                        >
                                                                             Cancel
                                                                         </Button>
-                                                                        <Button size="sm" className="h-7 gap-1 px-2.5 text-xs" onClick={handleContentUpdate} disabled={isGenerating}>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            className="h-7 gap-1 px-2.5 text-xs"
+                                                                            onClick={handleContentUpdate}
+                                                                            disabled={isGenerating}
+                                                                        >
                                                                             <SaveIcon className="h-3 w-3" />
                                                                             Save
                                                                         </Button>
@@ -778,14 +856,14 @@ export default function SystemOverview({
                                                                 <Textarea
                                                                     value={editedContent}
                                                                     onChange={(e) => setEditedContent(e.target.value)}
-                                                                    className="w-full min-h-[60vh] resize-none border-0 bg-background px-3 py-3 font-mono text-sm leading-6 focus-visible:ring-0 sm:min-h-[500px] sm:px-5 sm:py-4"
+                                                                    className="min-h-[60vh] w-full resize-none border-0 bg-background px-3 py-3 font-mono text-sm leading-6 focus-visible:ring-0 sm:min-h-[500px] sm:px-5 sm:py-4"
                                                                     placeholder="Enter your system overview in Markdown format..."
                                                                     disabled={isGenerating}
                                                                 />
                                                             </div>
                                                         ) : (
                                                             <div className="px-4 py-5 sm:px-8 sm:py-7">
-                                                                <div className="prose prose-sm prose-slate max-w-none dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-8 prose-h2:border-b prose-h2:border-border/50 prose-h2:pb-2 prose-h3:mt-6 prose-p:leading-7 prose-li:leading-7 prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:before:content-[''] prose-code:after:content-['']">
+                                                                <div className="prose prose-sm prose-slate dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-8 prose-h2:border-b prose-h2:border-border/50 prose-h2:pb-2 prose-h3:mt-6 prose-p:leading-7 prose-li:leading-7 prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:before:content-[''] prose-code:after:content-[''] max-w-none">
                                                                     <ReactMarkdown
                                                                         remarkPlugins={[remarkGfm]}
                                                                         rehypePlugins={[rehypeRaw]}
@@ -796,12 +874,19 @@ export default function SystemOverview({
                                                                                 const isInline = !className?.includes('language-');
                                                                                 if (language === 'mermaid' && !isInline) {
                                                                                     return (
-                                                                                        <MermaidDiagram projectId={project?.id} previewTitle="System Overview Diagram">
+                                                                                        <MermaidDiagram
+                                                                                            projectId={project?.id}
+                                                                                            previewTitle="System Overview Diagram"
+                                                                                        >
                                                                                             {String(children).replace(/\n$/, '')}
                                                                                         </MermaidDiagram>
                                                                                     );
                                                                                 }
-                                                                                return <code className={className} {...props}>{children}</code>;
+                                                                                return (
+                                                                                    <code className={className} {...props}>
+                                                                                        {children}
+                                                                                    </code>
+                                                                                );
                                                                             },
                                                                         }}
                                                                     >
@@ -826,11 +911,19 @@ export default function SystemOverview({
                                                             size="sm"
                                                             onClick={() => {
                                                                 setIsInitialGeneration(true);
-                                                                router.post(`/projects/${project?.id}/system-overview/regenerate`, {}, { preserveScroll: true });
+                                                                router.post(
+                                                                    `/projects/${project?.id}/system-overview/regenerate`,
+                                                                    {},
+                                                                    { preserveScroll: true },
+                                                                );
                                                             }}
                                                             disabled={isInitialGeneration}
                                                         >
-                                                            {isInitialGeneration ? <TextShimmer>Generating...</TextShimmer> : 'Generate System Overview'}
+                                                            {isInitialGeneration ? (
+                                                                <TextShimmer>Generating...</TextShimmer>
+                                                            ) : (
+                                                                'Generate System Overview'
+                                                            )}
                                                         </Button>
                                                     </div>
                                                 </div>

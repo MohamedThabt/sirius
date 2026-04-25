@@ -1,11 +1,35 @@
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { ProjectNav } from '@/components/project-nav';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail } from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarRail,
+} from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
 import { Link, usePage } from '@inertiajs/react';
-import { Activity, Briefcase, Bug, CoinsIcon, CreditCard, FileText, LayoutDashboard, Mail, MessageSquare, Receipt, ScrollText, Shield, Users, Zap } from 'lucide-react';
+import {
+    Activity,
+    Briefcase,
+    Bug,
+    CoinsIcon,
+    CreditCard,
+    FileText,
+    LayoutDashboard,
+    Mail,
+    MessageSquare,
+    Receipt,
+    ScrollText,
+    Shield,
+    Users,
+    Zap,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [];
@@ -25,6 +49,11 @@ const adminNavItems: NavItem[] = [
         title: 'Users',
         href: '/admin/users',
         icon: Users,
+    },
+    {
+        title: 'Questionnaires',
+        href: '/admin/questionnaires',
+        icon: FileText,
     },
     {
         title: 'Send Email',
@@ -97,17 +126,13 @@ export function AppSidebar({ project }: AppSidebarProps = {}) {
     const isAdmin = props.auth?.admin; // Check if user is logged in as admin
 
     return (
-        <Sidebar 
-            collapsible="icon" 
-            variant="inset" 
-            className="border-r border-border/40 bg-gradient-to-b from-background to-muted/20"
-        >
+        <Sidebar collapsible="icon" variant="inset" className="border-r border-border/40 bg-gradient-to-b from-background to-muted/20">
             <SidebarHeader className="border-b border-border/40 px-2 py-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton 
-                            size="lg" 
-                            asChild 
+                        <SidebarMenuButton
+                            size="lg"
+                            asChild
                             className="group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 hover:bg-primary/5"
                         >
                             <Link href="/projects" prefetch className="flex items-center gap-2">

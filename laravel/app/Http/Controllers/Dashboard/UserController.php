@@ -91,6 +91,7 @@ class UserController extends Controller
                         ->latest('projects.created_at')
                         ->take(10);
                 },
+                'questionnaireAnswers',
                 'githubToken',
                 'credits',
                 'subscriptions' => function ($query) {

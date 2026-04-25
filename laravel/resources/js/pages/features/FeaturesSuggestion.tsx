@@ -1,22 +1,15 @@
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
-import { buildProjectNavGroups } from '@/components/Projects/projectNav';
-import SidebarToggle from '@/components/Projects/SidebarToggle';
-import { Breadcrumbs } from '@/components/breadcrumbs';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type Repository, type User } from '@/types';
 import { type FeatureSuggestion, type ModuleItem } from '@/types/modules';
@@ -126,7 +119,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                 onError: () => {
                     setIsRegenerating(false);
                 },
-            }
+            },
         );
     };
 
@@ -154,7 +147,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                 onFinish: () => {
                     setIsSubmitting(false);
                 },
-            }
+            },
         );
     };
 
@@ -201,9 +194,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                                 <p className="text-lg text-muted-foreground">
                                     AI-generated features for module <span className="font-semibold text-foreground">{module.name}</span>
                                     {fromCache && (
-                                        <span className="ml-2 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                                            From cache
-                                        </span>
+                                        <span className="ml-2 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">From cache</span>
                                     )}
                                 </p>
                             </header>
@@ -214,9 +205,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>AI-Generated Features</CardTitle>
-                                            <CardDescription>
-                                                Select the features that best fit your module requirements
-                                            </CardDescription>
+                                            <CardDescription>Select the features that best fit your module requirements</CardDescription>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
                                             {generatedFeatures.length === 0 && (
@@ -243,7 +232,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                                                             <Checkbox checked={isSelected} onChange={() => toggleFeature(feature)} className="mt-1" />
                                                             <div className="flex-1">
                                                                 <h3 className="mb-1 font-semibold text-foreground">{feature.name}</h3>
-                                                                <p className="text-sm text-muted-foreground mb-2">{feature.description}</p>
+                                                                <p className="mb-2 text-sm text-muted-foreground">{feature.description}</p>
                                                                 {feature.summary && (
                                                                     <div className="mt-2 rounded bg-muted/50 p-2">
                                                                         <p className="text-xs font-medium text-muted-foreground">Summary:</p>
@@ -320,7 +309,9 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                                                             <div className="flex items-start justify-between">
                                                                 <div className="flex-1">
                                                                     <h4 className="mb-1 text-sm font-medium text-foreground">{feature.name}</h4>
-                                                                    <p className="line-clamp-2 text-xs text-muted-foreground">{feature.description}</p>
+                                                                    <p className="line-clamp-2 text-xs text-muted-foreground">
+                                                                        {feature.description}
+                                                                    </p>
                                                                 </div>
                                                                 <Button
                                                                     variant="ghost"
@@ -372,7 +363,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                                             <div className="h-6 w-6 animate-pulse rounded-full bg-primary/20"></div>
                                         </div>
                                     </div>
-                                    <div className="text-center space-y-2">
+                                    <div className="space-y-2 text-center">
                                         <TextShimmer className="text-lg font-semibold">Creating Features</TextShimmer>
                                         <p className="text-sm text-muted-foreground">
                                             Processing {selectedFeatures.length} feature{selectedFeatures.length !== 1 ? 's' : ''}...
@@ -392,11 +383,9 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                                             <RefreshCw className="h-6 w-6 animate-spin text-primary" />
                                         </div>
                                     </div>
-                                    <div className="text-center space-y-2">
+                                    <div className="space-y-2 text-center">
                                         <TextShimmer className="text-lg font-semibold">Regenerating Features</TextShimmer>
-                                        <p className="text-sm text-muted-foreground">
-                                            AI is analyzing your feedback...
-                                        </p>
+                                        <p className="text-sm text-muted-foreground">AI is analyzing your feedback...</p>
                                     </div>
                                 </div>
                             </div>
@@ -414,7 +403,8 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                             Regenerate Features
                         </DialogTitle>
                         <DialogDescription>
-                            Provide feedback to help the AI generate better feature suggestions. Be specific about what you want to add, remove, or change.
+                            Provide feedback to help the AI generate better feature suggestions. Be specific about what you want to add, remove, or
+                            change.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -432,15 +422,16 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
 - Add more CRUD operations for this module"
                                 rows={6}
                             />
-                            <p className="text-xs text-muted-foreground">
-                                Minimum 10 characters. Be specific about your requirements.
-                            </p>
+                            <p className="text-xs text-muted-foreground">Minimum 10 characters. Be specific about your requirements.</p>
                         </div>
                         <div className="rounded-lg border border-muted bg-muted/50 p-3">
-                            <p className="text-xs font-medium text-muted-foreground mb-2">Current features ({generatedFeatures.length}):</p>
+                            <p className="mb-2 text-xs font-medium text-muted-foreground">Current features ({generatedFeatures.length}):</p>
                             <div className="flex flex-wrap gap-1">
                                 {generatedFeatures.map((feature, index) => (
-                                    <span key={index} className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                    <span
+                                        key={index}
+                                        className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                                    >
                                         {feature.name}
                                     </span>
                                 ))}
@@ -451,10 +442,7 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
                         <Button variant="outline" onClick={() => setIsRegenerateModalOpen(false)}>
                             Cancel
                         </Button>
-                        <Button
-                            onClick={handleRegenerate}
-                            disabled={!regenerateNotes.trim() || regenerateNotes.trim().length < 10}
-                        >
+                        <Button onClick={handleRegenerate} disabled={!regenerateNotes.trim() || regenerateNotes.trim().length < 10}>
                             <RefreshCw className="mr-2 h-4 w-4" />
                             Regenerate
                         </Button>

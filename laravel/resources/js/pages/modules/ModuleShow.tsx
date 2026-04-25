@@ -1,9 +1,9 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContentCard } from '@/components/ContentCard';
-import { SyncIndicator } from '@/components/SyncIndicator';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { SyncIndicator } from '@/components/SyncIndicator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,12 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useErdOperations } from '@/hooks/useErdOperations';
 import { type Project, type SharedData, type User } from '@/types';
-import type { ModuleItem, ModuleStatus } from '@/types/modules';
-import { getModuleStatusConfig, getFeatureStatusConfig, getFeaturePriorityConfig } from '@/utils/statusHelpers';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { ModuleItem } from '@/types/modules';
+import { getFeaturePriorityConfig, getFeatureStatusConfig, getModuleStatusConfig } from '@/utils/statusHelpers';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
     AlertCircleIcon,
@@ -194,27 +194,33 @@ export default function ModuleShow({ project, module }: Props) {
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <Badge 
-                                                                variant="outline" 
+                                                            <Badge
+                                                                variant="outline"
                                                                 className={`h-7 cursor-help border-0 px-2.5 text-xs font-medium shadow-none ring-1 ring-inset ${statusConfig.color}`}
                                                             >
                                                                 <statusConfig.icon className="mr-1.5 h-3.5 w-3.5" />
                                                                 {statusConfig.label}
                                                             </Badge>
                                                         </TooltipTrigger>
-                                                        <TooltipContent side="bottom" className="max-w-[280px] p-0 border-border/40 bg-zinc-950 shadow-2xl">
+                                                        <TooltipContent
+                                                            side="bottom"
+                                                            className="max-w-[280px] border-border/40 bg-zinc-950 p-0 shadow-2xl"
+                                                        >
                                                             <div className="space-y-2 p-3">
                                                                 <div className="flex items-center gap-2">
                                                                     <statusConfig.icon className={`h-4 w-4 ${statusConfig.color}`} />
-                                                                    <p className="font-semibold text-sm">{statusConfig.label}</p>
+                                                                    <p className="text-sm font-semibold">{statusConfig.label}</p>
                                                                 </div>
-                                                                <p className="text-xs text-muted-foreground leading-relaxed">
-                                                                    {data.status === 'planned' && 'Module created but no features have been generated yet. Add features to start development.'}
-                                                                    {data.status === 'in_progress' && `Active development with ${features.length} feature${features.length !== 1 ? 's' : ''}. Complete all features to mark as done.`}
-                                                                    {data.status === 'completed' && 'All features have been completed with 100% progress. Module is ready for deployment.'}
+                                                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                                                    {data.status === 'planned' &&
+                                                                        'Module created but no features have been generated yet. Add features to start development.'}
+                                                                    {data.status === 'in_progress' &&
+                                                                        `Active development with ${features.length} feature${features.length !== 1 ? 's' : ''}. Complete all features to mark as done.`}
+                                                                    {data.status === 'completed' &&
+                                                                        'All features have been completed with 100% progress. Module is ready for deployment.'}
                                                                 </p>
-                                                                <div className="border-t border-border/40 pt-2 mt-2">
-                                                                    <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium">
+                                                                <div className="mt-2 border-t border-border/40 pt-2">
+                                                                    <p className="text-[10px] font-medium tracking-wider text-muted-foreground/60 uppercase">
                                                                         Auto-managed
                                                                     </p>
                                                                 </div>
@@ -244,17 +250,23 @@ export default function ModuleShow({ project, module }: Props) {
                                     </div>
                                     <div className="h-8 w-px bg-border" />
                                     <div className="flex items-center gap-3">
-                                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${health.color.includes('emerald') ? 'bg-emerald-500/10' : health.color.includes('blue') ? 'bg-blue-500/10' : health.color.includes('orange') ? 'bg-amber-500/10' : 'bg-red-500/10'}`}>
+                                        <div
+                                            className={`flex h-10 w-10 items-center justify-center rounded-lg ${health.color.includes('emerald') ? 'bg-emerald-500/10' : health.color.includes('blue') ? 'bg-blue-500/10' : health.color.includes('orange') ? 'bg-amber-500/10' : 'bg-red-500/10'}`}
+                                        >
                                             <ZapIcon className={`h-5 w-5 ${health.color}`} />
                                         </div>
                                         <div>
-                                            <div className="text-2xl font-semibold text-foreground">{completedFeatures}/{features.length}</div>
+                                            <div className="text-2xl font-semibold text-foreground">
+                                                {completedFeatures}/{features.length}
+                                            </div>
                                             <div className="text-xs text-muted-foreground">Features</div>
                                         </div>
                                     </div>
                                     <div className="h-8 w-px bg-border" />
                                     <div className="flex items-center gap-1.5">
-                                        <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${statusConfig.color}`}>
+                                        <span
+                                            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${statusConfig.color}`}
+                                        >
                                             {statusConfig.label}
                                         </span>
                                     </div>
@@ -271,24 +283,25 @@ export default function ModuleShow({ project, module }: Props) {
                                         <DatabaseIcon className="h-4 w-4 text-muted-foreground" />
                                         Database Schema
                                     </h2>
-                                    
+
                                     {/* Warning Banner for Out of Sync */}
                                     {module.erd_is_synced === false && (
                                         <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
                                             <div className="flex items-start gap-3">
-                                                <AlertCircleIcon className="h-5 w-5 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
-                                                <div className="flex-1 min-w-0">
+                                                <AlertCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-500" />
+                                                <div className="min-w-0 flex-1">
                                                     <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
                                                         Feature data models have been updated
                                                     </p>
                                                     <p className="mt-1 text-sm text-amber-800 dark:text-amber-200">
-                                                        Your module ERD may be out of sync with the latest feature changes. Click the sync button below to merge all feature ERDs into the module ERD.
+                                                        Your module ERD may be out of sync with the latest feature changes. Click the sync button
+                                                        below to merge all feature ERDs into the module ERD.
                                                     </p>
                                                 </div>
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="border-amber-500 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300 flex-shrink-0"
+                                                    className="flex-shrink-0 border-amber-500 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
                                                     disabled={isSyncing}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -329,19 +342,22 @@ export default function ModuleShow({ project, module }: Props) {
                                                     >
                                                         {module.erd ? <CheckCircle2 className="h-6 w-6" /> : <DatabaseIcon className="h-6 w-6" />}
                                                     </div>
-                                                    <SyncIndicator 
-                                                        isSynced={module.erd_is_synced} 
-                                                        position="absolute" 
-                                                        className="-top-1 -right-1 ring-card" 
+                                                    <SyncIndicator
+                                                        isSynced={module.erd_is_synced}
+                                                        position="absolute"
+                                                        className="-top-1 -right-1 ring-card"
                                                     />
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-foreground group-hover:text-primary transition-colors">
+                                                        <span className="font-medium text-foreground transition-colors group-hover:text-primary">
                                                             {module.erd ? 'View & Edit Schema' : 'Generate Schema'}
                                                         </span>
                                                         {module.erd_is_synced === false && (
-                                                            <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs">
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="border-amber-500/50 bg-amber-500/10 text-xs text-amber-700 dark:text-amber-300"
+                                                            >
                                                                 Out of sync
                                                             </Badge>
                                                         )}
@@ -354,7 +370,7 @@ export default function ModuleShow({ project, module }: Props) {
                                             <Button
                                                 variant={module.erd ? 'ghost' : 'default'}
                                                 size="sm"
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="opacity-0 transition-opacity group-hover:opacity-100"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     if (module.erd) {
@@ -408,12 +424,7 @@ export default function ModuleShow({ project, module }: Props) {
                                         </h2>
                                         <div className="flex items-center gap-2">
                                             {features.length > 0 && (
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm" 
-                                                    className="gap-2" 
-                                                    onClick={() => setIsAddFeatureModalOpen(true)}
-                                                >
+                                                <Button variant="outline" size="sm" className="gap-2" onClick={() => setIsAddFeatureModalOpen(true)}>
                                                     <Plus className="h-4 w-4" />
                                                     Add Feature
                                                 </Button>
@@ -430,7 +441,9 @@ export default function ModuleShow({ project, module }: Props) {
                                                             onFinish: () => setIsGeneratingFeatures(false),
                                                         });
                                                     }}
-                                                    title={!module.erd ? 'Generate ERD first to enable feature generation' : 'Generate features with AI'}
+                                                    title={
+                                                        !module.erd ? 'Generate ERD first to enable feature generation' : 'Generate features with AI'
+                                                    }
                                                 >
                                                     {isGeneratingFeatures ? (
                                                         <>
@@ -453,7 +466,7 @@ export default function ModuleShow({ project, module }: Props) {
                                             icon={ZapIcon}
                                             title="No features yet"
                                             description={
-                                                !module.erd 
+                                                !module.erd
                                                     ? 'Generate an ERD first, then you can generate features for this module'
                                                     : 'Click "Generate Features" to create AI-powered feature suggestions'
                                             }
@@ -468,37 +481,46 @@ export default function ModuleShow({ project, module }: Props) {
                                                 const featureStatusConfig = getFeatureStatusConfig(effectiveStatus);
                                                 const FeatureStatusIcon = featureStatusConfig.icon;
                                                 const priorityConfig = getFeaturePriorityConfig(feature.priority);
-                                                
+
                                                 // Determine icon color based on effective status (progress-based)
                                                 const iconColorClass = isCompleted
                                                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                                                     : effectiveStatus === 'in_progress'
-                                                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                                                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
-                                                
+                                                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+
                                                 return (
                                                     <div
                                                         key={feature.id}
-                                                        className="group flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                                        onClick={() => router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)}
+                                                        className="group flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5 focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                                                        onClick={() =>
+                                                            router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)
+                                                        }
                                                         role="button"
                                                         tabIndex={0}
-                                                        onKeyDown={(e) => e.key === 'Enter' && router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)}
+                                                        onKeyDown={(e) =>
+                                                            e.key === 'Enter' &&
+                                                            router.visit(`/projects/${project.id}/modules/${module.id}/features/${feature.id}`)
+                                                        }
                                                         aria-label={`View feature ${feature.name}`}
                                                     >
                                                         {/* Header with colored icon */}
                                                         <div className="mb-3 flex items-start justify-between gap-3">
-                                                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconColorClass}`}>
+                                                            <div
+                                                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconColorClass}`}
+                                                            >
                                                                 <ZapIcon className="h-5 w-5" />
                                                             </div>
                                                             <div className="flex items-center gap-2">
-                                                                <Badge className={`shrink-0 border text-xs font-medium capitalize ${priorityConfig.color}`}>
+                                                                <Badge
+                                                                    className={`shrink-0 border text-xs font-medium capitalize ${priorityConfig.color}`}
+                                                                >
                                                                     {priorityConfig.label}
                                                                 </Badge>
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="icon"
-                                                                    className="h-7 w-7 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                                                                    className="h-7 w-7 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         setFeatureToDelete({ id: feature.id, name: feature.name });
@@ -509,35 +531,38 @@ export default function ModuleShow({ project, module }: Props) {
                                                                 </Button>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         {/* Content */}
                                                         <div className="flex-1">
                                                             <h3 className="text-base font-medium text-foreground transition-colors group-hover:text-primary">
                                                                 {feature.name}
                                                             </h3>
                                                             {feature.summary && (
-                                                                <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground/80 leading-relaxed">
+                                                                <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground/80">
                                                                     {feature.summary}
                                                                 </p>
                                                             )}
                                                         </div>
 
                                                         {/* Footer with status and progress */}
-                                                        <div className="mt-4 flex items-center justify-between pt-3 border-t border-border/40">
+                                                        <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
                                                             <div className="flex items-center gap-1.5">
-                                                                <FeatureStatusIcon className={`h-3.5 w-3.5 ${
-                                                                    isCompleted ? 'text-emerald-500' :
-                                                                    effectiveStatus === 'in_progress' ? 'text-blue-500' : 'text-amber-500'
-                                                                }`} />
+                                                                <FeatureStatusIcon
+                                                                    className={`h-3.5 w-3.5 ${
+                                                                        isCompleted
+                                                                            ? 'text-emerald-500'
+                                                                            : effectiveStatus === 'in_progress'
+                                                                              ? 'text-blue-500'
+                                                                              : 'text-amber-500'
+                                                                    }`}
+                                                                />
                                                                 <span className="text-xs font-medium text-muted-foreground">
                                                                     {featureStatusConfig.label}
                                                                 </span>
                                                             </div>
                                                             <div className="flex items-center gap-2">
-                                                                <Progress value={feature.progress ?? 0} className="w-12 h-1.5" />
-                                                                <span className="text-xs text-muted-foreground/60">
-                                                                    {feature.progress ?? 0}%
-                                                                </span>
+                                                                <Progress value={feature.progress ?? 0} className="h-1.5 w-12" />
+                                                                <span className="text-xs text-muted-foreground/60">{feature.progress ?? 0}%</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -591,12 +616,15 @@ export default function ModuleShow({ project, module }: Props) {
             </Dialog>
 
             {/* Add Feature Modal */}
-            <Dialog open={isAddFeatureModalOpen} onOpenChange={(open) => {
-                if (!open && !isCreatingFeature) {
-                    setIsAddFeatureModalOpen(false);
-                    setNewFeature({ name: '', description: '' });
-                }
-            }}>
+            <Dialog
+                open={isAddFeatureModalOpen}
+                onOpenChange={(open) => {
+                    if (!open && !isCreatingFeature) {
+                        setIsAddFeatureModalOpen(false);
+                        setNewFeature({ name: '', description: '' });
+                    }
+                }}
+            >
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle>Add New Feature</DialogTitle>
@@ -611,7 +639,7 @@ export default function ModuleShow({ project, module }: Props) {
                                 id="feature-name"
                                 placeholder="e.g., User Authentication"
                                 value={newFeature.name}
-                                onChange={(e) => setNewFeature(prev => ({ ...prev, name: e.target.value }))}
+                                onChange={(e) => setNewFeature((prev) => ({ ...prev, name: e.target.value }))}
                                 disabled={isCreatingFeature}
                             />
                         </div>
@@ -621,7 +649,7 @@ export default function ModuleShow({ project, module }: Props) {
                                 id="feature-description"
                                 placeholder="Describe the feature's purpose and key functionality..."
                                 value={newFeature.description}
-                                onChange={(e) => setNewFeature(prev => ({ ...prev, description: e.target.value }))}
+                                onChange={(e) => setNewFeature((prev) => ({ ...prev, description: e.target.value }))}
                                 rows={5}
                                 disabled={isCreatingFeature}
                             />
@@ -660,7 +688,7 @@ export default function ModuleShow({ project, module }: Props) {
                                         onFinish: () => {
                                             setIsCreatingFeature(false);
                                         },
-                                    }
+                                    },
                                 );
                             }}
                             disabled={isCreatingFeature || !newFeature.name.trim() || !newFeature.description.trim()}
@@ -684,15 +712,12 @@ export default function ModuleShow({ project, module }: Props) {
                     <DialogHeader>
                         <DialogTitle>Delete Feature</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete "{featureToDelete?.name}"? This will also delete all associated data including wireframes, sequence diagrams, and specifications. This action cannot be undone.
+                            Are you sure you want to delete "{featureToDelete?.name}"? This will also delete all associated data including wireframes,
+                            sequence diagrams, and specifications. This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setFeatureToDelete(null)}
-                            disabled={isDeletingFeature}
-                        >
+                        <Button variant="outline" onClick={() => setFeatureToDelete(null)} disabled={isDeletingFeature}>
                             Cancel
                         </Button>
                         <Button
@@ -700,18 +725,15 @@ export default function ModuleShow({ project, module }: Props) {
                             onClick={() => {
                                 if (!featureToDelete) return;
                                 setIsDeletingFeature(true);
-                                router.delete(
-                                    `/projects/${project.id}/modules/${module.id}/features/${featureToDelete.id}`,
-                                    {
-                                        preserveScroll: true,
-                                        onSuccess: () => {
-                                            setFeatureToDelete(null);
-                                        },
-                                        onFinish: () => {
-                                            setIsDeletingFeature(false);
-                                        },
-                                    }
-                                );
+                                router.delete(`/projects/${project.id}/modules/${module.id}/features/${featureToDelete.id}`, {
+                                    preserveScroll: true,
+                                    onSuccess: () => {
+                                        setFeatureToDelete(null);
+                                    },
+                                    onFinish: () => {
+                                        setIsDeletingFeature(false);
+                                    },
+                                });
                             }}
                             disabled={isDeletingFeature}
                         >

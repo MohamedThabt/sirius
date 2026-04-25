@@ -1,19 +1,12 @@
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { addTableSchema } from '@/lib/validations';
+import { Node } from '@xyflow/react';
 import { AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Node } from '@xyflow/react';
-import { addTableSchema } from '@/lib/validations';
 
 interface ForeignKeyReference {
     referencedTable: string;
@@ -54,10 +47,7 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const handleAddField = () => {
-        setFields([
-            ...fields,
-            { name: '', type: 'varchar', isPrimaryKey: false, isForeignKey: false, isUnique: false, isNotNull: false },
-        ]);
+        setFields([...fields, { name: '', type: 'varchar', isPrimaryKey: false, isForeignKey: false, isUnique: false, isNotNull: false }]);
     };
 
     const handleRemoveField = (index: number) => {
@@ -92,20 +82,18 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
             return;
         }
         setErrors({});
-        
+
         onAdd(tableName, fields);
-        
+
         // Reset form
         setTableName('');
-        setFields([
-            { name: 'id', type: 'integer', isPrimaryKey: true, isForeignKey: false, isUnique: false, isNotNull: true },
-        ]);
+        setFields([{ name: 'id', type: 'integer', isPrimaryKey: true, isForeignKey: false, isUnique: false, isNotNull: true }]);
         onOpenChange(false);
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Add New Table</DialogTitle>
                     <DialogDescription>Create a new table with custom fields.</DialogDescription>
@@ -121,7 +109,7 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
                             onChange={(e) => {
                                 setTableName(e.target.value);
                                 if (errors.tableName) {
-                                    setErrors(prev => ({ ...prev, tableName: undefined }));
+                                    setErrors((prev) => ({ ...prev, tableName: undefined }));
                                 }
                             }}
                             className={errors.tableName ? 'border-red-500' : ''}
@@ -146,7 +134,7 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
 
                         <div className="space-y-3">
                             {fields.map((field, index) => (
-                                <div key={index} className="rounded-lg border p-3 space-y-3">
+                                <div key={index} className="space-y-3 rounded-lg border p-3">
                                     <div className="grid grid-cols-12 gap-2">
                                         <div className="col-span-5">
                                             <Input
@@ -157,7 +145,7 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
                                         </div>
                                         <div className="col-span-3">
                                             <select
-                                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                                 value={field.type}
                                                 onChange={(e) => handleFieldChange(index, 'type', e.target.value)}
                                             >
@@ -189,13 +177,11 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
                                             <Checkbox
                                                 id={`pk-${index}`}
                                                 checked={field.isPrimaryKey}
-                                                onCheckedChange={(checked) =>
-                                                    handleFieldChange(index, 'isPrimaryKey', checked)
-                                                }
+                                                onCheckedChange={(checked) => handleFieldChange(index, 'isPrimaryKey', checked)}
                                             />
                                             <label
                                                 htmlFor={`pk-${index}`}
-                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                             >
                                                 Primary Key
                                             </label>
@@ -214,7 +200,7 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
                                             />
                                             <label
                                                 htmlFor={`fk-${index}`}
-                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                             >
                                                 Foreign Key
                                             </label>
@@ -223,13 +209,11 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
                                             <Checkbox
                                                 id={`unique-${index}`}
                                                 checked={field.isUnique}
-                                                onCheckedChange={(checked) =>
-                                                    handleFieldChange(index, 'isUnique', checked)
-                                                }
+                                                onCheckedChange={(checked) => handleFieldChange(index, 'isUnique', checked)}
                                             />
                                             <label
                                                 htmlFor={`unique-${index}`}
-                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                             >
                                                 Unique
                                             </label>
@@ -238,13 +222,11 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
                                             <Checkbox
                                                 id={`notnull-${index}`}
                                                 checked={field.isNotNull}
-                                                onCheckedChange={(checked) =>
-                                                    handleFieldChange(index, 'isNotNull', checked)
-                                                }
+                                                onCheckedChange={(checked) => handleFieldChange(index, 'isNotNull', checked)}
                                             />
                                             <label
                                                 htmlFor={`notnull-${index}`}
-                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                             >
                                                 Not Null
                                             </label>
@@ -255,7 +237,7 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
                                         <div className="ml-6 space-y-2 rounded-md bg-muted/30 p-3">
                                             <Label className="text-sm font-medium">References</Label>
                                             <select
-                                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                                 value={field.foreignKeyReference?.referencedTable || ''}
                                                 onChange={(e) => {
                                                     const table = e.target.value;
@@ -277,7 +259,10 @@ export default function AddTableDialog({ open, onOpenChange, onAdd, existingTabl
                                             </select>
                                             {field.foreignKeyReference && (
                                                 <p className="text-xs text-muted-foreground">
-                                                    References: <span className="font-mono font-semibold">{field.foreignKeyReference.referencedTable}.{field.foreignKeyReference.referencedField}</span>
+                                                    References:{' '}
+                                                    <span className="font-mono font-semibold">
+                                                        {field.foreignKeyReference.referencedTable}.{field.foreignKeyReference.referencedField}
+                                                    </span>
                                                 </p>
                                             )}
                                         </div>

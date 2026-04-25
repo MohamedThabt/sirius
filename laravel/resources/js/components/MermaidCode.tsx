@@ -4,32 +4,32 @@ import { useCallback, useEffect, useState } from 'react';
 
 /**
  * Cleans and normalizes Mermaid code for rendering.
- * WHY: Mermaid code from markdown/backend may have escaped characters, 
+ * WHY: Mermaid code from markdown/backend may have escaped characters,
  * markdown fences, or extra tags that need to be stripped.
  */
 function normalizeMermaidCode(code: string): string {
     let cleaned = code;
-    
+
     // Remove markdown code fences if present
     cleaned = cleaned.replace(/^```mermaid\s*/gi, '');
     cleaned = cleaned.replace(/^```\s*/gm, '');
     cleaned = cleaned.replace(/```\s*$/g, '');
-    
+
     // Remove any XML/HTML-like tags that might be wrapping the content
     cleaned = cleaned.replace(/<\/?[A-Z][A-Z0-9]*>/gi, '');
-    
+
     // Convert escaped newlines to actual newlines
     cleaned = cleaned.replace(/\\n/g, '\n');
-    
+
     // Fix Windows newlines
     cleaned = cleaned.replace(/\r\n/g, '\n');
-    
+
     // Remove extra empty lines (more than 2 consecutive)
     cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
-    
+
     // Trim whitespace
     cleaned = cleaned.trim();
-    
+
     return cleaned;
 }
 
@@ -73,7 +73,7 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
             try {
                 // Dynamically import mermaid to avoid SSR issues
                 const mermaid = (await import('mermaid')).default;
-                
+
                 if (cancelled) return;
 
                 // Initialize mermaid with theme settings
@@ -87,15 +87,15 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
 
                 // Generate unique ID for this diagram (alphanumeric only to avoid CSS selector issues)
                 const uniqueId = id || `mermaid${Date.now()}${Math.random().toString(36).substring(2, 9)}`;
-                
+
                 // Parse to validate syntax first
                 await mermaid.parse(cleanCode);
-                
+
                 // Render the diagram
                 const { svg } = await mermaid.render(uniqueId, cleanCode);
-                
+
                 if (cancelled) return;
-                
+
                 setSvgContent(svg);
             } catch (err) {
                 console.error('Mermaid rendering error:', err);
@@ -117,17 +117,12 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
     }, [cleanCode, id, showCode]);
 
     return (
-        <div className="my-4 rounded-lg border border-border/60 bg-card/50 overflow-hidden">
+        <div className="my-4 overflow-hidden rounded-lg border border-border/60 bg-card/50">
             {/* Header with controls */}
             <div className="flex items-center justify-between border-b border-border/40 bg-muted/30 px-4 py-2">
                 <span className="text-xs font-medium text-muted-foreground">Mermaid Diagram</span>
                 <div className="flex items-center gap-2">
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setShowCode(!showCode)} 
-                        className="h-7 text-xs gap-1.5"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setShowCode(!showCode)} className="h-7 gap-1.5 text-xs">
                         {showCode ? (
                             <>
                                 <EyeIcon className="h-3 w-3" />
@@ -140,7 +135,7 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
                             </>
                         )}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={copyCode} className="h-7 text-xs gap-1.5" aria-live="polite">
+                    <Button variant="ghost" size="sm" onClick={copyCode} className="h-7 gap-1.5 text-xs" aria-live="polite">
                         {copied ? (
                             <>
                                 <CheckIcon className="h-3 w-3 text-emerald-600" />
@@ -164,14 +159,9 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
                     </pre>
                 ) : error ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <p className="text-sm text-destructive mb-2">Failed to render diagram</p>
-                        <p className="text-xs text-muted-foreground max-w-md">{error}</p>
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setShowCode(true)} 
-                            className="mt-4"
-                        >
+                        <p className="mb-2 text-sm text-destructive">Failed to render diagram</p>
+                        <p className="max-w-md text-xs text-muted-foreground">{error}</p>
+                        <Button variant="outline" size="sm" onClick={() => setShowCode(true)} className="mt-4">
                             View Raw Code
                         </Button>
                     </div>
@@ -181,13 +171,9 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
                         <span className="ml-2 text-sm text-muted-foreground">Rendering diagram...</span>
                     </div>
                 ) : (
-                    <div 
-                        className="flex justify-center overflow-x-auto [&_svg]:max-w-full"
-                        dangerouslySetInnerHTML={{ __html: svgContent }}
-                    />
+                    <div className="flex justify-center overflow-x-auto [&_svg]:max-w-full" dangerouslySetInnerHTML={{ __html: svgContent }} />
                 )}
             </div>
         </div>
     );
 }
-

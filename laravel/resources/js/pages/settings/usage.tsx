@@ -1,9 +1,9 @@
-import { type Credits, type UsagePlan, type Subscription, type GraphData, type UsageLog, type PaginatedData, type SharedData } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { useFlashToasts } from '@/hooks/use-flash-toasts';
-import { useState, useCallback } from 'react';
-import SettingsLayout from '@/layouts/settings/layout';
 import { PlanBadge } from '@/components/plan-badge';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import SettingsLayout from '@/layouts/settings/layout';
+import { type Credits, type GraphData, type PaginatedData, type SharedData, type Subscription, type UsageLog, type UsagePlan } from '@/types';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { useCallback, useState } from 'react';
 
 // WHY: Extracted components keep this file focused on layout and data flow
 import { CreditsOverview } from './usage/CreditsOverview';
@@ -73,10 +73,7 @@ function Usage({ credits, plan, subscription, graphData, usageLogs, totalConsume
 
                 <UsageChart graphData={graphData} />
 
-                <UsageLogsTable
-                    usageLogs={usageLogs}
-                    totalConsumedCredits={totalConsumedCredits}
-                />
+                <UsageLogsTable usageLogs={usageLogs} totalConsumedCredits={totalConsumedCredits} />
             </div>
         </>
     );

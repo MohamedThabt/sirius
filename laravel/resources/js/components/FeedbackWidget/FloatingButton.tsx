@@ -1,7 +1,7 @@
-import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { GripVertical, MessageSquareText, X, ChevronUp } from 'lucide-react';
-import { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion, PanInfo } from 'framer-motion';
+import { ChevronUp, GripVertical, MessageSquareText, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface FloatingButtonProps {
     onClick: () => void;
@@ -94,33 +94,33 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
             x: dragStartPos.current.x + info.offset.x,
             y: dragStartPos.current.y + info.offset.y,
         };
-        
+
         // Constrain to viewport bounds
         const constraints = getDragConstraints();
         const constrainedPosition = {
             x: Math.max(constraints.left, Math.min(constraints.right, newPosition.x)),
             y: Math.max(constraints.top, Math.min(constraints.bottom, newPosition.y)),
         };
-        
+
         setPosition(constrainedPosition);
     };
 
     const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         setIsDragging(false);
-        
+
         // Calculate final position
         const newPosition = {
             x: dragStartPos.current.x + info.offset.x,
             y: dragStartPos.current.y + info.offset.y,
         };
-        
+
         // Constrain to viewport bounds
         const constraints = getDragConstraints();
         const constrainedPosition = {
             x: Math.max(constraints.left, Math.min(constraints.right, newPosition.x)),
             y: Math.max(constraints.top, Math.min(constraints.bottom, newPosition.y)),
         };
-        
+
         setPosition(constrainedPosition);
         savePosition(constrainedPosition);
     };
@@ -155,7 +155,7 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
     return (
         <motion.div
             ref={containerRef}
-            className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2 cursor-grab active:cursor-grabbing touch-none"
+            className="fixed right-6 bottom-6 z-50 flex cursor-grab touch-none flex-col items-end gap-2 active:cursor-grabbing"
             drag={!isMinimized}
             dragMomentum={false}
             dragElastic={0.1}
@@ -181,7 +181,7 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
-                        className="absolute -left-6 top-1/2 -translate-y-1/2 text-muted-foreground/50"
+                        className="absolute top-1/2 -left-6 -translate-y-1/2 text-muted-foreground/50"
                     >
                         <GripVertical className="size-4" />
                     </motion.div>
@@ -197,11 +197,11 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                         className={cn(
-                            'px-3 py-1.5 rounded-lg',
+                            'rounded-lg px-3 py-1.5',
                             'bg-popover text-popover-foreground',
                             'border border-border shadow-lg',
                             'text-xs font-medium whitespace-nowrap',
-                            'select-none pointer-events-none'
+                            'pointer-events-none select-none',
                         )}
                     >
                         Send Feedback
@@ -221,11 +221,11 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                         'bg-card text-foreground',
                         'border border-border',
                         'shadow-lg shadow-black/5',
-                        'hover:bg-accent hover:border-primary/30',
+                        'hover:border-primary/30 hover:bg-accent',
                         'transition-all duration-200',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                         'select-none',
-                        className
+                        className,
                     )}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -234,11 +234,11 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                     transition={{
                         type: 'spring',
                         stiffness: 260,
-                        damping: 20
+                        damping: 20,
                     }}
                     aria-label="Expand feedback widget"
                 >
-                    <ChevronUp className="size-4 pointer-events-none" />
+                    <ChevronUp className="pointer-events-none size-4" />
                 </motion.button>
             ) : (
                 <div className="relative">
@@ -253,33 +253,33 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                             'bg-card text-foreground',
                             'border border-border',
                             'shadow-lg shadow-black/5',
-                            'hover:bg-accent hover:border-primary/30 hover:shadow-xl',
+                            'hover:border-primary/30 hover:bg-accent hover:shadow-xl',
                             'transition-all duration-200',
                             'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                             'select-none',
-                            className
+                            className,
                         )}
                         whileHover={!isDragging ? { scale: 1.02, y: -1 } : undefined}
                         whileTap={!isDragging ? { scale: 0.98 } : undefined}
                         initial={{ scale: 0, opacity: 0 }}
-                        animate={{ 
-                            scale: 1, 
-                            opacity: 1
+                        animate={{
+                            scale: 1,
+                            opacity: 1,
                         }}
                         transition={{
                             type: 'spring',
                             stiffness: 260,
-                            damping: 20
+                            damping: 20,
                         }}
                         aria-label="Open feedback widget - drag to reposition"
                     >
                         {/* Icon */}
-                        <MessageSquareText className="size-4 pointer-events-none text-primary" />
-                        
+                        <MessageSquareText className="pointer-events-none size-4 text-primary" />
+
                         {/* Text label */}
-                        <span className="text-sm font-medium pointer-events-none">Feedback</span>
+                        <span className="pointer-events-none text-sm font-medium">Feedback</span>
                     </motion.button>
-                    
+
                     {/* Minimize button - now outside the main button */}
                     <AnimatePresence>
                         {isHovered && !isDragging && (
@@ -297,7 +297,7 @@ export function FloatingButton({ onClick, className }: FloatingButtonProps) {
                                     'flex items-center justify-center',
                                     'shadow-sm',
                                     'transition-colors duration-150',
-                                    'focus:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                                    'focus:outline-none focus-visible:ring-1 focus-visible:ring-ring',
                                 )}
                                 aria-label="Minimize feedback widget"
                                 onMouseDown={(e) => e.stopPropagation()}

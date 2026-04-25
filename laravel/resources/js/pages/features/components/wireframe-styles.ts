@@ -1,6 +1,6 @@
 /**
  * Wireframe Style System
- * 
+ *
  * Centralized styling for wireframe components with dual-mode support:
  * - 'wireframe': Low-fidelity grayscale design for planning/prototyping
  * - 'preview': High-fidelity design using full theme colors
@@ -247,28 +247,26 @@ export const headingStyles = {
 // Selection styles
 export function getSelectionStyles(isSelected: boolean, mode: WireframeMode): React.CSSProperties {
     if (!isSelected) return {};
-    
+
     const styles = getStyles(mode);
     return {
         outline: `2px solid ${styles.ring}`,
         outlineOffset: '2px',
-        boxShadow: mode === 'preview' 
-            ? `0 0 0 4px color-mix(in srgb, ${styles.ring} 20%, transparent)`
-            : '0 0 0 4px rgba(59, 130, 246, 0.15)',
+        boxShadow: mode === 'preview' ? `0 0 0 4px color-mix(in srgb, ${styles.ring} 20%, transparent)` : '0 0 0 4px rgba(59, 130, 246, 0.15)',
     };
 }
 
 // Interactive element hover styles
 export function getInteractiveStyles(mode: WireframeMode, isHovered?: boolean): React.CSSProperties {
     const styles = getStyles(mode);
-    
+
     if (!isHovered) {
         return {
             transition: styles.transition.fast,
             cursor: 'pointer',
         };
     }
-    
+
     return {
         transition: styles.transition.fast,
         cursor: 'pointer',
@@ -288,7 +286,7 @@ export function getBaseStyles(mode: WireframeMode): {
     label: React.CSSProperties;
 } {
     const s = getStyles(mode);
-    
+
     return {
         container: {
             display: 'flex',

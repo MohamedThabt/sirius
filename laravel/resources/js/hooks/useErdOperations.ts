@@ -15,9 +15,9 @@ interface UseErdOperationsReturn {
 /**
  * WHY: Extracted from ModuleShow.tsx and DatabaseDesigner.tsx to eliminate duplication.
  * Both components had the same ERD sync logic with identical Inertia router calls.
- * 
+ *
  * This hook encapsulates the ERD sync operation with proper loading state management.
- * 
+ *
  * Usage:
  * const { isSyncing, syncErd } = useErdOperations({ projectId: project.id, moduleId: module.id });
  */
@@ -40,7 +40,7 @@ export function useErdOperations({ projectId, moduleId }: UseErdOperationsOption
                 onFinish: () => {
                     setIsSyncing(false);
                 },
-            }
+            },
         );
     }, [projectId, moduleId]);
 

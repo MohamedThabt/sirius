@@ -13,12 +13,7 @@ interface LoadingOverlayProps {
  * This pattern was duplicated for "Creating Modules" and "Regenerating Modules" states.
  * Now it's a single, configurable component.
  */
-export function LoadingOverlay({ 
-    isVisible, 
-    title, 
-    subtitle, 
-    showRefreshIcon = false 
-}: LoadingOverlayProps) {
+export function LoadingOverlay({ isVisible, title, subtitle, showRefreshIcon = false }: LoadingOverlayProps) {
     if (!isVisible) return null;
 
     return (
@@ -34,11 +29,9 @@ export function LoadingOverlay({
                         )}
                     </div>
                 </div>
-                <div className="text-center space-y-2">
+                <div className="space-y-2 text-center">
                     <TextShimmer className="text-lg font-semibold">{title}</TextShimmer>
-                    {subtitle && (
-                        <p className="text-sm text-muted-foreground">{subtitle}</p>
-                    )}
+                    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
                 </div>
             </div>
         </div>

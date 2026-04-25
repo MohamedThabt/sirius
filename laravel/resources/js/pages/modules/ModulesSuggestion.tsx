@@ -1,31 +1,24 @@
+import { LoadingOverlay } from '@/components/LoadingOverlay';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
+import SidebarToggle from '@/components/Projects/SidebarToggle';
+import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
-import { LoadingOverlay } from '@/components/LoadingOverlay';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
-import { buildProjectNavGroups } from '@/components/Projects/projectNav';
-import SidebarToggle from '@/components/Projects/SidebarToggle';
-import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { TextShimmer } from '@/components/ui/text-shimmer';
-import { Head, router, usePage } from '@inertiajs/react';
-import { AlertTriangle, Check, Plus, RefreshCw, Layers } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type User } from '@/types';
 import type { ModuleSuggestion } from '@/types/modules';
+import { Head, router, usePage } from '@inertiajs/react';
+import { AlertTriangle, Check, Layers, Plus, RefreshCw } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Repository {
     id: number;
@@ -145,7 +138,7 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                 onError: () => {
                     setIsRegenerating(false);
                 },
-            }
+            },
         );
     }, [regenerateNotes, project.id, generatedModules]);
 
@@ -173,7 +166,7 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                 onFinish: () => {
                     setIsSubmitting(false);
                 },
-            }
+            },
         );
     }, [selectedModules, project.id]);
 
@@ -220,9 +213,7 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                                 <p className="text-lg text-muted-foreground">
                                     AI-generated DDD modules for <span className="font-semibold text-foreground">{project.name}</span>
                                     {fromCache && (
-                                        <span className="ml-2 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                                            From cache
-                                        </span>
+                                        <span className="ml-2 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">From cache</span>
                                     )}
                                 </p>
                             </header>
@@ -246,36 +237,40 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                                                     variant="card"
                                                 />
                                             )}
-                                        {generatedModules.map((module, index) => {
-                                            const isSelected = selectedModules.some((m) => m.name === module.name);
+                                            {generatedModules.map((module, index) => {
+                                                const isSelected = selectedModules.some((m) => m.name === module.name);
 
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className={`cursor-pointer rounded-lg border p-4 transition-all duration-200 ${
-                                                        isSelected
-                                                            ? 'border-primary bg-primary/5 shadow-md'
-                                                            : 'border-border hover:border-primary/50 hover:shadow-sm'
-                                                    }`}
-                                                    onClick={() => toggleModule(module)}
-                                                >
-                                                    <div className="flex items-start gap-3">
-                                                <Checkbox checked={isSelected} onCheckedChange={() => toggleModule(module)} className="mt-1" />
-                                                        <div className="flex-1">
-                                                            <h3 className="mb-1 font-semibold text-foreground">{module.name}</h3>
-                                                            <p className="text-sm text-muted-foreground mb-2">{module.description}</p>
-                                                            {module.metrics && (
-                                                                <div className="mt-2 rounded bg-muted/50 p-2">
-                                                                    <p className="text-xs font-medium text-muted-foreground">Business KPIs:</p>
-                                                                    <p className="text-xs text-muted-foreground">{module.metrics}</p>
-                                                                </div>
-                                                            )}
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className={`cursor-pointer rounded-lg border p-4 transition-all duration-200 ${
+                                                            isSelected
+                                                                ? 'border-primary bg-primary/5 shadow-md'
+                                                                : 'border-border hover:border-primary/50 hover:shadow-sm'
+                                                        }`}
+                                                        onClick={() => toggleModule(module)}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <Checkbox
+                                                                checked={isSelected}
+                                                                onCheckedChange={() => toggleModule(module)}
+                                                                className="mt-1"
+                                                            />
+                                                            <div className="flex-1">
+                                                                <h3 className="mb-1 font-semibold text-foreground">{module.name}</h3>
+                                                                <p className="mb-2 text-sm text-muted-foreground">{module.description}</p>
+                                                                {module.metrics && (
+                                                                    <div className="mt-2 rounded bg-muted/50 p-2">
+                                                                        <p className="text-xs font-medium text-muted-foreground">Business KPIs:</p>
+                                                                        <p className="text-xs text-muted-foreground">{module.metrics}</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {isSelected && <Check className="mt-1 h-5 w-5 text-primary" />}
                                                         </div>
-                                                        {isSelected && <Check className="mt-1 h-5 w-5 text-primary" />}
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
                                         </CardContent>
                                     </Card>
 
@@ -319,93 +314,93 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                                                     rows={2}
                                                 />
                                             </div>
-                                        <Button
-                                            onClick={addCustomModule}
-                                            disabled={!customModuleName.trim() || !customModuleDescription.trim()}
-                                            className="w-full"
-                                        >
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Add Custom Module
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            {/* Selected Modules Summary */}
-                            <div className="lg:col-span-1">
-                                <Card className="sticky top-8">
-                                    <CardHeader>
-                                        <CardTitle>Selected Modules</CardTitle>
-                                        <CardDescription>
-                                            {selectedModules.length} module{selectedModules.length !== 1 ? 's' : ''} selected
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {selectedModules.length === 0 ? (
-                                            <p className="py-8 text-center text-muted-foreground">No modules selected yet</p>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                {selectedModules.map((module, index) => (
-                                                    <div key={index} className="rounded-lg border border-border bg-muted/50 p-3">
-                                                        <div className="flex items-start justify-between">
-                                                            <div className="flex-1">
-                                                                <h4 className="mb-1 text-sm font-medium text-foreground">{module.name}</h4>
-                                                                <p className="line-clamp-2 text-xs text-muted-foreground">{module.description}</p>
-                                                            </div>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => removeModule(module.name)}
-                                                                className="ml-2 h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                                                            >
-                                                                ×
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <div className="mt-6 border-t border-border pt-4">
                                             <Button
-                                                onClick={handleSubmit}
-                                                disabled={selectedModules.length === 0 || isSubmitting}
+                                                onClick={addCustomModule}
+                                                disabled={!customModuleName.trim() || !customModuleDescription.trim()}
                                                 className="w-full"
-                                                size="lg"
                                             >
-                                                {isSubmitting ? (
-                                                    <>
-                                                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
-                                                        <TextShimmer className="text-white">Creating Modules...</TextShimmer>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Check className="mr-2 h-4 w-4" />
-                                                        Create Modules ({selectedModules.length})
-                                                    </>
-                                                )}
+                                                <Plus className="mr-2 h-4 w-4" />
+                                                Add Custom Module
                                             </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+
+                                {/* Selected Modules Summary */}
+                                <div className="lg:col-span-1">
+                                    <Card className="sticky top-8">
+                                        <CardHeader>
+                                            <CardTitle>Selected Modules</CardTitle>
+                                            <CardDescription>
+                                                {selectedModules.length} module{selectedModules.length !== 1 ? 's' : ''} selected
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {selectedModules.length === 0 ? (
+                                                <p className="py-8 text-center text-muted-foreground">No modules selected yet</p>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    {selectedModules.map((module, index) => (
+                                                        <div key={index} className="rounded-lg border border-border bg-muted/50 p-3">
+                                                            <div className="flex items-start justify-between">
+                                                                <div className="flex-1">
+                                                                    <h4 className="mb-1 text-sm font-medium text-foreground">{module.name}</h4>
+                                                                    <p className="line-clamp-2 text-xs text-muted-foreground">{module.description}</p>
+                                                                </div>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => removeModule(module.name)}
+                                                                    className="ml-2 h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                                                                >
+                                                                    ×
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div className="mt-6 border-t border-border pt-4">
+                                                <Button
+                                                    onClick={handleSubmit}
+                                                    disabled={selectedModules.length === 0 || isSubmitting}
+                                                    className="w-full"
+                                                    size="lg"
+                                                >
+                                                    {isSubmitting ? (
+                                                        <>
+                                                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
+                                                            <TextShimmer className="text-white">Creating Modules...</TextShimmer>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Check className="mr-2 h-4 w-4" />
+                                                            Create Modules ({selectedModules.length})
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Loading Overlays - WHY: Using extracted component reduces duplication */}
-                    <LoadingOverlay
-                        isVisible={isSubmitting}
-                        title="Creating Modules"
-                        subtitle={`Processing ${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''}...`}
-                    />
-                    <LoadingOverlay
-                        isVisible={isRegenerating}
-                        title="Regenerating Modules"
-                        subtitle="AI is analyzing your feedback..."
-                        showRefreshIcon
-                    />
-                </main>
-            </div>
+                        {/* Loading Overlays - WHY: Using extracted component reduces duplication */}
+                        <LoadingOverlay
+                            isVisible={isSubmitting}
+                            title="Creating Modules"
+                            subtitle={`Processing ${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''}...`}
+                        />
+                        <LoadingOverlay
+                            isVisible={isRegenerating}
+                            title="Regenerating Modules"
+                            subtitle="AI is analyzing your feedback..."
+                            showRefreshIcon
+                        />
+                    </main>
+                </div>
             </div>
 
             {/* Regenerate Modal */}
@@ -417,7 +412,8 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                             Regenerate Modules
                         </DialogTitle>
                         <DialogDescription>
-                            Provide feedback to help the AI generate better module suggestions. Be specific about what you want to add, remove, merge, or change.
+                            Provide feedback to help the AI generate better module suggestions. Be specific about what you want to add, remove, merge,
+                            or change.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -435,15 +431,16 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                                 rows={6}
                                 className="resize-none"
                             />
-                            <p className="text-xs text-muted-foreground">
-                                Minimum 10 characters. Be specific about your requirements.
-                            </p>
+                            <p className="text-xs text-muted-foreground">Minimum 10 characters. Be specific about your requirements.</p>
                         </div>
                         <div className="rounded-lg border border-muted bg-muted/50 p-3">
-                            <p className="text-xs font-medium text-muted-foreground mb-2">Current modules ({generatedModules.length}):</p>
+                            <p className="mb-2 text-xs font-medium text-muted-foreground">Current modules ({generatedModules.length}):</p>
                             <div className="flex flex-wrap gap-1">
                                 {generatedModules.map((module, index) => (
-                                    <span key={index} className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                    <span
+                                        key={index}
+                                        className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                                    >
                                         {module.name}
                                     </span>
                                 ))}
@@ -454,10 +451,7 @@ export default function ModulesSuggestion({ project, generatedModules = [], from
                         <Button variant="outline" onClick={() => setIsRegenerateModalOpen(false)}>
                             Cancel
                         </Button>
-                        <Button
-                            onClick={handleRegenerate}
-                            disabled={!regenerateNotes.trim() || regenerateNotes.trim().length < 10}
-                        >
+                        <Button onClick={handleRegenerate} disabled={!regenerateNotes.trim() || regenerateNotes.trim().length < 10}>
                             <RefreshCw className="mr-2 h-4 w-4" />
                             Regenerate
                         </Button>

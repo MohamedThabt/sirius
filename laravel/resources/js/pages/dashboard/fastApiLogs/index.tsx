@@ -18,7 +18,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { type BreadcrumbItem } from '@/types';import { getLogLevelColor } from '@/utils/semantic-colors';import { Head, router } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';
+import { getLogLevelColor } from '@/utils/semantic-colors';
+import { Head, router } from '@inertiajs/react';
 import {
     AlertCircleIcon,
     AlertOctagonIcon,
@@ -167,10 +169,10 @@ function extractFastApiLogSummary(log: LogEntry): {
 } {
     // Try to parse message as JSON (our structured logs)
     const result = tryParseJson(log.message);
-    
+
     if (result.isJson && typeof result.parsed === 'object' && result.parsed !== null) {
         const data = result.parsed as Record<string, unknown>;
-        
+
         // Extract fields from structured log
         const event = data.event as string | null;
         const route = data.route as string | null;
@@ -180,13 +182,13 @@ function extractFastApiLogSummary(log: LogEntry): {
         const exceptionFile = data.exception_file as string | null;
         const exceptionLine = data.exception_line as number | null;
         const requestId = data.request_id as string | null;
-        
+
         // Build summary strings
         let routeInfo: string | null = null;
         if (route) {
             routeInfo = method ? `${method} ${route}` : route;
         }
-        
+
         let exceptionInfo: string | null = null;
         if (exceptionType || exceptionFile) {
             const parts: string[] = [];
@@ -199,10 +201,10 @@ function extractFastApiLogSummary(log: LogEntry): {
             }
             exceptionInfo = parts.join(' @ ');
         }
-        
+
         // Main message is the event or exception message
         const mainMessage = exceptionMessage || event || log.message;
-        
+
         return {
             mainMessage,
             routeInfo,
@@ -210,7 +212,7 @@ function extractFastApiLogSummary(log: LogEntry): {
             requestId,
         };
     }
-    
+
     // Fallback: parse from non-JSON message (e.g., "Request completed: GET /api/v1/...")
     const requestMatch = log.message.match(/Request completed: (\w+)\s+([^|]+)/);
     if (requestMatch) {
@@ -221,11 +223,11 @@ function extractFastApiLogSummary(log: LogEntry): {
             requestId: null,
         };
     }
-    
+
     // Check for exception patterns in the message
     const exceptionMatch = log.message.match(/\[(\w+Error|\w+Exception)\]:/);
     const exceptionInfo = exceptionMatch ? exceptionMatch[1] : null;
-    
+
     return {
         mainMessage: log.message,
         routeInfo: null,
@@ -557,12 +559,12 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
 
                         {/* Logs Table */}
                         <TabsContent value="app" className="mt-4 flex-1">
-                            <LogsTable 
-                                logs={entries} 
-                                isLoading={isLoading} 
-                                error={serverError} 
-                                meta={meta} 
-                                onPageChange={handlePageChange} 
+                            <LogsTable
+                                logs={entries}
+                                isLoading={isLoading}
+                                error={serverError}
+                                meta={meta}
+                                onPageChange={handlePageChange}
                                 onSelectLog={(log) => {
                                     // Navigate to detail page
                                     const queryParams = new URLSearchParams();
@@ -570,18 +572,18 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
                                     if (levelFilter !== 'all') queryParams.set('level', levelFilter);
                                     if (search) queryParams.set('search', search);
                                     if (meta?.current_page) queryParams.set('page', meta.current_page.toString());
-                                    
+
                                     router.visit(`/admin/logs/fastapi/show/${activeTab}/${log.line_number}?${queryParams.toString()}`);
-                                }} 
+                                }}
                             />
                         </TabsContent>
                         <TabsContent value="error" className="mt-4 flex-1">
-                            <LogsTable 
-                                logs={entries} 
-                                isLoading={isLoading} 
-                                error={serverError} 
-                                meta={meta} 
-                                onPageChange={handlePageChange} 
+                            <LogsTable
+                                logs={entries}
+                                isLoading={isLoading}
+                                error={serverError}
+                                meta={meta}
+                                onPageChange={handlePageChange}
                                 onSelectLog={(log) => {
                                     // Navigate to detail page
                                     const queryParams = new URLSearchParams();
@@ -589,9 +591,9 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
                                     if (levelFilter !== 'all') queryParams.set('level', levelFilter);
                                     if (search) queryParams.set('search', search);
                                     if (meta?.current_page) queryParams.set('page', meta.current_page.toString());
-                                    
+
                                     router.visit(`/admin/logs/fastapi/show/${activeTab}/${log.line_number}?${queryParams.toString()}`);
-                                }} 
+                                }}
                             />
                         </TabsContent>
                     </Tabs>
@@ -668,11 +670,11 @@ function LogsTable({
                         {logs.map((log, index) => {
                             const LevelIcon = getLevelIcon(log.level);
                             const summary = extractFastApiLogSummary(log);
-                            
+
                             return (
                                 <TableRow
                                     key={`${log.line_number}-${index}`}
-                                    className="border-border/20 cursor-pointer hover:bg-muted/30 transition-colors"
+                                    className="cursor-pointer border-border/20 transition-colors hover:bg-muted/30"
                                     onClick={() => onSelectLog(log)}
                                 >
                                     <TableCell className="align-top font-mono text-xs text-muted-foreground/80" title={log.timestamp}>
@@ -687,10 +689,10 @@ function LogsTable({
                                     <TableCell className="max-w-[600px]">
                                         <div className="flex flex-col gap-1.5">
                                             {/* Main message */}
-                                            <div className="font-mono text-xs text-foreground/90 line-clamp-2" title={summary.mainMessage}>
+                                            <div className="line-clamp-2 font-mono text-xs text-foreground/90" title={summary.mainMessage}>
                                                 {summary.mainMessage}
                                             </div>
-                                            
+
                                             {/* Structured summary line */}
                                             {(summary.routeInfo || summary.exceptionInfo || summary.requestId) && (
                                                 <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -722,7 +724,7 @@ function LogsTable({
                                             )}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="align-top text-right font-mono text-xs text-muted-foreground/60">
+                                    <TableCell className="text-right align-top font-mono text-xs text-muted-foreground/60">
                                         {log.line_number}
                                     </TableCell>
                                 </TableRow>

@@ -1,23 +1,21 @@
-import { Button } from '@/components/ui/button';
+import { ReviewModal } from '@/components/Projects/Prepare/ReviewModal';
 import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
-import type { User, SharedData } from '@/types';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CheckboxGrid } from '@/components/ui/checkbox-grid';
 import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import type { SharedData, User } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { CheckboxGrid } from '@/components/ui/checkbox-grid';
-import { TextareaWithCounter } from '@/components/ui/textarea-with-counter';
-import { ReviewModal } from '@/components/Projects/Prepare/ReviewModal';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
     BrainIcon,
-    CheckCircleIcon,
     CheckIcon,
     CodeIcon,
     DatabaseIcon,
@@ -354,9 +352,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
         if (step.optional) return (val?.trim()?.length ?? 0) > 0; // optional counts complete only if filled
         return (val?.trim()?.length ?? 0) > 0;
     };
-    const canProceed = currentStepData?.optional === true
-        ? true
-        : stepCompleted(currentStepData);
+    const canProceed = currentStepData?.optional === true ? true : stepCompleted(currentStepData);
 
     const requiredBusinessFields: (keyof ProjectFormData)[] = ['why_making', 'who_for', 'what_valuable', 'features_functionality'];
     const canSubmit = requiredBusinessFields.every((f) => formData[f].trim().length > 0);
@@ -414,7 +410,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
             expectedUserScale?: number;
         };
         // WHY: Fixed type error by ensuring we only spread defined values
-        if (f) setFormData((prev) => ({ ...prev, ...f } as ProjectFormData));
+        if (f) setFormData((prev) => ({ ...prev, ...f }) as ProjectFormData);
         if (a) setActiveTab(a);
         if (bs) setCurrentBusinessStep(bs);
         if (ts) setCurrentTechnicalStep(ts);
@@ -442,14 +438,14 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
             try {
                 const parsed = JSON.parse(saved);
                 const { timestamp } = parsed;
-                
+
                 // Check if cache has expired (7 days TTL)
                 if (timestamp && Date.now() - timestamp > CACHE_TTL_MS) {
                     console.info('Cache expired for project', projectId, '- clearing stale data');
                     localStorage.removeItem(key);
                     return;
                 }
-                
+
                 restoreFromCache(parsed);
             } catch (e) {
                 console.warn('Failed to restore form data from localStorage:', e);
@@ -493,7 +489,27 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
             if (saveTimeoutRef.current) window.clearTimeout(saveTimeoutRef.current);
             if (savedTimeoutRef.current) window.clearTimeout(savedTimeoutRef.current);
         };
-    }, [projectId, formData, activeTab, currentBusinessStep, currentTechnicalStep, selectedPlatforms, selectedMobileApproach, selectedFrontend, selectedBackend, selectedDatabase, selectedAiUseCases, selectedExternalServices, platformAdditional, frontendAdditional, backendAdditional, databaseAdditional, aiAdditional, servicesAdditional, expectedUserScale]);
+    }, [
+        projectId,
+        formData,
+        activeTab,
+        currentBusinessStep,
+        currentTechnicalStep,
+        selectedPlatforms,
+        selectedMobileApproach,
+        selectedFrontend,
+        selectedBackend,
+        selectedDatabase,
+        selectedAiUseCases,
+        selectedExternalServices,
+        platformAdditional,
+        frontendAdditional,
+        backendAdditional,
+        databaseAdditional,
+        aiAdditional,
+        servicesAdditional,
+        expectedUserScale,
+    ]);
 
     // Cross-tab synchronization via storage event
     useEffect(() => {
@@ -574,12 +590,10 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
         }
     }, [activeTab, currentBusinessStep, currentTechnicalStep, businessSteps.length]);
 
-    
-
     const handleSubmit = useCallback(() => {
         const selectedScale = userScaleOptions[expectedUserScale];
         const cacheKey = `prepare:${projectId}`;
-        
+
         setIsSubmitting(true);
         router.post(
             `/projects/${projectId}/system-overview/create`,
@@ -629,7 +643,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
             } else if (e.shiftKey && e.key === 'Enter') {
                 e.preventDefault();
                 prevStep();
-            } else if (e.altKey && (e.key.toLowerCase() === 's')) {
+            } else if (e.altKey && e.key.toLowerCase() === 's') {
                 e.preventDefault();
                 if (isLastStepOverall) setShowReview(true);
             }
@@ -648,14 +662,12 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
         if (field === 'platform_targets') {
             return (
                 <div className="space-y-6">
-                <div className="space-y-4">
+                    <div className="space-y-4">
                         <Label className="text-base font-semibold">Select Platform Targets</Label>
                         <CheckboxGrid
                             options={platformOptions}
                             selected={selectedPlatforms}
-                            onToggle={(value, checked) =>
-                                handleCheckboxChange(field, value, checked, selectedPlatforms, setSelectedPlatforms)
-                            }
+                            onToggle={(value, checked) => handleCheckboxChange(field, value, checked, selectedPlatforms, setSelectedPlatforms)}
                         />
                     </div>
 
@@ -720,9 +732,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                         <CheckboxGrid
                             options={frontendFrameworkOptions}
                             selected={selectedFrontend}
-                            onToggle={(value, checked) =>
-                                handleCheckboxChange(field, value, checked, selectedFrontend, setSelectedFrontend)
-                            }
+                            onToggle={(value, checked) => handleCheckboxChange(field, value, checked, selectedFrontend, setSelectedFrontend)}
                         />
                     </div>
 
@@ -734,7 +744,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                             id="frontend_additional"
                             value={frontendAdditional}
                             onChange={(e) => setFrontendAdditional(e.target.value)}
-                            placeholder={"Example:\nUI: Tailwind / MUI\nState: Query / Redux / Context API\ni18n & A11y: EN , FR , SP"}
+                            placeholder={'Example:\nUI: Tailwind / MUI\nState: Query / Redux / Context API\ni18n & A11y: EN , FR , SP'}
                             className="min-h-[100px]"
                             rows={4}
                             maxLength={2000}
@@ -759,9 +769,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                         <CheckboxGrid
                             options={backendOptions}
                             selected={selectedBackend}
-                            onToggle={(value, checked) =>
-                                handleCheckboxChange(field, value, checked, selectedBackend, setSelectedBackend)
-                            }
+                            onToggle={(value, checked) => handleCheckboxChange(field, value, checked, selectedBackend, setSelectedBackend)}
                         />
                     </div>
 
@@ -773,7 +781,9 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                             id="backend_additional"
                             value={backendAdditional}
                             onChange={(e) => setBackendAdditional(e.target.value)}
-                            placeholder={"Example:\nDatabase: PostgreSQL with Eloquent ORM\nAPI Style: REST / GraphQL \nAuth: OAuth2 / JWT\nQueue & Cache: Redis "}
+                            placeholder={
+                                'Example:\nDatabase: PostgreSQL with Eloquent ORM\nAPI Style: REST / GraphQL \nAuth: OAuth2 / JWT\nQueue & Cache: Redis '
+                            }
                             className="min-h-[120px]"
                             rows={5}
                             maxLength={2000}
@@ -798,9 +808,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                         <CheckboxGrid
                             options={databaseOptions}
                             selected={selectedDatabase}
-                            onToggle={(value, checked) =>
-                                handleCheckboxChange(field, value, checked, selectedDatabase, setSelectedDatabase)
-                            }
+                            onToggle={(value, checked) => handleCheckboxChange(field, value, checked, selectedDatabase, setSelectedDatabase)}
                         />
                     </div>
 
@@ -812,7 +820,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                             id="database_additional"
                             value={databaseAdditional}
                             onChange={(e) => setDatabaseAdditional(e.target.value)}
-                            placeholder={"Example:\nSharding & Replication \nCache & Backup \nIndexing strategy "}
+                            placeholder={'Example:\nSharding & Replication \nCache & Backup \nIndexing strategy '}
                             className="min-h-[100px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                             rows={4}
                             maxLength={2000}
@@ -837,9 +845,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                         <CheckboxGrid
                             options={aiUseCaseOptions}
                             selected={selectedAiUseCases}
-                            onToggle={(value, checked) =>
-                                handleCheckboxChange(field, value, checked, selectedAiUseCases, setSelectedAiUseCases)
-                            }
+                            onToggle={(value, checked) => handleCheckboxChange(field, value, checked, selectedAiUseCases, setSelectedAiUseCases)}
                         />
                     </div>
 
@@ -852,7 +858,9 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                                 id="ai_additional"
                                 value={aiAdditional}
                                 onChange={(e) => setAiAdditional(e.target.value)}
-                                placeholder={"Example:\nProvider: Azure OpenAI (GPT-4o)\nRAG: Yes, using pgvector for embeddings\nSafety: Content moderation, PII redaction, guardrails\nData retention: 30 days, training opt-out enabled"}
+                                placeholder={
+                                    'Example:\nProvider: Azure OpenAI (GPT-4o)\nRAG: Yes, using pgvector for embeddings\nSafety: Content moderation, PII redaction, guardrails\nData retention: 30 days, training opt-out enabled'
+                                }
                                 className="min-h-[100px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                                 rows={4}
                                 maxLength={2000}
@@ -892,7 +900,7 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                             id="services_additional"
                             value={servicesAdditional}
                             onChange={(e) => setServicesAdditional(e.target.value)}
-                            placeholder={"Example:\nNotifications: Push , SMS \nMonitoring: errors, metrics \nintegration: CRM, Slack, Jira "}
+                            placeholder={'Example:\nNotifications: Push , SMS \nMonitoring: errors, metrics \nintegration: CRM, Slack, Jira '}
                             className="min-h-[100px]"
                             rows={4}
                             maxLength={2000}
@@ -916,8 +924,6 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
         <>
             <Head title={`Prepare Project: ${projectName}`} />
 
-            
-
             <div className="flex">
                 <ProjectsIndexSidebar
                     auth={sidebarAuth}
@@ -929,404 +935,420 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                     currentProjectId={projectId}
                 />
                 <main className="min-w-0 flex-1">
-            <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
-                <div className="border-b bg-muted/30">
-                    <div className="mx-auto max-w-[1600px] px-4 py-3 sm:px-6 lg:px-8">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Sheet>
-                                    <SheetTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
-                                            <MenuIcon className="h-4 w-4" />
-                                        </Button>
-                                    </SheetTrigger>
-                                    <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
-                                        <ProjectsIndexSidebar
-                                            auth={sidebarAuth}
-                                            isSidebarCollapsed={false}
-                                            onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                            onCreateProject={() => router.get('/projects')}
-                                            projectCount={projects.length}
-                                            projects={projects}
-                                            currentProjectId={projectId}
-                                            isMobileSheet={true}
-                                        />
-                                    </SheetContent>
-                                </Sheet>
-                                <SidebarToggle
-                                    isCollapsed={isSidebarCollapsed}
-                                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                />
-                                <div className="flex items-center gap-2 rounded-lg bg-primary/10 px-2.5 py-1.5">
-                                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                                    <span className="text-xs font-medium text-primary">AI Setup</span>
-                                </div>
-                                <div className="h-4 w-px bg-border"></div>
-                                <h1 className="text-lg font-semibold text-foreground">Define Your Vision</h1>
-                            </div>
-                            <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-1.5 shadow-sm">
-                                <TargetIcon className="h-3.5 w-3.5 text-primary" />
-                                <span className="text-sm font-medium text-foreground">{projectName}</span>
-                            </div>
-                        </div>
-                        {/* Global progress bar */}
-                        <div className="mt-3 flex items-center gap-4">
-                            <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                                <div className="h-full bg-primary transition-all" style={{ width: `${overallProgress}%` }} />
-                            </div>
-                            <div className="flex items-center gap-2 text-xs">
-                                <span className="font-semibold text-primary">{overallProgress}%</span>
-                                <span className="text-muted-foreground">progress</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-xs">
-                                {saveStatus === 'saving' && <span className="animate-pulse text-amber-600">Saving…</span>}
-                                {saveStatus === 'saved' && <span className="text-emerald-600">Saved</span>}
-                                {saveStatus === 'idle' && <span className="text-muted-foreground">Idle</span>}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mx-auto max-w-[1600px] px-4 py-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-                        <div className="lg:order-1 lg:col-span-2">
-                            <div className="sticky top-4 space-y-4">
-                                
-
-                                
-
-                                {/* Project Index Sidebar */}
-                                <Card className="border-2">
-                                    <CardHeader className="pb-2">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2.5">
-                                                <div className="rounded-lg bg-primary/10 p-1.5">
-                                                    <FileTextIcon className="h-4 w-4 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <CardTitle className="text-sm">Steps</CardTitle>
-                                                    <CardDescription className="text-xs">Navigate to any step</CardDescription>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="px-3 pb-3">
-                                        <div className="space-y-3">
-                                            {/* Business group */}
-                                            <div className="rounded-lg border bg-card p-2">
-                                                <div className="mb-1 flex items-center justify-between">
-                                                    <div className="text-xs font-semibold">Business</div>
-                                                    <div className="text-[10px] text-muted-foreground">
-                                                        {businessSteps.filter(stepCompleted).length}/{businessSteps.length} completed
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    {businessSteps.map((step) => {
-                                                        const Icon = step.icon;
-                                                        const isCurrent = activeTab === 'business' && currentBusinessStep === step.id;
-                                                        const isCompleted = stepCompleted(step);
-                                                        return (
-                                                            <button
-                                                                key={`idx-b-${step.id}`}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setActiveTab('business');
-                                                                    setCurrentBusinessStep(step.id);
-                                                                }}
-                                                                className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors hover:bg-muted/60 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                                                                    isCurrent ? 'bg-primary/10' : ''
-                                                                }`}
-                                                            >
-                                                                <span
-                                                                    className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
-                                                                        isCompleted
-                                                                            ? 'border-emerald-500 bg-emerald-500 text-white'
-                                                                            : isCurrent
-                                                                                ? 'border-primary bg-primary text-primary-foreground'
-                                                                                : 'border-muted-foreground/30 text-muted-foreground'
-                                                                    }`}
-                                                                >
-                                                                    {isCompleted ? <CheckIcon className="h-3 w-3" /> : <Icon className="h-3 w-3" />}
-                                                                </span>
-                                                                <span className={`truncate ${isCompleted ? 'text-emerald-700 dark:text-emerald-300' : ''}`}>{step.title}</span>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-
-                                            {/* Technical group */}
-                                            <div className="rounded-lg border bg-card p-2">
-                                                <div className="mb-1 flex items-center justify-between">
-                                                    <div className="text-xs font-semibold">Technical</div>
-                                                    <div className="text-[10px] text-muted-foreground">
-                                                        {technicalSteps.filter(stepCompleted).length}/{technicalSteps.length} completed
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    {technicalSteps.map((step) => {
-                                                        const Icon = step.icon;
-                                                        const isCurrent = activeTab === 'technical' && currentTechnicalStep === step.id;
-                                                        const isCompleted = stepCompleted(step);
-                                                        return (
-                                                            <button
-                                                                key={`idx-t-${step.id}`}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setActiveTab('technical');
-                                                                    setCurrentTechnicalStep(step.id);
-                                                                }}
-                                                                className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors hover:bg-muted/60 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                                                                    isCurrent ? 'bg-primary/10' : ''
-                                                                }`}
-                                                            >
-                                                                <span
-                                                                    className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
-                                                                        isCompleted
-                                                                            ? 'border-emerald-500 bg-emerald-500 text-white'
-                                                                            : isCurrent
-                                                                                ? 'border-primary bg-primary text-primary-foreground'
-                                                                                : 'border-muted-foreground/30 text-muted-foreground'
-                                                                    }`}
-                                                                >
-                                                                    {isCompleted ? <CheckIcon className="h-3 w-3" /> : <Icon className="h-3 w-3" />}
-                                                                </span>
-                                                                <span className={`truncate ${isCompleted ? 'text-emerald-700 dark:text-emerald-300' : ''}`}>{step.title}</span>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
-
-                        <div className="lg:order-2 lg:col-span-10">
-                            <Card className="border-2 shadow-xl">
-                                <CardHeader className="border-b pb-3">
-                                    <div className="flex items-start gap-3">
-                                        <div className="rounded-lg bg-gradient-to-br from-primary to-primary/80 p-2 shadow-lg">
-                                            <currentStepData.icon className="h-5 w-5 text-primary-foreground" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <CardTitle className="text-xl">{currentStepData.title}</CardTitle>
-                                            <CardDescription className="mt-1 text-sm">
-                                                {currentStepData.description}{' '}
-                                                {currentStepData.optional && <span className="text-primary">(Optional - adds ~+6% accuracy)</span>}
-                                            </CardDescription>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-4 sm:p-5">
-                                    <div className="space-y-4">
-                                        {activeTab === 'business' ||
-                                        ![
-                                            'platform_targets',
-                                            'frontend_tech',
-                                            'backend_tech',
-                                            'database_tech',
-                                            'ai_usage',
-                                            'external_services',
-                                        ].includes(currentStepData.field as string) ? (
-                                            <div className="space-y-3">
-                                                {currentStepData.field === 'who_for' && (
-                                                    <div className="mb-6 space-y-4 rounded-lg border-2 p-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <UsersIcon className="h-5 w-5 text-primary" />
-                                                            <Label className="text-base font-semibold">Expected User Scale</Label>
-                                                        </div>
-                                                        <div className="space-y-4">
-                                                            <div className="relative pt-2">
-                                                                <Slider
-                                                                    value={[expectedUserScale]}
-                                                                    onValueChange={(value) => setExpectedUserScale(value[0])}
-                                                                    min={0}
-                                                                    max={6}
-                                                                    step={1}
-                                                                    className="w-full"
-                                                                />
-                                                                <div className="pointer-events-none absolute -top-1 right-0 left-0 flex justify-between px-0.5">
-                                                                    {userScaleOptions.map((option, idx) => (
-                                                                        <div
-                                                                            key={option.value}
-                                                                            className={`h-2 w-2 rounded-full border-2 transition-colors ${
-                                                                                expectedUserScale === idx
-                                                                                    ? 'border-primary bg-primary'
-                                                                                    : 'border-muted-foreground/30 bg-background'
-                                                                            }`}
-                                                                        />
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="rounded-lg border px-4 py-2.5">
-                                                                    <div className="text-xs text-muted-foreground">Users</div>
-                                                                    <div className="text-lg font-bold text-primary">
-                                                                        {userScaleOptions[expectedUserScale].label}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="rounded-lg border px-4 py-2.5">
-                                                                    <div className="text-xs text-muted-foreground">Scale Type</div>
-                                                                    <div className="text-sm font-semibold text-foreground">
-                                                                        {userScaleOptions[expectedUserScale].description}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
-                                                                {userScaleOptions.map((option, idx) => (
-                                                                    <span
-                                                                        key={option.value}
-                                                                        className={`text-center ${idx === 0 ? 'text-left' : idx === userScaleOptions.length - 1 ? 'text-right' : ''}`}
-                                                                    >
-                                                                        {option.label}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                <Label htmlFor={currentStepData.field as string} className="text-base font-semibold">
-                                                    {currentStepData.description}
-                                                </Label>
-                                                <textarea
-                                                    id={currentStepData.field as string}
-                                                    value={formData[currentStepData.field]}
-                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                                                        handleInputChange(currentStepData.field, e.target.value)
-                                                    }
-                                                    placeholder={placeholders[currentStepData.field]}
-                                                    className="min-h-[200px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm leading-relaxed ring-offset-background placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 focus-visible:outline-none"
-                                                    rows={8}
-                                                    maxLength={2000}
-                                                    aria-describedby={`${currentStepData.field as string}-counter ${currentStepData.field as string}-hint`}
+                    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
+                        <div className="border-b bg-muted/30">
+                            <div className="mx-auto max-w-[1600px] px-4 py-3 sm:px-6 lg:px-8">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <Sheet>
+                                            <SheetTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                                >
+                                                    <MenuIcon className="h-4 w-4" />
+                                                </Button>
+                                            </SheetTrigger>
+                                            <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
+                                                <ProjectsIndexSidebar
+                                                    auth={sidebarAuth}
+                                                    isSidebarCollapsed={false}
+                                                    onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                                    onCreateProject={() => router.get('/projects')}
+                                                    projectCount={projects.length}
+                                                    projects={projects}
+                                                    currentProjectId={projectId}
+                                                    isMobileSheet={true}
                                                 />
-                                                <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                                                    <span id={`${currentStepData.field as string}-hint`}>Aim for 2–5 sentences.</span>
-                                                    <span id={`${currentStepData.field as string}-counter`} aria-live="polite">
-                                                        {formData[currentStepData.field].length}/2000
-                                                    </span>
-                                                </div>
-                                                <div className="mt-1 text-xs text-muted-foreground">Hint: Press Ctrl+Enter to continue</div>
-                                            </div>
-                                        ) : (
-                                            renderTechnicalStepContent()
-                                        )}
+                                            </SheetContent>
+                                        </Sheet>
+                                        <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+                                        <div className="flex items-center gap-2 rounded-lg bg-primary/10 px-2.5 py-1.5">
+                                            <Sparkles className="h-3.5 w-3.5 text-primary" />
+                                            <span className="text-xs font-medium text-primary">AI Setup</span>
+                                        </div>
+                                        <div className="h-4 w-px bg-border"></div>
+                                        <h1 className="text-lg font-semibold text-foreground">Define Your Vision</h1>
                                     </div>
+                                    <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-1.5 shadow-sm">
+                                        <TargetIcon className="h-3.5 w-3.5 text-primary" />
+                                        <span className="text-sm font-medium text-foreground">{projectName}</span>
+                                    </div>
+                                </div>
+                                {/* Global progress bar */}
+                                <div className="mt-3 flex items-center gap-4">
+                                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                                        <div className="h-full bg-primary transition-all" style={{ width: `${overallProgress}%` }} />
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="font-semibold text-primary">{overallProgress}%</span>
+                                        <span className="text-muted-foreground">progress</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs">
+                                        {saveStatus === 'saving' && <span className="animate-pulse text-amber-600">Saving…</span>}
+                                        {saveStatus === 'saved' && <span className="text-emerald-600">Saved</span>}
+                                        {saveStatus === 'idle' && <span className="text-muted-foreground">Idle</span>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                    <div className="mt-4 flex items-center justify-between border-t pt-3">
-                                        <Button
-                                            variant="outline"
-                                            onClick={prevStep}
-                                            disabled={isFirstStep}
-                                            size="default"
-                                            className="focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                        >
-                                            <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                                            Previous
-                                        </Button>
+                        <div className="mx-auto max-w-[1600px] px-4 py-4 sm:px-6 lg:px-8">
+                            <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+                                <div className="lg:order-1 lg:col-span-2">
+                                    <div className="sticky top-4 space-y-4">
+                                        {/* Project Index Sidebar */}
+                                        <Card className="border-2">
+                                            <CardHeader className="pb-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="rounded-lg bg-primary/10 p-1.5">
+                                                            <FileTextIcon className="h-4 w-4 text-primary" />
+                                                        </div>
+                                                        <div>
+                                                            <CardTitle className="text-sm">Steps</CardTitle>
+                                                            <CardDescription className="text-xs">Navigate to any step</CardDescription>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="px-3 pb-3">
+                                                <div className="space-y-3">
+                                                    {/* Business group */}
+                                                    <div className="rounded-lg border bg-card p-2">
+                                                        <div className="mb-1 flex items-center justify-between">
+                                                            <div className="text-xs font-semibold">Business</div>
+                                                            <div className="text-[10px] text-muted-foreground">
+                                                                {businessSteps.filter(stepCompleted).length}/{businessSteps.length} completed
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            {businessSteps.map((step) => {
+                                                                const Icon = step.icon;
+                                                                const isCurrent = activeTab === 'business' && currentBusinessStep === step.id;
+                                                                const isCompleted = stepCompleted(step);
+                                                                return (
+                                                                    <button
+                                                                        key={`idx-b-${step.id}`}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setActiveTab('business');
+                                                                            setCurrentBusinessStep(step.id);
+                                                                        }}
+                                                                        className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors hover:bg-muted/60 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none ${
+                                                                            isCurrent ? 'bg-primary/10' : ''
+                                                                        }`}
+                                                                    >
+                                                                        <span
+                                                                            className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                                                                                isCompleted
+                                                                                    ? 'border-emerald-500 bg-emerald-500 text-white'
+                                                                                    : isCurrent
+                                                                                      ? 'border-primary bg-primary text-primary-foreground'
+                                                                                      : 'border-muted-foreground/30 text-muted-foreground'
+                                                                            }`}
+                                                                        >
+                                                                            {isCompleted ? (
+                                                                                <CheckIcon className="h-3 w-3" />
+                                                                            ) : (
+                                                                                <Icon className="h-3 w-3" />
+                                                                            )}
+                                                                        </span>
+                                                                        <span
+                                                                            className={`truncate ${isCompleted ? 'text-emerald-700 dark:text-emerald-300' : ''}`}
+                                                                        >
+                                                                            {step.title}
+                                                                        </span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <div className="hidden rounded-full bg-primary/10 px-4 py-2 sm:block">
-                                                <span className="text-xs font-semibold text-primary">
-                                                    {activeTab === 'business' ? currentBusinessStep : currentTechnicalStep} / {currentSteps.length}
-                                                </span>
+                                                    {/* Technical group */}
+                                                    <div className="rounded-lg border bg-card p-2">
+                                                        <div className="mb-1 flex items-center justify-between">
+                                                            <div className="text-xs font-semibold">Technical</div>
+                                                            <div className="text-[10px] text-muted-foreground">
+                                                                {technicalSteps.filter(stepCompleted).length}/{technicalSteps.length} completed
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            {technicalSteps.map((step) => {
+                                                                const Icon = step.icon;
+                                                                const isCurrent = activeTab === 'technical' && currentTechnicalStep === step.id;
+                                                                const isCompleted = stepCompleted(step);
+                                                                return (
+                                                                    <button
+                                                                        key={`idx-t-${step.id}`}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setActiveTab('technical');
+                                                                            setCurrentTechnicalStep(step.id);
+                                                                        }}
+                                                                        className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors hover:bg-muted/60 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none ${
+                                                                            isCurrent ? 'bg-primary/10' : ''
+                                                                        }`}
+                                                                    >
+                                                                        <span
+                                                                            className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                                                                                isCompleted
+                                                                                    ? 'border-emerald-500 bg-emerald-500 text-white'
+                                                                                    : isCurrent
+                                                                                      ? 'border-primary bg-primary text-primary-foreground'
+                                                                                      : 'border-muted-foreground/30 text-muted-foreground'
+                                                                            }`}
+                                                                        >
+                                                                            {isCompleted ? (
+                                                                                <CheckIcon className="h-3 w-3" />
+                                                                            ) : (
+                                                                                <Icon className="h-3 w-3" />
+                                                                            )}
+                                                                        </span>
+                                                                        <span
+                                                                            className={`truncate ${isCompleted ? 'text-emerald-700 dark:text-emerald-300' : ''}`}
+                                                                        >
+                                                                            {step.title}
+                                                                        </span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </div>
+
+                                <div className="lg:order-2 lg:col-span-10">
+                                    <Card className="border-2 shadow-xl">
+                                        <CardHeader className="border-b pb-3">
+                                            <div className="flex items-start gap-3">
+                                                <div className="rounded-lg bg-gradient-to-br from-primary to-primary/80 p-2 shadow-lg">
+                                                    <currentStepData.icon className="h-5 w-5 text-primary-foreground" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <CardTitle className="text-xl">{currentStepData.title}</CardTitle>
+                                                    <CardDescription className="mt-1 text-sm">
+                                                        {currentStepData.description}{' '}
+                                                        {currentStepData.optional && (
+                                                            <span className="text-primary">(Optional - adds ~+6% accuracy)</span>
+                                                        )}
+                                                    </CardDescription>
+                                                </div>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="p-4 sm:p-5">
+                                            <div className="space-y-4">
+                                                {activeTab === 'business' ||
+                                                ![
+                                                    'platform_targets',
+                                                    'frontend_tech',
+                                                    'backend_tech',
+                                                    'database_tech',
+                                                    'ai_usage',
+                                                    'external_services',
+                                                ].includes(currentStepData.field as string) ? (
+                                                    <div className="space-y-3">
+                                                        {currentStepData.field === 'who_for' && (
+                                                            <div className="mb-6 space-y-4 rounded-lg border-2 p-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <UsersIcon className="h-5 w-5 text-primary" />
+                                                                    <Label className="text-base font-semibold">Expected User Scale</Label>
+                                                                </div>
+                                                                <div className="space-y-4">
+                                                                    <div className="relative pt-2">
+                                                                        <Slider
+                                                                            value={[expectedUserScale]}
+                                                                            onValueChange={(value) => setExpectedUserScale(value[0])}
+                                                                            min={0}
+                                                                            max={6}
+                                                                            step={1}
+                                                                            className="w-full"
+                                                                        />
+                                                                        <div className="pointer-events-none absolute -top-1 right-0 left-0 flex justify-between px-0.5">
+                                                                            {userScaleOptions.map((option, idx) => (
+                                                                                <div
+                                                                                    key={option.value}
+                                                                                    className={`h-2 w-2 rounded-full border-2 transition-colors ${
+                                                                                        expectedUserScale === idx
+                                                                                            ? 'border-primary bg-primary'
+                                                                                            : 'border-muted-foreground/30 bg-background'
+                                                                                    }`}
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center justify-between">
+                                                                        <div className="rounded-lg border px-4 py-2.5">
+                                                                            <div className="text-xs text-muted-foreground">Users</div>
+                                                                            <div className="text-lg font-bold text-primary">
+                                                                                {userScaleOptions[expectedUserScale].label}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="rounded-lg border px-4 py-2.5">
+                                                                            <div className="text-xs text-muted-foreground">Scale Type</div>
+                                                                            <div className="text-sm font-semibold text-foreground">
+                                                                                {userScaleOptions[expectedUserScale].description}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+                                                                        {userScaleOptions.map((option, idx) => (
+                                                                            <span
+                                                                                key={option.value}
+                                                                                className={`text-center ${idx === 0 ? 'text-left' : idx === userScaleOptions.length - 1 ? 'text-right' : ''}`}
+                                                                            >
+                                                                                {option.label}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        <Label htmlFor={currentStepData.field as string} className="text-base font-semibold">
+                                                            {currentStepData.description}
+                                                        </Label>
+                                                        <textarea
+                                                            id={currentStepData.field as string}
+                                                            value={formData[currentStepData.field]}
+                                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                                                                handleInputChange(currentStepData.field, e.target.value)
+                                                            }
+                                                            placeholder={placeholders[currentStepData.field]}
+                                                            className="min-h-[200px] w-full rounded-lg border-2 border-input bg-background px-4 py-3 text-sm leading-relaxed ring-offset-background placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                                            rows={8}
+                                                            maxLength={2000}
+                                                            aria-describedby={`${currentStepData.field as string}-counter ${currentStepData.field as string}-hint`}
+                                                        />
+                                                        <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                                                            <span id={`${currentStepData.field as string}-hint`}>Aim for 2–5 sentences.</span>
+                                                            <span id={`${currentStepData.field as string}-counter`} aria-live="polite">
+                                                                {formData[currentStepData.field].length}/2000
+                                                            </span>
+                                                        </div>
+                                                        <div className="mt-1 text-xs text-muted-foreground">Hint: Press Ctrl+Enter to continue</div>
+                                                    </div>
+                                                ) : (
+                                                    renderTechnicalStepContent()
+                                                )}
                                             </div>
 
-                                            {/* Primary action buttons contextually */}
+                                            <div className="mt-4 flex items-center justify-between border-t pt-3">
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={prevStep}
+                                                    disabled={isFirstStep}
+                                                    size="default"
+                                                    className="focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                >
+                                                    <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                                                    Previous
+                                                </Button>
+
+                                                <div className="flex items-center gap-3">
+                                                    <div className="hidden rounded-full bg-primary/10 px-4 py-2 sm:block">
+                                                        <span className="text-xs font-semibold text-primary">
+                                                            {activeTab === 'business' ? currentBusinessStep : currentTechnicalStep} /{' '}
+                                                            {currentSteps.length}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Primary action buttons contextually */}
+                                                    {!isLastStepOverall ? (
+                                                        <Button
+                                                            onClick={nextStep}
+                                                            disabled={!canProceed}
+                                                            size="default"
+                                                            className="shadow-lg focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                        >
+                                                            {activeTab === 'business' && currentBusinessStep === businessSteps.length
+                                                                ? 'Start Technical'
+                                                                : 'Next Step'}
+                                                            <ArrowRightIcon className="ml-2 h-4 w-4" />
+                                                        </Button>
+                                                    ) : (
+                                                        <>
+                                                            <Button
+                                                                onClick={() => setShowReview(true)}
+                                                                disabled={!canSubmit}
+                                                                size="default"
+                                                                className="bg-gradient-to-r from-primary to-primary/90 shadow-lg hover:from-primary/90 hover:to-primary/80 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                            >
+                                                                Review
+                                                                <CheckIcon className="ml-2 h-4 w-4" />
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    {(activeTab === 'technical' || currentStepData.optional) && !isLastStepOverall && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            onClick={nextStep}
+                                                            size="default"
+                                                            className="text-xs text-muted-foreground hover:text-foreground"
+                                                        >
+                                                            Skip
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {!canSubmit && isLastStepOverall && (
+                                                <div className="mt-4 rounded-lg border-2 border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                                                    <strong>Almost there!</strong> Please complete all required Business fields to generate your
+                                                    project overview. Technical fields are optional and add +{accuracyBoost}% accuracy. Press
+                                                    Ctrl+Enter to continue.
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+
+                                    <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-sm md:hidden">
+                                        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
+                                            <Button
+                                                variant="outline"
+                                                onClick={prevStep}
+                                                disabled={isFirstStep}
+                                                size="sm"
+                                                className="h-10 px-3 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                            >
+                                                <ArrowLeftIcon className="h-4 w-4" />
+                                            </Button>
+
+                                            <div className="text-center text-xs text-muted-foreground">
+                                                Step {activeTab === 'business' ? currentBusinessStep : currentTechnicalStep} of {currentSteps.length}
+                                            </div>
+
                                             {!isLastStepOverall ? (
                                                 <Button
                                                     onClick={nextStep}
                                                     disabled={!canProceed}
-                                                    size="default"
-                                                    className="shadow-lg focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                    size="sm"
+                                                    className="h-10 px-3 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                                 >
-                                                    {activeTab === 'business' && currentBusinessStep === businessSteps.length ? 'Start Technical' : 'Next Step'}
-                                                    <ArrowRightIcon className="ml-2 h-4 w-4" />
+                                                    <ArrowRightIcon className="h-4 w-4" />
                                                 </Button>
                                             ) : (
-                                                <>
-                                                    <Button
-                                                        onClick={() => setShowReview(true)}
-                                                        disabled={!canSubmit}
-                                                        size="default"
-                                                        className="bg-gradient-to-r from-primary to-primary/90 shadow-lg hover:from-primary/90 hover:to-primary/80 focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                                    >
-                                                        Review
-                                                        <CheckIcon className="ml-2 h-4 w-4" />
-                                                    </Button>
-                                                </>
-                                            )}
-                                            {(activeTab === 'technical' || currentStepData.optional) && !isLastStepOverall && (
                                                 <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    onClick={nextStep}
-                                                    size="default"
-                                                    className="text-xs text-muted-foreground hover:text-foreground"
+                                                    onClick={() => setShowReview(true)}
+                                                    disabled={!canSubmit}
+                                                    size="sm"
+                                                    className="h-10 bg-gradient-to-r from-primary to-primary/90 px-3 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                                 >
-                                                    Skip
+                                                    <CheckIcon className="h-4 w-4" />
                                                 </Button>
                                             )}
                                         </div>
                                     </div>
 
-                                    {!canSubmit && isLastStepOverall && (
-                                        <div className="mt-4 rounded-lg border-2 border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
-                                            <strong>Almost there!</strong> Please complete all required Business fields to generate your project
-                                            overview. Technical fields are optional and add +{accuracyBoost}% accuracy. Press Ctrl+Enter to
-                                            continue.
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-sm md:hidden">
-                                <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
-                                    <Button
-                                        variant="outline"
-                                        onClick={prevStep}
-                                        disabled={isFirstStep}
-                                        size="sm"
-                                        className="h-10 px-3 focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                    >
-                                        <ArrowLeftIcon className="h-4 w-4" />
-                                    </Button>
-
-                                    <div className="text-center text-xs text-muted-foreground">
-                                        Step {activeTab === 'business' ? currentBusinessStep : currentTechnicalStep} of {currentSteps.length}
-                                    </div>
-
-                                    {!isLastStepOverall ? (
-                                        <Button
-                                            onClick={nextStep}
-                                            disabled={!canProceed}
-                                            size="sm"
-                                            className="h-10 px-3 focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                        >
-                                            <ArrowRightIcon className="h-4 w-4" />
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            onClick={() => setShowReview(true)}
-                                            disabled={!canSubmit}
-                                            size="sm"
-                                            className="h-10 bg-gradient-to-r from-primary to-primary/90 px-3 focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                        >
-                                            <CheckIcon className="h-4 w-4" />
-                                        </Button>
-                                    )}
+                                    <div className="h-20 md:h-0" />
                                 </div>
                             </div>
-
-                            <div className="h-20 md:h-0" />
                         </div>
-
-                        
                     </div>
-                </div>
-            </div>
                 </main>
             </div>
             <ReviewModal

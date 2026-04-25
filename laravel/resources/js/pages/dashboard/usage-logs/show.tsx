@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeftIcon, UserIcon, CpuIcon, CoinsIcon, ClockIcon, DollarSignIcon, ActivityIcon } from 'lucide-react';
+import { ActivityIcon, ArrowLeftIcon, ClockIcon, CoinsIcon, CpuIcon, DollarSignIcon, UserIcon } from 'lucide-react';
 
 interface User {
     id: number;
@@ -73,7 +73,7 @@ export default function UsageLogShow({ log }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Usage Log #${log.id}`} />
 
-            <div className="w-full max-w-4xl mx-auto space-y-6 p-4 md:p-6">
+            <div className="mx-auto w-full max-w-4xl space-y-6 p-4 md:p-6">
                 {/* Header */}
                 <div className="flex items-center gap-3">
                     <Link href="/admin/usage-logs">
@@ -81,17 +81,17 @@ export default function UsageLogShow({ log }: Props) {
                             <ArrowLeftIcon className="h-4 w-4" />
                         </Button>
                     </Link>
-                    <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Usage Log Details</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Usage Log Details</h1>
                     <Badge variant="outline" className="ml-auto">
                         #{log.id}
                     </Badge>
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                 <CpuIcon className="h-4 w-4" />
                                 Input Tokens
                             </CardTitle>
@@ -102,7 +102,7 @@ export default function UsageLogShow({ log }: Props) {
                     </Card>
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                 <CpuIcon className="h-4 w-4" />
                                 Output Tokens
                             </CardTitle>
@@ -113,7 +113,7 @@ export default function UsageLogShow({ log }: Props) {
                     </Card>
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                 <CoinsIcon className="h-4 w-4" />
                                 Credits Used
                             </CardTitle>
@@ -124,15 +124,13 @@ export default function UsageLogShow({ log }: Props) {
                     </Card>
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                 <DollarSignIcon className="h-4 w-4" />
                                 Cost
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-semibold">
-                                {log.cost ? `$${parseFloat(log.cost).toFixed(4)}` : '-'}
-                            </div>
+                            <div className="text-3xl font-semibold">{log.cost ? `$${parseFloat(log.cost).toFixed(4)}` : '-'}</div>
                         </CardContent>
                     </Card>
                 </div>
@@ -188,25 +186,17 @@ export default function UsageLogShow({ log }: Props) {
 
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-muted-foreground">AI Model</span>
-                                {log.model ? (
-                                    <Badge variant="outline">{log.model}</Badge>
-                                ) : (
-                                    <span className="text-sm">-</span>
-                                )}
+                                {log.model ? <Badge variant="outline">{log.model}</Badge> : <span className="text-sm">-</span>}
                             </div>
 
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-muted-foreground">Total Tokens</span>
-                                <span className="font-mono font-medium">
-                                    {(log.input_tokens + log.output_tokens).toLocaleString()}
-                                </span>
+                                <span className="font-mono font-medium">{(log.input_tokens + log.output_tokens).toLocaleString()}</span>
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <ClockIcon className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">
-                                    {new Date(log.created_at).toLocaleString()}
-                                </span>
+                                <span className="text-sm">{new Date(log.created_at).toLocaleString()}</span>
                             </div>
                         </CardContent>
                     </Card>

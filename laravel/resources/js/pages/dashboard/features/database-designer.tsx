@@ -1,18 +1,18 @@
 import DiagramCanvas from '@/components/database-designer/DiagramCanvas';
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import FormatSelector from '@/components/database-designer/FormatSelector';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useDBMLParser } from '@/hooks/useDBMLParser';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { exportAsSQL } from '@/utils/exportUtils';
+import { convertFormat, detectFormat, type DiagramFormat } from '@/utils/formatConverters';
 import { Head } from '@inertiajs/react';
 import { BackgroundVariant } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, DatabaseIcon, Download, FileCode, FileText } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useDBMLParser } from '@/hooks/useDBMLParser';
-import { exportAsSQL } from '@/utils/exportUtils';
-import { convertFormat, detectFormat, type DiagramFormat } from '@/utils/formatConverters';
 
 interface Project {
     id: number;
@@ -160,7 +160,7 @@ export default function DatabaseDesigner({ project, feature, initialContent }: P
                 <div className="border-b px-4 py-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <h2 className="text-lg font-semibold">Database Schema (Read-Only)</h2>
-                        
+
                         <div className="flex items-center gap-2">
                             {/* Export Dropdown */}
                             <DropdownMenu>
@@ -209,7 +209,7 @@ export default function DatabaseDesigner({ project, feature, initialContent }: P
                             <FormatSelector content={content} onConvert={handleConvert} isConverting={isConverting} />
 
                             {/* Info Note */}
-                            <div className="mx-4 mb-2 rounded border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-3">
+                            <div className="mx-4 mb-2 rounded border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30">
                                 <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">Read-Only View</h3>
                                 <p className="mt-0.5 text-xs text-blue-700 dark:text-blue-300">
                                     This is a read-only view of the database schema. Schema editing is only available to feature owners.

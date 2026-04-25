@@ -1,6 +1,6 @@
+import { ContentCard } from '@/components/ContentCard';
 import FeatureSidebar from '@/components/Features/FeatureSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
-import { ContentCard } from '@/components/ContentCard';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,8 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type Project, type SharedData } from '@/types';
 import { type FeatureItem, type FeaturePriority, type FeatureStatus, type ModuleItem } from '@/types/modules';
+import { getHealthIndicator, getPriorityColor, getStatusColor } from '@/utils/featureStatus';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { getPriorityColor, getStatusColor, getHealthIndicator } from '@/utils/featureStatus';
 import {
     ArrowLeft,
     CheckCircle2,
@@ -99,19 +99,23 @@ export default function Show({ project, module, feature }: Props) {
         });
     }, [feature, setData]);
 
-    const handleStatusChange = useCallback((newStatus: FeatureStatus) => {
-        router.put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, 
-            { status: newStatus },
-            { preserveScroll: true }
-        );
-    }, [project.id, module.id, feature.id]);
+    const handleStatusChange = useCallback(
+        (newStatus: FeatureStatus) => {
+            router.put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, { status: newStatus }, { preserveScroll: true });
+        },
+        [project.id, module.id, feature.id],
+    );
 
-    const handlePriorityChange = useCallback((newPriority: FeaturePriority) => {
-        router.put(`/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`, 
-            { priority: newPriority },
-            { preserveScroll: true }
-        );
-    }, [project.id, module.id, feature.id]);
+    const handlePriorityChange = useCallback(
+        (newPriority: FeaturePriority) => {
+            router.put(
+                `/projects/${project.id}/modules/${module.id}/features/${feature.id}/update`,
+                { priority: newPriority },
+                { preserveScroll: true },
+            );
+        },
+        [project.id, module.id, feature.id],
+    );
 
     // Use backend-computed progress for consistency with sidebar
     const featureProgress = feature.progress ?? 0;
@@ -127,19 +131,50 @@ export default function Show({ project, module, feature }: Props) {
     ];
 
     const artifacts = [
-        { name: 'Feature Overview', completed: !!(feature.description && feature.acceptance_criteria), icon: MessageSquareIcon, action: () => handleEdit(feature.description ? 'acceptance_criteria' : 'description'), disabled: false },
-        { name: 'Database Schema', completed: !!feature.datamodel, icon: DatabaseIcon, action: () => feature.datamodel ? router.visit(`/features/${feature.id}/datamodel`) : undefined, disabled: !feature.datamodel },
-        { name: 'Sequence Diagram', completed: !!feature.sequence_diagram, icon: WorkflowIcon, action: () => feature.sequence_diagram ? router.visit(`/features/${feature.id}/sequence-diagram`) : router.post(`/features/${feature.id}/sequence-diagram/generate`), disabled: false },
-        { name: 'Wireframe', completed: !!feature.wireframe, icon: LayoutIcon, action: () => feature.wireframe ? router.visit(`/features/${feature.id}/wireframe`) : router.post(`/features/${feature.id}/wireframe/generate`), disabled: false },
+        {
+            name: 'Feature Overview',
+            completed: !!(feature.description && feature.acceptance_criteria),
+            icon: MessageSquareIcon,
+            action: () => handleEdit(feature.description ? 'acceptance_criteria' : 'description'),
+            disabled: false,
+        },
+        {
+            name: 'Database Schema',
+            completed: !!feature.datamodel,
+            icon: DatabaseIcon,
+            action: () => (feature.datamodel ? router.visit(`/features/${feature.id}/datamodel`) : undefined),
+            disabled: !feature.datamodel,
+        },
+        {
+            name: 'Sequence Diagram',
+            completed: !!feature.sequence_diagram,
+            icon: WorkflowIcon,
+            action: () =>
+                feature.sequence_diagram
+                    ? router.visit(`/features/${feature.id}/sequence-diagram`)
+                    : router.post(`/features/${feature.id}/sequence-diagram/generate`),
+            disabled: false,
+        },
+        {
+            name: 'Wireframe',
+            completed: !!feature.wireframe,
+            icon: LayoutIcon,
+            action: () =>
+                feature.wireframe ? router.visit(`/features/${feature.id}/wireframe`) : router.post(`/features/${feature.id}/wireframe/generate`),
+            disabled: false,
+        },
     ];
 
     const completedArtifacts = artifacts.filter((a) => a.completed).length;
 
     // Determine health icon background color
-    const healthBgColor = health.color.includes('emerald') ? 'bg-emerald-500/10' 
-        : health.color.includes('blue') ? 'bg-blue-500/10' 
-        : health.color.includes('orange') ? 'bg-amber-500/10' 
-        : 'bg-red-500/10';
+    const healthBgColor = health.color.includes('emerald')
+        ? 'bg-emerald-500/10'
+        : health.color.includes('blue')
+          ? 'bg-blue-500/10'
+          : health.color.includes('orange')
+            ? 'bg-amber-500/10'
+            : 'bg-red-500/10';
 
     return (
         <>
@@ -248,8 +283,12 @@ export default function Show({ project, module, feature }: Props) {
                                     </div>
                                     <div className="h-8 w-px bg-border" />
                                     <div className="flex items-center gap-1.5">
-                                        <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${getStatusColor(data.status)}`}>
-                                            {data.status === 'in_progress' ? 'In Progress' : data.status.charAt(0).toUpperCase() + data.status.slice(1)}
+                                        <span
+                                            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${getStatusColor(data.status)}`}
+                                        >
+                                            {data.status === 'in_progress'
+                                                ? 'In Progress'
+                                                : data.status.charAt(0).toUpperCase() + data.status.slice(1)}
                                         </span>
                                     </div>
                                     <div className="h-8 w-px bg-border" />
@@ -267,37 +306,39 @@ export default function Show({ project, module, feature }: Props) {
                                     </h2>
                                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                         {artifacts.map((item, index) => {
-                                            const iconColorClass = item.disabled 
+                                            const iconColorClass = item.disabled
                                                 ? 'bg-muted/50 text-muted-foreground/50'
-                                                : item.completed 
-                                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                                                    : 'bg-muted text-muted-foreground';
-                                            
+                                                : item.completed
+                                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                  : 'bg-muted text-muted-foreground';
+
                                             return (
                                                 <div
                                                     key={index}
-                                                    className={`group cursor-pointer rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out ${item.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5'}`}
+                                                    className={`group cursor-pointer rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm transition-all duration-200 ease-out ${item.disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-primary/40 hover:bg-card hover:shadow-lg hover:shadow-primary/5'}`}
                                                     onClick={item.disabled ? undefined : item.action}
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-4">
-                                                            <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconColorClass}`}>
+                                                            <div
+                                                                className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconColorClass}`}
+                                                            >
                                                                 <item.icon className="h-6 w-6" />
                                                             </div>
                                                             <div>
-                                                                <span className={`font-medium transition-colors ${item.disabled ? 'text-muted-foreground/50' : 'text-foreground group-hover:text-primary'}`}>
+                                                                <span
+                                                                    className={`font-medium transition-colors ${item.disabled ? 'text-muted-foreground/50' : 'text-foreground group-hover:text-primary'}`}
+                                                                >
                                                                     {item.completed ? 'View & Edit' : 'Generate'}
                                                                 </span>
-                                                                <div className="text-sm text-muted-foreground">
-                                                                    {item.name}
-                                                                </div>
+                                                                <div className="text-sm text-muted-foreground">{item.name}</div>
                                                             </div>
                                                         </div>
                                                         {!item.disabled && (
                                                             <Button
                                                                 variant={item.completed ? 'ghost' : 'default'}
                                                                 size="sm"
-                                                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                className="opacity-0 transition-opacity group-hover:opacity-100"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     item.action();

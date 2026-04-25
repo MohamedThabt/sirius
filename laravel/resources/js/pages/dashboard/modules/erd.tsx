@@ -1,18 +1,18 @@
 import DiagramCanvas from '@/components/database-designer/DiagramCanvas';
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import FormatSelector from '@/components/database-designer/FormatSelector';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useDBMLParser } from '@/hooks/useDBMLParser';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { exportAsSQL } from '@/utils/exportUtils';
+import { convertFormat, detectFormat } from '@/utils/formatConverters';
 import { Head } from '@inertiajs/react';
 import { BackgroundVariant } from '@xyflow/react';
 import { ChevronLeft, ChevronRight, DatabaseIcon, Download, FileCode, FileText } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useDBMLParser } from '@/hooks/useDBMLParser';
-import { exportAsSQL } from '@/utils/exportUtils';
-import { convertFormat, detectFormat } from '@/utils/formatConverters';
 
 interface Project {
     id: number;
@@ -180,7 +180,7 @@ export default function ModuleErd({ project, module, initialContent }: Props) {
                     <Button
                         variant="outline"
                         size="icon"
-                        className="absolute left-0 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-l-none"
+                        className="absolute top-1/2 left-0 z-10 h-8 w-8 -translate-y-1/2 rounded-l-none"
                         style={{ left: isEditorCollapsed ? 0 : `calc(${leftWidth}% - 16px)` }}
                         onClick={() => setIsEditorCollapsed(!isEditorCollapsed)}
                     >
@@ -195,7 +195,7 @@ export default function ModuleErd({ project, module, initialContent }: Props) {
                         <FormatSelector content={content} />
 
                         {/* Info Note */}
-                        <div className="mx-4 mb-4 rounded border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4">
+                        <div className="mx-4 mb-4 rounded border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
                             <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100">Read-Only View</h3>
                             <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
                                 This is a read-only view of the database schema. Schema editing is only available to module owners.
@@ -258,9 +258,7 @@ export default function ModuleErd({ project, module, initialContent }: Props) {
                                     <div className="max-w-md p-8 text-center">
                                         <DatabaseIcon className="mx-auto mb-4 h-16 w-16 text-muted-foreground opacity-20" />
                                         <h3 className="mb-2 text-xl font-semibold text-foreground">No Database Schema</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            The database schema for this module has not been created yet.
-                                        </p>
+                                        <p className="text-sm text-muted-foreground">The database schema for this module has not been created yet.</p>
                                     </div>
                                 </div>
                             )}

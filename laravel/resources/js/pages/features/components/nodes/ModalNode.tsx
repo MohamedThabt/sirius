@@ -1,5 +1,5 @@
 import React from 'react';
-import { type WireframeMode, getStyles, getSelectionStyles } from '../wireframe-styles';
+import { type WireframeMode, getSelectionStyles, getStyles } from '../wireframe-styles';
 
 interface ModalNodeProps {
     node: any;
@@ -21,24 +21,26 @@ export function ModalNode({ node, selectedNodeId, onSelectNode, mode, renderChil
     };
 
     return (
-        <div 
-            onClick={handleSelect} 
-            style={{ 
-                position: 'relative', 
-                ...selectionStyle, 
+        <div
+            onClick={handleSelect}
+            style={{
+                position: 'relative',
+                ...selectionStyle,
                 cursor: 'pointer',
             }}
         >
             {/* Backdrop */}
-            <div style={{ 
-                position: 'absolute', 
-                inset: 0, 
-                background: isPreview ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)', 
-                borderRadius: s.radius.lg,
-                backdropFilter: isPreview ? 'blur(4px)' : 'none',
-                transition: s.transition.normal,
-            }} />
-            
+            <div
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: isPreview ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)',
+                    borderRadius: s.radius.lg,
+                    backdropFilter: isPreview ? 'blur(4px)' : 'none',
+                    transition: s.transition.normal,
+                }}
+            />
+
             {/* Modal Content */}
             <div
                 style={{
@@ -54,19 +56,23 @@ export function ModalNode({ node, selectedNodeId, onSelectNode, mode, renderChil
                 }}
             >
                 {/* Header */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: `${s.spacing.md}px ${s.spacing.lg}px`,
-                    borderBottom: `1px solid ${s.border}`,
-                    background: isPreview ? s.muted : 'transparent',
-                }}>
-                    <div style={{ 
-                        fontWeight: s.fontWeight.semibold, 
-                        fontSize: s.fontSize.lg, 
-                        color: s.foreground,
-                    }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: `${s.spacing.md}px ${s.spacing.lg}px`,
+                        borderBottom: `1px solid ${s.border}`,
+                        background: isPreview ? s.muted : 'transparent',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontWeight: s.fontWeight.semibold,
+                            fontSize: s.fontSize.lg,
+                            color: s.foreground,
+                        }}
+                    >
                         {node.title || 'Modal Title'}
                     </div>
                     <button
@@ -88,21 +94,21 @@ export function ModalNode({ node, selectedNodeId, onSelectNode, mode, renderChil
                         ×
                     </button>
                 </div>
-                
+
                 {/* Body */}
-                <div style={{ padding: s.spacing.lg }}>
-                    {renderChildren(node.children || [], mode)}
-                </div>
-                
+                <div style={{ padding: s.spacing.lg }}>{renderChildren(node.children || [], mode)}</div>
+
                 {/* Footer (optional) */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    gap: s.spacing.sm,
-                    padding: `${s.spacing.md}px ${s.spacing.lg}px`,
-                    borderTop: `1px solid ${s.border}`,
-                    background: isPreview ? s.muted : 'transparent',
-                }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: s.spacing.sm,
+                        padding: `${s.spacing.md}px ${s.spacing.lg}px`,
+                        borderTop: `1px solid ${s.border}`,
+                        background: isPreview ? s.muted : 'transparent',
+                    }}
+                >
                     <button
                         style={{
                             padding: `${s.spacing.sm}px ${s.spacing.md}px`,

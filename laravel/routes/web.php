@@ -220,6 +220,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/upgrade/pro', [\App\Http\Controllers\Billing\PaymentController::class, 'acceptProPayment'])->name('upgrade.pro.submit');
 });
 
+// User Questionnaire
+Route::middleware(['auth'])->group(function () {
+    Route::post('/user/questionnaire', [\App\Http\Controllers\User\UserQuestionController::class, 'store'])->name('user.questionnaire.store');
+});
+
 require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
 

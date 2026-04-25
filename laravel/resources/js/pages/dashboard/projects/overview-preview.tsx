@@ -1,15 +1,15 @@
+import { MermaidDiagram } from '@/components/MermaidDiagram';
 import { Button } from '@/components/ui/button';
-import { Head } from '@inertiajs/react';
-import { ArrowLeftIcon, CodeIcon, CopyIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import mermaid from 'mermaid';
-import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { MermaidDiagram } from '@/components/MermaidDiagram';
+import { Head } from '@inertiajs/react';
+import { ArrowLeftIcon, CodeIcon, CopyIcon } from 'lucide-react';
+import mermaid from 'mermaid';
+import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
+import { toast } from 'sonner';
 
 interface User {
     id: number;
@@ -129,7 +129,7 @@ export default function OverviewPreview({ content, title, projectName, project }
                             </pre>
                         </div>
                     ) : (
-                        <div className="mx-auto max-w-4xl prose dark:prose-invert">
+                        <div className="prose dark:prose-invert mx-auto max-w-4xl">
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 rehypePlugins={[rehypeRaw]}

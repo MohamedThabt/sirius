@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Handle, NodeProps, Position } from '@xyflow/react';
-import { CheckIcon, ChevronDown, ChevronUp, Loader2, Lock as LockIcon, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, CheckIcon, ChevronDown, ChevronUp, Loader2, Lock as LockIcon } from 'lucide-react';
 import { memo } from 'react';
 
 interface FeatureItem {
@@ -113,7 +113,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                 (isLocked || isHardLocked) && 'border-border/40',
                 !isCompleted && !isCurrent && !isLoading && !isLocked && !isHardLocked && 'border-border/60',
                 // Interaction states
-                isClickable && 'cursor-pointer hover:border-primary/70 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5',
+                isClickable && 'cursor-pointer hover:-translate-y-0.5 hover:border-primary/70 hover:shadow-lg hover:shadow-primary/10',
                 !isClickable && 'cursor-not-allowed opacity-50',
                 // Selected state
                 selected && 'ring-2 ring-primary/60 ring-offset-2 ring-offset-transparent',
@@ -126,16 +126,16 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                     id={inputHandleId}
                     type="target"
                     position={inputHandlePosition}
-                    className="!h-2 !w-2 !rounded-full !border-0 !bg-border transition-all duration-200 group-hover:!bg-primary group-hover:!scale-125"
+                    className="!h-2 !w-2 !rounded-full !border-0 !bg-border transition-all duration-200 group-hover:!scale-125 group-hover:!bg-primary"
                 />
             )}
 
             {/* Main content container */}
-            <div className="p-4 space-y-3">
+            <div className="space-y-3 p-4">
                 {/* Header row - Icon + Title + Status */}
                 <div className="flex items-start justify-between gap-3">
                     {/* Icon with system-matched background */}
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-1 items-center gap-2.5">
                         <div
                             className={cn(
                                 'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all duration-200',
@@ -156,9 +156,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                             )}
                         </div>
                         {/* Title using system foreground color */}
-                        <h3 className="text-sm font-semibold tracking-tight text-card-foreground truncate">
-                            {title}
-                        </h3>
+                        <h3 className="truncate text-sm font-semibold tracking-tight text-card-foreground">{title}</h3>
                     </div>
 
                     {/* Status indicator - minimal dot */}
@@ -177,30 +175,23 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                         ) : isCompleted ? (
                             <CheckIcon className="h-2.5 w-2.5 text-white" />
                         ) : isCurrent ? (
-                            <div className="h-1.5 w-1.5 rounded-full bg-primary-foreground animate-pulse" />
-                        ) : (isLocked || isHardLocked) ? (
+                            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-foreground" />
+                        ) : isLocked || isHardLocked ? (
                             <LockIcon className="h-2.5 w-2.5 text-muted-foreground/60" />
                         ) : null}
                     </div>
                 </div>
 
                 {/* Description using muted-foreground */}
-                <p className="text-xs leading-relaxed text-muted-foreground/80 line-clamp-2">
-                    {description}
-                </p>
+                <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">{description}</p>
 
                 {/* Progress bar using system primary */}
                 {typeof progress === 'number' && (
                     <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 rounded-full bg-muted/60 overflow-hidden">
-                            <div
-                                className="h-full bg-primary rounded-full transition-all duration-300"
-                                style={{ width: `${progress}%` }}
-                            />
+                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted/60">
+                            <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
                         </div>
-                        <span className="text-[10px] font-medium text-muted-foreground/70 tabular-nums">
-                            {progress}%
-                        </span>
+                        <span className="text-[10px] font-medium text-muted-foreground/70 tabular-nums">{progress}%</span>
                     </div>
                 )}
 
@@ -208,7 +199,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                 <div className="pt-0.5">
                     <div
                         className={cn(
-                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-200',
+                            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200',
                             isLoading && 'bg-primary/15 text-primary',
                             isCompleted && 'bg-emerald-500/15 text-emerald-500',
                             isCurrent && !isCompleted && !isLoading && 'bg-primary text-primary-foreground',
@@ -228,7 +219,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                             </>
                         ) : isCurrent ? (
                             <span>{currentBadgeLabel}</span>
-                        ) : (isLocked || isHardLocked) ? (
+                        ) : isLocked || isHardLocked ? (
                             <span>Locked</span>
                         ) : (
                             <span>Ready</span>
@@ -238,7 +229,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
 
                 {/* Out of sync warning */}
                 {isOutOfSync && (
-                    <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-amber-500/15 text-amber-500">
+                    <div className="flex items-center gap-2 rounded-lg bg-amber-500/15 px-2.5 py-1.5 text-amber-500">
                         <AlertTriangle className="h-3 w-3 shrink-0" />
                         <span className="text-[10px] font-medium">Out of sync</span>
                     </div>
@@ -246,9 +237,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
 
                 {/* Prerequisite message */}
                 {(isHardLocked || isLocked) && prerequisiteMessage && (
-                    <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
-                        {prerequisiteMessage}
-                    </p>
+                    <p className="text-[10px] leading-relaxed text-muted-foreground/60">{prerequisiteMessage}</p>
                 )}
             </div>
 
@@ -261,18 +250,10 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                             e.stopPropagation();
                             if (onToggleExpand) onToggleExpand();
                         }}
-                        className="nodrag flex w-full items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-medium text-muted-foreground/70 hover:text-card-foreground hover:bg-muted/30 transition-colors"
+                        className="nodrag flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-[11px] font-medium text-muted-foreground/70 transition-colors hover:bg-muted/30 hover:text-card-foreground"
                     >
-                        <span>
-                            {features && features.length > 0
-                                ? `${features.length} features`
-                                : `${modules?.length} modules`}
-                        </span>
-                        {isExpanded ? (
-                            <ChevronUp className="h-3.5 w-3.5" />
-                        ) : (
-                            <ChevronDown className="h-3.5 w-3.5" />
-                        )}
+                        <span>{features && features.length > 0 ? `${features.length} features` : `${modules?.length} modules`}</span>
+                        {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                     </button>
                 </div>
             )}
@@ -283,7 +264,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                     id={outputHandleId}
                     type="source"
                     position={outputHandlePosition}
-                    className="!h-2 !w-2 !rounded-full !border-0 !bg-border transition-all duration-200 group-hover:!bg-primary group-hover:!scale-125"
+                    className="!h-2 !w-2 !rounded-full !border-0 !bg-border transition-all duration-200 group-hover:!scale-125 group-hover:!bg-primary"
                 />
             )}
             {showSecondaryOutputHandle && (
@@ -291,7 +272,7 @@ const WorkflowNode = memo(({ data, selected }: WorkflowNodeProps) => {
                     id={secondaryOutputHandleId}
                     type="source"
                     position={secondaryOutputHandlePosition}
-                    className="!h-2 !w-2 !rounded-full !border-0 !bg-border transition-all duration-200 group-hover:!bg-primary group-hover:!scale-125"
+                    className="!h-2 !w-2 !rounded-full !border-0 !bg-border transition-all duration-200 group-hover:!scale-125 group-hover:!bg-primary"
                 />
             )}
         </div>

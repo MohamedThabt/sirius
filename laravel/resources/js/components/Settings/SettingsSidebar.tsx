@@ -6,13 +6,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
 import { router } from '@inertiajs/react';
-import {
-    ActivityIcon,
-    ChevronDownIcon,
-    FolderKanbanIcon,
-    LockIcon,
-    UserIcon,
-} from 'lucide-react';
+import { ActivityIcon, ChevronDownIcon, FolderKanbanIcon, LockIcon, UserIcon } from 'lucide-react';
 
 interface Props {
     auth: { user: User };
@@ -52,7 +46,7 @@ export default function SettingsSidebar({ auth, isSidebarCollapsed, currentPath 
 
     return (
         <aside
-            className={`sticky top-0 h-screen shrink-0 border-r bg-background transition-all duration-300 scrollbar-hide ${
+            className={`scrollbar-hide sticky top-0 h-screen shrink-0 border-r bg-background transition-all duration-300 ${
                 isSidebarCollapsed ? 'w-0 -translate-x-full lg:w-16 lg:translate-x-0' : 'w-64'
             }`}
         >
@@ -81,7 +75,7 @@ export default function SettingsSidebar({ auth, isSidebarCollapsed, currentPath 
                             key={item.key}
                             onClick={() => router.get(item.href)}
                             className={[
-                                'flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors cursor-pointer',
+                                'flex w-full cursor-pointer items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
                                 currentPath === item.href
                                     ? 'bg-muted font-medium text-foreground'
                                     : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
@@ -107,13 +101,13 @@ export default function SettingsSidebar({ auth, isSidebarCollapsed, currentPath 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground cursor-pointer ${
+                                className={`flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground ${
                                     isSidebarCollapsed ? 'justify-center' : ''
                                 }`}
                             >
                                 <Avatar className="h-5 w-5 shrink-0">
                                     <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                    <AvatarFallback className="text-[10px] bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                    <AvatarFallback className="bg-neutral-200 text-[10px] text-black dark:bg-neutral-700 dark:text-white">
                                         {getInitials(auth.user.name)}
                                     </AvatarFallback>
                                 </Avatar>

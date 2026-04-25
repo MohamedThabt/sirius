@@ -1,6 +1,6 @@
 /**
  * Semantic Color System
- * 
+ *
  * Centralized semantic color definitions for consistent theming across the application.
  * Uses theme-based colors with semantic color enhancements for UX clarity.
  * All components should import colors from this file to maintain consistency.
@@ -19,7 +19,7 @@ export const semanticColors = {
         hover: 'hover:bg-emerald-500/20',
         icon: 'text-emerald-600 dark:text-emerald-400',
     },
-    
+
     // Error/Destructive states (red)
     error: {
         badge: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30',
@@ -29,7 +29,7 @@ export const semanticColors = {
         hover: 'hover:bg-red-500/20',
         icon: 'text-red-600 dark:text-red-400',
     },
-    
+
     // Warning states (yellow/amber)
     warning: {
         badge: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30',
@@ -39,7 +39,7 @@ export const semanticColors = {
         hover: 'hover:bg-amber-500/20',
         icon: 'text-amber-600 dark:text-amber-400',
     },
-    
+
     // Info states (blue)
     info: {
         badge: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30',
@@ -49,7 +49,7 @@ export const semanticColors = {
         hover: 'hover:bg-blue-500/20',
         icon: 'text-blue-600 dark:text-blue-400',
     },
-    
+
     // Neutral states (slate/gray)
     neutral: {
         badge: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30',
@@ -59,7 +59,7 @@ export const semanticColors = {
         hover: 'hover:bg-slate-500/20',
         icon: 'text-slate-600 dark:text-slate-400',
     },
-    
+
     // Purple states
     purple: {
         badge: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/30',
@@ -69,7 +69,7 @@ export const semanticColors = {
         hover: 'hover:bg-purple-500/20',
         icon: 'text-purple-600 dark:text-purple-400',
     },
-    
+
     // Orange states
     orange: {
         badge: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30',

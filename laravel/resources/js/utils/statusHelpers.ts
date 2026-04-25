@@ -1,12 +1,12 @@
-import { CheckCircle2, CircleIcon, ClockIcon } from 'lucide-react';
 import type { FeaturePriority, FeatureStatus, ModuleStatus, StatusConfig } from '@/types/modules';
+import { CheckCircle2, CircleIcon, ClockIcon } from 'lucide-react';
 
 // ============================================
 // Module Status Configuration
 // ============================================
 
 /**
- * WHY: These status color/icon mappings were duplicated in Index.tsx, 
+ * WHY: These status color/icon mappings were duplicated in Index.tsx,
  * ModuleShow.tsx, and partially in ModulesSuggestion.tsx. Centralizing them:
  * 1. Ensures visual consistency across all module pages
  * 2. Reduces bundle size (single definition)

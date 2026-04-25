@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { type WireframeMode, getStyles, getSelectionStyles } from '../wireframe-styles';
+import { type WireframeMode, getSelectionStyles, getStyles } from '../wireframe-styles';
 
 interface AccordionNodeProps {
     node: any;
@@ -23,7 +23,7 @@ export function AccordionNode({ node, selectedNodeId, onSelectNode, mode, render
 
     const toggleItem = (index: number, e: React.MouseEvent) => {
         e.stopPropagation();
-        setExpandedItems(prev => {
+        setExpandedItems((prev) => {
             const next = new Set(prev);
             if (next.has(index)) {
                 next.delete(index);
@@ -40,17 +40,17 @@ export function AccordionNode({ node, selectedNodeId, onSelectNode, mode, render
     ];
 
     return (
-        <div 
-            onClick={handleSelect} 
-            style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
+        <div
+            onClick={handleSelect}
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
                 gap: isPreview ? 0 : s.spacing.sm,
                 border: isPreview ? `1px solid ${s.border}` : 'none',
                 borderRadius: isPreview ? s.radius.lg : 0,
                 overflow: 'hidden',
                 boxShadow: isPreview ? s.shadow.sm : 'none',
-                ...selectionStyle, 
+                ...selectionStyle,
                 cursor: 'pointer',
             }}
         >
@@ -58,12 +58,12 @@ export function AccordionNode({ node, selectedNodeId, onSelectNode, mode, render
                 const isExpanded = expandedItems.has(index);
                 const isFirst = index === 0;
                 const isLast = index === items.length - 1;
-                
+
                 return (
-                    <div 
-                        key={`${it.id}-${index}`} 
-                        style={{ 
-                            border: isPreview ? 'none' : `1px solid ${s.border}`, 
+                    <div
+                        key={`${it.id}-${index}`}
+                        style={{
+                            border: isPreview ? 'none' : `1px solid ${s.border}`,
                             borderTop: isPreview && !isFirst ? `1px solid ${s.border}` : undefined,
                             borderRadius: isPreview ? 0 : s.radius.lg,
                             overflow: 'hidden',
@@ -72,14 +72,12 @@ export function AccordionNode({ node, selectedNodeId, onSelectNode, mode, render
                         {/* Header */}
                         <button
                             onClick={(e) => toggleItem(index, e)}
-                            style={{ 
+                            style={{
                                 width: '100%',
-                                padding: `${s.spacing.md}px ${s.spacing.lg}px`, 
-                                background: isPreview 
-                                    ? (isExpanded ? s.muted : s.card)
-                                    : s.muted, 
-                                fontWeight: s.fontWeight.medium, 
-                                color: s.foreground, 
+                                padding: `${s.spacing.md}px ${s.spacing.lg}px`,
+                                background: isPreview ? (isExpanded ? s.muted : s.card) : s.muted,
+                                fontWeight: s.fontWeight.medium,
+                                color: s.foreground,
                                 fontSize: s.fontSize.sm,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -91,32 +89,32 @@ export function AccordionNode({ node, selectedNodeId, onSelectNode, mode, render
                             }}
                         >
                             <span>{it.label || `Section ${index + 1}`}</span>
-                            <span style={{ 
-                                color: s.mutedForeground, 
-                                fontSize: s.fontSize.sm,
-                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                                transition: s.transition.fast,
-                            }}>
+                            <span
+                                style={{
+                                    color: s.mutedForeground,
+                                    fontSize: s.fontSize.sm,
+                                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                    transition: s.transition.fast,
+                                }}
+                            >
                                 ▼
                             </span>
                         </button>
-                        
+
                         {/* Content */}
-                        <div style={{ 
-                            padding: isExpanded ? s.spacing.lg : 0,
-                            maxHeight: isExpanded ? 500 : 0,
-                            overflow: 'hidden',
-                            background: s.card,
-                            transition: isPreview ? s.transition.normal : 'none',
-                            opacity: isExpanded ? 1 : 0,
-                        }}>
-                            {(Array.isArray(it.content) ? it.content : [it.content])
-                                .filter(Boolean)
-                                .map((child: any, childIndex: number) => (
-                                    <div key={`${child.id || `child-${childIndex}`}-${index}`}>
-                                        {renderChildren([child], mode)}
-                                    </div>
-                                ))}
+                        <div
+                            style={{
+                                padding: isExpanded ? s.spacing.lg : 0,
+                                maxHeight: isExpanded ? 500 : 0,
+                                overflow: 'hidden',
+                                background: s.card,
+                                transition: isPreview ? s.transition.normal : 'none',
+                                opacity: isExpanded ? 1 : 0,
+                            }}
+                        >
+                            {(Array.isArray(it.content) ? it.content : [it.content]).filter(Boolean).map((child: any, childIndex: number) => (
+                                <div key={`${child.id || `child-${childIndex}`}-${index}`}>{renderChildren([child], mode)}</div>
+                            ))}
                         </div>
                     </div>
                 );

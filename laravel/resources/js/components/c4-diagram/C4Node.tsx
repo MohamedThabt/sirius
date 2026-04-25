@@ -3,28 +3,18 @@ import { BaseNode, BaseNodeContent, BaseNodeHeader, BaseNodeHeaderTitle } from '
 import { cn } from '@/lib/utils';
 import { C4Element } from '@/utils/c4Validator';
 import { Handle, NodeProps, Position } from '@xyflow/react';
-import {
-    Box,
-    Cloud,
-    Cog,
-    Component as ComponentIcon,
-    Container,
-    Database,
-    Globe,
-    Layers,
-    Server,
-    Smartphone,
-    User,
-    Users,
-} from 'lucide-react';
+import { Box, Cloud, Cog, Component as ComponentIcon, Container, Database, Globe, Layers, Server, Smartphone, User, Users } from 'lucide-react';
 import { memo } from 'react';
 
 // C4 element type configurations with appropriate icons and badge colors
-const elementConfig: Record<string, {
-    icon: React.ComponentType<{ className?: string }>;
-    badgeClass: string;
-    label: string;
-}> = {
+const elementConfig: Record<
+    string,
+    {
+        icon: React.ComponentType<{ className?: string }>;
+        badgeClass: string;
+        label: string;
+    }
+> = {
     person: {
         icon: User,
         badgeClass: 'border-blue-500/50 bg-blue-500/10 text-blue-600 dark:text-blue-400',
@@ -101,14 +91,14 @@ const technologyIcons: Record<string, React.ComponentType<{ className?: string }
     cassandra: Database,
     mariadb: Database,
     sqlite: Database,
-    
+
     // APIs & Gateways
     api: Layers,
     rest: Layers,
     graphql: Layers,
     grpc: Layers,
     gateway: Layers,
-    
+
     // Web Technologies
     web: Globe,
     browser: Globe,
@@ -120,7 +110,7 @@ const technologyIcons: Record<string, React.ComponentType<{ className?: string }
     nextjs: Globe,
     nuxt: Globe,
     gatsby: Globe,
-    
+
     // Mobile Technologies
     mobile: Smartphone,
     ios: Smartphone,
@@ -129,7 +119,7 @@ const technologyIcons: Record<string, React.ComponentType<{ className?: string }
     'react-native': Smartphone,
     'react native': Smartphone,
     reactnative: Smartphone,
-    
+
     // Backend/Server Technologies
     server: Server,
     nginx: Server,
@@ -144,7 +134,7 @@ const technologyIcons: Record<string, React.ComponentType<{ className?: string }
     expressjs: Server,
     nestjs: Server,
     laravel: Server,
-    
+
     // Cloud & Infrastructure
     cloud: Cloud,
     aws: Cloud,
@@ -153,7 +143,7 @@ const technologyIcons: Record<string, React.ComponentType<{ className?: string }
     docker: Cloud,
     kubernetes: Cloud,
     k8s: Cloud,
-    
+
     // Microservices & Components
     microservice: Cog,
     service: Cog,
@@ -162,58 +152,89 @@ const technologyIcons: Record<string, React.ComponentType<{ className?: string }
 const getConfigForElement = (element: C4Element) => {
     // Determine the config key
     let configKey = element.type;
-    
+
     // Handle external systems
     if (element.type === 'software-system' && element.isExternal) {
         configKey = 'software-system-external';
     }
-    
+
     // Handle external persons
     if (element.type === 'person' && element.isExternal) {
         configKey = 'person-external';
     }
-    
+
     // Check technology for special types (with normalized matching)
     if (element.technology) {
         const tech = element.technology.toLowerCase().trim();
-        
+
         // Database detection
-        if (tech.includes('database') || tech.includes('postgres') || tech.includes('mysql') || 
-            tech.includes('mongo') || tech.includes('redis') || tech.includes('mariadb') ||
-            tech.includes('cassandra') || tech.includes('elasticsearch') || tech.includes('sqlite')) {
+        if (
+            tech.includes('database') ||
+            tech.includes('postgres') ||
+            tech.includes('mysql') ||
+            tech.includes('mongo') ||
+            tech.includes('redis') ||
+            tech.includes('mariadb') ||
+            tech.includes('cassandra') ||
+            tech.includes('elasticsearch') ||
+            tech.includes('sqlite')
+        ) {
             configKey = 'database';
-        } 
+        }
         // API Gateway detection
         else if (tech.includes('api') || tech.includes('gateway')) {
             configKey = 'api-gateway';
-        } 
+        }
         // Web Application detection
-        else if (tech.includes('web') || tech.includes('browser') || tech.includes('spa') || 
-                 tech.includes('react') || tech.includes('vue') || tech.includes('angular') ||
-                 tech.includes('svelte') || tech.includes('next') || tech.includes('nuxt') ||
-                 tech.includes('gatsby') || tech.includes('frontend')) {
+        else if (
+            tech.includes('web') ||
+            tech.includes('browser') ||
+            tech.includes('spa') ||
+            tech.includes('react') ||
+            tech.includes('vue') ||
+            tech.includes('angular') ||
+            tech.includes('svelte') ||
+            tech.includes('next') ||
+            tech.includes('nuxt') ||
+            tech.includes('gatsby') ||
+            tech.includes('frontend')
+        ) {
             configKey = 'web-application';
-        } 
+        }
         // Mobile Application detection
-        else if (tech.includes('mobile') || tech.includes('ios') || tech.includes('android') || 
-                 tech.includes('flutter') || tech.includes('react native') || tech.includes('react-native')) {
+        else if (
+            tech.includes('mobile') ||
+            tech.includes('ios') ||
+            tech.includes('android') ||
+            tech.includes('flutter') ||
+            tech.includes('react native') ||
+            tech.includes('react-native')
+        ) {
             configKey = 'mobile-application';
-        } 
+        }
         // Microservice detection
-        else if (tech.includes('microservice') || tech.includes('service') ||
-                 tech.includes('spring') || tech.includes('django') || tech.includes('flask') ||
-                 tech.includes('fastapi') || tech.includes('express') || tech.includes('nestjs') ||
-                 tech.includes('laravel') || tech.includes('backend')) {
+        else if (
+            tech.includes('microservice') ||
+            tech.includes('service') ||
+            tech.includes('spring') ||
+            tech.includes('django') ||
+            tech.includes('flask') ||
+            tech.includes('fastapi') ||
+            tech.includes('express') ||
+            tech.includes('nestjs') ||
+            tech.includes('laravel') ||
+            tech.includes('backend')
+        ) {
             configKey = 'microservice';
         }
     }
-    
+
     return elementConfig[configKey] || elementConfig['software-system'];
 };
 
 const getIconForTechnology = (technology: string | undefined, defaultIcon: React.ComponentType<{ className?: string }>) => {
     if (!technology) return defaultIcon;
-    
+
     const tech = technology.toLowerCase();
     for (const [key, icon] of Object.entries(technologyIcons)) {
         if (tech.includes(key)) {
@@ -233,7 +254,7 @@ const C4Node = memo(({ data, selected }: NodeProps<any>) => {
         return (
             <div
                 className={cn(
-                    'relative rounded-xl border-[3px] border-dashed overflow-hidden',
+                    'relative overflow-hidden rounded-xl border-[3px] border-dashed',
                     'border-indigo-400/60 dark:border-indigo-500/50',
                     'bg-gradient-to-br from-indigo-50/40 via-purple-50/30 to-transparent',
                     'dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-transparent',
@@ -243,19 +264,17 @@ const C4Node = memo(({ data, selected }: NodeProps<any>) => {
                 style={{ width: element.width, height: element.height }}
             >
                 {/* Header bar with gradient */}
-                <div className="absolute top-0 left-0 right-0 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500/20 via-purple-500/15 to-indigo-500/10 dark:from-indigo-500/30 dark:via-purple-500/20 dark:to-indigo-500/15 border-b border-dashed border-indigo-400/40 dark:border-indigo-500/30">
+                <div className="absolute top-0 right-0 left-0 flex items-center gap-2 border-b border-dashed border-indigo-400/40 bg-gradient-to-r from-indigo-500/20 via-purple-500/15 to-indigo-500/10 px-4 py-2 dark:border-indigo-500/30 dark:from-indigo-500/30 dark:via-purple-500/20 dark:to-indigo-500/15">
                     <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-500/20 dark:bg-indigo-500/30">
                         <Box className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300 tracking-wide">
-                        {element.name}
-                    </span>
+                    <span className="text-sm font-semibold tracking-wide text-indigo-700 dark:text-indigo-300">{element.name}</span>
                 </div>
                 {/* Decorative corner accents */}
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-[3px] border-l-[3px] border-indigo-500/60 dark:border-indigo-400/50 rounded-tl-xl" />
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-[3px] border-r-[3px] border-indigo-500/60 dark:border-indigo-400/50 rounded-tr-xl" />
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-[3px] border-l-[3px] border-indigo-500/60 dark:border-indigo-400/50 rounded-bl-xl" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-[3px] border-r-[3px] border-indigo-500/60 dark:border-indigo-400/50 rounded-br-xl" />
+                <div className="absolute top-0 left-0 h-4 w-4 rounded-tl-xl border-t-[3px] border-l-[3px] border-indigo-500/60 dark:border-indigo-400/50" />
+                <div className="absolute top-0 right-0 h-4 w-4 rounded-tr-xl border-t-[3px] border-r-[3px] border-indigo-500/60 dark:border-indigo-400/50" />
+                <div className="absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b-[3px] border-l-[3px] border-indigo-500/60 dark:border-indigo-400/50" />
+                <div className="absolute right-0 bottom-0 h-4 w-4 rounded-br-xl border-r-[3px] border-b-[3px] border-indigo-500/60 dark:border-indigo-400/50" />
             </div>
         );
     }
@@ -270,21 +289,12 @@ const C4Node = memo(({ data, selected }: NodeProps<any>) => {
             )}
         >
             {/* Input Handle */}
-            <Handle
-                type="target"
-                position={Position.Top}
-                className="!h-3 !w-3 !bg-primary !border-2 !border-background"
-            />
+            <Handle type="target" position={Position.Top} className="!h-3 !w-3 !border-2 !border-background !bg-primary" />
 
             {/* Header with Icon and Type */}
             <BaseNodeHeader className="justify-between bg-background">
                 <div className="flex items-center gap-2">
-                    <div
-                        className={cn(
-                            'flex h-8 w-8 items-center justify-center rounded-lg transition-all',
-                            'bg-muted text-muted-foreground',
-                        )}
-                    >
+                    <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg transition-all', 'bg-muted text-muted-foreground')}>
                         <Icon className="h-4 w-4" />
                     </div>
                     <BaseNodeHeaderTitle className="text-xs">{element.name}</BaseNodeHeaderTitle>
@@ -298,23 +308,15 @@ const C4Node = memo(({ data, selected }: NodeProps<any>) => {
 
             {/* Content */}
             <BaseNodeContent className="space-y-3">
-                <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">
-                    {element.description || 'No description available'}
-                </p>
+                <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">{element.description || 'No description available'}</p>
 
                 {/* Type and Technology Badges */}
                 <div className="flex flex-wrap justify-center gap-1.5">
-                    <Badge
-                        variant="outline"
-                        className={cn('text-[10px] font-semibold', config.badgeClass)}
-                    >
+                    <Badge variant="outline" className={cn('text-[10px] font-semibold', config.badgeClass)}>
                         {config.label}
                     </Badge>
                     {element.technology && (
-                        <Badge
-                            variant="outline"
-                            className="text-[10px] font-semibold"
-                        >
+                        <Badge variant="outline" className="text-[10px] font-semibold">
                             {element.technology}
                         </Badge>
                     )}
@@ -322,11 +324,7 @@ const C4Node = memo(({ data, selected }: NodeProps<any>) => {
             </BaseNodeContent>
 
             {/* Output Handle */}
-            <Handle
-                type="source"
-                position={Position.Bottom}
-                className="!h-3 !w-3 !bg-primary !border-2 !border-background"
-            />
+            <Handle type="source" position={Position.Bottom} className="!h-3 !w-3 !border-2 !border-background !bg-primary" />
         </BaseNode>
     );
 });

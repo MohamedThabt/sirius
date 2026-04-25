@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeftIcon, Receipt, UserIcon, CreditCard, CalendarIcon, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowLeftIcon, CalendarIcon, CheckCircle, Clock, CreditCard, Receipt, UserIcon, XCircle } from 'lucide-react';
 
 interface User {
     id: number;
@@ -58,11 +58,26 @@ const breadcrumbs: BreadcrumbItem[] = [
 const getStatusBadge = (status: string) => {
     switch (status) {
         case 'active':
-            return <Badge variant="default" className="bg-green-500/10 text-green-600 dark:text-green-400"><CheckCircle className="h-3 w-3 mr-1" />Active</Badge>;
+            return (
+                <Badge variant="default" className="bg-green-500/10 text-green-600 dark:text-green-400">
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    Active
+                </Badge>
+            );
         case 'cancelled':
-            return <Badge variant="secondary"><XCircle className="h-3 w-3 mr-1" />Cancelled</Badge>;
+            return (
+                <Badge variant="secondary">
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Cancelled
+                </Badge>
+            );
         case 'expired':
-            return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />Expired</Badge>;
+            return (
+                <Badge variant="outline">
+                    <Clock className="mr-1 h-3 w-3" />
+                    Expired
+                </Badge>
+            );
         default:
             return <Badge variant="outline">{status}</Badge>;
     }
@@ -81,7 +96,7 @@ export default function SubscriptionShow({ subscription }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Subscription Details - ${subscription.user.name}`} />
 
-            <div className="w-full max-w-7xl mx-auto space-y-6 p-4 md:p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6">
                 {/* Header */}
                 <div className="flex items-center gap-3">
                     <Link href="/admin/subscriptions">
@@ -89,7 +104,7 @@ export default function SubscriptionShow({ subscription }: Props) {
                             <ArrowLeftIcon className="h-4 w-4" />
                         </Button>
                     </Link>
-                    <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Subscription Details</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Subscription Details</h1>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
@@ -120,9 +135,7 @@ export default function SubscriptionShow({ subscription }: Props) {
                                         <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                                         <span className="text-sm">Started At</span>
                                     </div>
-                                    <span className="text-sm font-medium">
-                                        {new Date(subscription.started_at).toLocaleString()}
-                                    </span>
+                                    <span className="text-sm font-medium">{new Date(subscription.started_at).toLocaleString()}</span>
                                 </div>
 
                                 <div className="flex items-center justify-between">
@@ -209,15 +222,12 @@ export default function SubscriptionShow({ subscription }: Props) {
                             <div>
                                 <h3 className="text-lg font-medium">{subscription.user.name}</h3>
                                 <p className="text-sm text-muted-foreground">{subscription.user.email}</p>
-                                <p className="text-xs text-muted-foreground mt-1">
+                                <p className="mt-1 text-xs text-muted-foreground">
                                     Joined {new Date(subscription.user.created_at).toLocaleDateString()}
                                 </p>
                             </div>
                             <div className="ml-auto">
-                                <Button
-                                    onClick={() => router.visit(`/admin/users/${subscription.user.id}`)}
-                                    variant="outline"
-                                >
+                                <Button onClick={() => router.visit(`/admin/users/${subscription.user.id}`)} variant="outline">
                                     View User Profile
                                 </Button>
                             </div>

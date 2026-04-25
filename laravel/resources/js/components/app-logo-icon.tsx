@@ -11,15 +11,9 @@ export default function AppLogoIcon({ alt = 'Sirius logo', className, ...props }
     return (
         <>
             <img {...props} className={cn('dark:hidden', className)} src={lightLogoUrl} alt={alt} />
-            <img
-                {...props}
-                className={cn('hidden dark:inline', className)}
-                src={darkLogoUrl}
-                alt={alt}
-                aria-hidden="true"
-            />
+            <img {...props} className={cn('hidden dark:inline', className)} src={darkLogoUrl} alt={alt} aria-hidden="true" />
         </>
     );
 }
 
-export { lightLogoUrl, darkLogoUrl };
+export { darkLogoUrl, lightLogoUrl };

@@ -106,7 +106,10 @@ export default function FeaturesIndex({ project, features }: Props) {
                                             <div className="mb-4 flex items-start justify-between gap-3">
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2">
-                                                        {(() => { const StatusIcon = getStatusIcon(feature.status); return <StatusIcon className="h-4 w-4" />; })()}
+                                                        {(() => {
+                                                            const StatusIcon = getStatusIcon(feature.status);
+                                                            return <StatusIcon className="h-4 w-4" />;
+                                                        })()}
                                                         <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary">
                                                             {feature.name}
                                                         </h3>
@@ -121,7 +124,10 @@ export default function FeaturesIndex({ project, features }: Props) {
 
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <Badge className={`border text-xs font-medium ${getStatusColor(feature.status)}`}>
-                                                    {(() => { const StatusIcon = getStatusIcon(feature.status); return <StatusIcon className="h-3 w-3" />; })()}
+                                                    {(() => {
+                                                        const StatusIcon = getStatusIcon(feature.status);
+                                                        return <StatusIcon className="h-3 w-3" />;
+                                                    })()}
                                                     <span className="ml-1">{feature.status === 'in_progress' ? 'In Progress' : feature.status}</span>
                                                 </Badge>
                                                 <Badge className={`border text-xs font-medium capitalize ${getPriorityColor(feature.priority)}`}>
@@ -133,11 +139,9 @@ export default function FeaturesIndex({ project, features }: Props) {
                                             </div>
 
                                             {/* Progress bar */}
-                                            <div className="mt-4 flex items-center gap-2 pt-3 border-t border-border/40">
-                                                <Progress value={feature.progress ?? 0} className="flex-1 h-1.5" />
-                                                <span className="text-xs text-muted-foreground/60">
-                                                    {feature.progress ?? 0}%
-                                                </span>
+                                            <div className="mt-4 flex items-center gap-2 border-t border-border/40 pt-3">
+                                                <Progress value={feature.progress ?? 0} className="h-1.5 flex-1" />
+                                                <span className="text-xs text-muted-foreground/60">{feature.progress ?? 0}%</span>
                                             </div>
                                         </div>
                                     ))}

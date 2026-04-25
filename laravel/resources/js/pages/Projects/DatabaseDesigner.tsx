@@ -2,8 +2,8 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import DiagramCanvas from '@/components/database-designer/DiagramCanvas';
 import EditorPanel from '@/components/database-designer/EditorPanel';
 import FormatSelector from '@/components/database-designer/FormatSelector';
-import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
+import ProjectSidebarPanel from '@/components/Projects/ProjectSidebarPanel';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,20 +17,36 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Toaster } from '@/components/ui/sonner';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { useResizablePanel } from '@/hooks/use-resizable-panel';
+import { useIsDarkMode } from '@/hooks/use-theme-detection';
 import { useDBMLParser } from '@/hooks/useDBMLParser';
-import { type User, type Project, type Sections } from '@/types';
+import { type Project, type Sections, type User } from '@/types';
 import { exportAsSQL } from '@/utils/exportUtils';
 import { convertFormat, detectFormat, DiagramFormat } from '@/utils/formatConverters';
 import { getHealthStatus } from '@/utils/project-status';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { BackgroundVariant } from '@xyflow/react';
-import { ChevronLeft, ChevronRight, CodeIcon, Database as DatabaseIcon, Download, FileCode, FileIcon, FileText, Grid3X3, Layers, Maximize2, MenuIcon, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Database as DatabaseIcon,
+    Download,
+    FileCode,
+    FileText,
+    Grid3X3,
+    Layers,
+    Maximize2,
+    MenuIcon,
+    Palette,
+    Plus,
+    Search,
+    Snowflake,
+    TreePine,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Toaster } from '@/components/ui/sonner';
-import { useIsDarkMode } from '@/hooks/use-theme-detection';
-import { useResizablePanel } from '@/hooks/use-resizable-panel';
 
 // WHY: Removed ~25 lines of duplicate interface definitions.
 // Types now imported from '@/types'
@@ -63,7 +79,12 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
     const isDarkMode = useIsDarkMode();
 
     // WHY: Replaced ~50 lines of resize logic with shared hook
-    const { width: leftWidth, isResizing, handleMouseDown, containerRef } = useResizablePanel({
+    const {
+        width: leftWidth,
+        isResizing,
+        handleMouseDown,
+        containerRef,
+    } = useResizablePanel({
         initialWidth: 50,
         minWidth: 20,
         maxWidth: 80,
@@ -207,11 +228,15 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
                                         <div className="flex items-center gap-3">
                                             <Sheet>
                                                 <SheetTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
+                                                    >
                                                         <MenuIcon className="h-4 w-4" />
                                                     </Button>
                                                 </SheetTrigger>
-                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
                                                     <ProjectSidebarPanel
                                                         project={project}
                                                         navGroups={navGroups}
@@ -515,7 +540,7 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
                         </div>
                         <div id="resizable-container" className="relative flex min-h-0 flex-1 overflow-hidden">
                             {/* Diagram Panel in Fullscreen */}
-                            <div className="relative flex min-h-0 min-w-0 flex-col w-full">
+                            <div className="relative flex min-h-0 w-full min-w-0 flex-col">
                                 <div className="min-h-0 flex-1">
                                     {content ? (
                                         <DiagramCanvas

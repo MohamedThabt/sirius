@@ -1,7 +1,6 @@
 import { NavMain } from '@/components/nav-main';
 import { type NavItem } from '@/types';
 import { generateProjectNavigation, getStatusIcon, type ProjectData } from '@/utils/project-navigation';
-import { usePage } from '@inertiajs/react';
 
 interface ProjectNavProps {
     project: ProjectData;
@@ -33,4 +32,3 @@ export function ProjectNav({ project }: ProjectNavProps) {
         </>
     );
 }
-

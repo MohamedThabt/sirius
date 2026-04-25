@@ -134,7 +134,7 @@ export default function FeedbackShow({ feedback, statuses }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Feedback: ${feedback.type}`} />
 
-                <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -366,7 +366,7 @@ export default function FeedbackShow({ feedback, statuses }: Props) {
                         </Card>
                     </div>
                 </div>
-                </div>
+            </div>
         </AppLayout>
     );
 }

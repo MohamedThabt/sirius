@@ -49,6 +49,10 @@ Route::middleware('auth:admin')->group(function () {
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::post('users/{user}/add-credits', [UserController::class, 'addCredits'])->name('admin.users.add-credits');
     
+    // User Questionnaires
+    Route::get('questionnaires', [\App\Http\Controllers\Dashboard\AdminQuestionController::class, 'index'])->name('admin.questionnaires.index');
+    Route::get('questionnaires/{question}', [\App\Http\Controllers\Dashboard\AdminQuestionController::class, 'show'])->name('admin.questionnaires.show');
+    
     // Email Management
     Route::get('emails', [EmailController::class, 'index'])->name('admin.emails.index');
     Route::post('emails/send', [EmailController::class, 'send'])->name('admin.emails.send');

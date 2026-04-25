@@ -38,9 +38,7 @@ interface UseResizablePanelReturn {
     containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export function useResizablePanel(
-    options: UseResizablePanelOptions = {}
-): UseResizablePanelReturn {
+export function useResizablePanel(options: UseResizablePanelOptions = {}): UseResizablePanelReturn {
     const { initialWidth = 50, minWidth = 20, maxWidth = 80 } = options;
 
     const [width, setWidth] = useState(initialWidth);
@@ -72,7 +70,7 @@ export function useResizablePanel(
                 setWidth(constrained);
             });
         },
-        [isResizing, minWidth, maxWidth]
+        [isResizing, minWidth, maxWidth],
     );
 
     const handleMouseUp = useCallback(() => {

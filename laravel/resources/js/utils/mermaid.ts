@@ -155,7 +155,7 @@ export const validateMermaidSyntax = (code: string): MermaidValidationResult => 
 
     if (!VALID_DIAGRAM_TYPES.some((type) => firstLine.startsWith(type.toLowerCase()))) {
         errors.push(
-            `Invalid or missing diagram type declaration. Expected one of: ${VALID_DIAGRAM_TYPES.slice(0, 5).join(', ')}, etc. Found: "${diagramType || 'none'}"`
+            `Invalid or missing diagram type declaration. Expected one of: ${VALID_DIAGRAM_TYPES.slice(0, 5).join(', ')}, etc. Found: "${diagramType || 'none'}"`,
         );
     }
 
