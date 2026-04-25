@@ -16,9 +16,13 @@ const Feature = ({
     return (
         <div
             className={cn(
-                'flex flex-col lg:border-r py-10 relative group/feature border-border',
-                (index === 0 || index === 4) && 'lg:border-l border-border',
-                index < 4 && 'lg:border-b border-border'
+                'flex flex-col py-10 relative group/feature border-border',
+                'border-b',
+                index === 3 && 'border-b-0',
+                index < 2 ? 'md:border-b' : 'md:border-b-0',
+                index % 2 === 0 ? 'md:border-r' : 'md:border-r-0',
+                'lg:border-b-0',
+                index < 3 ? 'lg:border-r' : 'lg:border-r-0'
             )}
         >
             {index < 4 && (
@@ -60,7 +64,7 @@ export const ProblemSolutionSection: React.FC = () => {
                 </div>
 
                 {/* Features Grid with Hover Effects */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative z-10 max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative z-10 max-w-7xl mx-auto border border-border rounded-xl overflow-hidden">
                     {problem.painPoints.map((point, index) => (
                         <Feature
                             key={point.title}

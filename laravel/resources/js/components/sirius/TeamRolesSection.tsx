@@ -58,7 +58,7 @@ export const TeamRolesSection: React.FC = () => {
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 className="flex"
                             >
-                                <Card className="w-80 h-full flex flex-col p-6 relative bg-card/80 backdrop-blur-sm border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
+                                <Card className="w-full max-w-[320px] sm:w-80 h-full flex flex-col p-6 relative bg-card/80 backdrop-blur-sm border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
                                     {/* Role Icon & Header */}
                                     <div className="flex items-center mb-4">
                                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">

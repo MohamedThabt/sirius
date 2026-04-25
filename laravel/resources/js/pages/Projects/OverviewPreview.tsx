@@ -5,6 +5,7 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { getHealthStatus } from '@/utils/project-status';
 import { type User, type Project, type Sections } from '@/types';
@@ -13,6 +14,7 @@ import {
     CodeIcon,
     CopyIcon,
     DownloadIcon,
+    MenuIcon,
     ZoomInIcon,
     ZoomOutIcon,
 } from 'lucide-react';
@@ -112,6 +114,24 @@ export default function OverviewPreview({
                                 <div className="border-b px-4 py-3 sm:pl-6 lg:pl-6">
                                     <div className="mb-4 flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3">
+                                            <Sheet>
+                                                <SheetTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                        <MenuIcon className="h-4 w-4" />
+                                                    </Button>
+                                                </SheetTrigger>
+                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                    <ProjectSidebarPanel
+                                                        project={project}
+                                                        navGroups={navGroups}
+                                                        completionPercentage={completionPercentage}
+                                                        health={health}
+                                                        isCollapsed={false}
+                                                        user={auth.user}
+                                                        isMobileSheet={true}
+                                                    />
+                                                </SheetContent>
+                                            </Sheet>
                                             <SidebarToggle
                                                 isCollapsed={isSidebarCollapsed}
                                                 onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

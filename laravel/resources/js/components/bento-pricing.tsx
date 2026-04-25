@@ -139,7 +139,7 @@ export function BentoPricing() {
 							<span className="text-muted-foreground text-sm mt-1">/month</span>
 						</div>
 					</div>
-					<ul className="text-muted-foreground grid gap-4 text-sm lg:w-[70%] lg:pl-6">
+					<ul className="text-muted-foreground grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm lg:w-[70%] lg:pl-6">
 						{proPlanFeatures.map((f, i) => (
 							<li key={i} className="flex items-start gap-3">
 								<FilledCheck />

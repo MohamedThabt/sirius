@@ -1,4 +1,4 @@
-﻿import { Breadcrumbs } from '@/components/breadcrumbs';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
 import ProjectFlowCanvas from '@/components/Projects/ProjectFlowCanvas';
 import ProjectMetricsPanel from '@/components/Projects/ProjectMetricsPanel';
@@ -8,6 +8,7 @@ import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useInitials } from '@/hooks/use-initials';
 import { type User, type Project, type Sections } from '@/types';
 import { getHealthStatus } from '@/utils/project-status';
@@ -21,6 +22,7 @@ import {
     Database,
     FileText,
     LayoutGrid,
+    MenuIcon,
     Network,
     ScrollText,
     Target
@@ -456,6 +458,24 @@ export default function ProjectShow({
                         {/* Minimal header bar with breadcrumbs */}
                         <div className="shrink-0 border-b border-border/50 bg-muted/20 px-4 py-3 sm:px-6">
                             <div className="flex items-center gap-3">
+                                <Sheet>
+                                    <SheetTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                            <MenuIcon className="h-4 w-4" />
+                                        </Button>
+                                    </SheetTrigger>
+                                    <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                        <ProjectSidebarPanel
+                                            project={project}
+                                            navGroups={navGroups}
+                                            completionPercentage={completionPercentage}
+                                            health={health}
+                                            isCollapsed={false}
+                                            user={auth.user}
+                                            isMobileSheet={true}
+                                        />
+                                    </SheetContent>
+                                </Sheet>
                                 <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
                             </div>

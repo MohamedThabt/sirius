@@ -3,8 +3,10 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { type User, type Project, type Sections } from '@/types';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
+import { MenuIcon } from 'lucide-react';
 import { Excalidraw, exportToBlob, serializeAsJSON } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -202,6 +204,23 @@ export default function Brainstorming({ project, sections }: BrainstormingPagePr
                         <div className="shrink-0 border-b px-4 py-3 sm:pl-6 lg:pl-6">
                             <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
+                                    <Sheet>
+                                        <SheetTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                <MenuIcon className="h-4 w-4" />
+                                            </Button>
+                                        </SheetTrigger>
+                                        <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                            <ProjectSidebarPanel
+                                                project={project}
+                                                navGroups={navGroups}
+                                                completionPercentage={completionPercentage}
+                                                isCollapsed={false}
+                                                user={auth.user}
+                                                isMobileSheet={true}
+                                            />
+                                        </SheetContent>
+                                    </Sheet>
                                     <SidebarToggle
                                         isCollapsed={isSidebarCollapsed}
                                         onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

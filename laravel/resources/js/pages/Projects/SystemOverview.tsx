@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,6 +25,7 @@ import {
     ExternalLinkIcon,
     EyeIcon,
     FileTextIcon,
+    MenuIcon,
     MoreHorizontal as MoreHorizontalIcon,
     MessageSquareIcon,
     PencilIcon,
@@ -351,6 +353,24 @@ export default function SystemOverview({
                                 <div className="border-b border-border/50 bg-card/20 px-4 py-3 sm:px-6 lg:px-8">
                                     <div className="flex items-center justify-between gap-2 sm:gap-3">
                                         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                                            <Sheet>
+                                                <SheetTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                        <MenuIcon className="h-4 w-4" />
+                                                    </Button>
+                                                </SheetTrigger>
+                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                    <ProjectSidebarPanel
+                                                        project={project}
+                                                        navGroups={navGroups}
+                                                        completionPercentage={completionPercentage}
+                                                        health={health}
+                                                        isCollapsed={false}
+                                                        user={auth.user}
+                                                        isMobileSheet={true}
+                                                    />
+                                                </SheetContent>
+                                            </Sheet>
                                             <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                             <div className="min-w-0 flex-1 overflow-hidden">
                                                 <Breadcrumbs breadcrumbs={breadcrumbs} />
@@ -758,7 +778,7 @@ export default function SystemOverview({
                                                                 <Textarea
                                                                     value={editedContent}
                                                                     onChange={(e) => setEditedContent(e.target.value)}
-                                                                    className="min-h-[60vh] resize-none border-0 bg-background px-3 py-3 font-mono text-sm leading-6 focus-visible:ring-0 sm:min-h-[500px] sm:px-5 sm:py-4"
+                                                                    className="w-full min-h-[60vh] resize-none border-0 bg-background px-3 py-3 font-mono text-sm leading-6 focus-visible:ring-0 sm:min-h-[500px] sm:px-5 sm:py-4"
                                                                     placeholder="Enter your system overview in Markdown format..."
                                                                     disabled={isGenerating}
                                                                 />

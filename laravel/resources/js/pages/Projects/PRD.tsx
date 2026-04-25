@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { Textarea } from '@/components/ui/textarea';
 import { getHealthStatus } from '@/utils/project-status';
@@ -15,7 +16,7 @@ import { type User, type Project, type Sections, type PRDVersion, type ChatMessa
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { Toaster } from '@/components/ui/sonner';
 import { Head, router, usePage } from '@inertiajs/react';
-import { CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, Maximize2, Minimize2, PencilIcon, SaveIcon } from 'lucide-react';
+import { CheckIcon, CodeIcon, CopyIcon, EyeIcon, FileTextIcon, Maximize2, MenuIcon, Minimize2, PencilIcon, SaveIcon } from 'lucide-react';
 import mermaid from 'mermaid';
 import { useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -305,6 +306,24 @@ export default function PRD({
                                 <div className="border-b px-4 py-3 sm:pl-6 lg:pl-6">
                                     <div className="mb-4 flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3">
+                                            <Sheet>
+                                                <SheetTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                        <MenuIcon className="h-4 w-4" />
+                                                    </Button>
+                                                </SheetTrigger>
+                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                    <ProjectSidebarPanel
+                                                        project={project}
+                                                        navGroups={navGroups}
+                                                        completionPercentage={completionPercentage}
+                                                        health={health}
+                                                        isCollapsed={false}
+                                                        user={auth.user}
+                                                        isMobileSheet={true}
+                                                    />
+                                                </SheetContent>
+                                            </Sheet>
                                             <SidebarToggle
                                                 isCollapsed={isSidebarCollapsed}
                                                 onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

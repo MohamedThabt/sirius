@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useDBMLParser } from '@/hooks/useDBMLParser';
 import { type User, type Project, type Sections } from '@/types';
@@ -24,7 +25,7 @@ import { convertFormat, detectFormat, DiagramFormat } from '@/utils/formatConver
 import { getHealthStatus } from '@/utils/project-status';
 import { Head, router, usePage } from '@inertiajs/react';
 import { BackgroundVariant } from '@xyflow/react';
-import { ChevronLeft, ChevronRight, CodeIcon, Database as DatabaseIcon, Download, FileCode, FileIcon, FileText, Grid3X3, Layers, Maximize2, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CodeIcon, Database as DatabaseIcon, Download, FileCode, FileIcon, FileText, Grid3X3, Layers, Maximize2, MenuIcon, Palette, Plus, Search, Snowflake, TreePine } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
@@ -204,6 +205,24 @@ export default function DatabaseDesigner({ project, initialContent, sections }: 
                                     {/* Breadcrumbs Row */}
                                     <div className="px-4 py-3 sm:pl-6 lg:pl-6">
                                         <div className="flex items-center gap-3">
+                                            <Sheet>
+                                                <SheetTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                        <MenuIcon className="h-4 w-4" />
+                                                    </Button>
+                                                </SheetTrigger>
+                                                <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                    <ProjectSidebarPanel
+                                                        project={project}
+                                                        navGroups={navGroups}
+                                                        completionPercentage={completionPercentage}
+                                                        health={health}
+                                                        isCollapsed={false}
+                                                        user={auth.user}
+                                                        isMobileSheet={true}
+                                                    />
+                                                </SheetContent>
+                                            </Sheet>
                                             <SidebarToggle
                                                 isCollapsed={isSidebarCollapsed}
                                                 onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

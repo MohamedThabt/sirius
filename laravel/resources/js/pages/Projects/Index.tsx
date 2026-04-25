@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type SharedData, type Project, type Invitation } from '@/types';
 import { getStatusColor } from '@/utils/status-colors';
@@ -26,6 +27,7 @@ import {
     SearchIcon,
     TrashIcon,
     XIcon,
+    MenuIcon,
 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 
@@ -207,6 +209,25 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-8 flex items-center gap-3">
+                                <Sheet>
+                                    <SheetTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                            <MenuIcon className="h-4 w-4" />
+                                        </Button>
+                                    </SheetTrigger>
+                                    <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                        <ProjectsIndexSidebar
+                                            auth={auth}
+                                            isSidebarCollapsed={false}
+                                            onCreateProject={() => setIsCreateModalOpen(true)}
+                                            projectCount={projects.length}
+                                            invitationsCount={invitations?.length || 0}
+                                            projects={projects}
+                                            currentPage="projects"
+                                            isMobileSheet={true}
+                                        />
+                                    </SheetContent>
+                                </Sheet>
                                 <SidebarToggle 
                                     isCollapsed={isSidebarCollapsed} 
                                     onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 

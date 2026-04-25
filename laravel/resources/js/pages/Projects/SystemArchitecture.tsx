@@ -7,6 +7,7 @@ import { buildProjectNavGroups } from '@/components/Projects/projectNav';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { useC4Parser } from '@/hooks/useC4Parser';
 import { type User, type Project, type Sections } from '@/types';
@@ -21,6 +22,7 @@ import {
     Download,
     Layout,
     Maximize2,
+    Menu,
     Minimize2,
     PanelLeftClose,
     PanelLeftOpen,
@@ -253,6 +255,24 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                             <div className="flex h-screen flex-col">
                                 <div className="border-b px-4 py-3 sm:pl-6 lg:pl-6">
                                     <div className="mb-4 flex items-center gap-3">
+                                        <Sheet>
+                                            <SheetTrigger asChild>
+                                                <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                                    <Menu className="h-4 w-4" />
+                                                </Button>
+                                            </SheetTrigger>
+                                            <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                                <ProjectSidebarPanel
+                                                    project={project}
+                                                    navGroups={navGroups}
+                                                    completionPercentage={completionPercentage}
+                                                    health={health}
+                                                    isCollapsed={false}
+                                                    user={auth.user}
+                                                    isMobileSheet={true}
+                                                />
+                                            </SheetContent>
+                                        </Sheet>
                                         <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                                     </div>

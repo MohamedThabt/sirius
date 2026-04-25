@@ -31,6 +31,7 @@ interface Props {
     projects?: ProjectItem[];
     currentProjectId?: number;
     currentPage?: 'projects' | 'invitations' | 'upgrade';
+    isMobileSheet?: boolean;
 }
 
 export default function ProjectsIndexSidebar({ 
@@ -42,6 +43,7 @@ export default function ProjectsIndexSidebar({
     projects = [], 
     currentProjectId,
     currentPage = 'projects',
+    isMobileSheet = false,
 }: Props) {
     const getInitials = useInitials();
     const showProUpgrade = auth.user.plan?.slug !== 'pro';
@@ -91,9 +93,9 @@ export default function ProjectsIndexSidebar({
     ];
 
     return (
-        <aside className={`${isSidebarCollapsed ? 'w-0' : 'w-64'} hidden shrink-0 border-r border-border/50 transition-all duration-300 lg:block bg-gradient-to-b from-background to-muted/10`}>
+        <aside className={`${isMobileSheet ? 'w-full' : isSidebarCollapsed ? 'w-0' : 'w-64 hidden lg:block border-r border-border/50 shrink-0'} transition-all duration-300 bg-gradient-to-b from-background to-muted/10`}>
             <div
-                className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                className={`${isMobileSheet ? 'flex' : 'sticky'} top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed && !isMobileSheet ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             >
                 <div className="overflow-x-hidden overflow-y-auto scrollbar-hide">
                     {/* Header with App Logo */}

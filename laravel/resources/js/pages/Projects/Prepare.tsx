@@ -12,6 +12,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { CheckboxGrid } from '@/components/ui/checkbox-grid';
 import { TextareaWithCounter } from '@/components/ui/textarea-with-counter';
 import { ReviewModal } from '@/components/Projects/Prepare/ReviewModal';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
@@ -22,6 +23,7 @@ import {
     DatabaseIcon,
     FileTextIcon,
     LightbulbIcon,
+    MenuIcon,
     MonitorSmartphoneIcon,
     PlugIcon,
     Sparkles,
@@ -932,6 +934,25 @@ export default function ProjectPrepare({ projectId, projectName }: Props) {
                     <div className="mx-auto max-w-[1600px] px-4 py-3 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
+                                <Sheet>
+                                    <SheetTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                            <MenuIcon className="h-4 w-4" />
+                                        </Button>
+                                    </SheetTrigger>
+                                    <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                        <ProjectsIndexSidebar
+                                            auth={sidebarAuth}
+                                            isSidebarCollapsed={false}
+                                            onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                            onCreateProject={() => router.get('/projects')}
+                                            projectCount={projects.length}
+                                            projects={projects}
+                                            currentProjectId={projectId}
+                                            isMobileSheet={true}
+                                        />
+                                    </SheetContent>
+                                </Sheet>
                                 <SidebarToggle
                                     isCollapsed={isSidebarCollapsed}
                                     onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

@@ -5,6 +5,7 @@ import {
     CheckCircle, 
     XCircle, 
     Clock,
+    MenuIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import ProjectsIndexSidebar from '@/components/Projects/ProjectsIndexSidebar';
 import SidebarToggle from '@/components/Projects/SidebarToggle';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useInitials } from "@/hooks/use-initials";
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { getRoleBadgeColor } from '@/utils/role-colors';
@@ -67,6 +69,24 @@ export default function ProjectInvitations({ invitations }: Props) {
                     <main className="min-w-0 flex-1">
                         <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <div className="mb-6 flex items-center gap-3">
+                                <Sheet>
+                                    <SheetTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0 border border-border/50 bg-background hover:bg-muted">
+                                            <MenuIcon className="h-4 w-4" />
+                                        </Button>
+                                    </SheetTrigger>
+                                    <SheetContent side="left" className="w-64 p-0 border-none bg-transparent">
+                                        <ProjectsIndexSidebar
+                                            auth={auth}
+                                            isSidebarCollapsed={false}
+                                            onCreateProject={() => router.visit('/projects')}
+                                            projectCount={0}
+                                            invitationsCount={invitations.length}
+                                            currentPage="invitations"
+                                            isMobileSheet={true}
+                                        />
+                                    </SheetContent>
+                                </Sheet>
                                 <SidebarToggle
                                     isCollapsed={isSidebarCollapsed}
                                     onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

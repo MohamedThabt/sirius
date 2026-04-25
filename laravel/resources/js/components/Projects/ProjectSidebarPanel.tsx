@@ -48,6 +48,7 @@ export interface ProjectSidebarPanelProps {
     };
     isCollapsed: boolean;
     user: User;
+    isMobileSheet?: boolean;
 }
 
 export default function ProjectSidebarPanel({
@@ -57,6 +58,7 @@ export default function ProjectSidebarPanel({
     health,
     isCollapsed,
     user,
+    isMobileSheet = false,
 }: ProjectSidebarPanelProps) {
     const { repository } = usePage<SharedData>().props;
     const getInitials = useInitials();
@@ -101,9 +103,9 @@ export default function ProjectSidebarPanel({
 
     return (
         <>
-            <aside className={`${isCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r border-border/30 transition-all duration-300 lg:block`}>
+            <aside className={`${isMobileSheet ? 'w-full' : isCollapsed ? 'w-0' : 'w-60 hidden lg:block shrink-0 border-r border-border/30'} transition-all duration-300`}>
                 <div
-                    className={`sticky top-0 flex h-screen flex-col justify-between py-4 px-3 ${isCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                    className={`${isMobileSheet ? 'flex' : 'sticky'} top-0 flex h-screen flex-col justify-between py-4 px-3 ${isCollapsed && !isMobileSheet ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 >
                     <div className="overflow-x-hidden overflow-y-auto scrollbar-hide">
                         {/* Linear-style Header */}
