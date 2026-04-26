@@ -81,7 +81,7 @@ export default function Landing() {
                             </div>
                         </SiriusSectionShell>
 
-                        <section className="sirius-section bg-card/30" id="how-it-works">
+                        <section className="sirius-section scroll-mt-24 bg-card/30 md:scroll-mt-28" id="how-it-works">
                             <div className="sirius-container">
                                 <div className="mb-10 grid grid-cols-1 items-start gap-8 md:mb-12 lg:grid-cols-2 lg:gap-12">
                                     <div className="lg:sticky lg:top-24">

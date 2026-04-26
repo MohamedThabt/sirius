@@ -13,7 +13,7 @@ interface SiriusSectionShellProps {
 
 export const SiriusSectionShell: React.FC<SiriusSectionShellProps> = ({ id, eyebrow, title, subtitle, align = 'center', children, className }) => {
     return (
-        <section id={id} className={cn('sirius-section bg-background', className)}>
+        <section id={id} className={cn('sirius-section bg-background', id && 'scroll-mt-24 md:scroll-mt-28', className)}>
             <div className="sirius-container">
                 {(eyebrow || title || subtitle) && (
                     <div className={cn('mb-10 md:mb-12', align === 'center' ? 'mx-auto max-w-3xl text-center' : 'text-left')}>

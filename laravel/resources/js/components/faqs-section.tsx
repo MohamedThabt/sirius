@@ -4,7 +4,7 @@ import { PlusIcon } from 'lucide-react';
 
 export function FaqsSection() {
     return (
-        <section id="faq" className="sirius-section bg-muted/20">
+        <section id="faq" className="sirius-section scroll-mt-24 bg-muted/20 md:scroll-mt-28">
             <div className="sirius-container">
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
                     <div className="pt-4 pb-6">
