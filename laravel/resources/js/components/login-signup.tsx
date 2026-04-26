@@ -347,16 +347,14 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             )}
                                         </div>
 
-                                        {import.meta.env.VITE_TURNSTILE_SITEKEY && (
-                                            <div className="flex justify-center">
-                                                <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
-                                                <Turnstile
-                                                    siteKey={import.meta.env.VITE_TURNSTILE_SITEKEY}
-                                                    onSuccess={(token) => setTurnstileToken(token)}
-                                                    options={{ theme: 'dark' }}
-                                                />
-                                            </div>
-                                        )}
+                                        <div className="flex justify-center">
+                                            <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
+                                            <Turnstile
+                                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITEKEY || '0x4AAAAAACj9nwv1GucMvdLU'}
+                                                onSuccess={(token) => setTurnstileToken(token)}
+                                                options={{ theme: 'auto' }}
+                                            />
+                                        </div>
 
                                         <Button
                                             type="submit"
@@ -489,16 +487,14 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             <input type="hidden" name="password_confirmation" value={passwordValue} />
                                         </div>
 
-                                        {import.meta.env.VITE_TURNSTILE_SITEKEY && (
-                                            <div className="flex justify-center">
-                                                <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
-                                                <Turnstile
-                                                    siteKey={import.meta.env.VITE_TURNSTILE_SITEKEY}
-                                                    onSuccess={(token) => setTurnstileToken(token)}
-                                                    options={{ theme: 'dark' }}
-                                                />
-                                            </div>
-                                        )}
+                                        <div className="flex justify-center">
+                                            <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
+                                            <Turnstile
+                                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITEKEY || '0x4AAAAAACj9nwv1GucMvdLU'}
+                                                onSuccess={(token) => setTurnstileToken(token)}
+                                                options={{ theme: 'auto' }}
+                                            />
+                                        </div>
 
                                         <Button
                                             type="submit"
