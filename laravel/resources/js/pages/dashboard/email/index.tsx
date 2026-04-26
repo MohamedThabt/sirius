@@ -136,7 +136,7 @@ export default function EmailIndex({ users, filters }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Send Email" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                 {/* Page Header */}
                 <PageHeader
                     title="Send Email"
@@ -151,7 +151,7 @@ export default function EmailIndex({ users, filters }: Props) {
                 />
 
                 {/* Summary Cards */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                     <EnhancedCard variant="gradient" glowColor="blue">
                         <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
                             <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Total Users</EnhancedCardTitle>
@@ -251,6 +251,7 @@ export default function EmailIndex({ users, filters }: Props) {
 
                 {/* Users Table */}
                 <EnhancedCard variant="glass" hoverEffect={false} className="overflow-hidden">
+                    <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border/40 hover:bg-transparent">
@@ -313,6 +314,7 @@ export default function EmailIndex({ users, filters }: Props) {
                             ))}
                         </TableBody>
                     </Table>
+                    </div>
                 </EnhancedCard>
 
                 {users.data.length === 0 && (

@@ -221,7 +221,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
             <Head title="Admin Management" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h1 className="text-2xl font-bold">Admin Management</h1>
                     <Button onClick={openCreateModal}>
                         <PlusIcon className="mr-2 h-4 w-4" />
@@ -230,7 +230,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                 </div>
 
                 {/* Summary Cards */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Total Admins</CardTitle>
@@ -289,7 +289,7 @@ export default function AdminsIndex({ admins, filters, roles, summary }: Props) 
                     )}
                 </div>
 
-                <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                <div className="overflow-x-auto rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <Table>
                         <TableHeader>
                             <TableRow>

@@ -88,7 +88,7 @@ export default function PlanShow({ plan, subscribers, planStats }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Plan Details - ${plan.name}`} />
 
-            <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-center gap-3">
                     <Link href="/admin/plans">
@@ -175,7 +175,7 @@ export default function PlanShow({ plan, subscribers, planStats }: Props) {
                     </EnhancedCard>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     {/* Plan Information */}
                     <EnhancedCard variant="glass">
                         <EnhancedCardHeader className="pb-3">
@@ -285,7 +285,7 @@ export default function PlanShow({ plan, subscribers, planStats }: Props) {
                 {/* Users Table */}
                 <EnhancedCard variant="glass" hoverEffect={false}>
                     <EnhancedCardHeader className="pb-3">
-                        <EnhancedCardTitle className="flex items-center justify-between text-sm font-medium">
+                        <EnhancedCardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm font-medium">
                             <span className="flex items-center gap-2">
                                 <UserIcon className="h-4 w-4 text-blue-500" />
                                 Users on This Plan
@@ -294,7 +294,7 @@ export default function PlanShow({ plan, subscribers, planStats }: Props) {
                         </EnhancedCardTitle>
                     </EnhancedCardHeader>
                     <EnhancedCardContent>
-                        <div className="overflow-hidden rounded-xl border border-border/30">
+                        <div className="overflow-x-auto rounded-xl border border-border/30">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="border-border/40 hover:bg-transparent">

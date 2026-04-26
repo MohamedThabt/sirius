@@ -1,133 +1,164 @@
 import AppLogo from '@/components/app-logo';
+import { FeedbackModal } from '@/components/FeedbackWidget/FeedbackModal';
 import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarRail,
+    SidebarSeparator,
+} from '@/components/ui/sidebar';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
-import { router } from '@inertiajs/react';
-import { ActivityIcon, ChevronDownIcon, FolderKanbanIcon, LockIcon, UserIcon } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Link } from '@inertiajs/react';
+import { ActivityIcon, ChevronsUpDown, FolderKanbanIcon, LockIcon, MessageSquareText, UserIcon } from 'lucide-react';
+import { useState } from 'react';
 
 interface Props {
     auth: { user: User };
-    isSidebarCollapsed?: boolean;
-    onToggleSidebar?: () => void;
     currentPath: string;
 }
 
-export default function SettingsSidebar({ auth, isSidebarCollapsed, currentPath }: Props) {
+const navItems = [
+    {
+        key: 'projects',
+        icon: FolderKanbanIcon,
+        label: 'Projects',
+        href: '/projects',
+    },
+    {
+        key: 'profile',
+        icon: UserIcon,
+        label: 'Profile',
+        href: '/settings/profile',
+    },
+    {
+        key: 'password',
+        icon: LockIcon,
+        label: 'Password',
+        href: '/settings/password',
+    },
+    {
+        key: 'usage',
+        icon: ActivityIcon,
+        label: 'Usage',
+        href: '/settings/usage',
+    },
+];
+
+export default function SettingsSidebar({ auth, currentPath }: Props) {
     const getInitials = useInitials();
-    const navItems = [
-        {
-            key: 'projects',
-            icon: FolderKanbanIcon,
-            label: 'Projects',
-            href: '/projects',
-        },
-        {
-            key: 'profile',
-            icon: UserIcon,
-            label: 'Profile',
-            href: '/settings/profile',
-        },
-        {
-            key: 'password',
-            icon: LockIcon,
-            label: 'Password',
-            href: '/settings/password',
-        },
-        {
-            key: 'usage',
-            icon: ActivityIcon,
-            label: 'Usage',
-            href: '/settings/usage',
-        },
-    ];
+    const [feedbackOpen, setFeedbackOpen] = useState(false);
 
     return (
-        <aside
-            className={`scrollbar-hide sticky top-0 h-screen shrink-0 border-r bg-background transition-all duration-300 ${
-                isSidebarCollapsed ? 'w-0 -translate-x-full lg:w-16 lg:translate-x-0' : 'w-64'
-            }`}
-        >
-            <div className="flex h-full flex-col overflow-y-auto">
-                {/* Logo */}
-                <div className={`flex h-16 items-center border-b px-4 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
-                    {!isSidebarCollapsed && (
-                        <a href="/" className="flex items-center text-lg font-semibold text-foreground">
-                            <AppLogo />
-                        </a>
-                    )}
-                </div>
-
-                {/* User Info */}
-                {!isSidebarCollapsed && (
-                    <div className="border-b p-4">
-                        <div className="text-sm font-medium text-foreground">Settings</div>
-                        <div className="mt-1 text-xs text-muted-foreground">Manage your account</div>
-                    </div>
-                )}
-
-                {/* Navigation */}
-                <nav className="flex-1 space-y-1 p-3">
-                    {navItems.map((item) => (
-                        <button
-                            key={item.key}
-                            onClick={() => router.get(item.href)}
-                            className={[
-                                'flex w-full cursor-pointer items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
-                                currentPath === item.href
-                                    ? 'bg-muted font-medium text-foreground'
-                                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground',
-                                isSidebarCollapsed ? 'justify-center' : '',
-                            ].join(' ')}
-                            title={item.label}
+        <Sidebar collapsible="icon" variant="inset" className="border-r border-border/40 bg-gradient-to-b from-background to-muted/20">
+            <SidebarHeader className="border-b border-border/40 px-2 py-3">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            size="lg"
+                            asChild
+                            className="group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 hover:bg-primary/5"
                         >
-                            <item.icon className="h-4 w-4 shrink-0" />
-                            {!isSidebarCollapsed && <span>{item.label}</span>}
-                        </button>
-                    ))}
-                </nav>
+                            <Link href="/projects" prefetch className="flex items-center gap-2">
+                                <AppLogo />
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
 
-                {/* Usage Bar */}
-                {!isSidebarCollapsed && (
-                    <div className="border-t p-3">
-                        <SidebarUsageBar />
-                    </div>
-                )}
+            <SidebarContent className="px-2 py-4">
+                <SidebarGroup>
+                    <SidebarGroupLabel>Settings</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {navItems.map((item) => (
+                                <SidebarMenuItem key={item.key}>
+                                    <SidebarMenuButton
+                                        asChild
+                                        isActive={currentPath === item.href}
+                                        tooltip={item.label}
+                                    >
+                                        <Link href={item.href} prefetch>
+                                            <item.icon className="h-4 w-4" />
+                                            <span>{item.label}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
 
-                {/* User Menu */}
-                <div className="border-t p-3">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button
-                                className={`flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground ${
-                                    isSidebarCollapsed ? 'justify-center' : ''
-                                }`}
-                            >
-                                <Avatar className="h-5 w-5 shrink-0">
-                                    <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                    <AvatarFallback className="bg-neutral-200 text-[10px] text-black dark:bg-neutral-700 dark:text-white">
-                                        {getInitials(auth.user.name)}
-                                    </AvatarFallback>
-                                </Avatar>
-                                {!isSidebarCollapsed && (
-                                    <>
-                                        <div className="flex min-w-0 flex-1 flex-col items-start text-left">
-                                            <span className="truncate text-xs font-medium text-foreground">{auth.user.name}</span>
-                                            <span className="truncate text-[10px] text-muted-foreground">{auth.user.email}</span>
-                                        </div>
-                                        <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                    </>
-                                )}
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                            <UserMenuContent user={auth.user} />
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                <SidebarSeparator />
+
+                <SidebarGroup>
+                    <SidebarGroupLabel>Feedback</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton tooltip="Send Feedback" onClick={() => setFeedbackOpen(true)}>
+                                    <MessageSquareText className="h-4 w-4" />
+                                    <span>Send Feedback</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+
+                <div className="mt-auto group-data-[collapsible=icon]:hidden">
+                    <SidebarUsageBar />
                 </div>
-            </div>
-        </aside>
+            </SidebarContent>
+
+            <SidebarFooter className="border-t border-border/40 p-2">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <SidebarMenuButton
+                                    size="lg"
+                                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                                >
+                                    <Avatar className="h-8 w-8 rounded-lg">
+                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-sm text-black dark:bg-neutral-700 dark:text-white">
+                                            {getInitials(auth.user.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="grid flex-1 text-left text-sm leading-tight">
+                                        <span className="truncate font-medium">{auth.user.name}</span>
+                                        <span className="truncate text-xs text-muted-foreground">{auth.user.email}</span>
+                                    </div>
+                                    <ChevronsUpDown className="ml-auto size-4" />
+                                </SidebarMenuButton>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                                side="bottom"
+                                align="end"
+                                sideOffset={4}
+                            >
+                                <UserMenuContent user={auth.user} />
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
+            <SidebarRail />
+
+            <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+        </Sidebar>
     );
 }

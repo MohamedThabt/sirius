@@ -108,7 +108,7 @@ export default function AdminDashboard({ stats }: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Admin Dashboard" />
-            <div className="scrollbar-styled flex h-full flex-1 flex-col gap-8 overflow-y-auto p-6">
+            <div className="scrollbar-styled flex h-full flex-1 flex-col gap-6 overflow-y-auto p-4 sm:gap-8 sm:p-6">
                 {/* Header Section */}
                 <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

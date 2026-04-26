@@ -136,14 +136,14 @@ export default function Team() {
                             </div>
 
                             {/* Team Cards Grid */}
-                            <div className="flex flex-wrap items-stretch justify-center gap-6">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
                                 {teamMembers.map((member, index) => {
                                     const primaryLink = member.linkedin || member.website;
                                     const avatarUrl = member.image || getAvatarUrl(member.name);
 
                                     return (
                                         <a key={index} href={primaryLink} target="_blank" rel="noopener noreferrer" className="block">
-                                            <Card className="group relative h-auto w-72 cursor-pointer border-border bg-card/80 p-6 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
+                                            <Card className="group relative h-auto w-full cursor-pointer border-border bg-card/80 p-6 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
                                                 {/* Avatar & Info */}
                                                 <div className="flex items-center">
                                                     <div className="relative h-14 w-14 overflow-hidden rounded-full border-2 border-border shadow-md transition-transform duration-300 group-hover:scale-105">

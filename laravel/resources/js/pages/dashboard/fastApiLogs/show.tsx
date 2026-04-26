@@ -169,9 +169,9 @@ export default function FastApiLogShow({ log, log_type, filters }: Props) {
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title={`FastAPI Log Details - Line ${log.line_number}`} />
 
-                <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                     {/* Header */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold tracking-tight text-foreground/90">Log Details</h1>
                             <p className="text-sm text-muted-foreground/60">FastAPI {log_type} log entry</p>

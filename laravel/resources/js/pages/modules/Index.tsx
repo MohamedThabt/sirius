@@ -118,7 +118,7 @@ export default function ModulesIndex({ project, modules }: Props) {
                         <div className="flex-1 overflow-y-auto">
                             <div className="py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                                 <header className="mb-8">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
                                             <div className="flex items-center gap-3">
                                                 <Button

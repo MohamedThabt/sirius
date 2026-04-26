@@ -298,7 +298,7 @@ export default function MermaidPreview({ content, title = 'Mermaid Diagram', pro
                         <main className="min-w-0 flex-1">
                             <div className="flex h-screen flex-col">
                                 <div className="border-b px-4 py-3 sm:pl-6 lg:pl-6">
-                                    <div className="mb-4 flex items-center justify-between gap-3">
+                                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div className="flex items-center gap-3">
                                             <Sheet>
                                                 <SheetTrigger asChild>
@@ -328,20 +328,23 @@ export default function MermaidPreview({ content, title = 'Mermaid Diagram', pro
                                             />
                                             <Breadcrumbs breadcrumbs={breadcrumbs} />
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex flex-wrap items-center gap-2">
                                             <Button variant="outline" size="sm" onClick={() => setShowCode(!showCode)}>
                                                 <CodeIcon className="mr-2 h-4 w-4" />
-                                                {showCode ? 'Show Diagram' : 'Show Code'}
+                                                <span className="hidden sm:inline">{showCode ? 'Show Diagram' : 'Show Code'}</span>
+                                                <span className="sm:hidden">{showCode ? 'Diagram' : 'Code'}</span>
                                             </Button>
                                             <Button variant="outline" size="sm" onClick={copyCode}>
                                                 <CopyIcon className="mr-2 h-4 w-4" />
-                                                Copy Code
+                                                <span className="hidden sm:inline">Copy Code</span>
+                                                <span className="sm:hidden">Copy</span>
                                             </Button>
                                             {svg && (
                                                 <>
                                                     <Button variant="outline" size="sm" onClick={downloadSVG}>
                                                         <DownloadIcon className="mr-2 h-4 w-4" />
-                                                        Download SVG
+                                                        <span className="hidden sm:inline">Download SVG</span>
+                                                        <span className="sm:hidden">SVG</span>
                                                     </Button>
                                                     <div className="flex items-center gap-1 border-l pl-2">
                                                         <Button variant="outline" size="sm" onClick={handleZoomOut} disabled={zoom <= 50}>
@@ -413,16 +416,18 @@ export default function MermaidPreview({ content, title = 'Mermaid Diagram', pro
                     </div>
                 ) : (
                     <div className="p-4 sm:p-6 lg:p-8">
-                        <div className="mb-4 flex items-center justify-between">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <h1 className="text-2xl font-semibold">{title}</h1>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <Button variant="outline" size="sm" onClick={() => setShowCode(!showCode)}>
                                     <CodeIcon className="mr-2 h-4 w-4" />
-                                    {showCode ? 'Show Diagram' : 'Show Code'}
+                                    <span className="hidden sm:inline">{showCode ? 'Show Diagram' : 'Show Code'}</span>
+                                    <span className="sm:hidden">{showCode ? 'Diagram' : 'Code'}</span>
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={copyCode}>
                                     <CopyIcon className="mr-2 h-4 w-4" />
-                                    Copy Code
+                                    <span className="hidden sm:inline">Copy Code</span>
+                                    <span className="sm:hidden">Copy</span>
                                 </Button>
                                 {svg && (
                                     <>

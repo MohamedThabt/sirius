@@ -77,9 +77,9 @@ export default function PaymentShow({ payment, imageUrl }: PageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Payment #${payment.id}`} />
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                 {/* Back nav */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Link href="/admin/payments">
                         <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
                             <ArrowLeftIcon className="h-4 w-4" /> Back to Payments

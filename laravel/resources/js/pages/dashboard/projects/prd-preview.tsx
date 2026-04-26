@@ -140,8 +140,8 @@ export default function PRDPreview({ content, title, projectName, project }: Pro
             <div className="min-h-screen bg-background">
                 <div className="flex h-screen flex-col">
                     {/* Header */}
-                    <div className="border-b px-6 py-3">
-                        <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="border-b px-4 sm:px-6 py-3">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-center gap-3">
                                 <a href={`/admin/projects/${project.id}/prd`}>
                                     <Button variant="outline" size="sm">

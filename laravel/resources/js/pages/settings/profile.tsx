@@ -62,7 +62,7 @@ function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status
                     </div>
                     <div className="p-6">
                         {/* Avatar Section */}
-                        <div className="mb-8 flex items-center gap-6 rounded-lg border border-dashed border-border bg-muted/20 p-4">
+                        <div className="mb-8 flex flex-col items-center gap-4 rounded-lg border border-dashed border-border bg-muted/20 p-4 sm:flex-row sm:items-center sm:gap-6">
                             <Avatar className="h-20 w-20 shadow-lg ring-4 ring-background">
                                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-xl font-semibold text-primary-foreground">
                                     {getInitials(auth.user.name)}

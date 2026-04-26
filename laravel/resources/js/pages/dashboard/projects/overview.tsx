@@ -200,7 +200,7 @@ export default function ProjectOverview({
                 className={`flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : 'h-full flex-1 gap-6 overflow-x-auto rounded-xl p-4'}`}
             >
                 {/* Header */}
-                <div className={`flex items-center justify-between ${isFullscreen ? 'border-b p-4' : ''}`}>
+                <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${isFullscreen ? 'border-b p-4' : ''}`}>
                     <div className="flex items-center gap-4">
                         {!isFullscreen && (
                             <Link href={`/admin/projects/${project.id}`}>
@@ -236,7 +236,7 @@ export default function ProjectOverview({
                     {/* Overview Content */}
                     <Card className={`flex-1 ${isFullscreen ? 'h-full overflow-auto' : ''}`}>
                         <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <CardTitle className="flex items-center gap-2">
                                     <FileTextIcon className="h-5 w-5" />
                                     {selectedVersion ? `Version ${selectedVersion.version_number}` : 'Current Overview'}
@@ -371,7 +371,7 @@ export default function ProjectOverview({
                 {!isFullscreen && (
                     <Card>
                         <CardContent className="py-3">
-                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-muted-foreground">
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-1">
                                         <UserIcon className="h-4 w-4" />

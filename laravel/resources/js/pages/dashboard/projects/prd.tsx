@@ -346,7 +346,7 @@ export default function ProjectPRD({ project, featuresMarkdown = '' }: Props) {
 
             <div className={`flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : 'h-full flex-1 gap-6 rounded-xl'}`}>
                 {/* Header */}
-                <div className={`flex items-center justify-between gap-4 ${isFullscreen ? 'border-b p-4' : 'p-4'}`}>
+                <div className={`flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between ${isFullscreen ? 'border-b p-4' : 'p-4'}`}>
                     <div className="flex min-w-0 items-center gap-4">
                         {!isFullscreen && (
                             <Link href={`/admin/projects/${project.id}`}>

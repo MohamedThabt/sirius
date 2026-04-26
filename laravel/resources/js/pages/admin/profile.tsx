@@ -56,7 +56,7 @@ export default function AdminProfile() {
                 {/* Profile Information and Password Update */}
                 <div className="grid gap-6 md:grid-cols-2">
                     {/* Profile Information */}
-                    <div className="rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border">
+                    <div className="rounded-xl border border-sidebar-border/70 p-4 sm:p-6 dark:border-sidebar-border">
                         <h3 className="mb-4 text-lg font-semibold">Profile Information</h3>
                         <div className="space-y-4">
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -83,7 +83,7 @@ export default function AdminProfile() {
                     </div>
 
                     {/* Security Tips */}
-                    <div className="rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border">
+                    <div className="rounded-xl border border-sidebar-border/70 p-4 sm:p-6 dark:border-sidebar-border">
                         <h3 className="mb-4 text-lg font-semibold">Security Tips</h3>
                         <div className="text-sm text-muted-foreground">
                             <p className="mb-3">Keep your admin account secure:</p>
@@ -99,7 +99,7 @@ export default function AdminProfile() {
                 </div>
 
                 {/* Update Password */}
-                <div className="rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border">
+                <div className="rounded-xl border border-sidebar-border/70 p-4 sm:p-6 dark:border-sidebar-border">
                     <h3 className="mb-4 text-lg font-semibold">Update Password</h3>
                     <p className="mb-6 text-sm text-muted-foreground">Ensure your account is using a long, random password to stay secure</p>
 

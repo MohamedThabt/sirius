@@ -1,42 +1,39 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import SidebarToggle from '@/components/Projects/SidebarToggle';
 import SettingsSidebar from '@/components/Settings/SettingsSidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/sonner';
+import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { type PropsWithChildren, useState } from 'react';
+import { type PropsWithChildren } from 'react';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
-    const { auth } = usePage<SharedData>().props;
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    useFlashToasts();
+    const { auth, sidebarOpen } = usePage<SharedData>().props;
 
-    // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
         return null;
     }
 
     const currentPath = window.location.pathname;
-
     const breadcrumbs = [{ title: 'Settings', href: '/settings/profile' }];
 
     return (
-        <div className="flex min-h-screen w-full bg-background">
-            <SettingsSidebar
-                auth={auth}
-                isSidebarCollapsed={isSidebarCollapsed}
-                onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                currentPath={currentPath}
-            />
-
-            <main className="flex w-full flex-1 flex-col transition-all duration-300">
-                <div className="shrink-0 border-b border-border/50 bg-muted/20 px-4 py-3 sm:px-6">
-                    <div className="flex items-center gap-3">
-                        <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-                        <Breadcrumbs breadcrumbs={breadcrumbs} />
+        <SidebarProvider defaultOpen={sidebarOpen}>
+            <SettingsSidebar auth={auth} currentPath={currentPath} />
+            <SidebarInset>
+                <header className="sticky top-0 z-10 flex h-14 w-full shrink-0 items-center gap-2 border-b border-border/40 bg-background/80 px-4 backdrop-blur-md transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-6">
+                    <div className="flex w-full items-center gap-3">
+                        <SidebarTrigger className="-ml-1 shrink-0 rounded-lg transition-colors duration-200 hover:bg-primary/5" />
+                        <div className="flex-1 overflow-hidden">
+                            <Breadcrumbs breadcrumbs={breadcrumbs} />
+                        </div>
                     </div>
-                </div>
+                </header>
 
-                <div className="flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</div>
-            </main>
-        </div>
+                <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+            </SidebarInset>
+            <Toaster />
+        </SidebarProvider>
     );
 }

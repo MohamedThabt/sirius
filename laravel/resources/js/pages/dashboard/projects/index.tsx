@@ -123,7 +123,7 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Project Management" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                 {/* Page Header */}
                 <PageHeader
                     title="Project Management"
@@ -140,7 +140,7 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
 
                 {/* Summary Stats */}
                 {summary && (
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                         <EnhancedCard variant="glass">
                             <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
                                 <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Project Status</EnhancedCardTitle>
@@ -258,6 +258,7 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
 
                 {/* Projects Table */}
                 <EnhancedCard variant="glass" hoverEffect={false} className="overflow-hidden">
+                    <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border/40 hover:bg-transparent">
@@ -317,6 +318,7 @@ export default function ProjectsIndex({ projects, statuses, filters, summary }: 
                             ))}
                         </TableBody>
                     </Table>
+                    </div>
                 </EnhancedCard>
 
                 {projects.data.length === 0 && (

@@ -530,7 +530,7 @@ export default function ProjectShow({
                 </div>
 
                 <Dialog open={isBriefModalOpen} onOpenChange={setIsBriefModalOpen}>
-                    <DialogContent className="max-h-[80vh] max-w-3xl overflow-hidden">
+                    <DialogContent className="max-h-[90vh] w-[95vw] max-w-3xl overflow-hidden sm:max-h-[80vh]">
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2">
                                 <Target className="h-4 w-4" />
@@ -538,7 +538,7 @@ export default function ProjectShow({
                             </DialogTitle>
                             <DialogDescription>Overview and context for this project</DialogDescription>
                         </DialogHeader>
-                        <div className="mt-4 max-h-[calc(80vh-8rem)] overflow-y-auto pr-2">
+                        <div className="mt-4 max-h-[calc(90vh-8rem)] overflow-y-auto pr-2 sm:max-h-[calc(80vh-8rem)]">
                             <div className="prose prose-slate dark:prose-invert max-w-none">{renderMarkdown(project.brief)}</div>
                         </div>
                     </DialogContent>

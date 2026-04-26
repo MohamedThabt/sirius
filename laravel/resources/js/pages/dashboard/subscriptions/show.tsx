@@ -96,7 +96,7 @@ export default function SubscriptionShow({ subscription }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Subscription Details - ${subscription.user.name}`} />
 
-            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-center gap-3">
                     <Link href="/admin/subscriptions">

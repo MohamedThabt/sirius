@@ -462,7 +462,7 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
 
                     {/* Specifications Tab */}
                     <TabsContent value="specifications" className="mt-4 space-y-4">
-                        <div className="mb-4 flex items-center justify-between">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h3 className="text-lg font-medium">Feature Specifications</h3>
                                 <p className="text-sm text-muted-foreground">Requirements, criteria, and success metrics</p>
@@ -544,7 +544,7 @@ export default function FeatureShow({ feature, module, project, siblingFeatures,
                         </div>
 
                         {siblingFeatures && siblingFeatures.length > 0 ? (
-                            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-3">
                                 {siblingFeatures.map((sibling) => (
                                     <Link key={sibling.id} href={`/admin/features/${sibling.id}`}>
                                         <Card

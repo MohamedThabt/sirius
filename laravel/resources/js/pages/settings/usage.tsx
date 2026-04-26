@@ -46,7 +46,7 @@ function Usage({ credits, plan, subscription, graphData, usageLogs, totalConsume
             <Head title="Usage & Credits" />
 
             <header className="mb-8">
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Usage & Credits</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Monitor your AI usage and credit consumption</p>

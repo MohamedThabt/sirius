@@ -62,7 +62,7 @@ export default function SequenceDiagram({ project, feature, initialContent }: Pr
                 <Head title={`Sequence Diagram - ${feature.name}`} />
 
                 <div className="mx-auto w-full max-w-7xl space-y-4 rounded-xl p-4 md:p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Sequence Diagram</h1>
                             <p className="mt-1 text-sm text-muted-foreground">Read-only view of {feature.name} sequence diagram</p>

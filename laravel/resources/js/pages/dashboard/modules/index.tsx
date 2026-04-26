@@ -117,13 +117,13 @@ export default function ModulesIndex({ modules, stats }: Props) {
             <Head title="Module Management" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h1 className="text-2xl font-bold">Module Management</h1>
                     <Badge variant="outline">{stats.total_modules} Total Modules</Badge>
                 </div>
 
                 {/* Summary Cards */}
-                <div className="grid gap-4 md:grid-cols-5">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Total Modules</CardTitle>
@@ -190,7 +190,7 @@ export default function ModulesIndex({ modules, stats }: Props) {
                 </div>
 
                 {/* Modules Table */}
-                <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                <div className="overflow-x-auto rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <Table>
                         <TableHeader>
                             <TableRow>

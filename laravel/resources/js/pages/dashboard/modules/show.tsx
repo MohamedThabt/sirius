@@ -147,7 +147,7 @@ export default function ModuleShow({ module, project, features, siblingModules, 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Module: ${module.name}`} />
 
-            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">

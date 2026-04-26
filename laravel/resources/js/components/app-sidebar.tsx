@@ -1,15 +1,21 @@
+import { FeedbackModal } from '@/components/FeedbackWidget/FeedbackModal';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { ProjectNav } from '@/components/project-nav';
+import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
+    SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { type ProjectData } from '@/utils/project-navigation';
@@ -24,12 +30,14 @@ import {
     LayoutDashboard,
     Mail,
     MessageSquare,
+    MessageSquareText,
     Receipt,
     ScrollText,
     Shield,
     Users,
     Zap,
 } from 'lucide-react';
+import { useState } from 'react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [];
@@ -123,7 +131,8 @@ interface AppSidebarProps {
 
 export function AppSidebar({ project }: AppSidebarProps = {}) {
     const { props } = usePage<SharedData>();
-    const isAdmin = props.auth?.admin; // Check if user is logged in as admin
+    const isAdmin = props.auth?.admin;
+    const [feedbackOpen, setFeedbackOpen] = useState(false);
 
     return (
         <Sidebar collapsible="icon" variant="inset" className="border-r border-border/40 bg-gradient-to-b from-background to-muted/20">
@@ -160,12 +169,34 @@ export function AppSidebar({ project }: AppSidebarProps = {}) {
                         <NavMain items={adminNavItems} title="Admin" />
                     </div>
                 )}
+
+                <SidebarSeparator />
+
+                <SidebarGroup>
+                    <SidebarGroupLabel>Feedback</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton tooltip="Send Feedback" onClick={() => setFeedbackOpen(true)}>
+                                    <MessageSquareText className="h-4 w-4" />
+                                    <span>Send Feedback</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+
+                <div className="mt-auto group-data-[collapsible=icon]:hidden">
+                    <SidebarUsageBar />
+                </div>
             </SidebarContent>
 
             <SidebarFooter className="border-t border-border/40 p-2">
                 <NavUser />
             </SidebarFooter>
             <SidebarRail />
+
+            <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
         </Sidebar>
     );
 }

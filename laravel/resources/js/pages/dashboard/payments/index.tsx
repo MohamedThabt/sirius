@@ -91,7 +91,7 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Payment Requests" />
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                 <PageHeader
                     title="Payment Requests"
                     greeting="Billing Management"
@@ -106,7 +106,7 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                 />
 
                 {/* Summary Cards */}
-                <div className="grid gap-4 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                     <EnhancedCard variant="gradient" glowColor="blue">
                         <EnhancedCardHeader className="flex flex-row items-center justify-between pb-2">
                             <EnhancedCardTitle className="text-sm font-medium text-muted-foreground/80">Total</EnhancedCardTitle>
@@ -197,6 +197,7 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
 
                 {/* Table */}
                 <EnhancedCard variant="glass" hoverEffect={false} className="overflow-hidden">
+                    <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border/40 hover:bg-transparent">
@@ -266,6 +267,7 @@ export default function PaymentsIndex({ payments, filters, summary }: PageProps)
                             ))}
                         </TableBody>
                     </Table>
+                    </div>
                 </EnhancedCard>
 
                 {payments.data.length === 0 && (

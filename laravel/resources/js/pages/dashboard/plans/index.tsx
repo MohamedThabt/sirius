@@ -94,7 +94,7 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Plans" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                 {/* Page Header */}
                 <PageHeader
                     title="Subscription Plans"
@@ -200,6 +200,7 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
 
                 {/* Plans Table */}
                 <EnhancedCard variant="glass" hoverEffect={false} className="overflow-hidden">
+                    <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border/40 hover:bg-transparent">
@@ -279,6 +280,7 @@ const PlansIndex = ({ plans, filters, summary, usersPerPlan }: IndexProps) => {
                             ))}
                         </TableBody>
                     </Table>
+                    </div>
                 </EnhancedCard>
 
                 {plans.data.length === 0 && (

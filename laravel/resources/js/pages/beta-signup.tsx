@@ -205,7 +205,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.45, duration: 0.7 }}
-                                            className="grid grid-cols-2 gap-3"
+                                            className="grid grid-cols-1 gap-3 sm:grid-cols-2"
                                         >
                                             {features.map((feature, index) => (
                                                 <div key={index} className="flex items-center gap-2.5 text-sm text-muted-foreground">
@@ -328,7 +328,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                                                 </div>
 
                                                 {/* Turnstile Captcha */}
-                                                <div className="my-4 flex justify-center">
+                                                <div className="my-4 flex justify-center overflow-hidden">
                                                     <Turnstile
                                                         siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAACj9nwv1GucMvdLU'}
                                                         onSuccess={(token) => {

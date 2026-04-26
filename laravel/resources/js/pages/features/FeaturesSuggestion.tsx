@@ -176,10 +176,10 @@ export default function FeaturesSuggestion({ project, module, generatedFeatures 
 
                         <div className="flex-1 overflow-auto py-8 pr-4 pb-32 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
                             <header className="mb-8">
-                                <div className="mb-2 flex items-center justify-between">
+                                <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex items-center gap-3">
                                         <Sparkles className="h-8 w-8 text-primary" />
-                                        <h1 className="text-3xl font-bold">Feature Suggestions</h1>
+                                        <h1 className="text-2xl font-bold sm:text-3xl">Feature Suggestions</h1>
                                     </div>
                                     <Button
                                         variant="outline"

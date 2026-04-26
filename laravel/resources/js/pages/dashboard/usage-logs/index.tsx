@@ -166,14 +166,14 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
             <Head title="Usage Logs" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h1 className="text-2xl font-bold">Usage Logs</h1>
                     <Badge variant="outline">{summary?.total_logs || logs.total || 0} Total Logs</Badge>
                 </div>
 
                 {/* Summary Stats */}
                 {summary && (
-                    <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Total Logs</CardTitle>
@@ -313,7 +313,7 @@ export default function UsageLogsIndex({ logs, actionTypes, models, filters, sum
                     )}
                 </div>
 
-                <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                <div className="overflow-x-auto rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <Table>
                         <TableHeader>
                             <TableRow>

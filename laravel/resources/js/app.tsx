@@ -1,7 +1,6 @@
 import '../css/app.css';
 
 import { CreditLimitModal } from '@/components/CreditLimitModal';
-import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { Toaster } from '@/components/ui/sonner';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -42,7 +41,6 @@ createInertiaApp({
                 <>
                     <App {...props} />
                     <Toaster />
-                    <FeedbackWidget initialComponent={props.initialPage.component} />
                     <CreditLimitModal
                         open={creditModalOpen}
                         onOpenChange={setCreditModalOpen}

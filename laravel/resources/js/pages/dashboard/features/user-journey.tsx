@@ -62,7 +62,7 @@ export default function UserJourney({ project, feature, initialContent }: Props)
                 <Head title={`User Journey - ${feature.name}`} />
 
                 <div className="mx-auto w-full max-w-7xl space-y-4 rounded-xl p-4 md:p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold tracking-tight text-foreground">User Journey</h1>
                             <p className="mt-1 text-sm text-muted-foreground">Read-only view of {feature.name} user journey</p>

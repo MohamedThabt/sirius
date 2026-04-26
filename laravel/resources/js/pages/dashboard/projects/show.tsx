@@ -228,7 +228,7 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Project: ${project.name}`} />
 
-            <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -542,7 +542,7 @@ export default function ProjectShow({ project, projectMetrics }: Props) {
                                     .map((module) => (
                                         <Card key={module.id}>
                                             <CardHeader className="pb-3">
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                     <Link href={`/admin/modules/${module.id}`} className="transition-colors hover:text-primary">
                                                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
                                                             <BoxIcon className="h-4 w-4 text-muted-foreground" />

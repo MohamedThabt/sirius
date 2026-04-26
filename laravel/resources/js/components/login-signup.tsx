@@ -347,7 +347,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             )}
                                         </div>
 
-                                        <div className="flex justify-center">
+                                        <div className="flex justify-center overflow-hidden">
                                             <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
                                             <Turnstile
                                                 siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITEKEY || '0x4AAAAAACj9nwv1GucMvdLU'}
@@ -487,7 +487,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             <input type="hidden" name="password_confirmation" value={passwordValue} />
                                         </div>
 
-                                        <div className="flex justify-center">
+                                        <div className="flex justify-center overflow-hidden">
                                             <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
                                             <Turnstile
                                                 siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITEKEY || '0x4AAAAAACj9nwv1GucMvdLU'}

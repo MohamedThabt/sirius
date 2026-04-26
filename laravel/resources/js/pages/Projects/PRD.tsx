@@ -294,7 +294,7 @@ export default function PRD({ project, prdVersions: initialPRDVersions, features
                         <main className="min-w-0 flex-1">
                             <div className="flex h-screen flex-col">
                                 <div className="border-b px-4 py-3 sm:pl-6 lg:pl-6">
-                                    <div className="mb-4 flex items-center justify-between gap-3">
+                                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div className="flex items-center gap-3">
                                             <Sheet>
                                                 <SheetTrigger asChild>
@@ -324,17 +324,18 @@ export default function PRD({ project, prdVersions: initialPRDVersions, features
                                             />
                                             <Breadcrumbs breadcrumbs={breadcrumbs} />
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button variant="outline" onClick={toggleFullscreen} title="Enter Fullscreen">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Button variant="outline" size="sm" onClick={toggleFullscreen} title="Enter Fullscreen">
                                                 <Maximize2 className="mr-2 h-4 w-4" />
-                                                Fullscreen
+                                                <span className="hidden sm:inline">Fullscreen</span>
                                             </Button>
-                                            <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>
+                                            <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
                                                 {isEditing ? <EyeIcon className="mr-2 h-4 w-4" /> : <PencilIcon className="mr-2 h-4 w-4" />}
-                                                {isEditing ? 'Preview' : 'Edit'}
+                                                <span className="hidden sm:inline">{isEditing ? 'Preview' : 'Edit'}</span>
                                             </Button>
-                                            <Button variant="outline" onClick={exportAsMarkdown}>
-                                                Export MD
+                                            <Button variant="outline" size="sm" onClick={exportAsMarkdown}>
+                                                <span className="hidden sm:inline">Export MD</span>
+                                                <span className="sm:hidden">MD</span>
                                             </Button>
                                         </div>
                                     </div>
@@ -476,7 +477,7 @@ export default function PRD({ project, prdVersions: initialPRDVersions, features
                     <div className="fixed inset-0 z-50 flex h-screen flex-col bg-background">
                         <div className="flex h-screen flex-col">
                             <div className="border-b p-4">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-8 w-8 items-center justify-center rounded bg-muted">
                                             <FileTextIcon className="h-4 w-4" />
@@ -486,17 +487,19 @@ export default function PRD({ project, prdVersions: initialPRDVersions, features
                                             <p className="text-sm text-muted-foreground">{project.name}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button variant="outline" onClick={toggleFullscreen}>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <Button variant="outline" size="sm" onClick={toggleFullscreen}>
                                             <Minimize2 className="mr-2 h-4 w-4" />
-                                            Exit Fullscreen
+                                            <span className="hidden sm:inline">Exit Fullscreen</span>
+                                            <span className="sm:hidden">Exit</span>
                                         </Button>
-                                        <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>
+                                        <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
                                             {isEditing ? <EyeIcon className="mr-2 h-4 w-4" /> : <PencilIcon className="mr-2 h-4 w-4" />}
-                                            {isEditing ? 'Preview' : 'Edit'}
+                                            <span className="hidden sm:inline">{isEditing ? 'Preview' : 'Edit'}</span>
                                         </Button>
-                                        <Button variant="outline" onClick={exportAsMarkdown}>
-                                            Export MD
+                                        <Button variant="outline" size="sm" onClick={exportAsMarkdown}>
+                                            <span className="hidden sm:inline">Export MD</span>
+                                            <span className="sm:hidden">MD</span>
                                         </Button>
                                     </div>
                                 </div>

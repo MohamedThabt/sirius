@@ -254,7 +254,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                             <div className="space-y-4">
                                                 {userInvitations.map((invitation) => (
                                                     <div key={invitation.id} className="rounded-lg border p-4">
-                                                        <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                                             <div className="min-w-0 flex-1">
                                                                 <div className="mb-3 flex items-start gap-3">
                                                                     {invitation.invited_by && (
@@ -323,7 +323,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                 {/* Team Members */}
                                 <Card>
                                     <CardHeader>
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
                                                 <CardTitle className="flex items-center gap-2">
                                                     <Users className="h-5 w-5" />
@@ -331,7 +331,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                 </CardTitle>
                                                 <CardDescription>Manage roles and permissions for your team</CardDescription>
                                             </div>
-                                            <div className="w-64">
+                                            <div className="w-full sm:w-64">
                                                 <div className="relative">
                                                     <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
                                                     <Input
@@ -354,7 +354,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                                 filteredMembers.map((member) => (
                                                     <div
                                                         key={member.id}
-                                                        className={`flex items-center justify-between rounded border p-4 ${
+                                                        className={`flex flex-col gap-3 rounded border p-4 sm:flex-row sm:items-center sm:justify-between ${
                                                             member.role === 'owner' ? 'border-muted-foreground/20 bg-muted/30' : ''
                                                         }`}
                                                     >
@@ -441,7 +441,7 @@ export default function Team({ project, members, invitations, userInvitations, u
                                         <CardContent>
                                             <div className="space-y-4">
                                                 {invitations.map((invitation) => (
-                                                    <div key={invitation.id} className="flex items-center justify-between rounded border p-4">
+                                                    <div key={invitation.id} className="flex flex-col gap-3 rounded border p-4 sm:flex-row sm:items-center sm:justify-between">
                                                         <div className="flex items-center gap-4">
                                                             <Avatar className="h-10 w-10">
                                                                 <AvatarImage src={invitation.user.avatar} alt={invitation.user.name} />

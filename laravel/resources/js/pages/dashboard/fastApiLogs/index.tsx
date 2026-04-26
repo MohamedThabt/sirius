@@ -374,10 +374,10 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="FastAPI Logs" />
 
-                <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                     {/* Header */}
                     <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h1 className="text-2xl font-semibold tracking-tight text-foreground/90">FastAPI Logs</h1>
                                 <p className="text-sm text-muted-foreground/60">Monitor and analyze FastAPI service logs</p>
@@ -470,7 +470,7 @@ export default function LogsIndex({ stats, logs, filters, error: serverError }: 
 
                     {/* Log Tabs */}
                     <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-1 flex-col">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <TabsList className="bg-muted/50">
                                 <TabsTrigger value="app" className="gap-2">
                                     <FileTextIcon className="h-4 w-4" />

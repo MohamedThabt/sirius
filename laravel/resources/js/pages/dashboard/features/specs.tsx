@@ -71,15 +71,17 @@ export default function Specs({ project, feature, specsMarkdown }: Props) {
 
             <div className="mx-auto w-full max-w-7xl space-y-6 rounded-xl p-4 md:p-6">
                 {/* Header */}
-                <div className="flex items-center gap-4">
-                    <Link href={`/admin/features/${feature.id}`}>
-                        <Button variant="ghost" size="icon" className="h-9 w-9">
-                            <ArrowLeft className="h-4 w-4" />
-                        </Button>
-                    </Link>
-                    <div className="flex-1">
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Feature Specifications</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">Complete specifications for {feature.name}</p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-4 flex-1">
+                        <Link href={`/admin/features/${feature.id}`}>
+                            <Button variant="ghost" size="icon" className="h-9 w-9">
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                        <div className="flex-1">
+                            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Feature Specifications</h1>
+                            <p className="mt-1 text-sm text-muted-foreground">Complete specifications for {feature.name}</p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={handleCopyToClipboard}>

@@ -52,7 +52,7 @@ export default function FeaturesIndex({ project, features }: Props) {
                         </div>
 
                         <header className="mb-8">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <div className="flex items-center gap-3">
                                         <Button variant="ghost" size="sm" onClick={() => router.visit(`/projects/${project.id}`)} className="gap-2">
@@ -63,7 +63,7 @@ export default function FeaturesIndex({ project, features }: Props) {
                                     <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{project.name} - Features</h1>
                                     <p className="mt-1 text-sm text-muted-foreground">Manage and track project features</p>
                                 </div>
-                                <Button onClick={() => setIsCreateFeatureModalOpen(true)} className="gap-2">
+                                <Button onClick={() => setIsCreateFeatureModalOpen(true)} className="gap-2 self-start sm:self-auto">
                                     <Plus className="h-4 w-4" />
                                     Create Feature
                                 </Button>

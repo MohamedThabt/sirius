@@ -209,7 +209,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`User Details - ${user.name}`} />
 
-            <div className="mx-auto w-full max-w-7xl space-y-6 p-6">
+            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-center gap-3">
                     <Link href="/admin/users">
@@ -299,7 +299,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
                 </div>
 
                 {/* Subscription, Credits & Engagement Row */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                     {/* Subscription & Plan */}
                     <EnhancedCard variant="glass">
                         <EnhancedCardHeader className="pb-3">
@@ -350,7 +350,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
                     {/* Credits Balance */}
                     <EnhancedCard variant="glass">
                         <EnhancedCardHeader className="pb-3">
-                            <EnhancedCardTitle className="flex items-center justify-between text-sm font-medium">
+                            <EnhancedCardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm font-medium">
                                 <span className="flex items-center gap-2">
                                     <CoinsIcon className="h-4 w-4 text-amber-500" />
                                     Credits Balance
@@ -594,7 +594,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
                 {usageStats && (
                     <EnhancedCard variant="glass">
                         <EnhancedCardHeader className="pb-3">
-                            <EnhancedCardTitle className="flex items-center justify-between text-sm font-medium">
+                            <EnhancedCardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm font-medium">
                                 <span className="flex items-center gap-2">
                                     <ActivityIcon className="h-4 w-4 text-emerald-500" />
                                     Usage Statistics
@@ -670,7 +670,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
                             {recentUsageLogs && recentUsageLogs.length > 0 && (
                                 <div>
                                     <h4 className="mb-3 text-sm font-medium">Recent Usage</h4>
-                                    <div className="overflow-hidden rounded-xl border border-border/30">
+                                    <div className="overflow-x-auto rounded-xl border border-border/30">
                                         <Table>
                                             <TableHeader>
                                                 <TableRow className="border-border/40 hover:bg-transparent">
@@ -739,7 +739,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
                     </EnhancedCardHeader>
                     <EnhancedCardContent>
                         {user.projects.length > 0 ? (
-                            <div className="overflow-hidden rounded-xl border border-border/30">
+                            <div className="overflow-x-auto rounded-xl border border-border/30">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-border/40 hover:bg-transparent">
@@ -801,7 +801,7 @@ export default function UserShow({ user, userStats, usageStats, recentUsageLogs,
                             </EnhancedCardTitle>
                         </EnhancedCardHeader>
                         <EnhancedCardContent>
-                            <div className="overflow-hidden rounded-xl border border-border/30">
+                            <div className="overflow-x-auto rounded-xl border border-border/30">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-border/40 hover:bg-transparent">

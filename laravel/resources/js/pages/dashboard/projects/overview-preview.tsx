@@ -94,7 +94,7 @@ export default function OverviewPreview({ content, title, projectName, project }
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 {/* Header */}
                 <div className="rounded-xl border border-sidebar-border/70 bg-card p-4 dark:border-sidebar-border">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                             <a href={`/admin/projects/${project.id}`}>
                                 <Button variant="outline" size="sm">
@@ -121,7 +121,7 @@ export default function OverviewPreview({ content, title, projectName, project }
                 </div>
 
                 {/* Content */}
-                <div className="min-h-[100vh] flex-1 overflow-auto rounded-xl border border-sidebar-border/70 bg-card p-6 md:min-h-min dark:border-sidebar-border">
+                <div className="min-h-[100vh] flex-1 overflow-auto rounded-xl border border-sidebar-border/70 bg-card p-4 sm:p-6 md:min-h-min dark:border-sidebar-border">
                     {showCode ? (
                         <div className="mx-auto max-w-6xl">
                             <pre className="overflow-x-auto text-sm whitespace-pre-wrap">

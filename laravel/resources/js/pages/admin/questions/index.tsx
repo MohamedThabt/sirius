@@ -44,7 +44,7 @@ export default function Index({ users }: QuestionnairesProps) {
             <div className="container mx-auto space-y-6 p-4">
                 <EnhancedCard variant="glass">
                     <EnhancedCardHeader>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <EnhancedCardTitle>Respondents</EnhancedCardTitle>
                             <span className="rounded-full border border-border/40 bg-muted/30 px-2.5 py-0.5 text-xs text-muted-foreground">
                                 {users.total} user{users.total !== 1 ? 's' : ''}
@@ -53,7 +53,7 @@ export default function Index({ users }: QuestionnairesProps) {
                     </EnhancedCardHeader>
                     <EnhancedCardContent>
                         {users.data.length > 0 ? (
-                            <div className="overflow-hidden rounded-xl border border-border/30">
+                            <div className="overflow-x-auto overflow-hidden rounded-xl border border-border/30">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-border/40 bg-muted/20">

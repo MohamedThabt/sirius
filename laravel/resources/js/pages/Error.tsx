@@ -45,12 +45,12 @@ export default function Error({ status, message }: ErrorProps & { message?: stri
                 {/* Top line full width */}
                 <div className="h-px w-full bg-border" />
 
-                <div className="mx-auto flex max-w-5xl items-center justify-center bg-background/50 py-16 backdrop-blur-[2px]">
+                <div className="mx-auto flex max-w-5xl items-center justify-center bg-background/50 px-4 py-10 backdrop-blur-[2px] sm:py-16">
                     <Empty>
                         <EmptyHeader>
-                            <EmptyTitle className="font-mono text-8xl font-black text-primary">{status}</EmptyTitle>
-                            <EmptyTitle className="mt-2 text-2xl">{title}</EmptyTitle>
-                            <EmptyDescription className="mt-4 max-w-md text-center text-lg text-balance">{description}</EmptyDescription>
+                            <EmptyTitle className="font-mono text-6xl font-black text-primary sm:text-8xl">{status}</EmptyTitle>
+                            <EmptyTitle className="mt-2 text-xl sm:text-2xl">{title}</EmptyTitle>
+                            <EmptyDescription className="mt-4 max-w-md px-4 text-center text-base text-balance sm:text-lg">{description}</EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
                             <div className="flex gap-2">

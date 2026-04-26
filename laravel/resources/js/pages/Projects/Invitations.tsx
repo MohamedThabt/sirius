@@ -119,7 +119,7 @@ export default function ProjectInvitations({ invitations }: Props) {
                                             <div className="space-y-4">
                                                 {invitations.map((invitation) => (
                                                     <div key={invitation.id} className="rounded-lg border p-4">
-                                                        <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                                                             <div className="min-w-0 flex-1">
                                                                 <div className="mb-3 flex items-start gap-3">
                                                                     {invitation.invited_by && (
@@ -162,7 +162,7 @@ export default function ProjectInvitations({ invitations }: Props) {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex shrink-0 gap-2">
+                                                            <div className="flex shrink-0 gap-2 self-end sm:self-start">
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"

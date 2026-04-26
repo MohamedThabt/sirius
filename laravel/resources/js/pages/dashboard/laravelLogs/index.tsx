@@ -431,15 +431,15 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="Laravel Logs" />
 
-                <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                <div className="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
                     {/* Header */}
                     <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h1 className="text-2xl font-semibold tracking-tight text-foreground/90">Laravel Logs</h1>
                                 <p className="text-sm text-muted-foreground/60">Monitor and analyze Laravel application logs</p>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
                                 <span className="text-xs text-muted-foreground/60">Last refreshed: {formatLastRefreshed(lastRefreshed)}</span>
                                 <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
                                     <RefreshCwIcon className={cn('mr-2 h-4 w-4', isLoading && 'animate-spin')} />
@@ -525,7 +525,7 @@ export default function LaravelLogsIndex({ stats, logs, filters, error: serverEr
                     )}
 
                     {/* Log File Selector & Actions */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-4">
                             <Select value={selectedLogFile} onValueChange={handleLogFileChange}>
                                 <SelectTrigger className="w-[250px] border-border/30 bg-background/50">
