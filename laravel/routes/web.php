@@ -71,8 +71,7 @@ Route::get('/pricing', function () {
 
 
 // Project routes
-// TODO: Add middleware 'verified'
-Route::middleware(['auth', 'share.project'])->group(function () {
+Route::middleware(['auth', 'verified', 'share.project'])->group(function () {
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/invitations', [ProjectController::class, 'invitations'])->name('projects.invitations');
     Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
@@ -198,7 +197,7 @@ Route::middleware(['auth', 'share.project'])->group(function () {
 });
 
 // Beta Feedback Widget Routes (authenticated users)
-Route::middleware(['auth'])->prefix('beta')->name('beta.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('beta')->name('beta.')->group(function () {
     // Feedback (Suggestions, UX issues)
     Route::get('/feedback', [\App\Http\Controllers\Beta\FeedbackController::class, 'index'])->name('feedback.index');
     Route::post('/feedback', [\App\Http\Controllers\Beta\FeedbackController::class, 'store'])
@@ -215,13 +214,13 @@ Route::middleware(['auth'])->prefix('beta')->name('beta.')->group(function () {
 });
 
 // Pro Upgrade Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/upgrade/pro', [\App\Http\Controllers\Billing\PaymentController::class, 'upgradePro'])->name('upgrade.pro');
     Route::post('/upgrade/pro', [\App\Http\Controllers\Billing\PaymentController::class, 'acceptProPayment'])->name('upgrade.pro.submit');
 });
 
 // User Questionnaire
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/user/questionnaire', [\App\Http\Controllers\User\UserQuestionController::class, 'create'])->name('user.questionnaire.create');
     Route::post('/user/questionnaire', [\App\Http\Controllers\User\UserQuestionController::class, 'store'])->name('user.questionnaire.store');
 });

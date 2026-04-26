@@ -13,6 +13,15 @@ class EmailVerificationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_unverified_users_are_redirected_from_project_routes()
+    {
+        $user = User::factory()->unverified()->create();
+
+        $response = $this->actingAs($user)->get(route('projects.index', absolute: false));
+
+        $response->assertRedirect(route('verification.notice', absolute: false));
+    }
+
     public function test_email_verification_screen_can_be_rendered()
     {
         $user = User::factory()->unverified()->create();
