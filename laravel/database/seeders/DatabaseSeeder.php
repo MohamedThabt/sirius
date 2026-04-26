@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PlanSeeder::class,
             FreeTierUserSeeder::class,
             AdminSeeder::class,
+            NewUserSeeder::class,
             // ProjectWithFeaturesSeeder::class,
             // ProjectTechnicalIntakeSeeder::class,
         ]);
