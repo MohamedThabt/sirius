@@ -289,6 +289,76 @@ MSG;
     }
 
     /**
+     * Send a notification for new user registration.
+     */
+    public function notifyNewUserRegistration(User $user, string $provider = 'email'): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $escapedName  = $this->escapeMarkdown($user->name);
+        $escapedEmail = $this->escapeMarkdown($user->email);
+        $appUrl       = config('app.url');
+
+        $providerLabel = match ($provider) {
+            'google' => '🔵 Google',
+            'github' => '⚫ GitHub',
+            default  => '📧 Email',
+        };
+
+        $message = <<<MSG
+🎉 *New User Registered*
+
+*Name:* {$escapedName}
+*Email:* {$escapedEmail}
+*Provider:* {$providerLabel}
+
+🔗 [View in Dashboard]({$appUrl}/admin/users/{$user->id})
+MSG;
+
+        return $this->sendMessage($message);
+    }
+
+    /**
+     * Send a notification when a user submits the onboarding questionnaire.
+     *
+     * @param User $user
+     * @param array<array{question: string, answer: string}> $answers
+     */
+    public function notifyQuestionnaireSubmitted(User $user, array $answers): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        $escapedName  = $this->escapeMarkdown($user->name);
+        $escapedEmail = $this->escapeMarkdown($user->email);
+        $appUrl       = config('app.url');
+
+        $lines = [];
+        foreach ($answers as $item) {
+            $q = $this->escapeMarkdown($this->truncate($item['question'], 80));
+            $a = $this->escapeMarkdown($this->truncate($item['answer'], 200));
+            $lines[] = "*{$q}*\n{$a}";
+        }
+
+        $answersText = implode("\n\n", $lines);
+
+        $message = <<<MSG
+📋 *Questionnaire Submitted*
+
+*User:* {$escapedName} \({$escapedEmail}\)
+
+{$answersText}
+
+🔗 [View in Dashboard]({$appUrl}/admin/questionnaires)
+MSG;
+
+        return $this->sendMessage($message);
+    }
+
+    /**
      * Send a notification for new beta invitation request.
      *
      * @param BetaInvitation $betaInvitation The beta invitation instance

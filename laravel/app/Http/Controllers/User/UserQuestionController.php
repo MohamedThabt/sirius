@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserQuestionAnswer;
+use App\Services\Notification\TelegramNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,7 @@ class UserQuestionController extends Controller
         ]);
 
         $user = Auth::user();
+        $saved = [];
 
         if ($request->has('questionnaire') && is_array($request->questionnaire)) {
             foreach ($request->questionnaire as $item) {
@@ -37,6 +39,15 @@ class UserQuestionController extends Controller
                     ['user_id' => $user->id, 'question' => $item['question']],
                     ['answer' => $item['answer']]
                 );
+
+                $saved[] = $item;
+            }
+        }
+
+        if (!empty($saved)) {
+            try {
+                app(TelegramNotificationService::class)->notifyQuestionnaireSubmitted($user, $saved);
+            } catch (\Throwable) {
             }
         }
 

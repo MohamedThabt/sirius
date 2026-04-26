@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Notification\TelegramNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -141,9 +142,16 @@ class OAuthController extends Controller
 
         $request->session()->regenerate();
 
-        return $isNewUser
-            ? redirect()->route('user.questionnaire.create')
-            : redirect()->route('projects.index');
+        if ($isNewUser) {
+            try {
+                app(TelegramNotificationService::class)->notifyNewUserRegistration($user, 'google');
+            } catch (\Throwable) {
+            }
+
+            return redirect()->route('user.questionnaire.create');
+        }
+
+        return redirect()->route('projects.index');
     }
 
     // -------------------------------------------------------------------------

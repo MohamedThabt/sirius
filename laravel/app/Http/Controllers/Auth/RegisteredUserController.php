@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Notification\TelegramNotificationService;
 use App\Support\AppLogger;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -95,6 +96,12 @@ class RegisteredUserController extends Controller
                 'user_id' => $user->id,
                 'email' => $user->email,
             ], 'info');
+
+            try {
+                app(TelegramNotificationService::class)->notifyNewUserRegistration($user);
+            } catch (\Throwable $e) {
+                $this->logException($e, ['action' => 'telegram_notification', 'user_id' => $user->id]);
+            }
 
             return redirect()->route('user.questionnaire.create');
         } catch (\Throwable $e) {
