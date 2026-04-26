@@ -533,7 +533,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                         {/* Support link */}
                         <p className="mt-3 text-center text-xs text-zinc-600">
                             Need help?{' '}
-                            <a href="mailto:support@sirius.ai" className="font-semibold text-zinc-400 transition-colors hover:text-zinc-200">
+                            <a href="mailto:mohamedthabetthabet36@gmail.com" className="font-semibold text-zinc-400 transition-colors hover:text-zinc-200">
                                 Contact support
                             </a>
                         </p>
