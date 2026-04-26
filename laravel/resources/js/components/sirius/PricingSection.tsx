@@ -1,17 +1,36 @@
 'use client';
 
 import { BentoPricing } from '@/components/bento-pricing';
-import { useEffect, useRef } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useReducedMotion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
 
 export default function PricingSection() {
+    const sectionRef = useRef<HTMLElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const [isHydrated, setIsHydrated] = useState(false);
+    const isMobile = useIsMobile();
+    const prefersReducedMotion = useReducedMotion();
+    const shouldAnimateBackground = isHydrated && !isMobile && !prefersReducedMotion;
+
     useEffect(() => {
+        setIsHydrated(true);
+    }, []);
+
+    useEffect(() => {
+        if (!shouldAnimateBackground) return;
+
         const canvas = canvasRef.current;
+        const section = sectionRef.current;
         const ctx = canvas?.getContext('2d');
-        if (!canvas || !ctx) return;
+        if (!canvas || !ctx || !section) return;
 
         let raf = 0;
-        let resizeObserver: ResizeObserver;
+        let inView = false;
+        let observer: IntersectionObserver | null = null;
+        let resizeObserver: ResizeObserver | null = null;
+        let lastFrameTime = 0;
+        const targetFrameMs = 1000 / 40;
 
         const setSize = () => {
             const parent = canvas.parentElement;
@@ -38,11 +57,11 @@ export default function PricingSection() {
 
         const init = () => {
             ps = [];
-            const count = Math.floor((canvas.width * canvas.height) / 9000);
+            const count = Math.floor((canvas.width * canvas.height) / 12000);
             for (let i = 0; i < count; i++) ps.push(make());
         };
 
-        const draw = () => {
+        const renderParticles = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ps.forEach((p) => {
                 p.y -= p.v;
@@ -55,12 +74,40 @@ export default function PricingSection() {
                 ctx.fillStyle = `rgba(150,150,150,${p.o})`;
                 ctx.fillRect(p.x, p.y, 0.7, 2.2);
             });
+        };
+
+        const stopAnimation = () => {
+            if (!raf) return;
+            cancelAnimationFrame(raf);
+            raf = 0;
+        };
+
+        const draw = (time: number) => {
+            if (!inView || document.hidden) {
+                stopAnimation();
+                return;
+            }
+
+            if (lastFrameTime && time - lastFrameTime < targetFrameMs) {
+                raf = requestAnimationFrame(draw);
+                return;
+            }
+
+            lastFrameTime = time;
+            renderParticles();
+            raf = requestAnimationFrame(draw);
+        };
+
+        const startAnimation = () => {
+            if (raf || !inView || document.hidden) return;
+            lastFrameTime = 0;
             raf = requestAnimationFrame(draw);
         };
 
         resizeObserver = new ResizeObserver(() => {
             setSize();
             init();
+            if (inView) renderParticles();
         });
 
         if (canvas.parentElement) {
@@ -68,16 +115,41 @@ export default function PricingSection() {
         }
 
         init();
-        raf = requestAnimationFrame(draw);
+        renderParticles();
+
+        observer = new IntersectionObserver(
+            ([entry]) => {
+                inView = entry.isIntersecting;
+                if (inView) {
+                    startAnimation();
+                } else {
+                    stopAnimation();
+                }
+            },
+            { rootMargin: '200px' },
+        );
+        observer.observe(section);
+
+        const onVisibilityChange = () => {
+            if (document.hidden) {
+                stopAnimation();
+            } else {
+                startAnimation();
+            }
+        };
+
+        document.addEventListener('visibilitychange', onVisibilityChange);
 
         return () => {
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+            if (observer) observer.disconnect();
             if (resizeObserver) resizeObserver.disconnect();
-            cancelAnimationFrame(raf);
+            stopAnimation();
         };
-    }, []);
+    }, [shouldAnimateBackground]);
 
     return (
-        <section className="relative w-full overflow-hidden bg-background py-24 text-foreground">
+        <section ref={sectionRef} className="relative w-full overflow-hidden bg-background py-24 text-foreground">
             <style>{`
         .accent-lines{position:absolute;inset:0;pointer-events:none;opacity:.7}
         .hline,.vline{position:absolute;background:hsl(var(--border));will-change:transform,opacity}
@@ -118,17 +190,21 @@ export default function PricingSection() {
             <div className="pointer-events-none absolute inset-0 [background:radial-gradient(80%_60%_at_50%_30%,rgba(0,0,0,0.02),transparent_60%)] dark:[background:radial-gradient(80%_60%_at_50%_30%,rgba(255,255,255,0.06),transparent_60%)]" />
 
             {/* Animated accent lines */}
-            <div className="accent-lines">
-                <div className="hline" />
-                <div className="hline" />
-                <div className="hline" />
-                <div className="vline" />
-                <div className="vline" />
-                <div className="vline" />
-            </div>
+            {shouldAnimateBackground && (
+                <div className="accent-lines">
+                    <div className="hline" />
+                    <div className="hline" />
+                    <div className="hline" />
+                    <div className="vline" />
+                    <div className="vline" />
+                    <div className="vline" />
+                </div>
+            )}
 
             {/* Particles */}
-            <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-50 mix-blend-screen" />
+            {shouldAnimateBackground && (
+                <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-50 mix-blend-screen" />
+            )}
 
             {/* Dotted Background */}
             <div className="pointer-events-none absolute inset-0 z-0">

@@ -1,6 +1,7 @@
 import { GridPattern } from '@/components/ui/shadcn-io/grid-pattern';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import React from 'react';
 
 interface Step {
@@ -17,6 +18,10 @@ interface SiriusStepTimelineProps {
 }
 
 export const SiriusStepTimeline: React.FC<SiriusStepTimelineProps> = ({ steps, className }) => {
+    const isMobile = useIsMobile();
+    const prefersReducedMotion = useReducedMotion();
+    const disableMotion = isMobile || prefersReducedMotion;
+
     return (
         <div className={cn('relative', className)}>
             <GridPattern
@@ -45,10 +50,10 @@ export const SiriusStepTimeline: React.FC<SiriusStepTimelineProps> = ({ steps, c
                 {steps.map((step, index) => (
                     <motion.div
                         key={step.id || index}
-                        initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: '-50px' }}
-                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        initial={disableMotion ? false : { opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+                        whileInView={disableMotion ? undefined : { opacity: 1, x: 0 }}
+                        viewport={disableMotion ? undefined : { once: true, margin: '-50px' }}
+                        transition={disableMotion ? undefined : { duration: 0.5, delay: index * 0.1 }}
                         className={cn('relative pl-12 md:grid md:grid-cols-2 md:gap-8 md:pl-0')}
                     >
                         <div className="absolute left-0 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary bg-background md:left-1/2 md:-translate-x-1/2">

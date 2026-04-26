@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { HyperTextParagraph } from '@/components/ui/hyper-text-paragraph';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { heroContent } from '@/lib/sirius/content';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowDown, ArrowRight, Check, Sparkles } from 'lucide-react';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import SiriusOrbitalFeatures from './SiriusOrbitalFeatures';
 
 // Star color palette — fully opaque, glow handled via boxShadow
@@ -55,10 +56,18 @@ const starTwinkleCSS = `
 `;
 
 export const SiriusHero: React.FC = () => {
+    const isMobile = useIsMobile();
     const prefersReducedMotion = useReducedMotion();
-    // Reduced particle counts for better mobile performance; skip entirely if user prefers reduced motion
-    const stars = useMemo(() => (prefersReducedMotion ? [] : generateStars(45)), [prefersReducedMotion]);
-    const spaceDust = useMemo(() => (prefersReducedMotion ? [] : generateSpaceDust(12)), [prefersReducedMotion]);
+    const [isHydrated, setIsHydrated] = useState(false);
+    const shouldReduceEffects = !isHydrated || prefersReducedMotion || isMobile;
+
+    useEffect(() => {
+        setIsHydrated(true);
+    }, []);
+
+    // Lower density and fewer loops on mobile keeps scroll and touch interaction smooth.
+    const stars = useMemo(() => (shouldReduceEffects ? generateStars(14) : generateStars(45)), [shouldReduceEffects]);
+    const spaceDust = useMemo(() => (shouldReduceEffects ? [] : generateSpaceDust(12)), [shouldReduceEffects]);
 
     return (
         <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
@@ -85,7 +94,7 @@ export const SiriusHero: React.FC = () => {
                             width: star.size,
                             height: star.size,
                             backgroundColor: star.color,
-                            boxShadow: star.glow,
+                            boxShadow: shouldReduceEffects ? 'none' : star.glow,
                             animation: `starTwinkle ${star.duration}s ${star.delay}s ease-in-out infinite`,
                             willChange: 'opacity, transform',
                         }}
@@ -124,56 +133,76 @@ export const SiriusHero: React.FC = () => {
             <div className="pointer-events-none absolute inset-0 z-[2]">
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-transparent to-background" />
 
-                {/* Deep purple nebula - upper left */}
-                <motion.div
-                    className="absolute -top-20 -left-20 h-[700px] w-[700px] rounded-full opacity-[0.12] blur-[140px]"
-                    style={{
-                        background: 'radial-gradient(circle, rgba(120,80,220,0.5) 0%, rgba(80,40,180,0.3) 40%, transparent 70%)',
-                    }}
-                    animate={{
-                        scale: [1, 1.15, 1],
-                        opacity: [0.12, 0.18, 0.12],
-                    }}
-                    transition={{
-                        duration: 12,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                    }}
-                />
-                {/* Blue nebula - center right */}
-                <motion.div
-                    className="absolute top-1/3 -right-10 h-[550px] w-[550px] rounded-full opacity-[0.10] blur-[120px]"
-                    style={{
-                        background: 'radial-gradient(circle, rgba(60,120,255,0.4) 0%, rgba(40,80,200,0.2) 45%, transparent 70%)',
-                    }}
-                    animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.1, 0.16, 0.1],
-                    }}
-                    transition={{
-                        duration: 15,
-                        delay: 3,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                    }}
-                />
-                {/* Cyan/teal nebula - lower */}
-                <motion.div
-                    className="absolute bottom-1/4 left-1/3 h-[500px] w-[500px] rounded-full opacity-[0.08] blur-[110px]"
-                    style={{
-                        background: 'radial-gradient(circle, rgba(60,200,220,0.35) 0%, rgba(40,150,180,0.15) 50%, transparent 70%)',
-                    }}
-                    animate={{
-                        scale: [1, 1.12, 1],
-                        opacity: [0.08, 0.14, 0.08],
-                    }}
-                    transition={{
-                        duration: 10,
-                        delay: 5,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                    }}
-                />
+                {!shouldReduceEffects ? (
+                    <>
+                        {/* Deep purple nebula - upper left */}
+                        <motion.div
+                            className="absolute -top-20 -left-20 h-[700px] w-[700px] rounded-full opacity-[0.12] blur-[140px]"
+                            style={{
+                                background: 'radial-gradient(circle, rgba(120,80,220,0.5) 0%, rgba(80,40,180,0.3) 40%, transparent 70%)',
+                            }}
+                            animate={{
+                                scale: [1, 1.15, 1],
+                                opacity: [0.12, 0.18, 0.12],
+                            }}
+                            transition={{
+                                duration: 12,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                            }}
+                        />
+                        {/* Blue nebula - center right */}
+                        <motion.div
+                            className="absolute top-1/3 -right-10 h-[550px] w-[550px] rounded-full opacity-[0.10] blur-[120px]"
+                            style={{
+                                background: 'radial-gradient(circle, rgba(60,120,255,0.4) 0%, rgba(40,80,200,0.2) 45%, transparent 70%)',
+                            }}
+                            animate={{
+                                scale: [1, 1.1, 1],
+                                opacity: [0.1, 0.16, 0.1],
+                            }}
+                            transition={{
+                                duration: 15,
+                                delay: 3,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                            }}
+                        />
+                        {/* Cyan/teal nebula - lower */}
+                        <motion.div
+                            className="absolute bottom-1/4 left-1/3 h-[500px] w-[500px] rounded-full opacity-[0.08] blur-[110px]"
+                            style={{
+                                background: 'radial-gradient(circle, rgba(60,200,220,0.35) 0%, rgba(40,150,180,0.15) 50%, transparent 70%)',
+                            }}
+                            animate={{
+                                scale: [1, 1.12, 1],
+                                opacity: [0.08, 0.14, 0.08],
+                            }}
+                            transition={{
+                                duration: 10,
+                                delay: 5,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                            }}
+                        />
+                    </>
+                ) : (
+                    <>
+                        <div
+                            className="absolute -top-12 -left-12 h-[420px] w-[420px] rounded-full opacity-[0.10] blur-[70px]"
+                            style={{
+                                background: 'radial-gradient(circle, rgba(120,80,220,0.4) 0%, transparent 72%)',
+                            }}
+                        />
+                        <div
+                            className="absolute top-1/3 -right-8 h-[340px] w-[340px] rounded-full opacity-[0.08] blur-[60px]"
+                            style={{
+                                background: 'radial-gradient(circle, rgba(60,120,255,0.35) 0%, transparent 72%)',
+                            }}
+                        />
+                    </>
+                )}
+
                 {/* Subtle warm accent */}
                 <div
                     className="absolute top-1/2 left-1/4 h-[300px] w-[300px] rounded-full opacity-[0.06] blur-[100px]"
@@ -183,22 +212,23 @@ export const SiriusHero: React.FC = () => {
                 />
             </div>
 
-            {/* Animated aurora / cosmic veil */}
-            <motion.div
-                className="pointer-events-none absolute top-0 right-0 left-0 z-[3] h-[50vh]"
-                style={{
-                    background:
-                        'linear-gradient(180deg, rgba(100,60,200,0.08) 0%, rgba(60,120,255,0.04) 30%, rgba(60,200,220,0.02) 60%, transparent 100%)',
-                }}
-                animate={{
-                    opacity: [0.3, 0.7, 0.3],
-                }}
-                transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                }}
-            />
+            {!shouldReduceEffects && (
+                <motion.div
+                    className="pointer-events-none absolute top-0 right-0 left-0 z-[3] h-[50vh]"
+                    style={{
+                        background:
+                            'linear-gradient(180deg, rgba(100,60,200,0.08) 0%, rgba(60,120,255,0.04) 30%, rgba(60,200,220,0.02) 60%, transparent 100%)',
+                    }}
+                    animate={{
+                        opacity: [0.3, 0.7, 0.3],
+                    }}
+                    transition={{
+                        duration: 8,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                    }}
+                />
+            )}
 
             {/* Main content - 2 column layout */}
             <div className="sirius-container relative z-10 py-16 lg:py-24">
@@ -244,11 +274,18 @@ export const SiriusHero: React.FC = () => {
                             transition={{ delay: 0.25, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
                             className="mx-auto mb-8 max-w-xl lg:mx-0"
                         >
-                            <HyperTextParagraph
-                                text="Paste your project brief and Sirius AI breaks it into features with complete PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports everything to GitHub."
-                                highlightWords={['Sirius AI', 'PRDs', 'user stories', 'ERDs', 'sequence diagrams', 'wireframes', 'GitHub']}
-                                className="text-lg leading-relaxed text-muted-foreground lg:text-xl"
-                            />
+                            {shouldReduceEffects ? (
+                                <p className="text-lg leading-relaxed text-muted-foreground lg:text-xl">
+                                    Paste your project brief and Sirius AI breaks it into features with complete PRDs, user stories,
+                                    ERDs, sequence diagrams, and wireframes, then exports everything to GitHub.
+                                </p>
+                            ) : (
+                                <HyperTextParagraph
+                                    text="Paste your project brief and Sirius AI breaks it into features with complete PRDs, user stories, ERDs, sequence diagrams, and wireframes—then exports everything to GitHub."
+                                    highlightWords={['Sirius AI', 'PRDs', 'user stories', 'ERDs', 'sequence diagrams', 'wireframes', 'GitHub']}
+                                    className="text-lg leading-relaxed text-muted-foreground lg:text-xl"
+                                />
+                            )}
                         </motion.div>
 
                         {/* CTA Buttons */}
@@ -275,7 +312,7 @@ export const SiriusHero: React.FC = () => {
                                 className="h-12 border-border/50 bg-card/30 text-base backdrop-blur-sm hover:bg-accent/50"
                                 onClick={() =>
                                     document.getElementById('how-it-works')?.scrollIntoView({
-                                        behavior: 'smooth',
+                                        behavior: shouldReduceEffects ? 'auto' : 'smooth',
                                     })
                                 }
                             >
@@ -309,9 +346,11 @@ export const SiriusHero: React.FC = () => {
                     </motion.div>
 
                     {/* Right Column - Sirius Orbital Features Visualization */}
-                    <div className="relative order-1 hidden items-center justify-center md:flex lg:order-2">
-                        <SiriusOrbitalFeatures />
-                    </div>
+                    {isHydrated && !isMobile && (
+                        <div className="relative order-1 hidden items-center justify-center md:flex lg:order-2">
+                            <SiriusOrbitalFeatures />
+                        </div>
+                    )}
                 </div>
             </div>
 
