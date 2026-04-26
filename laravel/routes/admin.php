@@ -51,7 +51,7 @@ Route::middleware('auth:admin')->group(function () {
     
     // User Questionnaires
     Route::get('questionnaires', [\App\Http\Controllers\Dashboard\AdminQuestionController::class, 'index'])->name('admin.questionnaires.index');
-    Route::get('questionnaires/{question}', [\App\Http\Controllers\Dashboard\AdminQuestionController::class, 'show'])->name('admin.questionnaires.show');
+    Route::get('questionnaires/{user}', [\App\Http\Controllers\Dashboard\AdminQuestionController::class, 'show'])->name('admin.questionnaires.show');
     
     // Email Management
     Route::get('emails', [EmailController::class, 'index'])->name('admin.emails.index');

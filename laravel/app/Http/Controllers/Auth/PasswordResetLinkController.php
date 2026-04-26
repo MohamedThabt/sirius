@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Support\AppLogger;
+use App\Support\AuthEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -31,8 +32,12 @@ class PasswordResetLinkController extends Controller
     public function store(Request $request): RedirectResponse
     {
         try {
+            $request->merge([
+                'email' => $request->string('email')->lower()->toString(),
+            ]);
+
             $request->validate([
-                'email' => 'required|email',
+                'email' => ['required', 'string', 'lowercase', AuthEmail::laravelRule(), 'max:255'],
             ]);
 
             AppLogger::security('user.password_reset.requested', [

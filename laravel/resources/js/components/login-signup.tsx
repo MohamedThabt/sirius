@@ -7,9 +7,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { parseAuthEmail, parseRegisterPassword } from '@/lib/validations/auth';
 import { Form, Head, Link } from '@inertiajs/react';
 import { Turnstile } from '@marsidev/react-turnstile';
-import { ArrowRight, Eye, EyeOff, LoaderCircle, Lock, Mail, User } from 'lucide-react';
+import { ArrowRight, Check, Eye, EyeOff, LoaderCircle, Lock, Mail, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface AuthPageProps {
@@ -41,10 +42,41 @@ function GoogleIcon() {
     );
 }
 
+function PasswordRequirementHints({ password }: { password: string }) {
+    const items = [
+        { met: password.length >= 12, text: 'At least 12 characters' },
+        { met: /[a-z]/.test(password), text: 'One lowercase letter' },
+        { met: /[A-Z]/.test(password), text: 'One uppercase letter' },
+        { met: /[0-9]/.test(password), text: 'One number' },
+        { met: /[^A-Za-z0-9]/.test(password), text: 'One symbol' },
+    ];
+    return (
+        <ul className="mt-2 space-y-1 text-[11px] text-zinc-500">
+            {items.map((row) => (
+                <li key={row.text} className="flex items-center gap-1.5">
+                    <span
+                        className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border ${
+                            row.met ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-400' : 'border-zinc-700'
+                        }`}
+                    >
+                        {row.met && <Check className="h-2 w-2" strokeWidth={3} />}
+                    </span>
+                    {row.text}
+                </li>
+            ))}
+        </ul>
+    );
+}
+
 export default function LoginSignupPage({ initialMode, status, canResetPassword }: AuthPageProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [isLogin, setIsLogin] = useState(initialMode === 'login');
     const [passwordValue, setPasswordValue] = useState('');
+    const [loginEmail, setLoginEmail] = useState('');
+    const [registerEmail, setRegisterEmail] = useState('');
+    const [loginClientError, setLoginClientError] = useState<string | null>(null);
+    const [registerClientEmailError, setRegisterClientEmailError] = useState<string | null>(null);
+    const [registerClientPasswordError, setRegisterClientPasswordError] = useState<string | null>(null);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     useEffect(() => {
@@ -182,7 +214,12 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                         <div className="flex gap-1 rounded-lg bg-zinc-800/60 p-1">
                             <button
                                 type="button"
-                                onClick={() => setIsLogin(true)}
+                                onClick={() => {
+                                    setIsLogin(true);
+                                    setLoginClientError(null);
+                                    setRegisterClientEmailError(null);
+                                    setRegisterClientPasswordError(null);
+                                }}
                                 className={`flex-1 rounded-md py-2 text-sm font-medium transition-all duration-200 ${
                                     isLogin ? 'bg-zinc-700 text-zinc-50 shadow-sm' : 'text-zinc-400 hover:text-zinc-300'
                                 }`}
@@ -191,7 +228,12 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setIsLogin(false)}
+                                onClick={() => {
+                                    setIsLogin(false);
+                                    setLoginClientError(null);
+                                    setRegisterClientEmailError(null);
+                                    setRegisterClientPasswordError(null);
+                                }}
                                 className={`flex-1 rounded-md py-2 text-sm font-medium transition-all duration-200 ${
                                     !isLogin ? 'bg-zinc-700 text-zinc-50 shadow-sm' : 'text-zinc-400 hover:text-zinc-300'
                                 }`}
@@ -202,7 +244,21 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
 
                         {/* Login Form */}
                         {isLogin ? (
-                            <Form {...loginStore.form()} resetOnSuccess={['password']} className="space-y-4">
+                            <Form
+                                {...loginStore.form()}
+                                resetOnSuccess={['password']}
+                                className="space-y-4"
+                                noValidate
+                                onSubmit={(e) => {
+                                    const parsed = parseAuthEmail(loginEmail);
+                                    if (!parsed.ok) {
+                                        e.preventDefault();
+                                        setLoginClientError(parsed.message);
+                                    } else {
+                                        setLoginClientError(null);
+                                    }
+                                }}
+                            >
                                 {({ setData, processing, errors, hasErrors }) => (
                                     <>
                                         {hasErrors && (
@@ -224,12 +280,20 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                                     id="email"
                                                     name="email"
                                                     type="email"
-                                                    required
+                                                    autoComplete="email"
                                                     autoFocus
+                                                    value={loginEmail}
+                                                    onChange={(ev) => {
+                                                        setLoginEmail(ev.target.value);
+                                                        setLoginClientError(null);
+                                                    }}
                                                     placeholder="you@example.com"
                                                     className="rounded-lg border-zinc-800 bg-zinc-950 pl-10 text-zinc-50 placeholder:text-zinc-600 focus-visible:ring-zinc-600"
                                                 />
                                             </div>
+                                            {loginClientError && (
+                                                <p className="text-xs text-red-400">{loginClientError}</p>
+                                            )}
                                         </div>
 
                                         <div className="space-y-1.5">
@@ -276,11 +340,13 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                         </div>
 
                                         <div className="flex justify-center">
-                                            <Turnstile
-                                                siteKey={import.meta.env.VITE_TURNSTILE_SITEKEY || '0x4AAAAAACj9nwv1GucMvdLU'}
-                                                onSuccess={(token) => setData('cf-turnstile-response', token)}
-                                                options={{ theme: 'dark' }}
-                                            />
+                                            {import.meta.env.VITE_TURNSTILE_SITEKEY && (
+                                                <Turnstile
+                                                    siteKey={import.meta.env.VITE_TURNSTILE_SITEKEY}
+                                                    onSuccess={(token) => setData('cf-turnstile-response', token)}
+                                                    options={{ theme: 'dark' }}
+                                                />
+                                            )}
                                         </div>
 
                                         <Button
@@ -296,7 +362,29 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                             </Form>
                         ) : (
                             /* Register Form */
-                            <Form {...registerStore.form()} resetOnSuccess={['password']} className="space-y-4">
+                            <Form
+                                {...registerStore.form()}
+                                resetOnSuccess={['password', 'name', 'email']}
+                                className="space-y-4"
+                                noValidate
+                                onSubmit={(e) => {
+                                    const emailParsed = parseAuthEmail(registerEmail);
+                                    if (!emailParsed.ok) {
+                                        e.preventDefault();
+                                        setRegisterClientEmailError(emailParsed.message);
+                                        setRegisterClientPasswordError(null);
+                                        return;
+                                    }
+                                    setRegisterClientEmailError(null);
+                                    const passParsed = parseRegisterPassword(passwordValue);
+                                    if (!passParsed.ok) {
+                                        e.preventDefault();
+                                        setRegisterClientPasswordError(passParsed.message);
+                                        return;
+                                    }
+                                    setRegisterClientPasswordError(null);
+                                }}
+                            >
                                 {({ setData, processing, errors, hasErrors }) => (
                                     <>
                                         {hasErrors && (
@@ -338,11 +426,19 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                                     id="reg-email"
                                                     name="email"
                                                     type="email"
-                                                    required
+                                                    autoComplete="email"
+                                                    value={registerEmail}
+                                                    onChange={(ev) => {
+                                                        setRegisterEmail(ev.target.value);
+                                                        setRegisterClientEmailError(null);
+                                                    }}
                                                     placeholder="you@example.com"
                                                     className="rounded-lg border-zinc-800 bg-zinc-950 pl-10 text-zinc-50 placeholder:text-zinc-600 focus-visible:ring-zinc-600"
                                                 />
                                             </div>
+                                            {(errors.email || registerClientEmailError) && (
+                                                <p className="text-xs text-red-400">{errors.email || registerClientEmailError}</p>
+                                            )}
                                         </div>
 
                                         <div className="space-y-1.5">
@@ -355,10 +451,13 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                                     id="reg-password"
                                                     name="password"
                                                     type={showPassword ? 'text' : 'password'}
-                                                    required
+                                                    autoComplete="new-password"
                                                     placeholder="••••••••"
                                                     value={passwordValue}
-                                                    onChange={(e) => setPasswordValue(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setPasswordValue(e.target.value);
+                                                        setRegisterClientPasswordError(null);
+                                                    }}
                                                     className="rounded-lg border-zinc-800 bg-zinc-950 pr-10 pl-10 text-zinc-50 placeholder:text-zinc-600 focus-visible:ring-zinc-600"
                                                 />
                                                 <button
@@ -369,16 +468,26 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
                                             </div>
-                                            {/* Auto-mirrors password value so Laravel's confirmed rule passes */}
+                                            <p className="text-[11px] text-zinc-500">
+                                                Use 12+ characters with upper and lower case, a number, and a symbol.
+                                            </p>
+                                            <PasswordRequirementHints password={passwordValue} />
+                                            {(errors.password || registerClientPasswordError) && (
+                                                <p className="text-xs text-red-400">
+                                                    {errors.password || registerClientPasswordError}
+                                                </p>
+                                            )}
                                             <input type="hidden" name="password_confirmation" value={passwordValue} />
                                         </div>
 
                                         <div className="flex justify-center">
-                                            <Turnstile
-                                                siteKey={import.meta.env.VITE_TURNSTILE_SITEKEY || '0x4AAAAAACj9nwv1GucMvdLU'}
-                                                onSuccess={(token) => setData('cf-turnstile-response', token)}
-                                                options={{ theme: 'dark' }}
-                                            />
+                                            {import.meta.env.VITE_TURNSTILE_SITEKEY && (
+                                                <Turnstile
+                                                    siteKey={import.meta.env.VITE_TURNSTILE_SITEKEY}
+                                                    onSuccess={(token) => setData('cf-turnstile-response', token)}
+                                                    options={{ theme: 'dark' }}
+                                                />
+                                            )}
                                         </div>
 
                                         <Button

@@ -3,36 +3,37 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\UserQuestionAnswer;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class AdminQuestionController extends Controller
 {
-    /**
-     * Display a listing of questionnaire answers.
-     */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $answers = UserQuestionAnswer::with('user:id,name,email')
-            ->latest()
+        $users = User::query()
+            ->has('questionnaireAnswers')
+            ->withCount('questionnaireAnswers')
+            ->withMax('questionnaireAnswers', 'created_at')
+            ->orderByDesc('questionnaire_answers_max_created_at')
             ->paginate(20)
             ->withQueryString();
 
         return Inertia::render('admin/questions/index', [
-            'answers' => $answers,
+            'users' => $users,
         ]);
     }
 
-    /**
-     * Display the specified user question and answer.
-     */
-    public function show(UserQuestionAnswer $question)
+    public function show(User $user): Response
     {
-        $question->load('user:id,name,email');
+        $answers = $user->questionnaireAnswers()
+            ->orderBy('created_at')
+            ->get(['id', 'question', 'answer', 'created_at']);
 
         return Inertia::render('admin/questions/show', [
-            'question' => $question,
+            'user'    => $user->only('id', 'name', 'email'),
+            'answers' => $answers,
         ]);
     }
 }

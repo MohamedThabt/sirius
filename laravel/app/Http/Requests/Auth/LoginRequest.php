@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Support\AppLogger;
+use App\Support\AuthEmail;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'lowercase', AuthEmail::laravelRule(), 'max:255'],
             'password' => ['required', 'string'],
         ];
 
@@ -48,6 +49,15 @@ class LoginRequest extends FormRequest
         return [
             'cf-turnstile-response.required' => 'Please complete the captcha verification.',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('email')) {
+            $this->merge([
+                'email' => $this->string('email')->lower()->toString(),
+            ]);
+        }
     }
 
     /**

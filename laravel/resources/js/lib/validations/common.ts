@@ -18,10 +18,16 @@ export const emailField = z
     .email('Please enter a valid email address')
     .max(255, 'Email cannot exceed 255 characters');
 
-// Password field (min 6 for admin, min 8 for users with Password::defaults())
+// Password field (min 6 for admin; app user passwords use Password::defaults() in AppServiceProvider)
 export const passwordField = z.string().min(6, 'Password must be at least 6 characters');
 
-export const userPasswordField = z.string().min(8, 'Password must be at least 8 characters');
+export const userPasswordField = z
+    .string()
+    .min(12, 'Password must be at least 12 characters')
+    .regex(/[a-z]/, 'Include at least one lowercase letter')
+    .regex(/[A-Z]/, 'Include at least one uppercase letter')
+    .regex(/[0-9]/, 'Include at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Include at least one symbol');
 
 // Description fields with common min/max values
 export const shortDescriptionField = z

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\UserQuestionAnswer;
 use App\Services\Notification\TelegramNotificationService;
+use App\Support\LinkedInProfileUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,12 +36,19 @@ class UserQuestionController extends Controller
                     continue;
                 }
 
+                $question = (string) ($item['question'] ?? '');
+                $answer = trim((string) $item['answer']);
+
+                if ($question === 'Add your LinkedIn account') {
+                    $answer = LinkedInProfileUrl::assertAndNormalizeNonEmpty($answer);
+                }
+
                 UserQuestionAnswer::updateOrCreate(
-                    ['user_id' => $user->id, 'question' => $item['question']],
-                    ['answer' => $item['answer']]
+                    ['user_id' => $user->id, 'question' => $question],
+                    ['answer' => $answer]
                 );
 
-                $saved[] = $item;
+                $saved[] = array_merge($item, ['question' => $question, 'answer' => $answer]);
             }
         }
 

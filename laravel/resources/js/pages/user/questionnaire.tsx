@@ -2,15 +2,35 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Head, router } from '@inertiajs/react';
-import { ArrowRight, LoaderCircle, SkipForward } from 'lucide-react';
-import { useRef, useEffect, useState } from 'react';
+import { parseLinkedInProfileUrl } from '@/lib/validations/linkedin';
+import { Head, router, usePage } from '@inertiajs/react';
+import { ArrowLeft, ArrowRight, Check, LoaderCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
-const QUESTIONS = [
+type RadioQuestion = {
+    id: string;
+    question: string;
+    subtitle?: string;
+    type: 'radio';
+    options: readonly string[];
+};
+
+type TextQuestion = {
+    id: string;
+    question: string;
+    subtitle?: string;
+    type: 'text';
+    placeholder: string;
+};
+
+type Question = RadioQuestion | TextQuestion;
+
+const QUESTIONS: Question[] = [
     {
         id: 'role',
         question: 'What best describes you?',
-        type: 'radio' as const,
+        subtitle: 'This helps us tailor your experience from the start.',
+        type: 'radio',
         options: [
             'Student working on projects',
             'Freelancer (working with clients)',
@@ -22,7 +42,8 @@ const QUESTIONS = [
     {
         id: 'project_type',
         question: 'What kind of projects do you usually work on?',
-        type: 'radio' as const,
+        subtitle: "We'll surface the most relevant features for you.",
+        type: 'radio',
         options: [
             'Frontend / UI projects (web interfaces, user experiences)',
             'Backend systems (APIs, databases, system logic)',
@@ -36,7 +57,8 @@ const QUESTIONS = [
     {
         id: 'signup_reason',
         question: 'What made you sign up today?',
-        type: 'radio' as const,
+        subtitle: 'Knowing your goal helps us make Sirius more useful for you.',
+        type: 'radio',
         options: [
             "I have an idea but don't know how to start",
             'I waste too much time on planning',
@@ -47,16 +69,25 @@ const QUESTIONS = [
     {
         id: 'linkedin',
         question: 'Add your LinkedIn account',
-        type: 'text' as const,
-        placeholder: 'https://linkedin.com/in/your-username',
+        subtitle: 'Optional — we may reach out to early builders for feedback.',
+        type: 'text',
+        placeholder: 'www.linkedin.com/in/your-username',
     },
-] as const;
+];
 
 export default function Questionnaire() {
+    const page = usePage<{ errors?: { linkedin?: string } }>();
+    const serverLinkedinError = page.props.errors?.linkedin;
+
+    const [step, setStep] = useState(0);
     const [answers, setAnswers] = useState<Record<string, string>>({});
+    const [direction, setDirection] = useState<'forward' | 'back'>('forward');
+    const [animating, setAnimating] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [linkedinError, setLinkedinError] = useState<string | null>(null);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
@@ -101,7 +132,10 @@ export default function Questionnaire() {
             raf = requestAnimationFrame(draw);
         };
 
-        const onResize = () => { setSize(); init(); };
+        const onResize = () => {
+            setSize();
+            init();
+        };
         window.addEventListener('resize', onResize);
         init();
         raf = requestAnimationFrame(draw);
@@ -112,30 +146,84 @@ export default function Questionnaire() {
         };
     }, []);
 
-    const setAnswer = (id: string, value: string) => {
-        setAnswers((prev) => ({ ...prev, [id]: value }));
+    const navigate = (nextStep: number, dir: 'forward' | 'back') => {
+        if (animating) return;
+        setDirection(dir);
+        setAnimating(true);
+        setTimeout(() => {
+            setStep(nextStep);
+            setAnimating(false);
+        }, 260);
     };
 
-    const handleSubmit = () => {
-        const questionnaire = QUESTIONS.filter((q) => {
-            const val = answers[q.id] ?? '';
-            return val.trim() !== '';
-        }).map((q) => ({
-            question: q.question,
-            answer: answers[q.id],
-        }));
+    const handleNext = () => {
+        if (step < QUESTIONS.length - 1) {
+            navigate(step + 1, 'forward');
+        }
+    };
+
+    const handleBack = () => {
+        if (step > 0) navigate(step - 1, 'back');
+    };
+
+    const handleSkipQuestion = () => {
+        if (step < QUESTIONS.length - 1) {
+            navigate(step + 1, 'forward');
+        } else {
+            handleFinish();
+        }
+    };
+
+    const handleFinish = () => {
+        setLinkedinError(null);
+
+        const questionnaire: { question: string; answer: string }[] = [];
+
+        for (const q of QUESTIONS) {
+            const raw = (answers[q.id] ?? '').trim();
+            if (!raw) {
+                continue;
+            }
+            if (q.id === 'linkedin') {
+                const parsed = parseLinkedInProfileUrl(answers[q.id] ?? '');
+                if (!parsed.ok) {
+                    setLinkedinError(parsed.message);
+                    return;
+                }
+                questionnaire.push({ question: q.question, answer: parsed.normalized });
+            } else {
+                questionnaire.push({ question: q.question, answer: raw });
+            }
+        }
 
         setSubmitting(true);
         router.post(
             '/user/questionnaire',
             { questionnaire },
-            { onFinish: () => setSubmitting(false) },
+            {
+                onFinish: () => setSubmitting(false),
+            },
         );
     };
 
-    const handleSkip = () => {
-        router.visit('/projects');
+    const setAnswer = (id: string, value: string) => {
+        setAnswers((prev) => ({ ...prev, [id]: value }));
+        if (id === 'linkedin') {
+            setLinkedinError(null);
+        }
     };
+
+    const current = QUESTIONS[step];
+    const isLast = step === QUESTIONS.length - 1;
+    const hasAnswer = (answers[current.id] ?? '').trim() !== '';
+    const progress = ((step + 1) / QUESTIONS.length) * 100;
+
+    const slideOut = animating
+        ? direction === 'forward'
+            ? '-translate-x-12 opacity-0'
+            : 'translate-x-12 opacity-0'
+        : '';
+    const slideIn = !animating ? 'translate-x-0 opacity-100' : '';
 
     return (
         <section className="fixed inset-0 overflow-y-auto bg-zinc-950 text-zinc-50">
@@ -153,19 +241,16 @@ export default function Questionnaire() {
         .vline:nth-child(6){left:78%;animation-delay:.66s}
         @keyframes drawX{0%{transform:scaleX(0);opacity:0}60%{opacity:.95}100%{transform:scaleX(1);opacity:.7}}
         @keyframes drawY{0%{transform:scaleY(0);opacity:0}60%{opacity:.95}100%{transform:scaleY(1);opacity:.7}}
-        .card-animate{opacity:0;transform:translateY(20px);animation:fadeUp 0.8s cubic-bezier(.22,.61,.36,1) 0.3s forwards}
-        @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+        .card-enter{opacity:0;transform:translateX(40px);animation:cardIn .3s cubic-bezier(.22,.61,.36,1) forwards}
+        .card-enter-back{opacity:0;transform:translateX(-40px);animation:cardIn .3s cubic-bezier(.22,.61,.36,1) forwards}
+        @keyframes cardIn{to{opacity:1;transform:translateX(0)}}
       `}</style>
 
             <div className="pointer-events-none fixed inset-0 [background:radial-gradient(80%_60%_at_50%_30%,rgba(255,255,255,0.06),transparent_60%)]" />
 
             <div className="accent-lines">
-                <div className="hline" />
-                <div className="hline" />
-                <div className="hline" />
-                <div className="vline" />
-                <div className="vline" />
-                <div className="vline" />
+                <div className="hline" /><div className="hline" /><div className="hline" />
+                <div className="vline" /><div className="vline" /><div className="vline" />
             </div>
 
             <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 h-full w-full opacity-50 mix-blend-screen" />
@@ -177,105 +262,172 @@ export default function Questionnaire() {
                 </a>
                 <button
                     type="button"
-                    onClick={handleSkip}
-                    className="flex items-center gap-1.5 text-sm text-zinc-400 transition-colors hover:text-zinc-200"
+                    onClick={() => router.visit('/projects')}
+                    className="text-sm text-zinc-500 transition-colors hover:text-zinc-300"
                 >
-                    <SkipForward className="h-4 w-4" />
-                    Skip for now
+                    Skip all
                 </button>
             </header>
 
-            {/* Content */}
-            <div className="relative z-10 flex min-h-screen flex-col items-center justify-start p-4 pt-24 pb-16">
-                <div className="card-animate w-full max-w-xl">
-                    {/* Intro */}
-                    <div className="mb-8 space-y-1 text-center">
-                        <h1 className="text-3xl font-bold text-zinc-50">Help us personalise your experience</h1>
-                        <p className="text-sm text-zinc-400">All questions are optional — answer what feels right and skip the rest.</p>
+            {/* Main */}
+            <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4 pt-20 pb-16">
+                <div className="w-full max-w-lg">
+
+                    {/* Step counter + progress */}
+                    <div className="mb-8">
+                        <div className="mb-2 flex items-center justify-between text-xs text-zinc-500">
+                            <span>Question {step + 1} of {QUESTIONS.length}</span>
+                            <span>{Math.round(progress)}% complete</span>
+                        </div>
+                        <div className="h-1 w-full overflow-hidden rounded-full bg-zinc-800">
+                            <div
+                                className="h-full rounded-full bg-zinc-300 transition-all duration-500 ease-out"
+                                style={{ width: `${progress}%` }}
+                            />
+                        </div>
+
+                        {/* Step dots */}
+                        <div className="mt-3 flex items-center justify-center gap-2">
+                            {QUESTIONS.map((_, i) => (
+                                <div
+                                    key={i}
+                                    className={`flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-bold transition-all duration-300 ${
+                                        i < step
+                                            ? 'border-zinc-400 bg-zinc-400 text-zinc-900'
+                                            : i === step
+                                            ? 'border-zinc-200 bg-zinc-200 text-zinc-900 shadow-[0_0_10px_rgba(255,255,255,0.15)]'
+                                            : 'border-zinc-700 bg-transparent text-zinc-600'
+                                    }`}
+                                >
+                                    {i < step ? <Check className="h-3 w-3" /> : i + 1}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="space-y-6">
-                        {QUESTIONS.map((q) => (
-                            <div
-                                key={q.id}
-                                className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-xl backdrop-blur"
-                            >
-                                <p className="mb-4 text-base font-semibold text-zinc-100">{q.question}</p>
+                    {/* Question card */}
+                    <div
+                        key={step}
+                        className={direction === 'forward' ? 'card-enter' : 'card-enter-back'}
+                    >
+                        <div className={`rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-2xl backdrop-blur transition-all duration-[260ms] ${slideOut} ${slideIn}`}>
 
-                                {q.type === 'radio' && (
-                                    <div className="space-y-2">
-                                        {q.options.map((option) => {
-                                            const selected = answers[q.id] === option;
-                                            return (
-                                                <button
-                                                    key={option}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setAnswer(q.id, selected ? '' : option)
-                                                    }
-                                                    className={`w-full rounded-lg border px-4 py-2.5 text-left text-sm transition-all duration-150 ${
-                                                        selected
-                                                            ? 'border-zinc-400 bg-zinc-700 text-zinc-50'
-                                                            : 'border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-800 hover:text-zinc-100'
-                                                    }`}
-                                                >
-                                                    <span className="flex items-center gap-3">
-                                                        <span
-                                                            className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border transition-colors ${
-                                                                selected
-                                                                    ? 'border-zinc-300 bg-zinc-300'
-                                                                    : 'border-zinc-600'
-                                                            }`}
-                                                        >
-                                                            {selected && (
-                                                                <span className="h-2 w-2 rounded-full bg-zinc-900" />
-                                                            )}
-                                                        </span>
-                                                        {option}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-
-                                {q.type === 'text' && (
-                                    <Input
-                                        type="url"
-                                        placeholder={'placeholder' in q ? q.placeholder : ''}
-                                        value={answers[q.id] ?? ''}
-                                        onChange={(e) => setAnswer(q.id, e.target.value)}
-                                        className="rounded-lg border-zinc-700 bg-zinc-800/60 text-zinc-50 placeholder:text-zinc-600 focus-visible:ring-zinc-600"
-                                    />
+                            {/* Question heading */}
+                            <div className="mb-6">
+                                <p className="text-xl font-bold text-zinc-50">{current.question}</p>
+                                {current.subtitle && (
+                                    <p className="mt-1.5 text-sm text-zinc-400">{current.subtitle}</p>
                                 )}
                             </div>
-                        ))}
+
+                            {/* Radio options */}
+                            {current.type === 'radio' && (
+                                <div className="space-y-2.5">
+                                    {current.options.map((option) => {
+                                        const selected = answers[current.id] === option;
+                                        return (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => setAnswer(current.id, selected ? '' : option)}
+                                                className={`group w-full rounded-xl border px-4 py-3 text-left text-sm transition-all duration-150 ${
+                                                    selected
+                                                        ? 'border-zinc-300 bg-zinc-800 text-zinc-50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+                                                        : 'border-zinc-700/70 bg-zinc-800/30 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-800/60 hover:text-zinc-200'
+                                                }`}
+                                            >
+                                                <span className="flex items-center gap-3">
+                                                    <span
+                                                        className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border transition-all ${
+                                                            selected
+                                                                ? 'border-zinc-200 bg-zinc-200'
+                                                                : 'border-zinc-600 group-hover:border-zinc-400'
+                                                        }`}
+                                                    >
+                                                        {selected && <span className="h-1.5 w-1.5 rounded-full bg-zinc-900" />}
+                                                    </span>
+                                                    {option}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Text input */}
+                            {current.type === 'text' && (
+                                <div className="space-y-1.5">
+                                    <Input
+                                        type="text"
+                                        inputMode="url"
+                                        autoComplete="url"
+                                        placeholder={(current as TextQuestion).placeholder}
+                                        value={answers[current.id] ?? ''}
+                                        onChange={(e) => setAnswer(current.id, e.target.value)}
+                                        className="h-11 rounded-xl border-zinc-700 bg-zinc-800/60 text-zinc-50 placeholder:text-zinc-600 focus-visible:ring-zinc-500"
+                                        autoFocus
+                                    />
+                                    <p className="text-[11px] text-zinc-500">
+                                        Public profile URL only, e.g. <span className="text-zinc-400">www.linkedin.com/in/mohamed-thabet-swe</span> — https is added for you
+                                        when needed.
+                                    </p>
+                                    {(linkedinError || (current.id === 'linkedin' && serverLinkedinError)) && (
+                                        <p className="text-xs text-red-400">
+                                            {linkedinError || serverLinkedinError}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                        <Button
-                            type="button"
-                            onClick={handleSubmit}
-                            disabled={submitting}
-                            className="h-11 flex-1 rounded-xl bg-zinc-50 text-sm font-semibold text-zinc-900 hover:bg-zinc-200"
-                        >
-                            {submitting ? (
-                                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <ArrowRight className="mr-2 h-4 w-4" />
-                            )}
-                            Save & Continue
-                        </Button>
+                    {/* Navigation */}
+                    <div className="mt-5 flex items-center gap-3">
+                        {step > 0 ? (
+                            <button
+                                type="button"
+                                onClick={handleBack}
+                                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-zinc-700 text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                            </button>
+                        ) : (
+                            <div className="w-10 flex-shrink-0" />
+                        )}
 
-                        <Button
+                        {isLast ? (
+                            <Button
+                                type="button"
+                                onClick={handleFinish}
+                                disabled={submitting}
+                                className="h-10 flex-1 rounded-xl bg-zinc-50 text-sm font-semibold text-zinc-900 hover:bg-zinc-200"
+                            >
+                                {submitting ? (
+                                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Check className="mr-2 h-4 w-4" />
+                                )}
+                                Finish & Continue
+                            </Button>
+                        ) : (
+                            <Button
+                                type="button"
+                                onClick={handleNext}
+                                disabled={!hasAnswer}
+                                className="h-10 flex-1 rounded-xl bg-zinc-50 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 disabled:opacity-40"
+                            >
+                                Next
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        )}
+
+                        <button
                             type="button"
-                            variant="outline"
-                            onClick={handleSkip}
-                            className="h-11 rounded-xl border-zinc-700 bg-transparent text-sm font-medium text-zinc-400 hover:border-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
+                            onClick={handleSkipQuestion}
+                            className="flex-shrink-0 rounded-xl px-3 py-2 text-sm text-zinc-500 transition-colors hover:text-zinc-300"
                         >
                             Skip
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </div>
