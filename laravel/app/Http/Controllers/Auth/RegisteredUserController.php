@@ -49,7 +49,7 @@ class RegisteredUserController extends Controller
                 'questionnaire.*.answer' => 'required_with:questionnaire|string|max:2000',
             ];
 
-            if (config('services.turnstile.secret_key')) {
+            if (config('services.turnstile.secret_key') && ! app()->environment('local', 'testing')) {
                 $rules['cf-turnstile-response'] = ['required', 'string'];
             }
 
@@ -59,7 +59,7 @@ class RegisteredUserController extends Controller
 
             $request->validate($rules, $messages);
 
-            if (config('services.turnstile.secret_key')) {
+            if (config('services.turnstile.secret_key') && ! app()->environment('local', 'testing')) {
                 $cfResponse = \Illuminate\Support\Facades\Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                     'secret' => config('services.turnstile.secret_key'),
                     'response' => $request->input('cf-turnstile-response'),

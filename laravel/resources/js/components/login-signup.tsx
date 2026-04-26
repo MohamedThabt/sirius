@@ -44,27 +44,34 @@ function GoogleIcon() {
 
 function PasswordRequirementHints({ password }: { password: string }) {
     const items = [
-        { met: password.length >= 12, text: 'At least 12 characters' },
-        { met: /[a-z]/.test(password), text: 'One lowercase letter' },
-        { met: /[A-Z]/.test(password), text: 'One uppercase letter' },
-        { met: /[0-9]/.test(password), text: 'One number' },
-        { met: /[^A-Za-z0-9]/.test(password), text: 'One symbol' },
+        { met: password.length >= 12, text: '12+ chars' },
+        { met: /[a-z]/.test(password), text: 'a–z' },
+        { met: /[A-Z]/.test(password), text: 'A–Z' },
+        { met: /[0-9]/.test(password), text: '0–9' },
+        { met: /[^A-Za-z0-9]/.test(password), text: '!@#' },
     ];
     return (
-        <ul className="mt-2 space-y-1 text-[11px] text-zinc-500">
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
             {items.map((row) => (
-                <li key={row.text} className="flex items-center gap-1.5">
+                <span
+                    key={row.text}
+                    className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium ring-1 transition-all duration-200 ${
+                        row.met
+                            ? 'bg-emerald-500/12 text-emerald-400 ring-emerald-500/25'
+                            : 'bg-zinc-800/50 text-zinc-600 ring-zinc-700/40'
+                    }`}
+                >
                     <span
-                        className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border ${
-                            row.met ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-400' : 'border-zinc-700'
+                        className={`flex h-2.5 w-2.5 items-center justify-center rounded-full transition-colors ${
+                            row.met ? 'bg-emerald-500/30' : ''
                         }`}
                     >
-                        {row.met && <Check className="h-2 w-2" strokeWidth={3} />}
+                        {row.met && <Check className="h-1.5 w-1.5" strokeWidth={3.5} />}
                     </span>
                     {row.text}
-                </li>
+                </span>
             ))}
-        </ul>
+        </div>
     );
 }
 
@@ -77,6 +84,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
     const [loginClientError, setLoginClientError] = useState<string | null>(null);
     const [registerClientEmailError, setRegisterClientEmailError] = useState<string | null>(null);
     const [registerClientPasswordError, setRegisterClientPasswordError] = useState<string | null>(null);
+    const [turnstileToken, setTurnstileToken] = useState('');
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     useEffect(() => {
@@ -162,7 +170,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
         @keyframes drawX{0%{transform:scaleX(0);opacity:0}60%{opacity:.95}100%{transform:scaleX(1);opacity:.7}}
         @keyframes drawY{0%{transform:scaleY(0);opacity:0}60%{opacity:.95}100%{transform:scaleY(1);opacity:.7}}
         @keyframes shimmer{0%{opacity:0}35%{opacity:.25}100%{opacity:0}}
-        .card-animate{opacity:0;transform:translateY(20px);animation:fadeUp 0.8s cubic-bezier(.22,.61,.36,1) 0.4s forwards}
+        .card-animate{opacity:0;transform:translateY(16px);animation:fadeUp 0.7s cubic-bezier(.22,.61,.36,1) 0.25s forwards}
         @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
       `}</style>
 
@@ -180,32 +188,32 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
             <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 h-full w-full opacity-50 mix-blend-screen" />
 
             {/* Header */}
-            <header className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between border-b border-zinc-800/80 px-6 py-4">
+            <header className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between border-b border-zinc-800/80 px-6 py-3">
                 <a href="/">
-                    <img src="/images/sirius-logo.png" alt="Sirius" className="h-8 w-auto" />
+                    <img src="/images/sirius-logo.png" alt="Sirius" className="h-7 w-auto" />
                 </a>
-                <Button variant="outline" className="h-9 rounded-lg border-zinc-800 bg-zinc-900 text-zinc-50 hover:bg-zinc-900/80" asChild>
+                <Button variant="outline" className="h-8 rounded-lg border-zinc-800 bg-zinc-900 text-xs text-zinc-50 hover:bg-zinc-900/80" asChild>
                     <Link href="/">
-                        <span className="mr-2">Home</span>
-                        <ArrowRight className="h-4 w-4" />
+                        <span className="mr-1.5">Home</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                 </Button>
             </header>
 
             {/* Card */}
-            <div className="relative z-10 flex min-h-screen items-center justify-center p-4 pt-24 pb-12">
-                <div className="card-animate w-full max-w-sm">
-                    <div className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6 shadow-2xl backdrop-blur">
+            <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-14">
+                <div className="card-animate w-full max-w-[360px]">
+                    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-2xl backdrop-blur">
                         {/* Title */}
-                        <div className="space-y-1">
-                            <h1 className="text-2xl font-bold text-zinc-50">{isLogin ? 'Welcome' : 'Create an account'}</h1>
-                            <p className="text-sm text-zinc-400">
-                                {isLogin ? 'Log in or create an account' : 'Enter your details below to create your account'}
+                        <div className="mb-4 space-y-0.5">
+                            <h1 className="text-xl font-bold text-zinc-50">{isLogin ? 'Welcome back' : 'Create an account'}</h1>
+                            <p className="text-xs text-zinc-500">
+                                {isLogin ? 'Sign in to continue' : 'Fill in your details to get started'}
                             </p>
                         </div>
 
                         {status && (
-                            <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-center text-sm font-medium text-green-400">
+                            <div className="mb-3 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-center text-xs font-medium text-green-400">
                                 {status}
                             </div>
                         )}
@@ -220,7 +228,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                     setRegisterClientEmailError(null);
                                     setRegisterClientPasswordError(null);
                                 }}
-                                className={`flex-1 rounded-md py-2 text-sm font-medium transition-all duration-200 ${
+                                className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-all duration-200 ${
                                     isLogin ? 'bg-zinc-700 text-zinc-50 shadow-sm' : 'text-zinc-400 hover:text-zinc-300'
                                 }`}
                             >
@@ -234,7 +242,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                     setRegisterClientEmailError(null);
                                     setRegisterClientPasswordError(null);
                                 }}
-                                className={`flex-1 rounded-md py-2 text-sm font-medium transition-all duration-200 ${
+                                className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-all duration-200 ${
                                     !isLogin ? 'bg-zinc-700 text-zinc-50 shadow-sm' : 'text-zinc-400 hover:text-zinc-300'
                                 }`}
                             >
@@ -247,7 +255,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                             <Form
                                 {...loginStore.form()}
                                 resetOnSuccess={['password']}
-                                className="space-y-4"
+                                className="mt-4 space-y-3"
                                 noValidate
                                 onSubmit={(e) => {
                                     const parsed = parseAuthEmail(loginEmail);
@@ -259,10 +267,10 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                     }
                                 }}
                             >
-                                {({ setData, processing, errors, hasErrors }) => (
+                                {({ processing, errors, hasErrors }) => (
                                     <>
                                         {hasErrors && (
-                                            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm font-medium text-red-400">
+                                            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-center text-xs font-medium text-red-400">
                                                 {errors.email ||
                                                     errors.password ||
                                                     errors['cf-turnstile-response'] ||
@@ -270,8 +278,8 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             </div>
                                         )}
 
-                                        <div className="space-y-1.5">
-                                            <Label htmlFor="email" className="text-sm text-zinc-300">
+                                        <div className="space-y-1">
+                                            <Label htmlFor="email" className="text-xs text-zinc-400">
                                                 Email
                                             </Label>
                                             <div className="relative">
@@ -296,8 +304,8 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             )}
                                         </div>
 
-                                        <div className="space-y-1.5">
-                                            <Label htmlFor="password" className="text-sm text-zinc-300">
+                                        <div className="space-y-1">
+                                            <Label htmlFor="password" className="text-xs text-zinc-400">
                                                 Password
                                             </Label>
                                             <div className="relative">
@@ -339,20 +347,21 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             )}
                                         </div>
 
-                                        <div className="flex justify-center">
-                                            {import.meta.env.VITE_TURNSTILE_SITEKEY && (
+                                        {import.meta.env.VITE_TURNSTILE_SITEKEY && (
+                                            <div className="flex justify-center">
+                                                <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
                                                 <Turnstile
                                                     siteKey={import.meta.env.VITE_TURNSTILE_SITEKEY}
-                                                    onSuccess={(token) => setData('cf-turnstile-response', token)}
+                                                    onSuccess={(token) => setTurnstileToken(token)}
                                                     options={{ theme: 'dark' }}
                                                 />
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
 
                                         <Button
                                             type="submit"
                                             disabled={processing}
-                                            className="h-11 w-full rounded-xl bg-zinc-50 text-sm font-semibold text-zinc-900 hover:bg-zinc-200"
+                                            className="h-10 w-full rounded-xl bg-zinc-50 text-sm font-semibold text-zinc-900 hover:bg-zinc-200"
                                         >
                                             {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                             Continue
@@ -365,7 +374,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                             <Form
                                 {...registerStore.form()}
                                 resetOnSuccess={['password', 'name', 'email']}
-                                className="space-y-4"
+                                className="mt-4 space-y-3"
                                 noValidate
                                 onSubmit={(e) => {
                                     const emailParsed = parseAuthEmail(registerEmail);
@@ -385,10 +394,10 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                     setRegisterClientPasswordError(null);
                                 }}
                             >
-                                {({ setData, processing, errors, hasErrors }) => (
+                                {({ processing, errors, hasErrors }) => (
                                     <>
                                         {hasErrors && (
-                                            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400">
+                                            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400">
                                                 <ul className="list-inside list-disc space-y-0.5 text-left">
                                                     {errors.name && <li>{errors.name}</li>}
                                                     {errors.email && <li>{errors.email}</li>}
@@ -398,8 +407,8 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             </div>
                                         )}
 
-                                        <div className="space-y-1.5">
-                                            <Label htmlFor="name" className="text-sm text-zinc-300">
+                                        <div className="space-y-1">
+                                            <Label htmlFor="name" className="text-xs text-zinc-400">
                                                 Name
                                             </Label>
                                             <div className="relative">
@@ -416,8 +425,8 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             </div>
                                         </div>
 
-                                        <div className="space-y-1.5">
-                                            <Label htmlFor="reg-email" className="text-sm text-zinc-300">
+                                        <div className="space-y-1">
+                                            <Label htmlFor="reg-email" className="text-xs text-zinc-400">
                                                 Email
                                             </Label>
                                             <div className="relative">
@@ -441,8 +450,8 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             )}
                                         </div>
 
-                                        <div className="space-y-1.5">
-                                            <Label htmlFor="reg-password" className="text-sm text-zinc-300">
+                                        <div className="space-y-1">
+                                            <Label htmlFor="reg-password" className="text-xs text-zinc-400">
                                                 Password
                                             </Label>
                                             <div className="relative">
@@ -468,8 +477,8 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
                                             </div>
-                                            <p className="text-[11px] text-zinc-500">
-                                                Use 12+ characters with upper and lower case, a number, and a symbol.
+                                            <p className="text-[10px] text-zinc-600">
+                                                12+ chars · upper &amp; lower case · number · symbol
                                             </p>
                                             <PasswordRequirementHints password={passwordValue} />
                                             {(errors.password || registerClientPasswordError) && (
@@ -480,20 +489,21 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                             <input type="hidden" name="password_confirmation" value={passwordValue} />
                                         </div>
 
-                                        <div className="flex justify-center">
-                                            {import.meta.env.VITE_TURNSTILE_SITEKEY && (
+                                        {import.meta.env.VITE_TURNSTILE_SITEKEY && (
+                                            <div className="flex justify-center">
+                                                <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
                                                 <Turnstile
                                                     siteKey={import.meta.env.VITE_TURNSTILE_SITEKEY}
-                                                    onSuccess={(token) => setData('cf-turnstile-response', token)}
+                                                    onSuccess={(token) => setTurnstileToken(token)}
                                                     options={{ theme: 'dark' }}
                                                 />
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
 
                                         <Button
                                             type="submit"
                                             disabled={processing}
-                                            className="h-11 w-full rounded-xl bg-zinc-50 text-sm font-semibold text-zinc-900 hover:bg-zinc-200"
+                                            className="h-10 w-full rounded-xl bg-zinc-50 text-sm font-semibold text-zinc-900 hover:bg-zinc-200"
                                         >
                                             {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                             Create account
@@ -504,9 +514,9 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                         )}
 
                         {/* OR separator */}
-                        <div className="relative">
+                        <div className="relative mt-4">
                             <Separator className="bg-zinc-800" />
-                            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-zinc-900/70 px-2 text-[11px] tracking-widest text-zinc-500 uppercase">
+                            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-zinc-900/70 px-2 text-[10px] tracking-widest text-zinc-600 uppercase">
                                 or
                             </span>
                         </div>
@@ -514,16 +524,16 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                         {/* Google OAuth */}
                         <a
                             href={isLogin ? '/auth/google/login' : '/auth/google/register'}
-                            className="flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-zinc-200/20 bg-white px-4 text-sm font-medium text-zinc-800 shadow-sm transition-all hover:bg-zinc-50 hover:shadow focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:outline-none"
+                            className="mt-4 flex h-10 w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-700/60 bg-zinc-800/50 px-4 text-sm font-medium text-zinc-200 transition-all hover:border-zinc-600 hover:bg-zinc-700/50 focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:outline-none"
                         >
                             <GoogleIcon />
                             Continue with Google
                         </a>
 
                         {/* Support link */}
-                        <p className="text-center text-sm text-zinc-500">
+                        <p className="mt-3 text-center text-xs text-zinc-600">
                             Need help?{' '}
-                            <a href="mailto:support@sirius.ai" className="font-semibold text-zinc-300 transition-colors hover:text-zinc-100">
+                            <a href="mailto:support@sirius.ai" className="font-semibold text-zinc-400 transition-colors hover:text-zinc-200">
                                 Contact support
                             </a>
                         </p>
