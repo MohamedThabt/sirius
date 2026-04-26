@@ -104,6 +104,12 @@ export const teamCollaboration = {
     description: "Whether you're a solo developer or an enterprise team, Sirius accelerates your pre-code phase.",
     roles: [
         {
+            role: 'CS Students (Graduation Projects)',
+            description:
+                'Turn your graduation project idea into structured, professional documentation so your team can plan clearly and build faster.',
+            responsibilities: ['Generate proposal-ready PRDs', 'Define modules and architecture early', 'Keep teammates aligned on scope'],
+        },
+        {
             role: 'Solo Developers',
             description: 'Stop spending days on documentation. Generate complete specs from your project idea and focus on what you love—building.',
             responsibilities: ['Generate PRDs in minutes', 'Auto-create ERDs & diagrams', 'Export to GitHub instantly'],

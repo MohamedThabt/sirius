@@ -74,8 +74,8 @@ export function BentoPricing() {
         '100 Free AI Credits',
     ];
 
-    /** Pro = every Free feature, with 2000 AI credits instead of the free-tier credits line. */
-    const proPlanFeatures = freePlanFeatures.map((f) => (f === '100 AI credits' ? '2000 AI credits' : f));
+    /** Pro = every Free feature, with 2,000 AI Credits instead of the free-tier credits line. */
+    const proPlanFeatures = freePlanFeatures.map((f) => (f === '100 Free AI Credits' ? '2,000 AI Credits' : f));
 
     return (
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-8">
