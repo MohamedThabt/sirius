@@ -12,30 +12,10 @@ import { toast } from 'sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const gaMeasurementId = 'G-333ZHPTC8B';
 
 // Global state for credit limit modal
 let showCreditLimitModal: ((message: string, balance?: number) => void) | null = null;
-
-// Initialize Google Analytics exactly once
-let gaInitialized = false;
-function initGA() {
-    if (gaInitialized) return;
-    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
-    if (gaId && typeof window !== 'undefined') {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-        document.head.appendChild(script);
-
-        window.dataLayer = window.dataLayer || [];
-        window.gtag = function gtag() {
-            window.dataLayer.push(arguments);
-        };
-        window.gtag('js', new Date());
-        window.gtag('config', gaId);
-        gaInitialized = true;
-    }
-}
 
 createInertiaApp({
     title: (title) => {
@@ -47,8 +27,6 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
-
-        initGA();
 
         const posthogOptions = {
             api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
@@ -97,9 +75,8 @@ router.on('navigate', (event) => {
     const page = event.detail.page;
 
     // GA page view mapping
-    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
-    if (gaId && typeof window !== 'undefined' && window.gtag) {
-        window.gtag('config', gaId, {
+    if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('config', gaMeasurementId, {
             page_path: window.location.pathname,
             page_title: document.title,
         });
