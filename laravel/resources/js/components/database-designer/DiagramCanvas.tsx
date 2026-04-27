@@ -94,7 +94,7 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
             const spacing = 80;
             const levelSpacing = 200;
 
-            let layoutNodes: Node[] = [];
+            const layoutNodes: Node[] = [];
             let currentY = 50;
 
             // Top level - Primary key tables
@@ -147,7 +147,7 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
             if (nodes.length === 0) return nodes;
 
             // Place center node if odd number
-            let layoutNodes: Node[] = [];
+            const layoutNodes: Node[] = [];
             let nodeIndex = 0;
 
             if (nodes.length % 2 === 1) {

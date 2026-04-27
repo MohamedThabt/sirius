@@ -4,6 +4,8 @@ import { CreditLimitModal } from '@/components/CreditLimitModal';
 import { Toaster } from '@/components/ui/sonner';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import posthog from 'posthog-js';
+import { PostHogProvider } from '@posthog/react';
 import { createElement, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'sonner';
@@ -13,6 +15,27 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 // Global state for credit limit modal
 let showCreditLimitModal: ((message: string, balance?: number) => void) | null = null;
+
+// Initialize Google Analytics exactly once
+let gaInitialized = false;
+function initGA() {
+    if (gaInitialized) return;
+    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+    if (gaId && typeof window !== 'undefined') {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+        document.head.appendChild(script);
+
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function gtag() {
+            window.dataLayer.push(arguments);
+        };
+        window.gtag('js', new Date());
+        window.gtag('config', gaId);
+        gaInitialized = true;
+    }
+}
 
 createInertiaApp({
     title: (title) => {
@@ -24,6 +47,17 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
+
+        initGA();
+
+        const posthogOptions = {
+            api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+            defaults: '2026-01-30',
+        } as const;
+
+        if (typeof window !== 'undefined' && import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN) {
+            posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN, posthogOptions);
+        }
 
         function AppWithModals() {
             const [creditModalOpen, setCreditModalOpen] = useState(false);
@@ -38,7 +72,7 @@ createInertiaApp({
             };
 
             return (
-                <>
+                <PostHogProvider client={posthog}>
                     <App {...props} />
                     <Toaster />
                     <CreditLimitModal
@@ -47,7 +81,7 @@ createInertiaApp({
                         message={creditModalMessage}
                         creditsBalance={creditBalance}
                     />
-                </>
+                </PostHogProvider>
             );
         }
 
@@ -56,6 +90,37 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+});
+
+// Configure client-side analytics tracking for SPAs / Inertia
+router.on('navigate', (event) => {
+    const page = event.detail.page;
+
+    // GA page view mapping
+    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+    if (gaId && typeof window !== 'undefined' && window.gtag) {
+        window.gtag('config', gaId, {
+            page_path: window.location.pathname,
+            page_title: document.title,
+        });
+    }
+
+    // PostHog SPA tracking and Identity binding
+    if (typeof window !== 'undefined' && import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN) {
+        posthog.capture('$pageview');
+
+        // Capture Identify if the user is authenticated in the new page props
+        const auth = (page.props as any).auth;
+        if (auth && auth.user) {
+            posthog.identify(String(auth.user.id), {
+                email: auth.user.email,
+                name: auth.user.name,
+            });
+        } else {
+            // When navigating to an unauthenticated page/logout, reset tracking to avoid leakage
+            posthog.reset();
+        }
+    }
 });
 
 // Handle CSRF token mismatch errors

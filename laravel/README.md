@@ -275,3 +275,13 @@ pnpm update
 ---
 
 **Built with ❤️ using Laravel, React, and Inertia.js**
+
+### Analytics Configuration
+
+Google Analytics 4 and PostHog are configured for the frontend SPA (via Inertia router events).
+To enable, set the following in your \.env\:
+
+\\\env
+VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_xxxxxxxxxxxxxxxxxxxxxxxx
+VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
