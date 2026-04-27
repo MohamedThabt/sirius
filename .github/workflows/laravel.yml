@@ -50,6 +50,12 @@ jobs:
           labels: ${{ steps.meta-laravel.outputs.labels }}
           provenance: false
           sbom: false
+          build-args: |
+            VITE_APP_NAME=Sirius
+            VITE_GA_MEASUREMENT_ID=G-333ZHPTC8B
+            VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_rwpbrKcdcx5Rx6oyMQVRbKHDsTJmuNAhqfxsAZU2y6ep
+            VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+            VITE_TURNSTILE_SITEKEY=0x4AAAAAACj9nwv1GucMvdLU
 
       # --- Deployment Trigger (After image push) ---
       - name: Trigger Dokploy deployment

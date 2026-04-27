@@ -66,7 +66,21 @@ COPY --from=wayfinder-generator /app/resources/js/actions ./resources/js/actions
 COPY --from=wayfinder-generator /app/resources/js/routes ./resources/js/routes
 COPY --from=wayfinder-generator /app/resources/js/wayfinder ./resources/js/wayfinder
 
-ENV DOCKER_BUILD=true
+# Frontend build-time public env (Vite inlines these into the bundle)
+ARG VITE_APP_NAME=Sirius
+ARG VITE_GA_MEASUREMENT_ID=""
+ARG VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=""
+ARG VITE_PUBLIC_POSTHOG_HOST="https://us.i.posthog.com"
+ARG VITE_TURNSTILE_SITEKEY=""
+
+ENV VITE_APP_NAME=$VITE_APP_NAME \
+    VITE_GA_MEASUREMENT_ID=$VITE_GA_MEASUREMENT_ID \
+    VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=$VITE_PUBLIC_POSTHOG_PROJECT_TOKEN \
+    VITE_PUBLIC_POSTHOG_HOST=$VITE_PUBLIC_POSTHOG_HOST \
+    VITE_TURNSTILE_SITEKEY=$VITE_TURNSTILE_SITEKEY \
+    VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITEKEY \
+    DOCKER_BUILD=true
+
 RUN pnpm build
 
 # Install only production dependencies for SSR runtime
