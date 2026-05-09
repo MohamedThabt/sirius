@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Plan;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,9 +15,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $user = User::firstOrCreate(
-            ['email' => 'user@example.com'],
+            ['email' => 'mohamedthabetthabet36@gmail.com'],
             [
-                'name' => 'Test User',
+                'name' => 'Mohamed Thabet',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
@@ -25,10 +26,11 @@ class UserSeeder extends Seeder
         // Ensure user has credits initialized
         if (!$user->credits) {
             $user->credits()->create([
-                'credits_balance' => 1000,
-                'total_this_month' => 1000,
+                'credits_balance' => 2000,
+                'total_this_month' => 2000,
                 'billing_cycle_start' => now()->startOfMonth(),
             ]);
         }
+
     }
 }
