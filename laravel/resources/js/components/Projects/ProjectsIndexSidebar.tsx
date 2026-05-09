@@ -39,7 +39,6 @@ export default function ProjectsIndexSidebar({
     isMobileSheet = false,
 }: Props) {
     const getInitials = useInitials();
-    const showProUpgrade = auth.user.plan?.slug !== 'pro';
 
     interface NavItem {
         key: string;
@@ -136,60 +135,6 @@ export default function ProjectsIndexSidebar({
                                                     </button>
                                                 </li>
                                             ))}
-                                            {showProUpgrade && (
-                                                <li>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => router.visit('/upgrade/pro')}
-                                                        title="Upgrade to Pro"
-                                                        className={[
-                                                            'group relative w-full overflow-hidden rounded-xl border text-left transition-all duration-300',
-                                                            'p-0.5',
-                                                            currentPage === 'upgrade'
-                                                                ? 'border-primary/60 shadow-[0_0_24px_-4px_hsl(var(--primary))] ring-1 ring-primary/30'
-                                                                : 'border-amber-500/25 shadow-md shadow-amber-500/5 hover:border-amber-400/45 hover:shadow-lg hover:shadow-amber-500/10',
-                                                        ].join(' ')}
-                                                    >
-                                                        <div
-                                                            className={[
-                                                                'relative rounded-[0.65rem] px-3 py-2.5',
-                                                                'bg-gradient-to-br from-violet-500/15 via-amber-500/12 to-rose-500/15',
-                                                                'before:pointer-events-none before:absolute before:inset-0 before:rounded-[0.65rem] before:bg-[linear-gradient(120deg,transparent_40%,hsl(var(--primary)/0.12)_50%,transparent_60%)]',
-                                                                'before:translate-x-[-100%] before:transition-transform before:duration-700',
-                                                                'group-hover:before:translate-x-[100%]',
-                                                            ].join(' ')}
-                                                        >
-                                                            <div className="relative flex items-start gap-2.5">
-                                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400/25 to-violet-500/30 shadow-inner">
-                                                                    <SparklesIcon className="h-4 w-4 text-amber-200" />
-                                                                </div>
-                                                                <div className="min-w-0 flex-1 pt-0.5">
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        <span className="text-[10px] font-bold tracking-widest text-amber-400/90 uppercase">
-                                                                            Pro
-                                                                        </span>
-                                                                        <span
-                                                                            aria-hidden
-                                                                            className="h-0.5 w-0.5 rounded-full bg-muted-foreground/40"
-                                                                        />
-                                                                        <span className="text-xs font-semibold text-foreground">Go Pro</span>
-                                                                    </div>
-                                                                    <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">
-                                                                        2k AI credits · InstaPay
-                                                                    </p>
-                                                                </div>
-                                                                <ArrowRightIcon
-                                                                    className={[
-                                                                        'h-3.5 w-3.5 shrink-0 text-amber-400/80 transition-transform',
-                                                                        'group-hover:translate-x-0.5',
-                                                                        currentPage === 'upgrade' ? 'text-primary' : '',
-                                                                    ].join(' ')}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                </li>
-                                            )}
                                             {group.items.slice(2).map((item) => (
                                                 <li key={item.key}>
                                                     <button
