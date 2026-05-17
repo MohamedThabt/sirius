@@ -1,3 +1,4 @@
+import { AppearanceToggle } from '@/components/appearance-toggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                 <div className="flex-1 overflow-hidden">
                     <Breadcrumbs breadcrumbs={breadcrumbs} />
                 </div>
+                <AppearanceToggle />
             </div>
         </header>
     );

@@ -6,15 +6,15 @@ const glowingBadgeVariants = cva(
     {
         variants: {
             variant: {
-                default: "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:shadow-sm hover:shadow-primary/20",
-                success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 hover:shadow-sm hover:shadow-emerald-500/20",
-                warning: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 hover:shadow-sm hover:shadow-amber-500/20",
-                danger: "bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:shadow-sm hover:shadow-red-500/20",
-                info: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 hover:shadow-sm hover:shadow-blue-500/20",
-                purple: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 hover:shadow-sm hover:shadow-purple-500/20",
-                cyan: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 hover:shadow-sm hover:shadow-cyan-500/20",
-                pink: "bg-pink-500/10 text-pink-700 dark:text-pink-400 border border-pink-500/20 hover:bg-pink-500/20 hover:shadow-sm hover:shadow-pink-500/20",
-                slate: "bg-slate-500/10 text-slate-700 dark:text-slate-400 border border-slate-500/20 hover:bg-slate-500/20",
+                default: "bg-muted text-muted-foreground border-border hover:bg-muted/80 hover:shadow-sm",
+                success: "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:shadow-sm hover:shadow-primary/20",
+                warning: "bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 hover:shadow-sm",
+                danger: "bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 hover:shadow-sm hover:shadow-destructive/20",
+                info: "bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 hover:shadow-sm",
+                purple: "bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 hover:shadow-sm",
+                cyan: "bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 hover:shadow-sm",
+                pink: "bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 hover:shadow-sm",
+                slate: "bg-muted text-muted-foreground border border-border hover:bg-muted/80 hover:shadow-sm",
             },
             size: {
                 sm: "text-[10px] px-2 py-0.5",

@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import { HyperTextParagraph } from '@/components/ui/hyper-text-paragraph';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { heroContent } from '@/lib/sirius/content';
+import { type SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowDown, ArrowRight, Check, Sparkles } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -56,6 +58,8 @@ const starTwinkleCSS = `
 `;
 
 export const SiriusHero: React.FC = () => {
+    const { auth } = usePage<SharedData>().props;
+    const isAuthenticated = !!auth?.user;
     const isMobile = useIsMobile();
     const prefersReducedMotion = useReducedMotion();
     const [isHydrated, setIsHydrated] = useState(false);
@@ -301,8 +305,8 @@ export const SiriusHero: React.FC = () => {
                                 className="group h-12 px-8 text-base shadow-lg shadow-primary/25 transition-shadow hover:shadow-xl hover:shadow-primary/30"
                                 asChild
                             >
-                                <a href="/register">
-                                    {heroContent.primaryCta}
+                                <a href={isAuthenticated ? '/projects' : '/register'}>
+                                    {isAuthenticated ? 'Go to Projects' : heroContent.primaryCta}
                                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                 </a>
                             </Button>

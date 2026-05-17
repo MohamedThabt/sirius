@@ -1,33 +1,23 @@
 import type { FeaturePriority, FeatureStatus } from '@/types/modules';
 import { AlertCircleIcon, CheckCircle2, CircleIcon, ClockIcon, type LucideIcon } from 'lucide-react';
 
-/**
- * Feature priority color classes for badges.
- * WHY: Duplicated in Index.tsx, FeatureShow.tsx, and other files.
- */
 export const PRIORITY_COLORS: Record<FeaturePriority | 'default', string> = {
-    critical: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30',
-    high: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30',
-    medium: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30',
-    low: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30',
+    critical: 'bg-destructive/10 text-destructive border-destructive/20',
+    high: 'bg-destructive/10 text-destructive border-destructive/20',
+    medium: 'bg-secondary text-secondary-foreground border-border',
+    low: 'bg-muted text-muted-foreground border-border',
     default: 'bg-muted text-muted-foreground border-border',
 };
 
-/**
- * Feature status color classes for badges.
- */
 export const STATUS_COLORS: Record<FeatureStatus | 'default', string> = {
-    draft: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/30',
-    todo: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30',
-    in_progress: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30',
-    review: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/30',
-    done: 'bg-green-100 text-green-800 border-green-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30',
+    draft: 'bg-muted text-muted-foreground border-border',
+    todo: 'bg-muted text-muted-foreground border-border',
+    in_progress: 'bg-secondary text-secondary-foreground border-border',
+    review: 'bg-secondary text-secondary-foreground border-border',
+    done: 'bg-primary/10 text-primary border-primary/20',
     default: 'bg-muted text-muted-foreground border-border',
 };
 
-/**
- * Status icon mapping.
- */
 export const STATUS_ICONS: Record<FeatureStatus | 'default', LucideIcon> = {
     draft: CircleIcon,
     todo: CircleIcon,
@@ -37,17 +27,13 @@ export const STATUS_ICONS: Record<FeatureStatus | 'default', LucideIcon> = {
     default: CircleIcon,
 };
 
-/**
- * Health indicator styles for feature progress displays.
- * WHY: Centralizes hardcoded colors from FeatureShow.tsx health indicator.
- */
 export type HealthLevel = 'excellent' | 'good' | 'fair' | 'attention';
 
 export const HEALTH_COLORS: Record<HealthLevel, string> = {
-    excellent: 'text-emerald-600 dark:text-emerald-400',
-    good: 'text-blue-600 dark:text-blue-400',
-    fair: 'text-orange-600 dark:text-orange-400',
-    attention: 'text-red-600 dark:text-red-400',
+    excellent: 'text-primary',
+    good: 'text-secondary-foreground',
+    fair: 'text-secondary-foreground',
+    attention: 'text-destructive',
 };
 
 export const HEALTH_ICONS: Record<HealthLevel, LucideIcon> = {

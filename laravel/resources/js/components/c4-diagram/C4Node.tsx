@@ -254,27 +254,18 @@ const C4Node = memo(({ data, selected }: NodeProps<any>) => {
         return (
             <div
                 className={cn(
-                    'relative overflow-hidden rounded-xl border-[3px] border-dashed',
-                    'border-indigo-400/60 dark:border-indigo-500/50',
-                    'bg-gradient-to-br from-indigo-50/40 via-purple-50/30 to-transparent',
-                    'dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-transparent',
-                    'shadow-[0_0_30px_-10px_rgba(99,102,241,0.3)] dark:shadow-[0_0_30px_-10px_rgba(99,102,241,0.2)]',
+                    'relative overflow-hidden rounded-xl border-[3px] border-dashed border-border bg-card shadow-sm',
                     selected && 'ring-2 ring-primary ring-offset-2',
                 )}
                 style={{ width: element.width, height: element.height }}
             >
-                {/* Header bar with gradient */}
-                <div className="absolute top-0 right-0 left-0 flex items-center gap-2 border-b border-dashed border-indigo-400/40 bg-gradient-to-r from-indigo-500/20 via-purple-500/15 to-indigo-500/10 px-4 py-2 dark:border-indigo-500/30 dark:from-indigo-500/30 dark:via-purple-500/20 dark:to-indigo-500/15">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-500/20 dark:bg-indigo-500/30">
-                        <Box className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                {/* Header bar */}
+                <div className="absolute top-0 right-0 left-0 flex items-center gap-2 border-b border-dashed border-border bg-secondary px-4 py-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-background">
+                        <Box className="h-3.5 w-3.5 text-foreground" />
                     </div>
-                    <span className="text-sm font-semibold tracking-wide text-indigo-700 dark:text-indigo-300">{element.name}</span>
+                    <span className="text-sm font-semibold tracking-wide text-foreground">{element.name}</span>
                 </div>
-                {/* Decorative corner accents */}
-                <div className="absolute top-0 left-0 h-4 w-4 rounded-tl-xl border-t-[3px] border-l-[3px] border-indigo-500/60 dark:border-indigo-400/50" />
-                <div className="absolute top-0 right-0 h-4 w-4 rounded-tr-xl border-t-[3px] border-r-[3px] border-indigo-500/60 dark:border-indigo-400/50" />
-                <div className="absolute bottom-0 left-0 h-4 w-4 rounded-bl-xl border-b-[3px] border-l-[3px] border-indigo-500/60 dark:border-indigo-400/50" />
-                <div className="absolute right-0 bottom-0 h-4 w-4 rounded-br-xl border-r-[3px] border-b-[3px] border-indigo-500/60 dark:border-indigo-400/50" />
             </div>
         );
     }

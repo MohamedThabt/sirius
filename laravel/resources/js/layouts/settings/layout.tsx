@@ -1,3 +1,4 @@
+import { AppearanceToggle } from '@/components/appearance-toggle';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -27,6 +28,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                         <div className="flex-1 overflow-hidden">
                             <Breadcrumbs breadcrumbs={breadcrumbs} />
                         </div>
+                        <AppearanceToggle />
                     </div>
                 </header>
 

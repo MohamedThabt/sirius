@@ -7,7 +7,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ===== SHADCN NEUTRAL THEME ===== */
+/* ===== ELEVENLABS DESIGN SYSTEM THEME ===== */
 @theme inline {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -33,24 +33,28 @@
     --color-chart-3: var(--chart-3);
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
+    
+    --color-canvas: #f5f5f5;
+    --color-canvas-soft: #fafafa;
+    --color-canvas-deep: #0c0a09;
+    --color-ink: #0c0a09;
+    --color-gradient-mint: #a7e5d3;
+    --color-gradient-peach: #f4c5a8;
+    --color-gradient-lavender: #c8b8e0;
+    --color-gradient-sky: #a8c8e8;
+    --color-gradient-rose: #e8b8c4;
 
     --font-sans: var(--font-sans);
     --font-mono: var(--font-mono);
     --font-serif: var(--font-serif);
+    --font-display: var(--font-serif);
     --font-sirius: var(--font-sans);
 
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
+    --radius-pill: 9999px;
 
     --shadow-2xs: var(--shadow-2xs);
     --shadow-xs: var(--shadow-xs);
@@ -63,52 +67,56 @@
 }
 
 :root {
-    /* shadcn Neutral Theme - Light Mode */
-    --background: oklch(0.985 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    /* ElevenLabs Design System - Light Mode */
+    --background: #f5f5f5;
+    --foreground: #0c0a09;
+    --card: #ffffff;
+    --card-foreground: #0c0a09;
+    --popover: #ffffff;
+    --popover-foreground: #0c0a09;
+    --primary: #292524;
+    --primary-foreground: #ffffff;
+    --secondary: #f0efed;
+    --secondary-foreground: #292524;
+    --muted: #fafafa;
+    --muted-foreground: #777169;
+    --accent: #f0efed;
+    --accent-foreground: #292524;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --border: #e7e5e4;
+    --input: #e7e5e4;
+    --ring: #292524;
+    --chart-1: #0c0a09;
+    --chart-2: #4e4e4e;
+    --chart-3: #777169;
+    --chart-4: #a8a29e;
+    --chart-5: #e7e5e4;
+    
+    --sidebar: #f5f5f5;
+    --sidebar-foreground: #0c0a09;
+    --sidebar-primary: #292524;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f0efed;
+    --sidebar-accent-foreground: #292524;
+    --sidebar-border: #e7e5e4;
+    --sidebar-ring: #292524;
+    
     --font-sans: Inter, sans-serif;
-    --font-serif: Source Serif 4, serif;
-    --font-mono: JetBrains Mono, monospace;
-    --radius: 0.625rem;
-    --shadow-2xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow: 0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 8px 10px -1px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.25);
-    --tracking-normal: 0em;
+    --font-serif: 'EB Garamond', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius: 0.75rem; /* 12px for lg, 16px for xl */
+    
+    --shadow-2xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.02);
+    --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.03);
+    --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04); /* ElevenLabs soft drop */
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.1);
+    --shadow-2xl: 0 24px 48px rgba(0, 0, 0, 0.12);
+    
+    --tracking-normal: 0.01em; /* Subtle letter-spacing +0.15px roughly */
     --spacing: 0.25rem;
 
     /* Animation timing */
@@ -119,39 +127,40 @@
 }
 
 .dark {
-    /* shadcn Neutral Theme - Dark Mode */
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    /* ElevenLabs Design System - Dark Mode */
+    --background: #0c0a09;
+    --foreground: #ffffff;
+    --card: #1c1917;
+    --card-foreground: #ffffff;
+    --popover: #1c1917;
+    --popover-foreground: #ffffff;
+    --primary: #ffffff;
+    --primary-foreground: #0c0a09;
+    --secondary: #292524;
+    --secondary-foreground: #ffffff;
+    --muted: #292524;
+    --muted-foreground: #a8a29e;
+    --accent: #292524;
+    --accent-foreground: #ffffff;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --border: #292524;
+    --input: #292524;
+    --ring: #ffffff;
+    --chart-1: #ffffff;
+    --chart-2: #e7e5e4;
+    --chart-3: #a8a29e;
+    --chart-4: #777169;
+    --chart-5: #4e4e4e;
+    
+    --sidebar: #0c0a09;
+    --sidebar-foreground: #ffffff;
+    --sidebar-primary: #ffffff;
+    --sidebar-primary-foreground: #0c0a09;
+    --sidebar-accent: #292524;
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: #292524;
+    --sidebar-ring: #ffffff;
 }
 
 @layer base {

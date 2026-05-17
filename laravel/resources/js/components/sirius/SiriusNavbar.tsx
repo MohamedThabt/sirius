@@ -1,5 +1,6 @@
 'use client';
 
+import { AppearanceToggle } from '@/components/appearance-toggle';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -66,6 +67,7 @@ export const SiriusNavbar: React.FC = () => {
 
                 {/* Desktop CTA Buttons */}
                 <div className="hidden items-center gap-2 md:flex">
+                    <AppearanceToggle />
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -97,9 +99,12 @@ export const SiriusNavbar: React.FC = () => {
                 </div>
 
                 {/* Mobile Menu Button */}
-                <motion.button className="flex items-center p-1 md:hidden" onClick={toggleMenu} whileTap={{ scale: 0.9 }} aria-label="Open menu">
-                    <Menu className="h-6 w-6 text-foreground" />
-                </motion.button>
+                <div className="flex items-center gap-1 md:hidden">
+                    <AppearanceToggle />
+                    <motion.button className="flex items-center p-1" onClick={toggleMenu} whileTap={{ scale: 0.9 }} aria-label="Open menu">
+                        <Menu className="h-6 w-6 text-foreground" />
+                    </motion.button>
+                </div>
             </div>
 
             {/* Mobile Menu Overlay */}
@@ -112,17 +117,20 @@ export const SiriusNavbar: React.FC = () => {
                         exit={{ opacity: 0, x: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     >
-                        <motion.button
-                            className="absolute top-6 right-6 p-2"
-                            onClick={toggleMenu}
-                            whileTap={{ scale: 0.9 }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            aria-label="Close menu"
-                        >
-                            <X className="h-6 w-6 text-foreground" />
-                        </motion.button>
+                        <div className="absolute top-6 right-6 flex items-center gap-2">
+                            <AppearanceToggle />
+                            <motion.button
+                                className="p-2"
+                                onClick={toggleMenu}
+                                whileTap={{ scale: 0.9 }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                                aria-label="Close menu"
+                            >
+                                <X className="h-6 w-6 text-foreground" />
+                            </motion.button>
+                        </div>
 
                         <div className="flex flex-col space-y-6">
                             {navigationLinks.map((item, i) => (
