@@ -165,7 +165,7 @@ function ProjectsIndex({ projects, search }: Props) {
                 <main className="min-w-0 flex-1">
                     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
                         <div className="border-b bg-muted/30">
-                            <div className="mx-auto max-w-[1600px] px-4 py-3 sm:px-6 lg:px-8">
+                            <div className="mx-auto max-w-[1600px] px-4 py-4 sm:px-6 lg:px-8">
                                 <div className="flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-3">
                                         <Sheet>
@@ -193,27 +193,47 @@ function ProjectsIndex({ projects, search }: Props) {
                                         </Sheet>
                                         <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
                                         <div>
-                                            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Projects</h1>
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                {projects.length} {projects.length === 1 ? 'project' : 'projects'}
-                                            </p>
+                                            <h1 className="text-lg font-semibold tracking-tight text-foreground">Projects</h1>
                                         </div>
                                     </div>
-                                    <Button
-                                        onClick={() => setIsCreateModalOpen(true)}
-                                        size="sm"
-                                        className="gap-1.5"
-                                    >
-                                        <PlusIcon className="h-4 w-4" />
-                                        New Project
-                                    </Button>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative hidden sm:block">
+                                            <SearchIcon className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search..."
+                                                value={searchTerm}
+                                                onChange={(e) => handleSearchChange(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && router.get('/projects', { search: searchTerm }, { preserveState: true })}
+                                                className="h-8 w-48 pl-8 pr-7 text-xs lg:w-64"
+                                            />
+                                            {searchTerm && (
+                                                <button
+                                                    onClick={() => handleSearchChange('')}
+                                                    className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
+                                                >
+                                                    <XIcon className="h-3 w-3" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <span className="hidden text-xs text-muted-foreground sm:inline">
+                                            {projects.length} {projects.length === 1 ? 'project' : 'projects'}
+                                        </span>
+                                        <Button
+                                            onClick={() => setIsCreateModalOpen(true)}
+                                            size="sm"
+                                            className="h-8 gap-1.5 text-xs"
+                                        >
+                                            <PlusIcon className="h-3.5 w-3.5" />
+                                            <span className="hidden sm:inline">New Project</span>
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
-                            <div className="mb-6">
-                                <div className="relative max-w-sm">
+                            <div className="mb-5 sm:hidden">
+                                <div className="relative">
                                     <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         placeholder="Search projects..."

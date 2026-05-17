@@ -89,7 +89,7 @@ export function buildProjectNavGroups({
                         icon: FileIcon,
                         label: 'Project Brief',
                         active: currentPage === 'brief',
-                        onClick: () => router.visit(`/projects/${project.id}/prepare`),
+                        onClick: () => router.visit(`/projects/${project.id}/brief-intake`),
                     },
                     {
                         key: 'overview',

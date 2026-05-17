@@ -372,7 +372,7 @@ class SystemOverviewController extends Controller
             // Ensure project has a brief
             if (empty($project->brief)) {
                 return redirect()
-                    ->route('projects.prepare', $project)
+                    ->route('projects.brief-intake', $project)
                     ->with('error', 'Project brief is required. Please prepare your project first.');
             }
 

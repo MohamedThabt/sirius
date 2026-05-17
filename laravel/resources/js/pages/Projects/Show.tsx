@@ -148,7 +148,7 @@ export default function ProjectShow({
                 isLocked: false,
                 isHardLocked: false,
                 actionType: briefExists ? 'view' : 'navigate',
-                actionPath: briefExists ? null : `/projects/${project.id}/prepare`,
+                actionPath: briefExists ? null : `/projects/${project.id}/brief-intake`,
                 actionHandler: briefExists ? () => setIsBriefModalOpen(true) : undefined,
                 prerequisites: [],
             },

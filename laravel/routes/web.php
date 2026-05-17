@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified', 'share.project'])->group(function () {
     Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('/projects/{project}/prepare', [ProjectController::class, 'prepare'])->name('projects.prepare');
+    Route::get('/projects/{project}/brief-intake', [ProjectController::class, 'briefIntake'])->name('projects.brief-intake');
     Route::get('/projects/{project}/technology', [ProjectController::class, 'showTechnology'])->name('projects.technology');
     Route::post('/projects/{project}/technology/generate', [\App\Http\Controllers\Project\TechnicalDetailsController::class, 'generate'])->name('projects.technology.generate')->middleware('check.credits');
     Route::post('/projects/{project}/technology', [\App\Http\Controllers\Project\TechnicalDetailsController::class, 'store'])->name('projects.technology.store');
