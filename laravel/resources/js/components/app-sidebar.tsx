@@ -27,9 +27,9 @@ import {
     CoinsIcon,
     CreditCard,
     FileText,
+    FolderKanbanIcon,
     LayoutDashboard,
     Mail,
-    MessageSquare,
     MessageSquareText,
     Receipt,
     ScrollText,
@@ -37,8 +37,10 @@ import {
     Users,
     Zap,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import AppLogo from './app-logo';
+import { SettingsNav } from './SettingsNav';
+import { ProjectContextNav } from './ProjectContextNav';
 
 const mainNavItems: NavItem[] = [];
 
@@ -101,7 +103,7 @@ const adminNavItems: NavItem[] = [
     {
         title: 'Feedback',
         href: '/admin/feedback',
-        icon: MessageSquare,
+        icon: MessageSquareText,
     },
     {
         title: 'Usage Logs',
@@ -129,10 +131,30 @@ interface AppSidebarProps {
     project?: ProjectData;
 }
 
-export function AppSidebar({ project }: AppSidebarProps = {}) {
-    const { props } = usePage<SharedData>();
+type SidebarContext = 'admin' | 'settings' | 'project' | 'feature' | 'projects-index' | 'default';
+
+export function AppSidebar({ project: propProject }: AppSidebarProps = {}) {
+    const { props, url } = usePage<SharedData>();
     const isAdmin = props.auth?.admin;
     const [feedbackOpen, setFeedbackOpen] = useState(false);
+    
+    // Resolve project from prop, or fallback to Inertia prop, or undefined
+    const envProject = propProject || (props as any).project;
+
+    // Detect current context based on URL
+    const context = useMemo<SidebarContext>(() => {
+        if (url.startsWith('/admin')) return 'admin';
+        if (url.startsWith('/settings')) return 'settings';
+        if (url.includes('/features/')) return 'feature';
+        if (url.startsWith('/projects') && url !== '/projects') {
+            // Check if it's a specific project detail page
+            const projectMatch = url.match(/^\/projects\/(\d+)/);
+            if (projectMatch) return 'project';
+            return 'projects-index';
+        }
+        if (url === '/projects') return 'projects-index';
+        return 'default';
+    }, [url]);
 
     return (
         <Sidebar collapsible="icon" variant="inset" className="border-r border-border/40 bg-gradient-to-b from-background to-muted/20">
@@ -154,17 +176,44 @@ export function AppSidebar({ project }: AppSidebarProps = {}) {
 
             <SidebarContent className="px-2 py-4">
                 {/* Global Navigation */}
-                <NavMain items={mainNavItems} />
+                {context !== 'settings' && context !== 'admin' && mainNavItems.length > 0 && (
+                    <NavMain items={mainNavItems} />
+                )}
+
+                {/* Settings Navigation */}
+                {context === 'settings' && (
+                    <SettingsNav currentPath={url} />
+                )}
 
                 {/* Project-specific Navigation */}
-                {project && (
+                {context === 'project' && envProject && (
                     <div className="mt-4">
-                        <ProjectNav project={project} />
+                        <ProjectContextNav project={envProject} />
+                    </div>
+                )}
+
+                {/* Projects Index Navigation */}
+                {context === 'projects-index' && (
+                    <div className="mt-4">
+                        <SidebarGroup>
+                            <SidebarGroupContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton asChild isActive={context === 'projects-index'}>
+                                            <Link href="/projects" prefetch>
+                                                <FolderKanbanIcon className="h-4 w-4" />
+                                                <span>Projects</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarGroupContent>
+                        </SidebarGroup>
                     </div>
                 )}
 
                 {/* Admin Navigation */}
-                {isAdmin && (
+                {isAdmin && context === 'admin' && (
                     <div className="mt-4">
                         <NavMain items={adminNavItems} title="Admin" />
                     </div>
