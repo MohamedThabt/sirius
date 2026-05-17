@@ -9,7 +9,7 @@ export function CallToAction() {
     const isAuthenticated = !!auth?.user;
 
     return (
-        <div className="relative mx-auto flex w-[85%] max-w-screen-lg flex-col justify-between gap-y-4 border-y px-4 py-8 dark:bg-[radial-gradient(35%_80%_at_25%_0%,--theme(--color-foreground/.2),transparent)]">
+        <div className="relative mx-auto flex w-[85%] max-w-screen-lg flex-col justify-between gap-y-4 border-y px-4 py-8 bg-[radial-gradient(35%_80%_at_25%_0%,--theme(--color-foreground/.05),transparent)] dark:bg-[radial-gradient(35%_80%_at_25%_0%,--theme(--color-foreground/.2),transparent)]">
             <PlusIcon className="absolute top-[-12.5px] left-[-11.5px] z-1 size-6" strokeWidth={1} />
             <PlusIcon className="absolute top-[-12.5px] right-[-11.5px] z-1 size-6" strokeWidth={1} />
             <PlusIcon className="absolute bottom-[-12.5px] left-[-11.5px] z-1 size-6" strokeWidth={1} />

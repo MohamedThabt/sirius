@@ -113,20 +113,20 @@ export default function ProjectSidebarPanel({
     return (
         <>
             <aside
-                className={`${isMobileSheet ? 'w-full' : isCollapsed ? 'w-0' : 'hidden w-60 shrink-0 border-r border-border/30 lg:block'} transition-all duration-300`}
+                className={`${isMobileSheet ? 'w-full' : isCollapsed ? 'w-0' : 'hidden w-60 shrink-0 border-r border-sidebar-border lg:block'} bg-sidebar transition-all duration-300`}
             >
                 <div
                     className={`${isMobileSheet ? 'flex' : 'sticky'} top-0 flex h-screen flex-col justify-between px-3 py-4 ${isCollapsed && !isMobileSheet ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 >
                     <div className="scrollbar-hide overflow-x-hidden overflow-y-auto">
                         {/* Linear-style Header */}
-                        <div className="mb-4 border-b border-border/30 pb-3">
+                        <div className="mb-4 border-b border-sidebar-border pb-3">
                             <div className="flex items-center justify-between">
                                 {/* Back + Project Name */}
                                 <div className="flex items-center gap-1">
                                     <a
                                         href="/projects"
-                                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent/50 hover:text-foreground"
                                     >
                                         <ChevronLeftIcon className="h-4 w-4" />
                                     </a>
@@ -157,7 +157,7 @@ export default function ProjectSidebarPanel({
                             {/* Progress Bar */}
                             {completionPercentage !== undefined && (
                                 <div className="mt-2">
-                                    <div className="h-1 w-full overflow-hidden rounded-full bg-muted/50">
+                                    <div className="h-1 w-full overflow-hidden rounded-full bg-sidebar-accent">
                                         <div
                                             className="h-full rounded-full bg-foreground/70 transition-all duration-500 ease-out"
                                             style={{ width: `${completionPercentage}%` }}
@@ -184,8 +184,8 @@ export default function ProjectSidebarPanel({
                                                             item.disabled
                                                                 ? 'cursor-not-allowed opacity-50'
                                                                 : item.active
-                                                                  ? 'cursor-pointer bg-muted font-medium text-foreground'
-                                                                  : 'cursor-pointer text-muted-foreground hover:bg-muted/70 hover:text-foreground',
+                                                                  ? 'cursor-pointer bg-sidebar-accent font-medium text-foreground'
+                                                                  : 'cursor-pointer text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
                                                             item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
                                                             item.key === 'brainstorming' && !item.disabled
                                                                 ? 'border border-amber-200 bg-amber-50 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:hover:bg-amber-500/20'
@@ -222,7 +222,7 @@ export default function ProjectSidebarPanel({
                             <div className="space-y-2">
                                 <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Integrations</div>
                                 <button
-                                    className="flex w-full cursor-pointer items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                                    className="flex w-full cursor-pointer items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-foreground"
                                     onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
                                 >
                                     <span className="inline-flex items-center gap-2">
@@ -252,7 +252,7 @@ export default function ProjectSidebarPanel({
                         <div className="border-t pt-3">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
+                                    <button className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-sidebar-accent">
                                         <Avatar className="h-5 w-5 shrink-0">
                                             <AvatarImage src={user.avatar} alt={user.name} />
                                             <AvatarFallback className="bg-neutral-200 text-[10px] text-black dark:bg-neutral-700 dark:text-white">

@@ -41,7 +41,7 @@ export const SiriusCTASection: React.FC<SiriusCTASectionProps> = ({ headline, bo
             />
 
             <div className="sirius-gradient-bg absolute inset-0 opacity-50" />
-            <div className="absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-[var(--color-gradient-mint)]/10 to-[var(--color-gradient-rose)]/10 blur-3xl" />
 
             <div className="sirius-container relative z-10">
                 <motion.div

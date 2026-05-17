@@ -1,14 +1,12 @@
 'use client';
 
-import { AppearanceToggle } from '@/components/appearance-toggle';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import * as React from 'react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
-// Navigation links for Sirius
 const navigationLinks = [
     { href: '/#how-it-works', label: 'How it Works' },
     { href: '/#features', label: 'Features' },
@@ -23,169 +21,141 @@ export const SiriusNavbar: React.FC = () => {
     const { auth } = usePage<SharedData>().props;
     const isAuthenticated = !!auth?.user;
 
-    const toggleMenu = () => setIsOpen(!isOpen);
+    const closeMenu = useCallback(() => setIsOpen(false), []);
 
     return (
-        <div className="fixed top-0 right-0 left-0 z-50 flex w-full justify-center px-4 py-4">
-            <div className="relative z-10 flex w-full max-w-4xl items-center justify-between rounded-full border border-border/50 bg-background/80 px-6 py-3 shadow-lg backdrop-blur-xl">
+        <div className="fixed top-0 right-0 left-0 z-50 flex w-full justify-center px-3 py-3 sm:px-4 sm:py-4">
+            <div className="relative z-10 flex w-full max-w-4xl items-center justify-between rounded-full border border-border/50 bg-background/80 px-4 py-2.5 shadow-lg backdrop-blur-xl sm:px-6 sm:py-3">
                 {/* Logo */}
-                <div className="flex items-center">
-                    <motion.a
-                        href="/"
-                        className="flex items-center"
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1 }}
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <img src="/images/sirius-logo.png" alt="Sirius" width={173} height={70} className="h-8 w-auto" />
-                    </motion.a>
-                </div>
+                <a href="/" className="flex shrink-0 items-center">
+                    <img
+                        src="/images/sirius-logo.png"
+                        alt="Sirius"
+                        width={173}
+                        height={70}
+                        className="h-7 w-auto sm:h-8"
+                        loading="eager"
+                    />
+                </a>
 
                 {/* Desktop Navigation */}
-                <nav className="hidden items-center space-x-6 md:flex">
-                    {navigationLinks.map((item, index) => (
-                        <motion.div
-                            key={item.label}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.05 }}
-                            whileHover={{ scale: 1.05 }}
-                        >
-                            {item.isInertiaLink ? (
-                                <Link href={item.href} className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-                                    {item.label}
-                                </Link>
-                            ) : (
-                                <a href={item.href} className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-                                    {item.label}
-                                </a>
-                            )}
-                        </motion.div>
-                    ))}
+                <nav className="hidden items-center gap-6 md:flex">
+                    {navigationLinks.map((item) =>
+                        item.isInertiaLink ? (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                                {item.label}
+                            </Link>
+                        ) : (
+                            <a
+                                key={item.label}
+                                href={item.href}
+                                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                                {item.label}
+                            </a>
+                        ),
+                    )}
                 </nav>
 
                 {/* Desktop CTA Buttons */}
                 <div className="hidden items-center gap-2 md:flex">
-                    <AppearanceToggle />
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: 0.2 }}
-                        whileHover={{ scale: 1.05 }}
+                    <Link
+                        href={isAuthenticated ? '/projects' : '/login'}
+                        className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
-                        <Link
-                            href={isAuthenticated ? '/projects' : '/login'}
-                            className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            {isAuthenticated ? 'Projects' : 'Sign in'}
-                        </Link>
-                    </motion.div>
+                        {isAuthenticated ? 'Projects' : 'Sign in'}
+                    </Link>
                     {!isAuthenticated && (
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.3, delay: 0.3 }}
-                            whileHover={{ scale: 1.05 }}
+                        <Link
+                            href="/register"
+                            className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                         >
-                            <Link
-                                href="/register"
-                                className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                            >
-                                Sign Up
-                            </Link>
-                        </motion.div>
+                            Sign Up
+                        </Link>
                     )}
                 </div>
 
                 {/* Mobile Menu Button */}
-                <div className="flex items-center gap-1 md:hidden">
-                    <AppearanceToggle />
-                    <motion.button className="flex items-center p-1" onClick={toggleMenu} whileTap={{ scale: 0.9 }} aria-label="Open menu">
-                        <Menu className="h-6 w-6 text-foreground" />
-                    </motion.button>
-                </div>
+                <button
+                    className="flex items-center justify-center rounded-full p-2 text-foreground transition-colors hover:bg-accent md:hidden"
+                    onClick={() => setIsOpen(!isOpen)}
+                    aria-label={isOpen ? 'Close menu' : 'Open menu'}
+                >
+                    <Menu className="h-5 w-5" />
+                </button>
             </div>
 
             {/* Mobile Menu Overlay */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        className="fixed inset-0 z-50 bg-background px-6 pt-24 md:hidden"
-                        initial={{ opacity: 0, x: '100%' }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        className="fixed inset-0 z-50 bg-background md:hidden"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
                     >
-                        <div className="absolute top-6 right-6 flex items-center gap-2">
-                            <AppearanceToggle />
-                            <motion.button
-                                className="p-2"
-                                onClick={toggleMenu}
-                                whileTap={{ scale: 0.9 }}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.2 }}
+                        {/* Mobile header */}
+                        <div className="flex items-center justify-between px-4 py-3">
+                            <a href="/" className="flex items-center" onClick={closeMenu}>
+                                <img src="/images/sirius-logo.png" alt="Sirius" className="h-7 w-auto" loading="eager" />
+                            </a>
+                            <button
+                                className="flex items-center justify-center rounded-full p-2 text-foreground transition-colors hover:bg-accent"
+                                onClick={closeMenu}
                                 aria-label="Close menu"
                             >
-                                <X className="h-6 w-6 text-foreground" />
-                            </motion.button>
+                                <X className="h-5 w-5" />
+                            </button>
                         </div>
 
-                        <div className="flex flex-col space-y-6">
-                            {navigationLinks.map((item, i) => (
-                                <motion.div
-                                    key={item.label}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.1 + 0.1 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                >
+                        {/* Mobile nav links */}
+                        <nav className="flex flex-col px-6 pt-6">
+                            {navigationLinks.map((item) => (
+                                <React.Fragment key={item.label}>
                                     {item.isInertiaLink ? (
                                         <Link
                                             href={item.href}
-                                            className="text-lg font-medium text-foreground transition-colors hover:text-primary"
-                                            onClick={toggleMenu}
+                                            className="border-b border-border/30 py-4 text-base font-medium text-foreground transition-colors active:text-primary"
+                                            onClick={closeMenu}
                                         >
                                             {item.label}
                                         </Link>
                                     ) : (
                                         <a
                                             href={item.href}
-                                            className="text-lg font-medium text-foreground transition-colors hover:text-primary"
-                                            onClick={toggleMenu}
+                                            className="border-b border-border/30 py-4 text-base font-medium text-foreground transition-colors active:text-primary"
+                                            onClick={closeMenu}
                                         >
                                             {item.label}
                                         </a>
                                     )}
-                                </motion.div>
+                                </React.Fragment>
                             ))}
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.5 }}
-                                exit={{ opacity: 0, y: 20 }}
-                                className="flex flex-col gap-3 pt-6"
-                            >
+                            <div className="flex flex-col gap-3 pt-8">
                                 <Link
                                     href={isAuthenticated ? '/projects' : '/login'}
-                                    className="inline-flex w-full items-center justify-center rounded-full border border-border px-5 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
-                                    onClick={toggleMenu}
+                                    className="flex w-full items-center justify-center rounded-full border border-border px-5 py-3 text-base font-medium text-foreground transition-colors active:bg-accent"
+                                    onClick={closeMenu}
                                 >
                                     {isAuthenticated ? 'Projects' : 'Sign in'}
                                 </Link>
                                 {!isAuthenticated && (
                                     <Link
                                         href="/register"
-                                        className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                                        onClick={toggleMenu}
+                                        className="flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-base font-medium text-primary-foreground transition-colors active:bg-primary/90"
+                                        onClick={closeMenu}
                                     >
                                         Sign Up
                                     </Link>
                                 )}
-                            </motion.div>
-                        </div>
+                            </div>
+                        </nav>
                     </motion.div>
                 )}
             </AnimatePresence>

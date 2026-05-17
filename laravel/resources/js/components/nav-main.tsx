@@ -90,8 +90,8 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                         className={cn(
                                             'h-9 rounded-lg font-medium transition-all duration-200 group',
                                             isActive || hasActiveChild(item)
-                                                ? 'bg-muted text-foreground shadow-none'
-                                                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                                ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-none'
+                                                : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
                                         )}
                                     >
                                         <Link href={item.href} prefetch>
@@ -115,8 +115,8 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                                         className={cn(
                                                             'h-8 rounded-lg font-medium transition-all duration-200 group',
                                                             subIsActive
-                                                                ? 'bg-muted text-foreground shadow-none'
-                                                                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                                                ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-none'
+                                                                : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
                                                         )}
                                                     >
                                                         <Link href={subItem.href} prefetch>
@@ -142,8 +142,8 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                     className={cn(
                                         'h-9 rounded-lg font-medium transition-all duration-200 group',
                                         isActive
-                                            ? 'bg-muted text-foreground shadow-none'
-                                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                            ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-none'
+                                            : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
                                     )}
                                 >
                                     <Link href={item.href} prefetch>

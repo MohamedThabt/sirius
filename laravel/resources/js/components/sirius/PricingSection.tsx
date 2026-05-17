@@ -3,7 +3,7 @@
 import { BentoPricing } from '@/components/bento-pricing';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useReducedMotion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function PricingSection() {
     const sectionRef = useRef<HTMLElement | null>(null);
@@ -12,6 +12,19 @@ export default function PricingSection() {
     const isMobile = useIsMobile();
     const prefersReducedMotion = useReducedMotion();
     const shouldAnimateBackground = isHydrated && !isMobile && !prefersReducedMotion;
+
+    const getParticleColor = useCallback(() => {
+        const el = sectionRef.current;
+        if (!el) return '150,150,150';
+        const raw = getComputedStyle(el).getPropertyValue('--muted-foreground').trim();
+        const temp = document.createElement('div');
+        temp.style.color = raw;
+        document.body.appendChild(temp);
+        const computed = getComputedStyle(temp).color;
+        document.body.removeChild(temp);
+        const match = computed.match(/(\d+),\s*(\d+),\s*(\d+)/);
+        return match ? `${match[1]},${match[2]},${match[3]}` : '150,150,150';
+    }, []);
 
     useEffect(() => {
         setIsHydrated(true);
@@ -45,6 +58,8 @@ export default function PricingSection() {
 
         setSize();
 
+        const particleRgb = getParticleColor();
+
         type P = { x: number; y: number; v: number; o: number };
         let ps: P[] = [];
 
@@ -71,7 +86,7 @@ export default function PricingSection() {
                     p.v = Math.random() * 0.25 + 0.05;
                     p.o = Math.random() * 0.35 + 0.15;
                 }
-                ctx.fillStyle = `rgba(150,150,150,${p.o})`;
+                ctx.fillStyle = `rgba(${particleRgb},${p.o})`;
                 ctx.fillRect(p.x, p.y, 0.7, 2.2);
             });
         };
@@ -146,13 +161,13 @@ export default function PricingSection() {
             if (resizeObserver) resizeObserver.disconnect();
             stopAnimation();
         };
-    }, [shouldAnimateBackground]);
+    }, [shouldAnimateBackground, getParticleColor]);
 
     return (
         <section ref={sectionRef} className="relative w-full overflow-hidden bg-background py-24 text-foreground">
             <style>{`
         .accent-lines{position:absolute;inset:0;pointer-events:none;opacity:.7}
-        .hline,.vline{position:absolute;background:hsl(var(--border));will-change:transform,opacity}
+        .hline,.vline{position:absolute;background:var(--border);will-change:transform,opacity}
         .hline{left:0;right:0;height:1px;transform:scaleX(0);transform-origin:50% 50%;animation:drawX .8s cubic-bezier(.22,.61,.36,1) forwards}
         .vline{top:0;bottom:0;width:1px;transform:scaleY(0);transform-origin:50% 0%;animation:drawY .9s cubic-bezier(.22,.61,.36,1) forwards}
         .hline:nth-child(1){top:18%;animation-delay:.12s}
@@ -161,7 +176,7 @@ export default function PricingSection() {
         .vline:nth-child(4){left:22%;animation-delay:.42s}
         .vline:nth-child(5){left:50%;animation-delay:.54s}
         .vline:nth-child(6){left:78%;animation-delay:.66s}
-        .hline::after,.vline::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(150,150,150,.24),transparent);opacity:0;animation:shimmer .9s ease-out forwards}
+        .hline::after,.vline::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb, var(--muted-foreground) 24%, transparent),transparent);opacity:0;animation:shimmer .9s ease-out forwards}
         .hline:nth-child(1)::after{animation-delay:.12s}
         .hline:nth-child(2)::after{animation-delay:.22s}
         .hline:nth-child(3)::after{animation-delay:.32s}
@@ -211,7 +226,7 @@ export default function PricingSection() {
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80 [mask-image:radial-gradient(farthest-side_at_top,white,transparent)]">
                     <div
                         aria-hidden="true"
-                        className="absolute inset-0 size-full bg-[linear-gradient(to_right,hsl(var(--foreground))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground))_1px,transparent_1px)] bg-[size:24px_24px] opacity-[0.03] mix-blend-overlay"
+                        className="absolute inset-0 size-full bg-[linear-gradient(to_right,var(--foreground)_1px,transparent_1px),linear-gradient(to_bottom,var(--foreground)_1px,transparent_1px)] bg-[size:24px_24px] opacity-[0.03] mix-blend-overlay"
                     />
                 </div>
             </div>

@@ -49,7 +49,7 @@ export const SiriusStepTimeline: React.FC<SiriusStepTimelineProps> = ({ steps, c
                 ]}
             />
 
-            <div className="absolute top-0 bottom-0 left-4 w-px bg-gradient-to-b from-primary/50 via-primary/20 to-transparent md:left-1/2 md:-translate-x-1/2" />
+            <div className="absolute top-0 bottom-0 left-4 w-px bg-gradient-to-b from-[var(--color-gradient-mint)] via-[var(--color-gradient-lavender)] to-transparent md:left-1/2 md:-translate-x-1/2" />
 
             <div className="space-y-8 md:space-y-12">
                 {steps.map((step, index) => {

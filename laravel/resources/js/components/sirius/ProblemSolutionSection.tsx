@@ -31,14 +31,14 @@ const Feature = ({
             {index >= 4 && (
                 <div className="pointer-events-none absolute inset-0 h-full w-full bg-gradient-to-b from-muted to-transparent opacity-0 transition duration-200 group-hover/feature:opacity-100" />
             )}
-            <div className="relative z-10 mb-4 px-10 text-muted-foreground">
+            <div className="relative z-10 mb-4 px-6 text-muted-foreground md:px-10">
                 <Icon className="h-6 w-6" />
             </div>
-            <div className="relative z-10 mb-2 px-10 text-lg font-bold">
-                <div className="absolute inset-y-0 left-0 h-6 w-1 origin-center rounded-tr-full rounded-br-full bg-muted-foreground/30 transition-all duration-200 group-hover/feature:h-8 group-hover/feature:bg-primary" />
+            <div className="relative z-10 mb-2 px-6 text-lg font-bold md:px-10">
+                <div className="absolute inset-y-0 left-0 h-6 w-1 origin-center rounded-tr-full rounded-br-full bg-muted-foreground/30 transition-all duration-200 group-hover/feature:h-8 group-hover/feature:bg-gradient-to-b group-hover/feature:from-[var(--color-gradient-lavender)] group-hover/feature:to-[var(--color-gradient-mint)]" />
                 <span className="inline-block text-foreground transition duration-200 group-hover/feature:translate-x-2">{title}</span>
             </div>
-            <p className="relative z-10 max-w-xs px-10 text-sm text-muted-foreground">{description}</p>
+            <p className="relative z-10 max-w-xs px-6 text-sm text-muted-foreground md:px-10">{description}</p>
         </div>
     );
 };

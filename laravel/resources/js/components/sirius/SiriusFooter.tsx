@@ -15,10 +15,10 @@ export function SiriusFooter() {
             <div className="border-t border-border" />
 
             <div className="mx-auto max-w-7xl">
-                <div className="border-x border-border px-6 py-12 md:py-16">
+                <div className="border-border px-6 py-12 md:border-x md:py-16">
                     <div className="flex flex-col items-center justify-center space-y-6 text-center">
                         <a href="/" className="group flex items-center" aria-label="Sirius - Go to homepage">
-                            <img src="/images/sirius-logo.png" alt="Sirius" width={173} height={70} className="h-10 w-auto" />
+                            <img src="/images/sirius-logo.png" alt="Sirius" width={173} height={70} className="h-8 w-auto sm:h-10" loading="lazy" />
                         </a>
                         <p className="max-w-md font-mono text-sm leading-6 text-muted-foreground">
                             Pre-code documentation for serious engineering teams.
@@ -41,7 +41,7 @@ export function SiriusFooter() {
                     </div>
                 </div>
 
-                <div className="border-x border-t border-border">
+                <div className="border-t border-border md:border-x">
                     <div className="px-6 py-6">
                         <p className="text-center text-sm leading-5 text-muted-foreground">
                             © {new Date().getFullYear()} Sirius, All rights reserved

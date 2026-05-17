@@ -168,19 +168,12 @@ export default function FeatureSidebar({ project, module, feature, activeSection
 
     return (
         <>
-            <aside className={`${isSidebarCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r transition-all duration-300 lg:block`}>
+            <aside className={`${isSidebarCollapsed ? 'w-0' : 'w-60'} hidden shrink-0 border-r border-sidebar-border bg-sidebar transition-all duration-300 lg:block`}>
                 <div
-                    className={`sticky top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                    className={`sticky top-0 flex h-screen flex-col justify-between px-3 py-4 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 >
                     <div className="scrollbar-hide overflow-x-hidden overflow-y-auto">
-                        {/* Logo/Brand */}
-                        <div className="mb-6 border-b pb-4">
-                            <a href="/" className="flex items-center text-lg font-bold text-foreground transition-opacity hover:opacity-80">
-                                Sirius
-                            </a>
-                        </div>
-
-                        <div className="mb-6">
+                        <div className="mb-4">
                             <div className="mb-3">
                                 <div className="truncate text-sm font-medium text-foreground">{feature.name}</div>
                             </div>
@@ -190,7 +183,7 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                                     <span>Progress</span>
                                     <span>{featureProgress}%</span>
                                 </div>
-                                <div className="h-1.5 w-full overflow-hidden rounded bg-muted">
+                                <div className="h-1.5 w-full overflow-hidden rounded bg-sidebar-accent">
                                     <div className="h-full bg-foreground transition-all" style={{ width: `${featureProgress}%` }} />
                                 </div>
                                 <div className="mt-2 flex items-center gap-1.5 text-xs">
@@ -215,8 +208,8 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                                                         item.disabled
                                                             ? 'cursor-not-allowed opacity-50'
                                                             : item.active
-                                                              ? 'cursor-pointer bg-muted font-medium text-foreground'
-                                                              : 'cursor-pointer text-muted-foreground hover:bg-muted/70 hover:text-foreground',
+                                                              ? 'cursor-pointer bg-sidebar-accent font-medium text-foreground'
+                                                              : 'cursor-pointer text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
                                                         item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
                                                     ].join(' ')}
                                                     title={item.disabled ? `${item.label} (Not created yet)` : item.label}
@@ -233,7 +226,7 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                             <div className="space-y-2">
                                 <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Integrations</div>
                                 <button
-                                    className="flex w-full cursor-pointer items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                                    className="flex w-full cursor-pointer items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-foreground"
                                     onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
                                 >
                                     <span className="inline-flex items-center gap-2">
@@ -263,7 +256,7 @@ export default function FeatureSidebar({ project, module, feature, activeSection
                         <div className="border-t pt-3">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
+                                    <button className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-sidebar-accent">
                                         <Avatar className="h-5 w-5 shrink-0">
                                             <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
                                             <AvatarFallback className="bg-neutral-200 text-[10px] text-black dark:bg-neutral-700 dark:text-white">

@@ -48,7 +48,7 @@ export function Footer() {
             <div
                 className={cn(
                     'mx-auto w-[95%] max-w-screen-2xl lg:border-x',
-                    'dark:bg-[radial-gradient(35%_80%_at_30%_0%,--theme(--color-foreground/.1),transparent)]',
+                    'bg-[radial-gradient(35%_80%_at_30%_0%,--theme(--color-foreground/.05),transparent)] dark:bg-[radial-gradient(35%_80%_at_30%_0%,--theme(--color-foreground/.1),transparent)]',
                 )}
             >
                 <div className="absolute inset-x-0 h-px w-full bg-border" />

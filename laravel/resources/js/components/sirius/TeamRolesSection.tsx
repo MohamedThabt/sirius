@@ -16,6 +16,22 @@ export const TeamRolesSection: React.FC = () => {
     const [isHydrated, setIsHydrated] = useState(false);
     const shouldAnimateInView = isHydrated && !isMobile && !prefersReducedMotion;
 
+    const iconGradients = [
+        'bg-[var(--color-gradient-mint)]/15',
+        'bg-[var(--color-gradient-peach)]/15',
+        'bg-[var(--color-gradient-lavender)]/15',
+        'bg-[var(--color-gradient-sky)]/15',
+        'bg-[var(--color-gradient-rose)]/15',
+    ];
+
+    const iconTextColors = [
+        'text-[var(--color-gradient-mint)]',
+        'text-[var(--color-gradient-peach)]',
+        'text-[var(--color-gradient-lavender)]',
+        'text-[var(--color-gradient-sky)]',
+        'text-[var(--color-gradient-rose)]',
+    ];
+
     React.useEffect(() => {
         setIsHydrated(true);
     }, []);
@@ -71,8 +87,8 @@ export const TeamRolesSection: React.FC = () => {
                                 <Card className="relative flex h-full w-full max-w-[320px] flex-col border-border bg-card/80 p-6 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg sm:w-80">
                                     {/* Role Icon & Header */}
                                     <div className="mb-4 flex items-center">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                                            <Users className="h-6 w-6 text-primary" />
+                                        <div className={cn('flex h-12 w-12 items-center justify-center rounded-full', iconGradients[index % iconGradients.length])}>
+                                            <Users className={cn('h-6 w-6', iconTextColors[index % iconTextColors.length])} />
                                         </div>
                                         <div className="flex flex-col pl-4">
                                             <span className="text-lg font-semibold text-foreground">{role.role}</span>

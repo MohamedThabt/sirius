@@ -18,7 +18,7 @@ export function FaqsSection() {
                     </div>
                     <div className="relative place-content-center">
                         {/* vertical guide line */}
-                        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3 h-full w-px bg-border" />
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3 h-full w-px bg-gradient-to-b from-[var(--color-gradient-lavender)] via-border to-transparent" />
 
                         <Accordion collapsible type="single">
                             {faqItems.map((item, index) => (

@@ -1,9 +1,10 @@
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
+import { useAppearance } from '@/hooks/use-appearance';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type Admin } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Moon, Settings, Sun } from 'lucide-react';
 
 interface AdminMenuContentProps {
     admin: Admin;
@@ -11,6 +12,10 @@ interface AdminMenuContentProps {
 
 export function AdminMenuContent({ admin }: AdminMenuContentProps) {
     const cleanup = useMobileNavigation();
+    const { resolvedAppearance, updateAppearance } = useAppearance();
+    const ThemeIcon = resolvedAppearance === 'light' ? Sun : Moon;
+    const themeLabel = resolvedAppearance === 'light' ? 'Light' : 'Dark';
+    const nextTheme = resolvedAppearance === 'light' ? 'dark' : 'light';
 
     const handleLogout = () => {
         cleanup();
@@ -31,6 +36,10 @@ export function AdminMenuContent({ admin }: AdminMenuContentProps) {
                         <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
                         Settings
                     </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => updateAppearance(nextTheme)} className="cursor-pointer rounded-lg transition-colors duration-150 focus:bg-primary/5">
+                    <ThemeIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    Theme: {themeLabel}
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-border/50" />

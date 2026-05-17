@@ -28,7 +28,7 @@ function PricingCard({ titleBadge, priceLabel, priceSuffix = '/month', features,
     return (
         <div
             className={cn(
-                'relative overflow-hidden rounded-md border border-foreground/10 bg-background',
+                'relative overflow-hidden rounded-md border border-border bg-background',
                 'backdrop-blur supports-[backdrop-filter]:bg-background/10',
                 className,
             )}
@@ -81,13 +81,13 @@ export function BentoPricing() {
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-8">
             <div
                 className={cn(
-                    'relative w-full overflow-hidden rounded-md border border-foreground/10 bg-background',
+                    'relative w-full overflow-hidden rounded-md border border-border bg-background',
                     'backdrop-blur supports-[backdrop-filter]:bg-background/10',
                     'lg:col-span-5',
                 )}
             >
                 <div className="pointer-events-none absolute top-0 left-1/2 -mt-2 -ml-20 h-full w-full [mask-image:linear-gradient(white,transparent)]">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 [mask-image:radial-gradient(farthest-side_at_top,white,transparent)]">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-gradient-lavender)]/10 via-[var(--color-gradient-mint)]/5 to-transparent [mask-image:radial-gradient(farthest-side_at_top,white,transparent)]">
                         <div
                             aria-hidden="true"
                             className={cn(
