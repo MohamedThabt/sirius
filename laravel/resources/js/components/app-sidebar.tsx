@@ -41,6 +41,7 @@ import { useMemo, useState } from 'react';
 import AppLogo from './app-logo';
 import { SettingsNav } from './SettingsNav';
 import { ProjectContextNav } from './ProjectContextNav';
+import { ProjectsIndexNav } from './ProjectsIndexNav';
 
 const mainNavItems: NavItem[] = [];
 
@@ -157,24 +158,44 @@ export function AppSidebar({ project: propProject }: AppSidebarProps = {}) {
     }, [url]);
 
     return (
-        <Sidebar collapsible="icon" variant="inset" className="border-r border-border/40 bg-gradient-to-b from-background to-muted/20">
-            <SidebarHeader className="border-b border-border/40 px-2 py-3">
+        <Sidebar collapsible="icon" variant="inset" className="border-r border-border bg-sidebar">
+            <SidebarHeader className="px-4 py-4">
                 <SidebarMenu>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem className="mb-2">
                         <SidebarMenuButton
                             size="lg"
-                            asChild
-                            className="group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 hover:bg-primary/5"
+                            className="w-full rounded-xl border border-border/40 bg-background/50 hover:bg-sidebar-accent"
                         >
-                            <Link href="/projects" prefetch className="flex items-center gap-2">
-                                <AppLogo />
-                            </Link>
+                            <div className="flex w-full items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-primary/10 transition-transform duration-300 group-hover:scale-110">
+                                        <img
+                                            src="/images/brand-logo.png"
+                                            alt="Sirius Logo"
+                                            className="h-full w-full object-cover"
+                                            onError={(e) => {
+                                                // Fallback if image fails to load
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                const parent = target.parentElement;
+                                                if (parent) {
+                                                    parent.innerHTML = '<div class="h-5 w-5 rounded-full bg-gradient-to-tr from-orange-500 to-amber-300"></div>';
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                    <span className="font-semibold text-sm">Sirius</span>
+                                </div>
+                                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-muted-foreground h-4 w-4">
+                                    <path d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75605 9.60753 8.75605 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75605 5.10753 8.75605 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.26618 11.9026 7.38064 11.95 7.49999 11.95C7.61933 11.95 7.73379 11.9026 7.81819 11.8182L10.0682 9.56819Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
+                                </svg>
+                            </div>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent className="px-2 py-4">
+            <SidebarContent className="px-3 gap-0">
                 {/* Global Navigation */}
                 {context !== 'settings' && context !== 'admin' && mainNavItems.length > 0 && (
                     <NavMain items={mainNavItems} />
@@ -194,21 +215,8 @@ export function AppSidebar({ project: propProject }: AppSidebarProps = {}) {
 
                 {/* Projects Index Navigation */}
                 {context === 'projects-index' && (
-                    <div className="mt-4">
-                        <SidebarGroup>
-                            <SidebarGroupContent>
-                                <SidebarMenu>
-                                    <SidebarMenuItem>
-                                        <SidebarMenuButton asChild isActive={context === 'projects-index'}>
-                                            <Link href="/projects" prefetch>
-                                                <FolderKanbanIcon className="h-4 w-4" />
-                                                <span>Projects</span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                </SidebarMenu>
-                            </SidebarGroupContent>
-                        </SidebarGroup>
+                    <div className="mt-2 text-sidebar-foreground">
+                        <ProjectsIndexNav />
                     </div>
                 )}
 
@@ -240,7 +248,7 @@ export function AppSidebar({ project: propProject }: AppSidebarProps = {}) {
                 </div>
             </SidebarContent>
 
-            <SidebarFooter className="border-t border-border/40 p-2">
+            <SidebarFooter className="p-3">
                 <NavUser />
             </SidebarFooter>
             <SidebarRail />

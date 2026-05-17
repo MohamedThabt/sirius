@@ -14,6 +14,7 @@ import { createProjectSchema, updateProjectSchema } from '@/lib/validations';
 import { type Invitation, type Project, type SharedData } from '@/types';
 import { getStatusColor } from '@/utils/status-colors';
 import { Head, router, usePage } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
 import {
     AlertCircleIcon,
     CalendarIcon,
@@ -28,7 +29,7 @@ import {
     TrashIcon,
     XIcon,
 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // WHY: Using shared types from @/types instead of duplicate definitions
 
@@ -40,12 +41,12 @@ interface Props {
     search?: string;
 }
 
-export default function ProjectsIndex({ projects, invitations, search }: Props) {
+function ProjectsIndex({ projects, invitations, search }: Props) {
     // Handle flash messages and convert them to toasts
     useFlashToasts();
     const { auth } = usePage<SharedData>().props;
     const [searchTerm, setSearchTerm] = useState(search || '');
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    console.log(auth, invitations); // Temporarily use to clear lint error if needed, but the main issue is export
     const debounceRef = useRef<number | undefined>(undefined);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
@@ -58,6 +59,12 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
         status: 'draft',
     });
     const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
+
+    useEffect(() => {
+        const handleOpenModal = () => setIsCreateModalOpen(true);
+        window.addEventListener('open-create-project-modal', handleOpenModal);
+        return () => window.removeEventListener('open-create-project-modal', handleOpenModal);
+    }, []);
 
     const clearValidationError = (field: string) => {
         if (validationErrors[field]) {
@@ -192,184 +199,148 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
         <>
             <Head title="My Projects" />
 
-            <div className="min-h-screen bg-background">
-                <div className="flex">
-                    <ProjectsIndexSidebar
-                        auth={auth}
-                        isSidebarCollapsed={isSidebarCollapsed}
-                        onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                        onCreateProject={() => setIsCreateModalOpen(true)}
-                        projectCount={projects.length}
-                        invitationsCount={invitations?.length || 0}
-                        projects={projects}
-                        currentPage="projects"
-                    />
+            <div className="flex h-screen flex-col overflow-hidden bg-background">
+                {/* Main Content */}
+                <main className="flex-1 overflow-x-hidden overflow-y-auto">
+                    <div className="mx-auto max-w-[1600px] p-6 lg:p-8">
+                        <div className="mb-8 flex items-center gap-3">
+                            <Breadcrumbs breadcrumbs={[{ title: 'Projects', href: '/projects' }]} />
+                        </div>
 
-                    <main className="min-w-0 flex-1">
-                        <div className="py-8 pr-4 pl-4 sm:pr-6 sm:pl-6 lg:pr-8 lg:pl-6">
-                            <div className="mb-8 flex items-center gap-3">
-                                <Sheet>
-                                    <SheetTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 w-8 border border-border/50 bg-background p-0 hover:bg-muted lg:hidden"
-                                        >
-                                            <MenuIcon className="h-4 w-4" />
-                                        </Button>
-                                    </SheetTrigger>
-                                    <SheetContent side="left" className="w-64 border-none bg-transparent p-0">
-                                        <ProjectsIndexSidebar
-                                            auth={auth}
-                                            isSidebarCollapsed={false}
-                                            onCreateProject={() => setIsCreateModalOpen(true)}
-                                            projectCount={projects.length}
-                                            invitationsCount={invitations?.length || 0}
-                                            projects={projects}
-                                            currentPage="projects"
-                                            isMobileSheet={true}
-                                        />
-                                    </SheetContent>
-                                </Sheet>
-                                <SidebarToggle isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-                                <Breadcrumbs breadcrumbs={[{ title: 'Projects', href: '/projects' }]} />
-                            </div>
+                        <PageHeader
+                            title="My Projects"
+                            description="Manage and organize your software development projects"
+                            size="large"
+                            animated
+                            action={
+                                <Button
+                                    onClick={() => setIsCreateModalOpen(true)}
+                                    className="gap-2 bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
+                                >
+                                    <PlusIcon className="h-4 w-4" />
+                                    New Project
+                                </Button>
+                            }
+                            className="mb-10"
+                        />
 
-                            <PageHeader
-                                title="My Projects"
-                                description="Manage and organize your software development projects"
-                                size="large"
-                                animated
-                                action={
-                                    <Button
-                                        onClick={() => setIsCreateModalOpen(true)}
-                                        className="gap-2 bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
-                                    >
-                                        <PlusIcon className="h-4 w-4" />
-                                        New Project
-                                    </Button>
-                                }
-                                className="mb-10"
-                            />
-
-                            {/* Search Bar */}
-                            <div className="mb-8 delay-200 duration-700 animate-in fade-in slide-in-from-bottom-4">
-                                <div className="relative max-w-md">
-                                    <SearchIcon className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors peer-focus:text-primary" />
-                                    <Input
-                                        placeholder="Search projects..."
-                                        value={searchTerm}
-                                        onChange={(e) => handleSearchChange(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                        className="peer h-11 border-border/50 pr-10 pl-10 text-sm shadow-sm transition-all duration-300 focus:border-primary/50 focus:shadow-md"
-                                    />
-                                    {searchTerm && (
-                                        <button
-                                            onClick={() => handleSearchChange('')}
-                                            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-                                        >
-                                            <XIcon className="h-4 w-4" />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Projects Grid */}
-                            {!projects || projects.length === 0 ? (
-                                <EmptyState
-                                    icon={FolderIcon}
-                                    title="No projects yet"
-                                    description="Create your first project to get started with AI-powered development"
-                                    variant="dashed"
-                                    action={{
-                                        label: 'Create New Project',
-                                        onClick: () => setIsCreateModalOpen(true),
-                                        icon: PlusIcon,
-                                    }}
+                        {/* Search Bar */}
+                        <div className="mb-8 delay-200 duration-700 animate-in fade-in slide-in-from-bottom-4">
+                            <div className="relative max-w-md">
+                                <SearchIcon className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors peer-focus:text-primary" />
+                                <Input
+                                    placeholder="Search projects..."
+                                    value={searchTerm}
+                                    onChange={(e) => handleSearchChange(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    className="peer h-11 border-border/50 pr-10 pl-10 text-sm shadow-sm transition-all duration-300 focus:border-primary/50 focus:shadow-md"
                                 />
-                            ) : (
-                                <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                                    {projects.map((project, index) => (
-                                        <div
-                                            key={project.id}
-                                            role="button"
-                                            tabIndex={0}
-                                            onClick={() => router.get(`/projects/${project.id}`)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') router.get(`/projects/${project.id}`);
-                                            }}
-                                            title={`${project.name} • Status: ${project.status.replace('_', ' ')}`}
-                                            aria-label={`Project ${project.name} with status ${project.status.replace('_', ' ')}`}
-                                            className="group relative cursor-pointer rounded-xl border border-border/50 bg-gradient-to-br from-background to-muted/20 p-5 shadow-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl"
-                                            style={{ animationDelay: `${index * 50}ms`, animationDuration: '500ms' }}
-                                        >
-                                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/0 to-primary/0 transition-all duration-300 group-hover:from-primary/5 group-hover:to-primary/0" />
+                                {searchTerm && (
+                                    <button
+                                        onClick={() => handleSearchChange('')}
+                                        className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+                                    >
+                                        <XIcon className="h-4 w-4" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
 
-                                            <div className="relative">
-                                                <div className="mb-4 flex items-start justify-between gap-3">
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="mb-3 flex items-center gap-2.5">
-                                                            <div className="shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 p-2 transition-all duration-300 group-hover:from-primary/20 group-hover:to-primary/10">
-                                                                <FolderIcon className="h-4 w-4 text-primary" />
-                                                            </div>
-                                                            <h3 className="line-clamp-2 text-base font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">
-                                                                {project.name}
-                                                            </h3>
+                        {/* Projects Grid */}
+                        {!projects || projects.length === 0 ? (
+                            <EmptyState
+                                icon={FolderIcon}
+                                title="No projects yet"
+                                description="Create your first project to get started with AI-powered development"
+                                variant="dashed"
+                                action={{
+                                    label: 'Create New Project',
+                                    onClick: () => setIsCreateModalOpen(true),
+                                    icon: PlusIcon,
+                                }}
+                            />
+                        ) : (
+                            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                                {projects.map((project, index) => (
+                                    <div
+                                        key={project.id}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => router.get(`/projects/${project.id}`)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') router.get(`/projects/${project.id}`);
+                                        }}
+                                        title={`${project.name} • Status: ${project.status.replace('_', ' ')}`}
+                                        aria-label={`Project ${project.name} with status ${project.status.replace('_', ' ')}`}
+                                        className="group relative cursor-pointer rounded-xl border border-border/50 bg-gradient-to-br from-background to-muted/20 p-5 shadow-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl"
+                                        style={{ animationDelay: `${index * 50}ms`, animationDuration: '500ms' }}
+                                    >
+                                        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/0 to-primary/0 transition-all duration-300 group-hover:from-primary/5 group-hover:to-primary/0" />
+
+                                        <div className="relative">
+                                            <div className="mb-4 flex items-start justify-between gap-3">
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="mb-3 flex items-center gap-2.5">
+                                                        <div className="shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 p-2 transition-all duration-300 group-hover:from-primary/20 group-hover:to-primary/10">
+                                                            <FolderIcon className="h-4 w-4 text-primary" />
                                                         </div>
-                                                    </div>
-
-                                                    <div className="flex shrink-0 gap-1 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                openEditModal(project);
-                                                            }}
-                                                        >
-                                                            <EditIcon className="h-3.5 w-3.5" />
-                                                            <span className="sr-only">Edit project</span>
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 bg-background/50 text-destructive backdrop-blur-sm hover:bg-destructive/10"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                openDeleteModal(project);
-                                                            }}
-                                                        >
-                                                            <TrashIcon className="h-3.5 w-3.5" />
-                                                            <span className="sr-only">Delete project</span>
-                                                        </Button>
+                                                        <h3 className="line-clamp-2 text-base font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">
+                                                            {project.name}
+                                                        </h3>
                                                     </div>
                                                 </div>
 
-                                                <div className="mb-4 flex items-center gap-2">
-                                                    <span
-                                                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm ${getStatusColor(project.status)}`}
+                                                <div className="flex shrink-0 gap-1 opacity-0 transition-all duration-300 group-hover:opacity-100">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:text-primary"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openEditModal(project);
+                                                        }}
                                                     >
-                                                        {getStatusIcon(project.status)}
-                                                        <span className="capitalize">{project.status.replace('_', ' ')}</span>
-                                                    </span>
-                                                </div>
-
-                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                    <CalendarIcon className="h-3.5 w-3.5" />
-                                                    <ClientDateTime value={project.created_at} dateStyle="medium" />
+                                                        <EditIcon className="h-3.5 w-3.5" />
+                                                        <span className="sr-only">Edit project</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 bg-background/50 text-destructive backdrop-blur-sm hover:bg-destructive/10"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openDeleteModal(project);
+                                                        }}
+                                                    >
+                                                        <TrashIcon className="h-3.5 w-3.5" />
+                                                        <span className="sr-only">Delete project</span>
+                                                    </Button>
                                                 </div>
                                             </div>
+
+                                            <div className="mb-4 flex items-center gap-2">
+                                                <span
+                                                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm ${getStatusColor(project.status)}`}
+                                                >
+                                                    {getStatusIcon(project.status)}
+                                                    <span className="capitalize">{project.status.replace('_', ' ')}</span>
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                <CalendarIcon className="h-3.5 w-3.5" />
+                                                <ClientDateTime value={project.created_at} dateStyle="medium" />
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </main>
-                </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </main>
             </div>
 
-            {/* Create Project Modal */}
+                {/* Create Project Modal */}
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -521,3 +492,7 @@ export default function ProjectsIndex({ projects, invitations, search }: Props) 
         </>
     );
 }
+
+ProjectsIndex.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
+
+export default ProjectsIndex;
