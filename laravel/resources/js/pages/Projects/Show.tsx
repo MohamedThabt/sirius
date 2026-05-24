@@ -1,5 +1,7 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import CreateFeatureModal from '@/components/Features/CreateFeatureModal';
+import { RepoConnectDialog } from '@/components/github/repo-connect-dialog';
+import { RepoManagementModal } from '@/components/github/repo-management-modal';
 import ProjectFlowCanvas from '@/components/Projects/ProjectFlowCanvas';
 import ProjectMetricsPanel from '@/components/Projects/ProjectMetricsPanel';
 import { buildProjectNavGroups } from '@/components/Projects/projectNav';
@@ -100,6 +102,7 @@ export default function ProjectShow({
     const [isGeneratingArchitecture, setIsGeneratingArchitecture] = useState(false);
     const [navigatingStepId, setNavigatingStepId] = useState<string | null>(null);
     const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
+    const [isCanvasGithubDialogOpen, setIsCanvasGithubDialogOpen] = useState(false);
 
     // getPriorityColor now imported from @/utils/status-colors
 
@@ -485,6 +488,9 @@ export default function ProjectShow({
                                     teamMembersCount={0}
                                     projectId={project.id}
                                     modules={modules}
+                                    repository={repository}
+                                    onConnectRepo={() => setIsCanvasGithubDialogOpen(true)}
+                                    onManageRepo={() => setIsCanvasGithubDialogOpen(true)}
                                 />
 
                                 {/* Collapse Toggle Button */}
@@ -545,6 +551,23 @@ export default function ProjectShow({
                 </Dialog>
 
                 <CreateFeatureModal open={isCreateFeatureModalOpen} onOpenChange={setIsCreateFeatureModalOpen} projectId={project.id} />
+
+                {/* GitHub dialogs triggered from canvas node */}
+                {repository ? (
+                    <RepoManagementModal
+                        open={isCanvasGithubDialogOpen}
+                        onOpenChange={setIsCanvasGithubDialogOpen}
+                        repository={repository}
+                        projectId={project.id}
+                    />
+                ) : (
+                    <RepoConnectDialog
+                        open={isCanvasGithubDialogOpen}
+                        onOpenChange={setIsCanvasGithubDialogOpen}
+                        projectId={project.id}
+                        projectName={project.name}
+                    />
+                )}
             </div>
         </>
     );

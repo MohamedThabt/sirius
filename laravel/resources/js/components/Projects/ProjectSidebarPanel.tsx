@@ -1,13 +1,10 @@
-import { RepoConnectDialog } from '@/components/github/repo-connect-dialog';
-import { RepoManagementModal } from '@/components/github/repo-management-modal';
 import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
-import { type SharedData, type User } from '@/types';
-import { usePage } from '@inertiajs/react';
+import { type User } from '@/types';
 import {
     AlertCircleIcon,
     CheckCircleIcon,
@@ -15,10 +12,9 @@ import {
     ChevronLeftIcon,
     CircleIcon,
     ClockIcon,
-    Github as GithubIcon,
     TrendingUpIcon,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 export interface ProjectSidebarProject {
     id: number;
@@ -69,10 +65,7 @@ export default function ProjectSidebarPanel({
     user,
     isMobileSheet = false,
 }: ProjectSidebarPanelProps) {
-    const { repository } = usePage<SharedData>().props;
     const getInitials = useInitials();
-    const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
-    const [isRepoManagementOpen, setIsRepoManagementOpen] = useState(false);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -219,26 +212,6 @@ export default function ProjectSidebarPanel({
                                 </div>
                             ))}
 
-                            <div className="space-y-2">
-                                <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Integrations</div>
-                                <button
-                                    className="flex w-full cursor-pointer items-center justify-between rounded px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-foreground"
-                                    onClick={() => (repository ? setIsRepoManagementOpen(true) : setIsGithubModalOpen(true))}
-                                >
-                                    <span className="inline-flex items-center gap-2">
-                                        <GithubIcon className="h-4 w-4 shrink-0" />
-                                        GitHub
-                                    </span>
-                                    {repository ? (
-                                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                                            <CheckCircleIcon className="h-3.5 w-3.5" />
-                                            Connected
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs">Connect</span>
-                                    )}
-                                </button>
-                            </div>
                         </nav>
                     </div>
 
@@ -274,15 +247,6 @@ export default function ProjectSidebarPanel({
                     </div>
                 </div>
             </aside>
-
-            <RepoConnectDialog open={isGithubModalOpen} onOpenChange={setIsGithubModalOpen} projectId={project.id} />
-
-            <RepoManagementModal
-                open={isRepoManagementOpen}
-                onOpenChange={setIsRepoManagementOpen}
-                repository={repository ?? null}
-                projectId={project.id}
-            />
         </>
     );
 }

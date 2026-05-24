@@ -1,5 +1,7 @@
+import GitHubNode from '@/components/Projects/GitHubNode';
 import WorkflowNode from '@/components/Projects/WorkflowNode';
 import { cn } from '@/lib/utils';
+import type { Repository } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Background,
@@ -77,10 +79,14 @@ interface ProjectFlowCanvasProps {
     teamMembersCount?: number;
     projectId?: number;
     modules?: ModuleItem[];
+    repository?: Repository | null;
+    onConnectRepo?: () => void;
+    onManageRepo?: () => void;
 }
 
 const nodeTypes = {
     workflowNode: WorkflowNode as any,
+    githubNode: GitHubNode as any,
 };
 
 // Inner component to access ReactFlow context
@@ -92,6 +98,9 @@ const FlowCanvas = ({
     health,
     modules,
     projectId,
+    repository,
+    onConnectRepo,
+    onManageRepo,
 }: {
     steps: WorkflowStep[];
     completionPercentage?: number;
@@ -100,6 +109,9 @@ const FlowCanvas = ({
     health?: Health;
     modules?: ModuleItem[];
     projectId?: number;
+    repository?: Repository | null;
+    onConnectRepo?: () => void;
+    onManageRepo?: () => void;
 }) => {
     const { fitView } = useReactFlow();
     const [isModulesExpanded, setIsModulesExpanded] = useState(false);
@@ -109,9 +121,9 @@ const FlowCanvas = ({
         return document.documentElement.classList.contains('dark');
     });
 
-    // Theme-aware edge colors (neutral palette)
-    const completedEdgeColor = isDarkMode ? '#e5e5e5' : '#262626';
-    const incompleteEdgeColor = isDarkMode ? '#404040' : '#d4d4d4';
+    // Theme-aware edge colors (warm editorial palette)
+    const completedEdgeColor = isDarkMode ? '#a8a29e' : '#292524';
+    const incompleteEdgeColor = isDarkMode ? '#44403c' : '#d6d3d1';
 
     const toggleModuleExpanded = useCallback((moduleId: number) => {
         setExpandedModules((prev) => ({
@@ -121,8 +133,8 @@ const FlowCanvas = ({
     }, []);
 
     const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-        const nodeWidth = 240;
-        const columnSpacing = 350;
+        const nodeWidth = 260;
+        const columnSpacing = 370;
         const rowSpacing = 200;
         const startX = 100;
         const startY = 100;
@@ -185,6 +197,26 @@ const FlowCanvas = ({
                 draggable: false,
                 selectable: true,
             };
+        });
+
+        // GitHub integration node (always visible)
+        const githubHandleIds = ['github-input-top', 'github-input-center', 'github-input-bottom'];
+        nodes.push({
+            id: 'github',
+            type: 'githubNode',
+            position: {
+                x: startX + 4 * columnSpacing,
+                y: startY + 0.5 * rowSpacing,
+            },
+            data: {
+                repository: repository ?? null,
+                isConnected: !!repository,
+                onConnect: onConnectRepo ?? (() => {}),
+                onManage: onManageRepo ?? (() => {}),
+                inputHandleIds: githubHandleIds,
+            },
+            draggable: false,
+            selectable: true,
         });
 
         // Generate module child nodes when expanded
@@ -341,20 +373,51 @@ const FlowCanvas = ({
                     target: to,
                     sourceHandle,
                     type: 'smoothstep',
-                    animated: isCompleted,
+                    animated: false,
                     markerEnd: {
                         type: MarkerType.ArrowClosed,
-                        width: 20,
-                        height: 20,
+                        width: 16,
+                        height: 16,
                         color: isCompleted ? completedEdgeColor : incompleteEdgeColor,
                     },
                     style: {
-                        strokeWidth: 2,
+                        strokeWidth: 1.5,
                         stroke: isCompleted ? completedEdgeColor : incompleteEdgeColor,
                     },
                 };
             })
             .filter((edge): edge is Edge => edge !== null);
+
+        // GitHub integration edges (dashed, only when connected)
+        if (repository) {
+            const githubEdgeConfig = [
+                { from: 'prd', targetHandle: 'github-input-top' },
+                { from: 'architecture', targetHandle: 'github-input-center' },
+                { from: 'erd', targetHandle: 'github-input-bottom' },
+            ];
+            const githubEdgeColor = isDarkMode ? '#44403c' : '#d6d3d1';
+            githubEdgeConfig.forEach(({ from, targetHandle }) => {
+                edges.push({
+                    id: `edge-${from}-github`,
+                    source: from,
+                    target: 'github',
+                    targetHandle,
+                    type: 'smoothstep',
+                    animated: false,
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                        width: 14,
+                        height: 14,
+                        color: githubEdgeColor,
+                    },
+                    style: {
+                        strokeWidth: 1.5,
+                        stroke: githubEdgeColor,
+                        strokeDasharray: '6 4',
+                    },
+                });
+            });
+        }
 
         // Add module edges
         if (isModulesExpanded && modules && modules.length > 0) {
@@ -369,15 +432,15 @@ const FlowCanvas = ({
                     sourceHandle: 'modules-bottom',
                     targetHandle: `module-${module.id}-input`,
                     type: 'smoothstep',
-                    animated: isCompleted,
+                    animated: false,
                     markerEnd: {
                         type: MarkerType.ArrowClosed,
-                        width: 20,
-                        height: 20,
+                        width: 16,
+                        height: 16,
                         color: isCompleted ? completedEdgeColor : incompleteEdgeColor,
                     },
                     style: {
-                        strokeWidth: 2,
+                        strokeWidth: 1.5,
                         stroke: isCompleted ? completedEdgeColor : incompleteEdgeColor,
                     },
                 });
@@ -393,15 +456,15 @@ const FlowCanvas = ({
                             sourceHandle: `module-${module.id}-output`,
                             targetHandle: `feature-${feature.id}-input`,
                             type: 'smoothstep',
-                            animated: isFeatureCompleted,
+                            animated: false,
                             markerEnd: {
                                 type: MarkerType.ArrowClosed,
-                                width: 20,
-                                height: 20,
+                                width: 16,
+                                height: 16,
                                 color: isFeatureCompleted ? completedEdgeColor : incompleteEdgeColor,
                             },
                             style: {
-                                strokeWidth: 2,
+                                strokeWidth: 1.5,
                                 stroke: isFeatureCompleted ? completedEdgeColor : incompleteEdgeColor,
                             },
                         });
@@ -411,7 +474,7 @@ const FlowCanvas = ({
         }
 
         return { nodes, edges };
-    }, [steps, modules, isModulesExpanded, expandedModules, projectId, completedEdgeColor, incompleteEdgeColor]);
+    }, [steps, modules, isModulesExpanded, expandedModules, projectId, completedEdgeColor, incompleteEdgeColor, repository, onConnectRepo, onManageRepo]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -440,65 +503,24 @@ const FlowCanvas = ({
 
     return (
         <>
-            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg">
-                {/* Enhanced gradient background */}
+            <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-xl">
+                {/* Warm editorial background */}
                 <div className="pointer-events-none absolute inset-0">
-                    {/* Base gradient - neutral background */}
                     <div
                         className="absolute inset-0"
                         style={{
                             background: isDarkMode
-                                ? 'linear-gradient(135deg, #141414 0%, #1a1a1a 25%, #171717 50%, #141414 75%, #0f0f0f 100%)'
-                                : 'linear-gradient(135deg, #fafafa 0%, #e5e5e5 25%, #f5f5f5 50%, #e5e5e5 75%, #fafafa 100%)',
+                                ? '#0c0a09'
+                                : 'linear-gradient(160deg, #fafaf9 0%, #f5f5f4 40%, #f5f5f5 100%)',
                         }}
                     />
-
-                    {/* Radial glow effects */}
+                    {/* Subtle warm corner glow */}
                     <div
-                        className="absolute inset-0"
+                        className="absolute -top-24 -right-24 h-48 w-48 rounded-full opacity-40"
                         style={{
                             background: isDarkMode
-                                ? `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
-                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-                                   radial-gradient(ellipse 50% 30% at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 50%)`
-                                : `radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 0, 0, 0.03) 0%, transparent 50%),
-                                   radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 0, 0, 0.02) 0%, transparent 50%)`,
-                        }}
-                    />
-
-                    {/* Subtle noise texture overlay for depth */}
-                    <div
-                        className="absolute inset-0 opacity-[0.015]"
-                        style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                        }}
-                    />
-
-                    {/* Corner accent glows */}
-                    <div
-                        className="absolute -top-32 -left-32 h-64 w-64 rounded-full blur-3xl"
-                        style={{
-                            background: isDarkMode
-                                ? 'radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, transparent 70%)',
-                        }}
-                    />
-                    <div
-                        className="absolute -right-32 -bottom-32 h-64 w-64 rounded-full blur-3xl"
-                        style={{
-                            background: isDarkMode
-                                ? 'radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%)',
-                        }}
-                    />
-
-                    {/* Subtle vignette effect */}
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            background: isDarkMode
-                                ? 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%)'
-                                : 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.05) 100%)',
+                                ? 'radial-gradient(circle, rgba(168,162,158,0.04) 0%, transparent 70%)'
+                                : 'radial-gradient(circle, rgba(231,229,228,0.8) 0%, transparent 70%)',
                         }}
                     />
                 </div>
@@ -518,10 +540,10 @@ const FlowCanvas = ({
                     style={{ background: 'transparent' }}
                 >
                     <Background
-                        gap={24}
-                        size={2}
+                        gap={28}
+                        size={1}
                         variant={BackgroundVariant.Dots}
-                        color={isDarkMode ? 'rgba(163, 163, 163, 0.3)' : 'rgba(115, 115, 115, 0.2)'}
+                        color={isDarkMode ? 'rgba(168, 162, 158, 0.08)' : 'rgba(41, 37, 36, 0.04)'}
                     />
                 </ReactFlow>
                 <style>{`
@@ -530,95 +552,19 @@ const FlowCanvas = ({
                     }
                 `}</style>
 
-                {/* Enhanced Progress Badge with PROJECT STATUS */}
+                {/* Progress Badge */}
                 {completionPercentage !== undefined && completedStepsCount !== undefined && totalStepsCount !== undefined && health && (
                     <div className="pointer-events-none absolute top-4 left-4 z-10">
-                        <div className="pointer-events-auto flex flex-col gap-2 rounded-xl border border-border/50 bg-background/95 p-4 shadow-lg backdrop-blur-md">
-                            {/* Header */}
-                            <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-                                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10">
-                                    <svg className="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                                        />
-                                    </svg>
-                                </div>
-                                <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Project Status</span>
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex items-center gap-4">
-                                {/* Progress Ring */}
-                                <div className="relative h-12 w-12">
-                                    <svg className="h-12 w-12 -rotate-90 transform">
-                                        <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="4" className="text-muted/20" />
-                                        <circle
-                                            cx="24"
-                                            cy="24"
-                                            r="20"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                            strokeLinecap="round"
-                                            strokeDasharray={`${(completionPercentage / 100) * 125.6} 125.6`}
-                                            className={cn(
-                                                'transition-all duration-700 ease-out',
-                                                completionPercentage >= 80
-                                                    ? 'text-emerald-500'
-                                                    : completionPercentage >= 50
-                                                      ? 'text-blue-500'
-                                                      : completionPercentage >= 25
-                                                        ? 'text-amber-500'
-                                                        : 'text-primary',
-                                            )}
-                                        />
-                                    </svg>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="text-sm font-bold text-foreground">{completionPercentage}%</span>
-                                    </div>
-                                </div>
-
-                                {/* Stats */}
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex h-5 w-5 items-center justify-center rounded bg-muted/50">
-                                            <svg
-                                                className="h-3 w-3 text-muted-foreground"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                                                />
-                                            </svg>
-                                        </div>
-                                        <span className="text-sm font-medium text-foreground">
-                                            {completedStepsCount} of {totalStepsCount} steps
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div
-                                            className={cn(
-                                                'flex h-5 w-5 items-center justify-center rounded',
-                                                completionPercentage >= 80
-                                                    ? 'bg-emerald-500/10'
-                                                    : completionPercentage >= 50
-                                                      ? 'bg-blue-500/10'
-                                                      : completionPercentage >= 25
-                                                        ? 'bg-amber-500/10'
-                                                        : 'bg-primary/10',
-                                            )}
-                                        >
-                                            <health.Icon className={cn('h-3 w-3', health.color)} />
-                                        </div>
-                                        <span className={cn('text-sm font-medium capitalize', health.color)}>{health.label}</span>
-                                    </div>
+                        <div className="pointer-events-auto flex items-center gap-3 rounded-[18px] border border-border/30 bg-card/80 px-4 py-2.5 backdrop-blur-sm">
+                            <span className="text-base font-semibold tabular-nums text-foreground/80">{completionPercentage}%</span>
+                            <div className="h-3.5 w-px bg-border/30" />
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] font-medium tracking-wide text-muted-foreground/60">
+                                    {completedStepsCount}/{totalStepsCount} steps
+                                </span>
+                                <div className="flex items-center gap-1">
+                                    <div className={cn('h-1 w-1 rounded-full', health.color.replace('text-', 'bg-').replace(/\/\d+/, '/50'))} />
+                                    <span className={cn('text-[9px] font-medium capitalize tracking-wide', health.color.replace(/text-/, 'text-').replace(/\/\d+/, '/50'))}>{health.label}</span>
                                 </div>
                             </div>
                         </div>
@@ -638,6 +584,9 @@ const ProjectFlowCanvas: React.FC<ProjectFlowCanvasProps> = ({
     health,
     modules,
     projectId,
+    repository,
+    onConnectRepo,
+    onManageRepo,
 }) => {
     if (!steps || steps.length === 0) {
         return (
@@ -658,6 +607,9 @@ const ProjectFlowCanvas: React.FC<ProjectFlowCanvasProps> = ({
                     health={health}
                     modules={modules}
                     projectId={projectId}
+                    repository={repository}
+                    onConnectRepo={onConnectRepo}
+                    onManageRepo={onManageRepo}
                 />
             </ReactFlowProvider>
         </div>
