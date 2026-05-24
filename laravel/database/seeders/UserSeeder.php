@@ -32,5 +32,7 @@ class UserSeeder extends Seeder
             ]);
         }
 
+        // Generate the seeder context for this user specifically
+        $this->call(UserProjectSeeder::class);
     }
 }
