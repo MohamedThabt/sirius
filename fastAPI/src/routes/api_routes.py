@@ -26,6 +26,7 @@ from controllers.logs_controller import (
     clear_logs,
     download_log
 )
+from controllers.project_context_controller import extract_project_context_endpoint
 
 # Import all models
 from models.overview import RequirementsRequest, SystemOverview, EditOverviewRequest
@@ -39,6 +40,7 @@ from models.Sequence import SequenceRequest, FeatureSequence, EditSequenceReques
 from models.C4 import C4Request, SystemC4, EditC4Request
 from models.chat import ChatRequest, ChatResponse
 from models.logs import LogResponse, LogStatsResponse, ClearLogsResponse
+from models.project_context import ProjectContextFullResponse, ProjectContextRequest
 
 from utils.logger import get_logger
 
@@ -438,3 +440,16 @@ router.include_router(flow_router)
 router.include_router(chat_router)
 router.include_router(health_router)
 router.include_router(logs_router)
+
+# ============================================================================
+# PROJECT CONTEXT ROUTES (v1/project)
+# ============================================================================
+project_router = APIRouter(prefix="/v1/project", tags=["Project"])
+
+
+@project_router.post("/extract", response_model=ProjectContextFullResponse)
+async def extract_project_context_api(request: ProjectContextRequest):
+    """Extract structured project context (Layer1) and run reasoning questions (Layer2)."""
+    return await extract_project_context_endpoint(request)
+
+router.include_router(project_router)
