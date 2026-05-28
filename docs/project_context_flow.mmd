@@ -1,0 +1,19 @@
+flowchart LR
+  U["User"] -->|POST /v1/project/extract| API["API Endpoint<br>extract_project_context_api"]
+  API --> EC["ExtractionChain (Layer 1)"]
+  EC -->|check key| Cache(("In-memory Cache"))
+  Cache -->|hit| PC_cache["ProjectContext (cached)"]
+  Cache -->|miss -> call LLM| LLM_EX["Gemini - Extraction<br>(temperature=0.0)"]
+  LLM_EX --> JSON_EX["utils.extract_json_from_response"]
+  JSON_EX --> PH1["Phase-1: ProjectContext<br>(Pydantic)"]
+  PH1 --> VALID1["Deterministic filters<br>(explicit-span checks)"]
+  VALID1 --> Cache
+  VALID1 --> RC["ReasoningChain (Layer 2)"]
+  RC -->|low-temp LLM| LLM_RS["Gemini - Reasoning<br>(temperature ~0.2)"]
+  LLM_RS --> JSON_RS["utils.extract_json_from_response"]
+  JSON_RS --> VALID2["Post-validate questions & answers<br>(3 grounded options each)"]
+  VALID2 --> RESP["API Response:<br>project_context + ai_questions + usage"]
+  RESP --> U
+
+  classDef llm fill:#f9f,stroke:#333,stroke-width:1px;
+  class LLM_EX,LLM_RS llm;
