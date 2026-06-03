@@ -25,6 +25,7 @@ export function BriefComposer({
     const [showRepoInput, setShowRepoInput] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const dragCounter = useRef(0);
 
     const hasContent = content.trim() || files.length > 0 || repoUrls.length > 0;
     const isDisabled = !hasContent || isPending;
@@ -74,18 +75,33 @@ export function BriefComposer({
         setRepoUrls((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleDragOver = (e: React.DragEvent) => {
+    const handleDragEnter = (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragging(true);
+        dragCounter.current++;
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            setIsDragging(true);
+        }
     };
 
-    const handleDragLeave = () => setIsDragging(false);
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        dragCounter.current--;
+        if (dragCounter.current === 0) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+    };
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
-        if (e.dataTransfer.files.length) {
+        dragCounter.current = 0;
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             addFiles(e.dataTransfer.files);
+            e.dataTransfer.clearData();
         }
     };
 
@@ -94,16 +110,19 @@ export function BriefComposer({
             <form onSubmit={handleSubmit}>
                 <div
                     className={cn(
-                        'rounded-xl border bg-card shadow-sm transition-colors',
-                        isDragging ? 'border-primary/50 bg-primary/5' : 'border-border',
+                        'relative rounded-xl border bg-card shadow-sm transition-all duration-200',
+                        isDragging ? 'border-primary bg-primary/5 ring-2 ring-primary/20 scale-[1.01]' : 'border-border',
                     )}
+                    onDragEnter={handleDragEnter}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                 >
                     {isDragging && (
-                        <div className="flex items-center justify-center py-6 text-sm text-primary">
-                            Drop files here (.txt, .pdf, .docx, .md)
+                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-xl bg-background/90 backdrop-blur-[2px] border-2 border-dashed border-primary/50 text-sm text-primary">
+                            <PaperclipIcon className="h-6 w-6 mb-2 animate-bounce text-primary" />
+                            <p className="font-medium text-foreground">Drop files to attach</p>
+                            <p className="text-xs text-muted-foreground mt-1">Accepts: .txt, .pdf, .docx, .md (max 20MB)</p>
                         </div>
                     )}
 
@@ -113,10 +132,7 @@ export function BriefComposer({
                         onChange={(e) => setContent(e.target.value)}
                         placeholder={placeholder}
                         rows={2}
-                        className={cn(
-                            'block w-full resize-none overflow-y-hidden border-0 bg-transparent px-3.5 pt-3 pb-2 text-[13px] leading-relaxed text-foreground placeholder:text-muted-foreground/70 focus:outline-none sm:px-4 sm:text-sm',
-                            isDragging && 'hidden',
-                        )}
+                        className="block w-full resize-none overflow-y-hidden border-0 bg-transparent px-3.5 pt-3 pb-2 text-[13px] leading-relaxed text-foreground placeholder:text-muted-foreground/70 focus:outline-none sm:px-4 sm:text-sm"
                         disabled={isPending}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
