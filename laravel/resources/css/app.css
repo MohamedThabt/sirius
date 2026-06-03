@@ -136,40 +136,85 @@
 }
 
 .dark {
-    /* ElevenLabs Design System - Dark Mode */
-    --background: #0c0a09;
-    --foreground: #ffffff;
-    --card: #1c1917;
-    --card-foreground: #ffffff;
-    --popover: #1c1917;
-    --popover-foreground: #ffffff;
-    --primary: #ffffff;
-    --primary-foreground: #0c0a09;
-    --secondary: #292524;
-    --secondary-foreground: #ffffff;
-    --muted: #292524;
-    --muted-foreground: #a8a29e;
-    --accent: #292524;
-    --accent-foreground: #ffffff;
-    --destructive: #dc2626;
+    /* Cursor Dark Theme - Neutral dark palette */
+
+    /* Core semantic backgrounds (Cursor token mapping) */
+    --bg-chrome:       #0f0f0f; /* outermost shell / window chrome */
+    --bg-neutral:      #141414; /* primary editor / page background */
+    --bg-secondary:    #1a1a1a; /* elevated surface (cards, modals) */
+    --bg-tertiary:     #1f1f1f; /* sidebars, panels */
+    --bg-quaternary:   #262626; /* hover / selected rows */
+    --bg-quinary:      #2e2e2e; /* deeper nesting */
+    --bg-elevated:     #1c1c1c; /* floating menus, dropdowns */
+    --bg-accent:       #ededed; /* primary accent fill (light on dark) */
+    --bg-accent-hover: #ffffff;
+    --bg-neutral-hover:#1c1c1c;
+
+    /* Text */
+    --text-primary:    #ededed;
+    --text-secondary:  #a3a3a3;
+    --text-tertiary:   #737373;
+    --text-quaternary: #525252;
+    --text-inverted:   #0a0a0a;
+    --text-brand:      #a3a3a3;
+
+    /* Borders */
+    --border-primary:   #333333;
+    --border-secondary: #2a2a2a;
+    --border-tertiary:  #242424;
+    --border-quaternary:#1f1f1f;
+    --border-focus:     #737373;
+
+    /* Shadows */
+    --shadow-primary:   rgba(0, 0, 0, 0.6);
+    --shadow-secondary: rgba(0, 0, 0, 0.45);
+    --shadow-tertiary:  rgba(0, 0, 0, 0.3);
+
+    /* ── Shadcn / Tailwind compatibility mappings ── */
+    --background:           #141414;
+    --foreground:           #ededed;
+    --card:                 #1a1a1a;
+    --card-foreground:      #ededed;
+    --popover:              #1c1c1c;
+    --popover-foreground:   #ededed;
+    --primary:              #ededed;
+    --primary-foreground:   #0f0f0f;
+    --secondary:            #262626;
+    --secondary-foreground: #ededed;
+    --muted:                #1f1f1f;
+    --muted-foreground:     #737373;
+    --accent:               #262626;
+    --accent-foreground:    #ededed;
+    --destructive:          #ef4444;
     --destructive-foreground: #ffffff;
-    --border: #292524;
-    --input: #292524;
-    --ring: #ffffff;
-    --chart-1: #ffffff;
-    --chart-2: #e7e5e4;
-    --chart-3: #a8a29e;
-    --chart-4: #777169;
-    --chart-5: #4e4e4e;
-    
-    --sidebar: #1c1917;
-    --sidebar-foreground: #ffffff;
-    --sidebar-primary: #ffffff;
-    --sidebar-primary-foreground: #0c0a09;
-    --sidebar-accent: #292524;
-    --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #292524;
-    --sidebar-ring: #ffffff;
+    --border:               #333333;
+    --input:                #262626;
+    --ring:                 #737373;
+    --chart-1: #ededed;
+    --chart-2: #a3a3a3;
+    --chart-3: #737373;
+    --chart-4: #525252;
+    --chart-5: #333333;
+
+    /* Sidebar */
+    --sidebar:                  #1a1a1a;
+    --sidebar-foreground:       #ededed;
+    --sidebar-primary:          #ededed;
+    --sidebar-primary-foreground: #0f0f0f;
+    --sidebar-accent:           #262626;
+    --sidebar-accent-foreground: #ededed;
+    --sidebar-border:           #333333;
+    --sidebar-ring:             #737373;
+
+    /* Shadows — heavier for Cursor dark depth */
+    --shadow-2xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.25);
+    --shadow-xs:  0px 1px 3px 0px rgba(0, 0, 0, 0.35);
+    --shadow-sm:  0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow:     0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-md:  0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-lg:  0 12px 32px rgba(0, 0, 0, 0.55);
+    --shadow-xl:  0 16px 40px rgba(0, 0, 0, 0.6);
+    --shadow-2xl: 0 24px 48px rgba(0, 0, 0, 0.65);
 }
 
 @layer base {
@@ -807,15 +852,16 @@
 }
 
 .dark {
-    --canvas-bg-dark: linear-gradient(135deg, #141414 0%, #1a1a1a 25%, #171717 50%, #141414 75%, #0f0f0f 100%);
-    --canvas-glow-blue-dark: rgba(255, 255, 255, 0.04);
-    --canvas-glow-purple-dark: rgba(255, 255, 255, 0.03);
-    --canvas-glow-indigo-dark: rgba(255, 255, 255, 0.02);
-    --canvas-dot-dark: rgba(163, 163, 163, 0.3);
-    --canvas-vignette-dark: rgba(0, 0, 0, 0.3);
-    --glass-bg-dark: rgba(20, 20, 20, 0.95);
-    --glass-border-dark: rgba(64, 64, 64, 0.4);
-    --glass-shadow-dark: 0 2px 8px rgba(0, 0, 0, 0.3);
+    /* Cursor-style canvas dark variables */
+    --canvas-bg-dark: linear-gradient(135deg, #0f0f0f 0%, #141414 25%, #121212 50%, #111111 75%, #0d0d0d 100%);
+    --canvas-glow-blue-dark:   rgba(255, 255, 255, 0.025);
+    --canvas-glow-purple-dark: rgba(255, 255, 255, 0.018);
+    --canvas-glow-indigo-dark: rgba(255, 255, 255, 0.012);
+    --canvas-dot-dark:         rgba(115, 115, 115, 0.25);
+    --canvas-vignette-dark:    rgba(0, 0, 0, 0.5);
+    --glass-bg-dark:           rgba(20, 20, 20, 0.97);
+    --glass-border-dark:       rgba(51, 51, 51, 0.6);
+    --glass-shadow-dark:       0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* Enhanced Canvas Container */
@@ -1180,7 +1226,7 @@
 }
 
 .dark .loading-spinner-enhanced::after {
-    background: #141414;
+    background: #141414; /* Cursor --bg-neutral */
 }
 
 /* Loading Overlay */
@@ -1196,7 +1242,7 @@
 }
 
 .dark .loading-overlay {
-    background: rgba(20, 20, 20, 0.85);
+    background: rgba(14, 14, 14, 0.9); /* Cursor dark overlay */
 }
 
 /* Separator for toolbars */

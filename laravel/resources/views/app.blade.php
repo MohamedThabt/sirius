@@ -23,9 +23,11 @@
                     if (appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                         document.documentElement.classList.add('dark');
                         document.documentElement.style.colorScheme = 'dark';
+                        document.documentElement.style.background = '#0f0f0f'; /* --bg-chrome */
                     } else {
                         document.documentElement.classList.add('light');
                         document.documentElement.style.colorScheme = 'light';
+                        document.documentElement.style.background = '#f5f5f5'; /* canvas light */
                     }
                 } catch (e) {
                     // Fallback if localStorage is inaccessible
@@ -33,14 +35,15 @@
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on ElevenLabs theme --}}
+        {{-- Inline style to set the HTML background color based on Cursor dark theme --}}
         <style>
             html {
-                background-color: #f5f5f5; /* ElevenLabs Canvas */
+                background-color: #f5f5f5; /* Light canvas */
             }
 
             html.dark {
-                background-color: #0c0a09; /* ElevenLabs Canvas Deep */
+                background-color: #0f0f0f; /* Cursor --bg-chrome */
+                --bg-chrome: #0f0f0f;
             }
         </style>
 
