@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 
 from models.usage import UsageMetrics
@@ -14,6 +14,20 @@ class ProjectContext(BaseModel):
     platforms: List[str] = Field(default_factory=list)
     constraints: List[str] = Field(default_factory=list)
     integrations: List[str] = Field(default_factory=list)
+
+    @field_validator(
+        "target_audience",
+        "features",
+        "platforms",
+        "constraints",
+        "integrations",
+        mode="before",
+    )
+    @classmethod
+    def single_to_list(cls, v):
+        if isinstance(v, str):
+            return [v]
+        return v
 
 
 class ProjectContextAnalysis(BaseModel):
