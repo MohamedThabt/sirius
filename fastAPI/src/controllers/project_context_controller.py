@@ -1,17 +1,15 @@
 """Project Context extraction controller and LangGraph node using Gemini via proxy."""
-import asyncio
 import json
 import logging
 import re
 from typing import Optional
 
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 from controllers.llm_proxy import proxy
 from models.project_context import (
     ProjectContext,
-    ProjectContextAnalysis,
-    ProjectContextExtractionResponse,
     ProjectContextRequest,
 )
 from models.usage import UsageMetrics
@@ -22,70 +20,122 @@ logger = logging.getLogger(__name__)
 
 proxy_model = "gem2.5f"
 
-_PHASE1_FIELDS = (
+REQUIRED_FIELDS = (
     "project_purpose",
     "target_audience",
     "value_proposition",
     "features",
     "platforms",
-    "constraints",
     "integrations",
 )
 
-_FIELD_QUESTIONS = {
-    "project_purpose": "What is the project purpose?",
-    "target_audience": "Who is the target audience?",
-    "value_proposition": "What value proposition is explicitly stated?",
-    "features": "What features are explicitly mentioned?",
-    "platforms": "Which platforms are explicitly mentioned?",
-    "constraints": "What constraints are explicitly mentioned?",
-    "integrations": "Which integrations are explicitly mentioned?",
-}
+OPTIONAL_FIELDS = (
+    "constraints",
+)
+
+# All fields present in phase 1 extraction
+
+
 
 
 def _normalize_text(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip().lower())
 
 
-def _filter_string_list(values: object, source_text: str) -> list[str]:
-    if not isinstance(values, list):
-        return []
+def is_grounded(value: str, source_text: str) -> bool:
+    """Validate if the extracted value is grounded in the source text.
+    
+    Allows:
+    - Exact matches (case-insensitive, normalized spaces)
+    - Normalized containment
+    - Direct semantic reductions (e.g. 'mobile app' -> 'mobile')
+    - Word/stem prefix overlap (e.g. 'students' -> 'study')
+    
+    Rejects completely unrelated values.
+    """
+    # Reject empty values immediately
+    if not value or not source_text:
+        return False
 
-    filtered: list[str] = []
-    seen: set[str] = set()
-    source_norm = _normalize_text(source_text)
-    for item in values:
-        if not isinstance(item, str):
-            continue
-        cleaned = item.strip()
-        if not cleaned:
-            continue
-        normalized = _normalize_text(cleaned)
-        if normalized in seen:
-            continue
-        if normalized in source_norm:
-            filtered.append(cleaned)
-            seen.add(normalized)
-    return filtered
+    # Normalize both strings (lowercase, collapse whitespace)
+    norm_val = _normalize_text(value)
+    norm_source = _normalize_text(source_text)
 
+    # Step 1: Check for exact match or direct substring containment
+    if norm_val in norm_source:
+        return True
 
-def _filter_optional_string(value: object, source_text: str) -> Optional[str]:
-    if not isinstance(value, str):
-        return None
-    cleaned = value.strip()
-    if not cleaned:
-        return None
-    return cleaned if _normalize_text(cleaned) in _normalize_text(source_text) else None
+    # Step 2: Extract individual words of length >= 2 to inspect overlap
+    val_words = [w for w in re.findall(r"\w+", norm_val) if len(w) >= 2]
+    source_words = set(re.findall(r"\w+", norm_source))
+
+    # If the normalized value contains no words of length >= 2, fall back to simple containment check
+    if not val_words:
+        return norm_val in norm_source
+
+    # Step 3: Check if any normalized word in the extracted value exists exactly in the source text
+    for vw in val_words:
+        if vw in source_words:
+            return True
+
+    # Step 4: Check for word-stem/prefix similarity (e.g., "studying" matches "students")
+    # We compare the first 4 characters (or shorter if the word is less than 4 letters, min 3)
+    for vw in val_words:
+        prefix_len = min(4, len(vw))
+        if prefix_len >= 3:
+            prefix_vw = vw[:prefix_len]
+            for sw in source_words:
+                # If a source word starts with the prefix of the value word, or vice versa, accept it
+                if sw.startswith(prefix_vw) or vw.startswith(sw[:min(4, len(sw))]):
+                    return True
+
+    # Step 5: Check for direct semantic reductions and platform synonyms (e.g., "iOS" -> "mobile")
+    platform_keywords = {
+        "mobile": {"ios", "android", "iphone", "ipad", "phone", "mobile", "app store", "play store", "cordova", "flutter", "react native"},
+        "web": {"web", "website", "browser", "chrome", "safari", "firefox", "saas", "frontend", "desktop web", "online"},
+        "desktop": {"desktop", "windows", "mac", "macos", "linux", "electron", "pc"},
+    }
+    
+    # Iterate through defined platforms and their corresponding synonym lists
+    for key, synonyms in platform_keywords.items():
+        # If the extracted value contains the platform key (e.g. "mobile")
+        if key in norm_val:
+            # check if any synonym (e.g. "ios") is in the source text
+            if any(syn in norm_source for syn in synonyms):
+                return True
+        # If the extracted value contains a platform synonym (e.g. "ios")
+        if any(syn in norm_val for syn in synonyms):
+            # check if the platform key (e.g. "mobile") is in the source text
+            if key in norm_source:
+                return True
+
+    # If none of the safety/grounding checks matched, reject the value as ungrounded/hallucinated
+    return False
 
 
 def _build_phase1_prompt(text: str) -> str:
     return (
-        "You are a strict information extraction engine.\n"
-        "Extract ONLY information explicitly stated in the user input.\n"
-        "Do NOT infer, guess, paraphrase, enrich, or add product strategy.\n"
-        "If a field is not explicitly stated, return null for strings or [] for arrays.\n"
-        "For string fields, copy only exact spans from the input when possible.\n"
-        "Return JSON ONLY with this exact schema:\n"
+        "You are an expert information extraction engine specializing in software project requirements.\n"
+        "Your task is to extract structured data from user input based on the principle of **Grounded Inference**.\n\n"
+        "**Grounded Inference Rules:**\n"
+        "- Do not invent features, business logic, or requirements.\n"
+        "- Use only information explicitly stated or clearly implied by the text.\n"
+        "- If information is missing, return null or [].\n"
+        "- Prefer grounded inference over omission when the implication is obvious.\n\n"
+        "**Example Behavior:**\n"
+        "Input:\n"
+        "\"I want a mobile app for students to study online\"\n\n"
+        "Valid extraction:\n"
+        "{\n"
+        '  "project_purpose": "help students study online",\n'
+        '  "target_audience": ["students"],\n'
+        '  "platforms": ["mobile"]\n'
+        "}\n\n"
+        "Invalid extraction:\n"
+        "{\n"
+        '  "features": ["AI tutor", "gamification"]\n'
+        "}\n\n"
+        "**Output Schema (JSON ONLY):**\n"
         "{\n"
         '  "project_purpose": string | null,\n'
         '  "target_audience": string[],\n'
@@ -95,82 +145,42 @@ def _build_phase1_prompt(text: str) -> str:
         '  "constraints": string[],\n'
         '  "integrations": string[]\n'
         "}\n\n"
-        "Rules:\n"
-        "- Do not add missing value propositions.\n"
-        "- Do not enrich features.\n"
-        "- Do not hallucinate integrations.\n"
-        "- Do not include analysis, missing_info, clarifying_questions, or confidence.\n\n"
         f"Input text:\n{text.strip()}\n\n"
-        "JSON:" 
+        "JSON:"
     )
 
 
-def _build_analysis(project_context: ProjectContext, source_text: str) -> ProjectContextAnalysis:
-    missing_info: list[str] = []
-    clarifying_questions: list[str] = []
-
-    for field_name in _PHASE1_FIELDS:
-        value = getattr(project_context, field_name)
-        is_missing = value is None or value == []
-        if is_missing:
-            missing_info.append(field_name)
-            clarifying_questions.append(_FIELD_QUESTIONS[field_name])
-
-    required_fields = ("project_purpose", "target_audience", "value_proposition", "features")
-    required_missing = sum(
-        1
-        for field_name in required_fields
-        if getattr(project_context, field_name) in (None, [])
-    )
-
-    confidence = max(0.0, 1.0 - (0.2 * required_missing) - (0.05 * max(0, len(missing_info) - required_missing)))
-
-    # If the text is very short, reduce confidence slightly because explicit evidence is limited.
-    if len(source_text.strip()) < 50:
-        confidence = max(0.0, confidence - 0.1)
-
-    return ProjectContextAnalysis(
-        missing_info=missing_info,
-        clarifying_questions=clarifying_questions,
-        confidence=round(confidence, 2),
-    )
+ 
 
 
 # --- LangChain-style lightweight wrappers for Layer1 and Layer2 ---
 
 
-_EXTRACTION_CACHE: dict[str, ProjectContext] = {}
-
-
 class ExtractionChain:
     async def run(self, text: str) -> tuple[ProjectContext, UsageMetrics]:
-        key = text.strip()
-        if key in _EXTRACTION_CACHE:
-            logger.info("ExtractionChain: cache hit")
-            # Return zeroed usage for cache hits
-            return _EXTRACTION_CACHE[key], UsageMetrics(model_name=proxy_model, input_tokens=0, output_tokens=0, cost=0.0)
-
-        project_context, usage = await extract_project_context_async(text)
-        _EXTRACTION_CACHE[key] = project_context
-        return project_context, usage
+        return await extract_project_context_async(text)
 
 
 class ReasoningChain:
     async def run(self, project_context: ProjectContext, source_text: str) -> tuple[dict, UsageMetrics]:
-        missing = []
-        for field in _PHASE1_FIELDS:
+        # Only consider REQUIRED_FIELDS when generating clarifying questions
+        missing_required: list[str] = []
+        for field in REQUIRED_FIELDS:
             val = getattr(project_context, field)
             if val in (None, []):
-                missing.append(field)
+                missing_required.append(field)
 
-        if not missing:
+        if not missing_required:
             return ({"missing_fields": [], "questions": [], "summary_confidence": 1.0}, UsageMetrics(model_name=proxy_model, input_tokens=0, output_tokens=0, cost=0.0))
 
         prompt_parts = [
             "You are a helpful assistant creating clarifying questions for missing project fields.",
-            "Use ONLY the extracted context and the original user text to ground your suggestions.",
-            "Do NOT introduce new features or external knowledge.",
-            "For each missing field, create one simple clarifying question and three realistic suggested answers grounded in the provided context.",
+            "Your task is to generate realistic suggested answers based on the existing project context and original user text.",
+            "Rules for suggestions:",
+            "- Generate realistic suggested answers grounded in the existing project context and user's intent.",
+            "- Do NOT generate random features or unrelated requirements.",
+            "- Keep suggestions generic and high-level when the context is limited.",
+            "- You MUST provide exactly 3 suggested answers for each clarifying question.",
             "Return JSON only with this shape:\n{\n  \"missing_fields\": [...],\n  \"questions\": [{\"field\": \"...\", \"question\": \"...\", \"suggested_answers\": [\"..\",\"..\",\"..\"]}],\n  \"summary_confidence\": 0.0-1.0\n}\n",
             "Extracted context (JSON):",
             json.dumps(project_context.dict(), ensure_ascii=False, indent=2),
@@ -200,6 +210,10 @@ class ReasoningChain:
         missing_fields = parsed.get("missing_fields") or []
         questions = parsed.get("questions") or []
         summary_confidence = float(parsed.get("summary_confidence") or 0.0)
+
+        # Defensive filtering: only keep required fields in the final reasoning output.
+        missing_fields = [field for field in missing_fields if field in REQUIRED_FIELDS]
+        questions = [q for q in questions if q.get("field") in REQUIRED_FIELDS]
 
         for q in questions:
             sa = q.get("suggested_answers") or []
@@ -242,22 +256,49 @@ async def extract_project_context_async(text: str) -> tuple[ProjectContext, Usag
         logger.error("Failed to parse JSON from LLM output: %s", body[:400])
         raise HTTPException(status_code=500, detail="LLM returned unparsable output")
 
-    # Normalize/ensure keys exist and remove anything not explicitly present in the input text.
-    ctx_dict = {
-        "project_purpose": _filter_optional_string(parsed.get("project_purpose"), text),
-        "target_audience": _filter_string_list(parsed.get("target_audience"), text),
-        "value_proposition": _filter_optional_string(parsed.get("value_proposition"), text),
-        "features": _filter_string_list(parsed.get("features"), text),
-        "platforms": _filter_string_list(parsed.get("platforms"), text),
-        "constraints": _filter_string_list(parsed.get("constraints"), text),
-        "integrations": _filter_string_list(parsed.get("integrations"), text),
-    }
+    try:
+        # Let Pydantic handle all validation. It's more robust.
+        project_context = ProjectContext.model_validate(parsed)
+    except ValidationError as e:
+        logger.error("LLM output failed Pydantic validation: %s\nData: %s", e, parsed)
+        raise HTTPException(
+            status_code=400, detail="Invalid structured output from LLM after parsing."
+        )
 
-    project_context = ProjectContext(**ctx_dict)
+    # Post-validation filtering using the lightweight is_grounded helper.
+    project_context.project_purpose = (
+        project_context.project_purpose
+        if project_context.project_purpose
+        and is_grounded(project_context.project_purpose, text)
+        else None
+    )
+    project_context.value_proposition = (
+        project_context.value_proposition
+        if project_context.value_proposition
+        and is_grounded(project_context.value_proposition, text)
+        else None
+    )
+
+    project_context.target_audience = [
+        item for item in project_context.target_audience if is_grounded(item, text)
+    ]
+    project_context.features = [
+        item for item in project_context.features if is_grounded(item, text)
+    ]
+    project_context.platforms = [
+        item for item in project_context.platforms if is_grounded(item, text)
+    ]
+    project_context.constraints = [
+        item for item in project_context.constraints if is_grounded(item, text)
+    ]
+    project_context.integrations = [
+        item for item in project_context.integrations if is_grounded(item, text)
+    ]
+
     return project_context, usage
 
 
-def extract_project_context_node(state: dict):
+async def extract_project_context_node(state: dict):
     """LangGraph-compatible node: extracts `project_context` from state and returns it to be stored."""
     # Prefer incoming_brief, fall back to messages joined
     text = state.get("incoming_brief")
@@ -273,7 +314,7 @@ def extract_project_context_node(state: dict):
         return {"project_context": None}
 
     try:
-        project_context, _usage = asyncio.run(extract_project_context_async(text))
+        project_context, _usage = await extract_project_context_async(text)
     except HTTPException:
         raise
     except Exception as exc:
