@@ -1,4 +1,4 @@
-# Use Case Spec — UC-001: Flexible Project Brief Intake with AI Clarification
+# Use Case Spec — UC-001: Flexible Project Intake with AI Clarification
 
 > **File:** `docs/v0.2/v0.2.1/use-cases/uc-001-flexible-brief-intake.md`
 
@@ -9,21 +9,27 @@
 | Field        | Value                                               |
 | ------------ | --------------------------------------------------- |
 | Use case ID  | `UC-001`                                            |
-| Title        | Flexible Project Brief Intake with AI Clarification |
+| Title        | Flexible Project Intake with AI Clarification       |
 | Status       | Draft                                               |
 | Priority     | P0                                                  |
 | Owner        | Mohamed Thabet                                      |
-| Last updated | 2026-05-17                                          |
+| Last updated | 2026-06-05                                          |
 
 ---
 
 ## 2. Summary
 
-A software engineer creates a new project in Sirius and opens the **Brief Intake** page (`/projects/{project}/brief-intake`) — a chat-style interface that replaces the legacy Prepare wizard (`Prepare.tsx`). The user provides project context as **free text**, **uploaded documents** (`.txt`, `.pdf`, `.docx`, `.md`), and/or **GitHub repository URLs**. Each turn is sent to Laravel via `POST /projects/{project}/messages`; Laravel persists the conversation in `projects.brief_messages` (JSON), forwards processing to FastAPI, and stores the agent-maintained knowledge base in `projects.context` (JSON).
+A software engineer creates a new project in Sirius and opens **Project Intake** (`/projects/{project}/brief-intake`) — a chat-style interface that replaces the legacy Prepare wizard (`Prepare.tsx`). The user can supply project context in two ways:
 
-After the first message, a LangGraph-powered intake agent analyzes all available context. If requirements are unclear, it responds with **structured clarification questions** embedded in the chat (single-select, multi-select, plus an optional free-text “other approach”; the agent marks one option as recommended). The user answers inline; each answer is another message. When the agent determines context is sufficient, it returns `status: ready`; Laravel writes a consolidated markdown snapshot to the legacy `brief` text column (for downstream System Overview generation) and redirects the user to `/projects/{project}/system-overview`.
+1. **Chat-assisted intake** — free text, uploaded documents (`.txt`, `.pdf`, `.docx`, `.md`), and/or GitHub repo URLs. Each turn is sent to Laravel, persisted in `project_conversations.messages` (JSON), and processed by a LangGraph intake agent via FastAPI. The agent may respond with normal discussion (`text`), structured or freeform questions (`question`), or a proposed final Markdown context (`finalize_suggestion`). Only the **user** may finalize: clicking **Finalize** writes `projects.context` and sets `intake_status = ready`.
 
-**Replaces:** batch `POST /projects/brief`, `clarification_rounds` / `clarification_answers` tables as primary UX, and the guided Prepare questionnaire for new projects.
+2. **Manual Markdown context** — the user authors project context directly in a Markdown editor (GFM, no raw HTML), accepts an accuracy disclaimer, and submits **Polish and Save Context**. Laravel validates, FastAPI guardrails check for prompt injection/disallowed content, the agent polishes content to Sirius context format, and on success Laravel saves `projects.context` and sets `intake_status = ready` in one explicit user action.
+
+**Source of truth:** `projects.context` is a `longText` Markdown field. **`projects.brief` is removed** after migration; navigation and downstream pipelines use `intake_status` and `context` instead.
+
+**Opening intake:** Any project with `intake_status != ready` is routed to Project Intake. Projects with populated context (including legacy backfill) have `intake_status = ready`.
+
+**Replaces:** `projects.brief`, `projects.brief_messages`, durable `project_files` storage for intake, batch `POST /projects/brief`, `clarification_rounds` / `clarification_answers`, and agent-auto-finalize behavior.
 
 ---
 
@@ -31,45 +37,48 @@ After the first message, a LangGraph-powered intake agent analyzes all available
 
 ### Primary Actor
 
-**Software Engineer (User)** — the developer creating a new project in Sirius who wants to generate pre-code planning documentation.
+**Software Engineer (User)** — creates a project and establishes authoritative project context for downstream documentation.
 
 ### Secondary Actors
 
 | Actor | Role |
 | --- | --- |
-| **React + Inertia.js** | Brief Intake chat UI, attachment composer, structured clarification controls, collapsible context panel |
-| **Laravel Backend** | Auth, validation, file/repo persistence, `brief_messages` / `context` writes, FastAPI orchestration, idempotent message API |
-| **FastAPI Service** | Intake agent orchestration; file/repo reading utilities (spec in v0.2.1; implementation deferred) |
-| **LangGraph Intake Agent** | Analyzes context, emits clarification or `ready`; checkpointed by `project_id` |
-| **LLM (Claude/GPT)** | Reasoning, question generation, context synthesis |
-| **GitHub API** | Repo tree and priority file contents |
-| **File Storage (S3/local)** | Uploaded file bytes via Laravel `Storage` |
+| **React + Inertia.js** | Project Intake UI: chat, manual Markdown editor, conversation sidebar, finalize controls, context preview |
+| **Laravel Backend** | Auth, validation, conversation persistence, `context` writes, FastAPI orchestration, credits via `AiUsageService`, idempotent APIs |
+| **FastAPI Service** | Intake agent, context polish, guardrails middleware, ephemeral file/repo extraction |
+| **LangGraph Intake Agent** | Discussion, questions, finalize suggestions; checkpointed by `project_id` + `conversation_id` |
+| **LLM** | Reasoning, polish, question generation |
+| **GitHub API** | Repo tree and priority file contents (ephemeral) |
 
-> **Note:** MySQL is the **source of truth** for conversation and context. Redis is **not required** for intake session continuity. FastAPI may use SQLite LangGraph checkpoints (`thread_id = project_id`), consistent with existing chat controllers.
+> **Note:** MySQL is the source of truth for conversations and `projects.context`. Uploaded file **bytes are not stored**; only metadata and short excerpts may appear in conversation JSON.
 
 ### Preconditions
 
-- [x] User is authenticated and has an active session
+- [x] User is authenticated
 - [x] User owns the project (or has policy-granted access)
-- [x] FastAPI service is reachable from Laravel (`config('app.fastapi_base_url')`)
-- [x] GitHub OAuth token is available when user links a private repo (see UC-010)
+- [x] FastAPI is reachable (`config('app.fastapi_base_url')`)
+- [x] User has sufficient credits for LLM-backed intake turns (see Section 7f)
+- [x] GitHub OAuth token available for private repos when linking (UC-010)
 
-### Postconditions (success)
+### Postconditions (success — chat finalize)
 
 - [x] `projects.intake_status` = `ready`
-- [x] `projects.brief_messages` contains the full user/agent thread
-- [x] `projects.context` contains the consolidated knowledge base from the agent
-- [x] `projects.brief` receives a markdown snapshot derived from `context` (backward compatibility with Overview pipeline)
-- [x] Uploaded files are in storage with rows in `project_files`
-- [x] Repo URLs are recorded in `project_repos` with fetch/extraction metadata
-- [x] User is redirected to System Overview (`/projects/{project}/system-overview`)
+- [x] `projects.context` contains user-approved Markdown context
+- [x] Active `project_conversations` row contains full thread with usage metadata on AI messages
+- [x] User may navigate to System Overview or other project sections per navigation rules
+
+### Postconditions (success — manual polish and save)
+
+- [x] `projects.intake_status` = `ready`
+- [x] `projects.context` contains polished Markdown (disclaimer recorded on conversation or project metadata)
+- [x] No durable file rows created for intake uploads
 
 ### Postconditions (failure)
 
-- [x] Failed file extraction: `project_files.extraction_status` = `extraction_failed`; intake continues with remaining context; user sees inline warning
-- [x] Failed repo fetch: `project_repos.fetch_status` = `fetch_failed`; intake continues
-- [x] FastAPI unreachable: user message remains in thread with `status: failed`; `intake_status` = `failed`; user can retry
-- [x] Duplicate submit (double-click): idempotent response — no duplicate agent turns
+- [x] Guardrail or validation failure: context not saved; `intake_status` remains `draft` or `needs_input`; user sees actionable error
+- [x] Ephemeral file/repo extraction failure: attachment metadata shows `failed`; intake continues with remaining input
+- [x] FastAPI unreachable: message `status: failed`; `intake_status` = `failed`; retry available
+- [x] Duplicate submit: idempotent 200, no duplicate agent turn or credit charge
 
 ---
 
@@ -77,35 +86,54 @@ After the first message, a LangGraph-powered intake agent analyzes all available
 
 | Type | IDs / References |
 | --- | --- |
-| Functional requirements | `FR-001` (Project Creation), `FR-002` (Project Decomposition), `FR-003` (Documentation Generation) |
-| Non-functional requirements | `NFR-001` (Response < 5s for file extraction start), `NFR-002` (Support files up to 20MB), `NFR-003` (GitHub API rate limit handling) |
-| PRD | Sirius PRD v2 — Section 3: Brief Intake & Context Engine |
-| Supersedes | Legacy Prepare wizard (`laravel/resources/js/pages/Projects/Prepare.tsx`) for **new** projects |
-| Downstream | System Overview (`SystemOverviewController`, `/v1/Overview/generate`) |
+| Functional requirements | `FR-001`, `FR-002`, `FR-003` |
+| Non-functional requirements | `NFR-001`, `NFR-002`, `NFR-003` |
+| PRD | Sirius PRD v2 — Section 3: Project Intake & Context Engine |
+| Supersedes | Legacy Prepare wizard for **new** projects |
+| Downstream | System Overview, Technical Details, Architecture, ERD, PRD (see Section 14) |
 
 ---
 
-## 5. User Journey (Happy Path)
+## 5. User Journeys
 
-1. **User creates** a project (`POST /projects`) with a name only.
-2. **Laravel redirects** to `/projects/{project}/brief-intake` (not `/prepare`).
-3. **User composes** first message: text and/or file(s) and/or GitHub repo URL(s) in the chat composer.
-4. **React generates** `client_message_id` (UUID) and sends `POST /projects/{project}/messages` (multipart if files attached).
-5. **Laravel** validates, stores files to storage + `project_files`, parses repos into `project_repos`, appends user message to `brief_messages` (`status: pending`), sets `intake_status` = `processing`, calls FastAPI `POST /v1/intake/process`.
-6. **FastAPI** runs file/repo tools (when implemented), invokes intake agent with `brief_messages`, `context`, and attachment refs.
-7. **Agent responds** with `status: clarifying` and a message `kind: clarification` containing structured questions.
-8. **Laravel** appends agent message, merges `context`, sets `intake_status` = `clarifying`, returns full thread JSON.
-9. **React renders** clarification UI inside the chat bubble (radio/checkbox groups, recommended badge on first option, optional textarea).
-10. **User selects** answers and sends another `POST .../messages` with `answers` payload (new `client_message_id`).
-11. **Steps 5–9 repeat** until agent returns `status: ready`.
-12. **Laravel** appends `kind: ready` agent message, finalizes `context`, writes markdown to `brief`, sets `intake_status` = `ready`, returns `{ redirect: "/projects/{id}/system-overview" }`.
-13. **React navigates** to System Overview; existing overview generation flow may auto-start (session flag or explicit generate call).
+### 5a. Happy Path — Chat-Assisted Intake
+
+1. User creates project (`POST /projects`) with name only; `intake_status` = `draft`.
+2. Laravel redirects to `/projects/{project}/brief-intake` when `intake_status != ready`.
+3. Laravel creates or loads the **active** `project_conversations` row for intake mode `chat`.
+4. User sends first message (text and/or ephemeral files/repos).
+5. React sends `POST /projects/{project}/conversations/{conversation}/messages` with `client_message_id` (UUID).
+6. Laravel validates, extracts file/repo content in-process or via FastAPI **without persisting bytes**, appends user message, sets `intake_status` = `processing`, calls `POST /v1/intake/process`.
+7. FastAPI returns agent message (`text` or `question`), `usage`, and optional working draft; Laravel sets `intake_status` = `needs_input`, records credits.
+8. User answers questions or continues discussion; steps 5–7 repeat.
+9. Agent returns `finalize_suggestion` with proposed Markdown `suggested_context`; Laravel sets `intake_status` = `needs_input` (does **not** write `projects.context`).
+10. User clicks **Continue** (keeps chatting) or **Finalize**.
+11. On **Finalize**, Laravel writes `suggested_context` to `projects.context`, sets `intake_status` = `ready`, returns redirect to `/projects/{project}/system-overview` (or project hub per product decision).
+
+### 5b. Happy Path — Manual Markdown (Polish and Save)
+
+1. User opens Project Intake; switches to **Write context** tab or equivalent.
+2. UI shows recommended sections template (users, stakeholders, business goals, constraints, tech stack, etc.) and **accuracy disclaimer** (Sirius not responsible for accuracy of user-supplied manual input).
+3. User edits Markdown with full editor tooling (headings, lists, tables, code fences, links, task lists); live syntax check; GFM only, **no raw HTML**.
+4. User clicks **Polish and Save Context** (explicit finalize).
+5. React validates locally → Laravel `StoreManualContextRequest` validates → FastAPI `POST /v1/intake/polish-context` runs guardrails + polish.
+6. On success, Laravel saves polished Markdown to `projects.context`, sets `intake_status` = `ready`, logs credits from `usage`, optionally appends `manual_context` message to active conversation.
+
+### 5c. Navigation and Intake Gate
+
+| `intake_status` | Project Intake page | Other project sections |
+| --- | --- | --- |
+| `draft` | Open (required for new projects) | Locked or redirect to intake |
+| `processing` | Open (read-only composer, poll) | Locked or redirect |
+| `needs_input` | Open | Locked or redirect |
+| `failed` | Open with retry | Locked or redirect |
+| `ready` | Optional revisit for new conversation | Unlocked |
+
+Legacy migration: projects with base System Overview and/or old `brief` receive composed `context` and `intake_status = ready` (Section 7a).
 
 ---
 
-## 5b. Idempotency and Navigation
-
-Duplicate clicks and back-navigation are handled **without** separate request/response audit tables. The database thread is the single source of truth.
+## 5d. Idempotency and Navigation
 
 ```mermaid
 sequenceDiagram
@@ -113,28 +141,24 @@ sequenceDiagram
     participant API as Laravel
     participant DB as MySQL
 
-    UI->>UI: Generate client_message_id UUID
-    UI->>API: POST /messages with client_message_id
-    API->>DB: client_message_id already in brief_messages?
-    alt Duplicate client_message_id
-        API-->>UI: 200 with existing message and thread
-    else New message
-        API->>DB: Append user message status pending
-        API->>FastAPI: POST /v1/intake/process
-        API->>DB: Append agent message update context
-        API-->>UI: 200 with full thread
+    UI->>UI: client_message_id UUID
+    UI->>API: POST messages
+    API->>DB: client_message_id in conversation messages?
+    alt Duplicate
+        API-->>UI: 200 idempotent true
+    else New
+        API->>FastAPI: intake process
+        API->>DB: append agent message usage
+        API-->>UI: 200 thread
     end
-    Note over UI: On mount or back navigation GET /messages only
+    Note over UI: GET conversations on mount
 ```
 
 | Layer | Mechanism |
 | --- | --- |
-| **React** | Generate `client_message_id` per send; disable composer while `isPending`; show optimistic `pending` bubble until server ack; on mount/route return call `GET /projects/{project}/messages` — **do not** treat `localStorage` as source of truth |
-| **Laravel** | `BriefIntakeService::storeMessage()` checks `brief_messages` for matching `client_message_id`; if found, return cached thread + agent response; else process inside a DB transaction |
-| **Concurrency** | While `intake_status` = `processing`, reject a second `POST` with **409 Conflict** and `{ intake_status, brief_messages }` so the client polls `GET` instead of firing duplicate agent runs |
-| **FastAPI** | Stateless per HTTP request; receives full `brief_messages` slice + `context` + file/repo IDs; LangGraph `thread_id` = `project.id` |
-
-This extends the append-and-persist pattern used by `SystemOverviewController::updateWithAi` (`overview_chat`) with explicit client-side deduplication keys.
+| **React** | `client_message_id` per send; disable while pending; hydrate via `GET`; conversation sidebar switches active thread |
+| **Laravel** | Idempotency scan on `project_conversations.messages`; 409 when `intake_status = processing` |
+| **FastAPI** | Stateless per request; LangGraph `thread_id` = `{project_id}:{conversation_id}` |
 
 ---
 
@@ -142,17 +166,20 @@ This extends the append-and-persist pattern used by `SystemOverviewController::u
 
 | # | Condition | Expected Behavior |
 | - | --------- | ----------------- |
-| A1 | User sends text only (no files, no repo) | Agent works with text; may still ask clarification |
-| A2 | File extraction fails (corrupted PDF, password-protected DOCX) | `project_files.extraction_status` = `extraction_failed`; attachment shows `failed` in message; intake continues |
-| A3 | Invalid or unauthorized GitHub repo URL | `project_repos.fetch_status` = `fetch_failed`; inline warning; intake continues |
-| A4 | GitHub API rate limit | Retry with exponential backoff (3 attempts); then proceed without that repo |
-| A5 | User double-clicks Send | Second request has same `client_message_id` → idempotent 200, no duplicate agent call |
-| A6 | User navigates away and returns | `GET /messages` hydrates full thread from DB; clarification state restored |
-| A7 | File exceeds 20MB | Laravel validation error before storage |
-| A8 | Empty message (no text, files, or repos, and not a clarification answer) | React + Laravel validation reject |
-| A9 | FastAPI unreachable | User message saved with `status: failed`; toast + retry affordance |
-| A10 | Second POST while `intake_status` = `processing` | 409 + current thread; UI polls GET |
-| A11 | Legacy project has `brief` text but empty `brief_messages` | Navigation skips Brief Intake; existing Overview/Prepare flows unchanged |
+| A1 | Text-only message | Agent may `text` or `question` |
+| A2 | File extraction fails | Metadata `failed` on attachment; no storage row; intake continues |
+| A3 | Invalid GitHub URL | Repo metadata `fetch_failed`; warning inline |
+| A4 | GitHub rate limit | Backoff 3x; proceed without repo |
+| A5 | Double-click Send | Idempotent 200 |
+| A6 | Navigate away and return | `GET` restores conversation + status |
+| A7 | File > 20MB | Rejected before processing |
+| A8 | Empty message | React + Laravel reject |
+| A9 | FastAPI down | `failed` message; `intake_status` = `failed` |
+| A10 | POST while `processing` | 409 + poll |
+| A11 | Guardrails block content | 422; no context write; no credits or partial credits per policy |
+| A12 | Insufficient credits | 402/403 before FastAPI call |
+| A13 | User clicks Continue on finalize suggestion | Thread continues; `context` unchanged |
+| A14 | Legacy project after migration | `ready` + `context` populated; skip forced intake |
 
 ---
 
@@ -160,36 +187,58 @@ This extends the append-and-persist pattern used by `SystemOverviewController::u
 
 ### 7a. Database Design
 
-#### `projects` (additions / changes)
+#### `projects` (changes)
 
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | bigint PK | Existing |
-| `user_id` | FK → users | Existing |
+| `user_id` | FK | Existing |
 | `name` | varchar | Existing |
-| `brief` | text, nullable | **Kept** — final markdown snapshot for Overview pipeline and legacy projects |
-| `brief_messages` | json, nullable | **New** — ordered intake chat thread (see schema below) |
-| `context` | json, nullable | **New** — agent-maintained project knowledge base |
-| `intake_status` | varchar, nullable | **New** — `draft`, `processing`, `clarifying`, `ready`, `failed` |
-| `intake_processing_at` | timestamp, nullable | **New** — optional lock timestamp for 409 concurrency guard |
-| `status` | enum | Existing project lifecycle (`draft`, `in_progress`, …) — unchanged |
-| `overview_chat` | json, nullable | Existing — separate from brief intake |
+| `context` | longText, nullable | **Source of truth** — Markdown project context |
+| `intake_status` | varchar | `draft`, `processing`, `needs_input`, `ready`, `failed` |
+| `intake_processing_at` | timestamp, nullable | Concurrency lock |
+| `manual_context_disclaimer_accepted_at` | timestamp, nullable | Optional audit for manual path |
+| `status` | enum | Unchanged lifecycle |
+| `overview_chat` | json | Unchanged — separate from intake |
 | `created_at`, `updated_at` | timestamps | Existing |
 
-**Migration (implementers):**
+**Removed:** `brief`, `brief_messages` (after migration).
 
-- File: `laravel/database/migrations/YYYY_MM_DD_add_brief_intake_columns_to_projects_table.php`
-- Adds after `brainstorming_scene`: `brief_messages` (json), `context` (json), `intake_status` (string, default `draft`), `intake_processing_at` (timestamp, nullable)
-- Does **not** drop or alter existing `brief` column
+**Migrations (ordered):**
 
-**Model casts (`Project.php`):**
+1. `add_intake_columns_to_projects_table.php` — add `context` (longText), `intake_status` (default `draft`), `intake_processing_at`, disclaimer timestamp.
+2. `backfill_projects_context_from_legacy.php` — for each project:
+   - If base `project_overview_versions.is_base_version` overview exists, append under `## System Overview`.
+   - If legacy `brief` non-empty, append under `## Project Brief (Legacy)`.
+   - If either exists → `intake_status = ready`; else `draft`.
+3. `migrate_brief_consumers_to_context.php` — application code deploy (Section 14).
+4. `drop_brief_column_from_projects_table.php` — drop `brief` only after step 3 verified.
+
+**Model (`Project.php`):**
 
 ```php
-'brief_messages' => 'array',
-'context' => 'array',
+// context is plain string Markdown — no JSON cast
+'intake_processing_at' => 'datetime',
+'manual_context_disclaimer_accepted_at' => 'datetime',
 ```
 
-#### `brief_messages` item schema
+#### `project_conversations`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | ULID PK | |
+| `project_id` | FK → projects | |
+| `user_id` | FK → users | Creator |
+| `mode` | varchar | `chat`, `manual_context`, `context_edit` (future) |
+| `title` | varchar, nullable | Auto: "Intake chat", "Manual context", or first message snippet |
+| `status` | varchar | `active`, `archived` |
+| `is_current` | boolean | One current intake conversation per project/mode (enforce in app) |
+| `messages` | json | Ordered message array (schema below) |
+| `created_at`, `updated_at` | timestamps | |
+
+**Indexes:** `(project_id, is_current)`, `(project_id, updated_at)`.
+
+#### Message item schema (`project_conversations.messages[]`)
 
 ```json
 {
@@ -197,40 +246,39 @@ This extends the append-and-persist pattern used by `SystemOverviewController::u
   "client_message_id": "660e8400-e29b-41d4-a716-446655440001",
   "role": "user",
   "kind": "text",
-  "content": "We are building a marketplace for freelancers...",
+  "content": "We are building a marketplace...",
   "attachments": [
     {
       "type": "file",
-      "id": "01JFILE...",
-      "name": "spec.pdf",
-      "status": "processed"
-    },
-    {
-      "type": "repo",
-      "id": "01JREPO...",
-      "name": "org/marketplace",
-      "status": "processed"
+      "original_name": "spec.pdf",
+      "mime_type": "application/pdf",
+      "file_size_bytes": 1048576,
+      "status": "processed",
+      "excerpt": "First 500 chars or AI summary — not full file"
     }
   ],
-  "clarification": null,
+  "question": null,
   "answers": null,
+  "suggested_context": null,
+  "usage": null,
+  "credits_used": null,
   "status": "completed",
-  "created_at": "2026-05-17T10:00:00Z"
+  "created_at": "2026-06-05T10:00:00Z"
 }
 ```
 
-**`kind` values:**
+#### Message `kind` values
 
 | kind | role | Description |
 | --- | --- | --- |
-| `text` | user | Free-text message |
-| `attachments` | user | Primarily files/repos with optional short caption in `content` |
-| `clarification` | agent | Structured questions in `clarification` object |
-| `clarification_answer` | user | User reply; `answers` array populated |
-| `ready` | agent | Intake complete; `content` may include summary message |
-| `system` | system | Errors, retries, status notices |
+| `text` | user / agent | Free text; agent uses for discussion or explanation |
+| `answer` | user | Reply to agent `question` |
+| `manual_context` | user | Raw manual Markdown submitted (before polish) — optional audit |
+| `question` | agent | Structured and/or freeform clarification (`question` object) |
+| `finalize_suggestion` | agent | Proposed final Markdown in `suggested_context`; awaits user Finalize |
+| `system` | system | Errors, retries, guardrail blocks |
 
-**Clarification object (on agent messages):**
+**Agent `question` object** (same structure as prior clarification schema):
 
 ```json
 {
@@ -241,20 +289,7 @@ This extends the append-and-persist pattern used by `SystemOverviewController::u
       "selection_mode": "single",
       "recommended_option_id": "opt_a",
       "options": [
-        { "id": "opt_a", "label": "Freelancers and clients" },
-        { "id": "opt_b", "label": "Internal ops team only" }
-      ],
-      "allow_custom_text": true
-    },
-    {
-      "id": "q2",
-      "text": "Which platforms should v1 support?",
-      "selection_mode": "multiple",
-      "recommended_option_id": "opt_web",
-      "options": [
-        { "id": "opt_web", "label": "Web" },
-        { "id": "opt_ios", "label": "iOS" },
-        { "id": "opt_android", "label": "Android" }
+        { "id": "opt_a", "label": "Freelancers and clients" }
       ],
       "allow_custom_text": true
     }
@@ -262,97 +297,50 @@ This extends the append-and-persist pattern used by `SystemOverviewController::u
 }
 ```
 
-**Answers payload (on user messages replying to clarification):**
+**User `answers` payload:**
 
 ```json
 {
   "answers": [
-    {
-      "question_id": "q1",
-      "selected_option_ids": ["opt_a"],
-      "custom_text": null
-    },
-    {
-      "question_id": "q2",
-      "selected_option_ids": ["opt_web", "opt_ios"],
-      "custom_text": "PWA later in v2"
-    }
+    { "question_id": "q1", "selected_option_ids": ["opt_a"], "custom_text": null }
   ],
   "in_reply_to_message_id": "agent-msg-uuid"
 }
 ```
 
-#### `context` schema
+**Agent `finalize_suggestion`:**
 
 ```json
 {
-  "version": 1,
-  "summary": "B2B marketplace connecting freelancers and clients with escrow payments.",
-  "requirements": [
-    "User registration and profiles",
-    "Project posting and bidding"
-  ],
-  "constraints": [
-    "Must support Stripe",
-    "GDPR-compliant data handling"
-  ],
-  "sources": [
-    {
-      "type": "file",
-      "ref_id": "01JFILE...",
-      "excerpt": "..."
-    },
-    {
-      "type": "repo",
-      "ref_id": "01JREPO...",
-      "excerpt": "README summary..."
-    },
-    {
-      "type": "user",
-      "ref_id": "msg-uuid",
-      "excerpt": "..."
-    }
-  ],
-  "open_questions": [],
-  "updated_at": "2026-05-17T10:05:00Z"
+  "content": "I believe we have enough detail. Review the proposed context below.",
+  "suggested_context": "# Project Context\n\n## Users\n...\n\n---\n*Disclaimer: ...*"
 }
 ```
 
-#### `project_files`
+#### Recommended manual context template (UI only)
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | ULID PK | |
-| `project_id` | FK → projects | |
-| `brief_message_id` | varchar(36), nullable | Links file to originating message |
-| `original_name` | varchar(255) | |
-| `storage_path` | varchar(500) | S3/local path |
-| `mime_type` | varchar(100) | |
-| `file_size_bytes` | bigint | |
-| `extraction_status` | enum | `pending`, `extracted`, `extraction_failed` |
-| `extracted_text` | longtext, nullable | |
-| `extraction_error` | text, nullable | |
-| `created_at` | timestamp | |
+Displayed as placeholder/helper, not enforced schema:
 
-#### `project_repos`
+- Users / personas
+- Stakeholders
+- Business goals
+- Problem statement
+- Scope (in / out)
+- Constraints and compliance
+- Success metrics
+- Technical stack (optional)
+- Integrations (optional)
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | ULID PK | |
-| `project_id` | FK → projects | |
-| `brief_message_id` | varchar(36), nullable | Links repo to originating message |
-| `repo_url` | varchar(500) | |
-| `owner` | varchar(100) | Parsed |
-| `repo_name` | varchar(100) | Parsed |
-| `default_branch` | varchar(100), nullable | |
-| `fetch_status` | enum | `pending`, `fetched`, `fetch_failed` |
-| `fetched_summary` | longtext, nullable | |
-| `fetch_error` | text, nullable | |
-| `files_fetched_count` | int, default 0 | |
-| `total_tokens_used` | int, default 0 | |
-| `created_at` | timestamp | |
+#### Ephemeral attachments — **no `project_files` / `project_repos` for intake**
 
-> **Deprecated for v0.2.1:** `clarification_rounds`, `clarification_answers` — clarification lives inside `brief_messages`.
+| Step | Behavior |
+| --- | --- |
+| Upload | Bytes held in request memory/temp disk only |
+| Extract | FastAPI or Laravel inline extraction |
+| Persist | **Only** attachment metadata + optional `excerpt` on message JSON |
+| Delete | Temp files deleted before response completes |
+
+> **Deprecated for UC-001:** `project_files`, `project_repos` tables for intake flow.
 
 ---
 
@@ -360,100 +348,146 @@ This extends the append-and-persist pattern used by `SystemOverviewController::u
 
 | Operation | Table(s) | Trigger |
 | --- | --- | --- |
-| Load thread | `projects.brief_messages`, `intake_status` | `GET .../messages` on page load |
-| Send message | `brief_messages`, `project_files`, `project_repos` | `POST .../messages` |
-| Update knowledge base | `projects.context` | After each successful FastAPI turn |
-| Finalize brief | `projects.brief` | Agent `ready` |
-| Set intake complete | `projects.intake_status` | Agent `ready` |
-| File extraction result | `project_files` | FastAPI callback or inline in process response |
-| Repo fetch result | `project_repos` | FastAPI callback or inline in process response |
+| List conversations | `project_conversations` | `GET .../conversations` |
+| Load thread | `project_conversations.messages`, `intake_status` | `GET .../conversations/{id}` |
+| Send chat message | `project_conversations` | `POST .../messages` |
+| Finalize context | `projects.context`, `intake_status` | `POST .../finalize` (user only) |
+| Manual polish save | `projects.context`, `intake_status` | `POST .../context/manual` |
+| Credits | `usage_logs`, `user_credits` | After each successful LLM response |
 
 ---
 
 ### 7c. API Contracts (Laravel)
 
-#### `GET /projects/{project}/messages`
+#### `GET /projects/{project}/brief-intake`
+
+Inertia page props: `project`, `intake_status`, `context` (if ready), `conversations[]`, `activeConversationId`.
+
+#### `GET /projects/{project}/conversations`
+
+```json
+{
+  "conversations": [
+    {
+      "id": "01JCONV...",
+      "title": "Intake chat",
+      "mode": "chat",
+      "status": "active",
+      "updated_at": "2026-06-05T10:00:00Z",
+      "message_count": 12
+    }
+  ],
+  "active_conversation_id": "01JCONV..."
+}
+```
+
+#### `GET /projects/{project}/conversations/{conversation}`
+
+```json
+{
+  "intake_status": "needs_input",
+  "conversation": { "id": "...", "messages": [] },
+  "context_preview": null,
+  "project": { "id": 1, "name": "My App" }
+}
+```
+
+When `intake_status = ready`, include `context_preview` (truncated) or full `GET /context`.
+
+#### `GET /projects/{project}/context`
+
+Returns `{ "context": "# Markdown...", "intake_status": "ready" }`.
+
+#### `POST /projects/{project}/conversations/{conversation}/messages`
+
+**Chat request (multipart if files):**
+
+```json
+{
+  "client_message_id": "uuid",
+  "kind": "text",
+  "content": "Product idea...",
+  "files": ["<binary ephemeral>"],
+  "repo_urls": ["https://github.com/org/repo"]
+}
+```
+
+**Answer request:**
+
+```json
+{
+  "client_message_id": "uuid",
+  "kind": "answer",
+  "in_reply_to_message_id": "agent-uuid",
+  "answers": []
+}
+```
+
+**Response (`needs_input`):**
+
+```json
+{
+  "intake_status": "needs_input",
+  "conversation": { "messages": [] },
+  "latest_agent_message_id": "...",
+  "credits_used": 2,
+  "usage": { "input_tokens": 1200, "output_tokens": 400 }
+}
+```
+
+**Response (idempotent / 409):** unchanged pattern from prior spec.
+
+#### `POST /projects/{project}/conversations/{conversation}/finalize`
+
+**Request:**
+
+```json
+{
+  "message_id": "agent-finalize-suggestion-uuid",
+  "accept_disclaimer": true
+}
+```
 
 **Response:**
 
 ```json
 {
-  "intake_status": "clarifying",
-  "brief_messages": [ "...array of message objects..." ],
-  "context_available": true,
-  "project": { "id": 1, "name": "My App" }
-}
-```
-
-#### `GET /projects/{project}/context` (optional)
-
-Returns full `context` JSON for the side panel. Default page load may omit heavy context and fetch on panel open only.
-
-#### `POST /projects/{project}/messages`
-
-**Request (multipart when files present):**
-
-```json
-{
-  "client_message_id": "660e8400-e29b-41d4-a716-446655440001",
-  "content": "Here is our product idea and spec.",
-  "files": ["<binary>"],
-  "repo_urls": ["https://github.com/org/repo"],
-  "answers": null,
-  "in_reply_to_message_id": null
-}
-```
-
-**Clarification answer request (JSON):**
-
-```json
-{
-  "client_message_id": "770e8400-e29b-41d4-a716-446655440002",
-  "kind": "clarification_answer",
-  "in_reply_to_message_id": "agent-msg-uuid",
-  "answers": [
-    { "question_id": "q1", "selected_option_ids": ["opt_a"], "custom_text": null }
-  ]
-}
-```
-
-**Response (clarifying):**
-
-```json
-{
-  "intake_status": "clarifying",
-  "brief_messages": [ "..." ],
-  "latest_agent_message_id": "..."
-}
-```
-
-**Response (ready):**
-
-```json
-{
   "intake_status": "ready",
-  "brief_messages": [ "..." ],
+  "context": "# Project Context\n...",
   "redirect": "/projects/1/system-overview"
 }
 ```
 
-**Response (duplicate — idempotent):**
+Only valid when latest matching message is `finalize_suggestion`. Laravel copies `suggested_context` → `projects.context`.
+
+#### `POST /projects/{project}/context/manual`
+
+**Request:**
 
 ```json
 {
-  "intake_status": "clarifying",
-  "brief_messages": [ "..." ],
-  "idempotent": true
+  "markdown": "# Draft context\n...",
+  "disclaimer_accepted": true
 }
 ```
 
-**Response (concurrent processing — 409):**
+**Response (success):**
 
 ```json
 {
-  "message": "Intake is already processing.",
-  "intake_status": "processing",
-  "brief_messages": [ "..." ]
+  "intake_status": "ready",
+  "context": "# Polished context\n...",
+  "credits_used": 3
+}
+```
+
+**Response (guardrails — 422):**
+
+```json
+{
+  "message": "Content blocked by safety policy.",
+  "code": "guardrails_blocked",
+  "details": []
 }
 ```
 
@@ -461,12 +495,22 @@ Returns full `context` JSON for the side panel. Default page load may omit heavy
 
 | Endpoint | Status |
 | --- | --- |
-| `POST /projects/brief` | **Removed** |
-| `POST /projects/brief/answers` | **Removed** — use `POST .../messages` |
+| `POST /projects/brief` | Removed |
+| `POST /projects/brief/answers` | Removed |
+| `GET/POST .../messages` on project only (no conversation id) | Replaced by conversation-scoped routes |
 
 ---
 
 ### 7d. API Contracts (FastAPI)
+
+#### Guardrails middleware
+
+Apply to `/v1/intake/*` routes before LLM calls:
+
+- Prompt-injection patterns
+- Disallowed content categories (config-driven)
+- Max input length
+- Returns `422` with structured `GuardrailViolation` — Laravel maps to 422
 
 #### `POST /v1/intake/process`
 
@@ -475,302 +519,360 @@ Returns full `context` JSON for the side panel. Default page load may omit heavy
 ```json
 {
   "project_id": 1,
-  "brief_messages": [ "..." ],
-  "context": { "version": 1, "summary": "..." },
-  "file_ids": ["01JFILE..."],
-  "repo_ids": ["01JREPO..."],
+  "conversation_id": "01JCONV...",
+  "messages": [],
+  "current_context_markdown": "",
+  "ephemeral_attachments": [
+    { "name": "spec.pdf", "mime_type": "application/pdf", "text": "extracted..." }
+  ],
   "latest_user_message": { "kind": "text", "content": "..." }
 }
 ```
 
-**Response (clarifying):**
+**Response (`needs_input` — question):**
 
 ```json
 {
-  "status": "clarifying",
+  "status": "needs_input",
   "agent_message": {
-    "kind": "clarification",
-    "content": "I need a few details to shape the brief.",
-    "clarification": { "questions": [ "..." ] }
+    "kind": "question",
+    "content": "I need a few details.",
+    "question": { "questions": [] }
   },
-  "context": { "version": 1, "summary": "...", "updated_at": "..." },
-  "file_results": [{ "id": "01JFILE...", "extraction_status": "extracted" }],
-  "repo_results": [{ "id": "01JREPO...", "fetch_status": "fetched" }]
+  "usage": { "input_tokens": 0, "output_tokens": 0, "cost": 0 },
+  "model": "gem2.5f"
 }
 ```
 
-**Response (ready):**
+**Response (`needs_input` — finalize suggestion):**
 
 ```json
 {
-  "status": "ready",
+  "status": "needs_input",
   "agent_message": {
-    "kind": "ready",
-    "content": "I have enough context to proceed."
+    "kind": "finalize_suggestion",
+    "content": "Please review the proposed context.",
+    "suggested_context": "# Project Context\n..."
   },
-  "context": { "..." },
-  "brief_markdown": "# Project Brief\n\n..."
+  "usage": { "input_tokens": 0, "output_tokens": 0, "cost": 0 },
+  "model": "gem2.5f"
 }
 ```
+
+**Response (`text` discussion):**
+
+```json
+{
+  "status": "needs_input",
+  "agent_message": { "kind": "text", "content": "..." },
+  "usage": {},
+  "model": "..."
+}
+```
+
+> Agent must **never** set Laravel `intake_status` to `ready`; only `needs_input` or error statuses in FastAPI payload.
+
+#### `POST /v1/intake/polish-context`
+
+**Request:**
+
+```json
+{
+  "project_id": 1,
+  "markdown": "# User draft\n...",
+  "context_format_version": 1
+}
+```
+
+**Response:**
+
+```json
+{
+  "polished_markdown": "# Project Context\n...",
+  "disclaimer_appended": true,
+  "usage": {},
+  "model": "..."
+}
+```
+
+Polish prompt must: normalize headings to Sirius context format, preserve user facts without inventing requirements, append standard disclaimer block.
 
 ---
 
 ### 7e. External Integrations
 
-| Integration | Purpose | Notes |
-| --- | --- | --- |
-| **GitHub REST API** | Repo tree + file contents | OAuth/PAT; rate limit handling per NFR-003 |
-| **LangGraph** | Intake agent with `thread_id = project_id` | SQLite checkpoints in FastAPI (existing pattern) |
-| **LLM** | Analysis, clarification, context merge | Claude/GPT via existing proxy |
-| **S3 / Local Storage** | File bytes | Laravel `Storage` facade |
-| **[mattpocock/skills](https://github.com/mattpocock/skills)** | Agent skill patterns | Reference for structured prompts and tool boundaries — not vendored into repo in v0.2.1 |
+| Integration | Purpose |
+| --- | --- |
+| GitHub REST API | Ephemeral repo read |
+| LangGraph | Intake agent checkpoints |
+| LLM | Chat, questions, polish |
+| `AiUsageService` | Credits per successful LLM response (`ceil(tokens/1000)`) |
 
 ---
 
-## 8. System Component Specifications
+### 7f. Credits
 
-### 8a. React (Inertia.js)
+| Action type (Laravel `UsageLog.action_type`) | When charged |
+| --- | --- |
+| `project_intake_chat_turn` | Each successful `POST /v1/intake/process` with non-zero usage |
+| `project_intake_manual_polish` | Successful `POST /v1/intake/polish-context` |
+
+Requirements:
+
+- FastAPI **must** return `usage` on successful LLM responses; Laravel throws if missing (same pattern as `system_overview_generation`).
+- Store `usage` and `credits_used` on the agent message in `project_conversations.messages`.
+- Pre-check `user.credits_balance` before calling FastAPI (middleware or service).
+- Pure Laravel/React validation and non-LLM guardrail rejects: **no charge**.
+
+---
+
+## 8. Validation and Security
+
+### 8a. React
+
+| Rule | Detail |
+| --- | --- |
+| Markdown | GFM; reject/block raw HTML in editor and preview |
+| Length | Max 64KB manual context (configurable) |
+| Disclaimer | Required checkbox before manual submit |
+| Syntax | Client-side Markdown lint (headings balanced, fenced code closed) |
+| Files | Type whitelist, 20MB max, strip after read |
+| Finalize | Disable until `finalize_suggestion` present |
+
+### 8b. Laravel
+
+| Rule | Detail |
+| --- | --- |
+| Form requests | `StoreConversationMessageRequest`, `FinalizeIntakeRequest`, `StoreManualContextRequest` |
+| Markdown | `prohibited_if` HTML tags regex; max length; `disclaimer_accepted` required on manual |
+| UUID | `client_message_id` required, valid UUID |
+| Policy | `ProjectPolicy::update` |
+| Sanitize | Strip tags before forwarding to FastAPI |
+
+### 8c. FastAPI
+
+| Rule | Detail |
+| --- | --- |
+| Guardrails middleware | Injection + policy violations → 422 |
+| Output | Polished context must include disclaimer block for manual path |
+| Token budget | Truncate attachments; suggest 32K input cap |
+
+---
+
+## 9. System Component Specifications
+
+### 9a. React (`BriefIntake.tsx`)
 
 | Item | Specification |
 | --- | --- |
 | **Page** | `laravel/resources/js/pages/Projects/BriefIntake.tsx` |
-| **Route** | `GET /projects/{project}/brief-intake` → Inertia render |
-| **Layout** | Full-height chat: message list (scroll) + fixed composer |
-| **Composer** | Textarea + file dropzone (`.txt`, `.pdf`, `.docx`, `.md`, max 20MB) + repo URL chip input |
-| **Message list** | Map `brief_messages`; user bubbles right, agent left; show attachment chips with status |
-| **Clarification UI** | When `kind === 'clarification'`: render per-question control by `selection_mode` (`single` → radio, `multiple` → checkbox); highlight `recommended_option_id`; show “Other approach” textarea when `allow_custom_text`; disable Send until required selections made |
-| **Context panel** | Collapsible `Sheet` / drawer (default **closed**); button “View context” loads `GET .../context` on first open |
-| **State** | `useState` for draft composer only; thread from server props or GET; `client_message_id` via `crypto.randomUUID()` |
-| **Submit guard** | `isPending` disables send; reuse `ChatInput` patterns from `components/Chat/ChatInput.tsx` where applicable |
-| **Navigation** | Update `utils/project-navigation.ts`: if `brief_messages` empty and no legacy `brief` → `brief-intake`; if legacy `brief` exists → existing flow |
-| **Deprecated** | `Prepare.tsx` remains for legacy projects only (not linked for new projects) |
+| **Layout** | Project sidebar (unchanged) + **intake conversation panel** (list, new chat, resume) + main area (chat **or** manual editor) |
+| **Conversation panel** | Lists `project_conversations`; click loads thread; highlight active |
+| **Chat** | Message bubbles by `kind`; `question` renders radios/checkboxes; `finalize_suggestion` renders Markdown preview + **Continue** / **Finalize** |
+| **Manual editor** | Full Markdown toolbar; template hints; disclaimer; **Polish and Save Context** |
+| **Context preview** | Render `projects.context` via sanitized Markdown renderer when ready |
+| **Navigation** | `project-navigation.ts`: redirect to intake when `intake_status != ready` |
+| **Credits** | Show estimated/actual credits on agent responses when provided |
 
-### 8b. Laravel + Database
+### 9b. Laravel
 
 | Item | Specification |
 | --- | --- |
-| **Controller** | `App\Http\Controllers\Project\BriefMessageController` — `index()`, `store()`; optional `context()` |
-| **Form request** | `StoreBriefMessageRequest` — validates `client_message_id` (uuid), content/attachments/answers rules |
-| **Policy** | `ProjectPolicy::update` (owner) on all routes |
-| **Service** | `App\Services\BriefIntakeService` — idempotency check, file/repo persistence, FastAPI HTTP call, transactional append to `brief_messages`, `context` merge, `brief` markdown on ready |
-| **Routes** | `Route::get/post(...)` under `auth` + `project` middleware in `routes/web.php` |
-| **Removed** | No `brief()` or `briefAnswers()` controller methods |
-| **On ready** | Set `intake_status = ready`; write `brief` from `brief_markdown`; redirect URL in JSON; optional `session(['pending_overview_generation' => $id])` to match existing Overview behavior |
-| **Jobs** | Optional `ProcessBriefAttachmentsJob` if extraction exceeds HTTP timeout — poll via GET until complete |
-| **Best practices** | Slim controller; Form Request validation; Service for orchestration; `Http::fastapi()` with timeout/retry; model `$casts` for JSON columns |
+| **Controllers** | `BriefIntakeController` (page), `ProjectConversationController`, `ProjectContextController` |
+| **Services** | `ProjectIntakeService` (messages, finalize, idempotency), `ManualContextService` (polish save) |
+| **Models** | `ProjectConversation` |
+| **Credits** | `AiUsageService::handle()` per Section 7f |
+| **No** | `brief` writes; no `project_files` for intake |
 
-### 8c. FastAPI — Agent and Tools
+### 9c. FastAPI
 
 | Item | Specification |
 | --- | --- |
-| **Route** | Register `POST /v1/intake/process` in `fastAPI/src/routes/api_routes.py` |
-| **Controller** | `intake_controller.py` — validate payload, call service |
-| **Agent** | LangGraph graph: ingest → analyze → (clarify \| finalize context); use skill-style system prompts inspired by [mattpocock/skills](https://github.com/mattpocock/skills) for JSON-schema-bound clarification output |
-| **Checkpointing** | `thread_id = project_id`; reuse SQLite checkpoint pattern from `chat_controller.py` |
-| **Context merge** | Agent returns updated `context` object each turn; Laravel persists authoritative copy |
-| **Tools (spec only — not implemented v0.2.1)** | See Section 8d |
-
-### 8d. Tools (Specification Only — Not Implemented in v0.2.1)
-
-#### FileReaderTool
-
-| Concern | Detail |
-| --- | --- |
-| **Module** | `fastAPI/src/services/intake/file_reader.py` |
-| **Inputs** | Storage path or bytes + mime type |
-| **Formats** | `.pdf` (PyMuPDF), `.docx` (docx2txt), `.txt`, `.md` (UTF-8) |
-| **Output** | `{ text, page_count?, error? }` |
-| **Limits** | 20MB per file; truncate to token budget slice |
-
-#### RepoReaderTool
-
-| Concern | Detail |
-| --- | --- |
-| **Module** | `fastAPI/src/services/intake/repo_reader.py` |
-| **Inputs** | `owner`, `repo`, GitHub token |
-| **Steps** | Fetch tree → prioritize README, dependency manifests, schema/migration files → fetch within token budget |
-| **Output** | `{ summary, files_fetched_count, tokens_used, error? }` |
-
-#### Agent tool wiring (future)
-
-- Agent invokes tools during `POST /v1/intake/process` before LLM analysis
-- Failed tool results are non-fatal; passed to agent as partial context
+| **Routes** | `/v1/intake/process`, `/v1/intake/polish-context` |
+| **Middleware** | `guardrails_middleware` on intake routes |
+| **Agent** | LangGraph: ingest → analyze → (`text` \| `question` \| `finalize_suggestion`) |
+| **Checkpoint** | `thread_id = {project_id}:{conversation_id}` |
 
 ---
 
-## 9. Architecture Diagram
+## 10. Architecture Diagram
 
 ```mermaid
 flowchart TB
     subgraph frontend [React BriefIntake]
-        Composer[Text Files Repo composer]
-        Chat[Message thread]
-        Clarify[Structured clarification UI]
-        CtxPanel[Context drawer collapsed]
+        ConvPanel[Conversation panel]
+        Chat[Chat thread]
+        Manual[Manual Markdown editor]
+        Finalize[Continue / Finalize]
     end
 
     subgraph laravel [Laravel]
-        MsgAPI[GET POST messages]
-        CtxAPI[GET context]
-        DB[(projects brief_messages context brief)]
-        Files[(project_files)]
-        Repos[(project_repos)]
-        Storage[File Storage]
+        ConvAPI[Conversation APIs]
+        CtxAPI[Context manual finalize]
+        DB[(projects context intake_status)]
+        ConvDB[(project_conversations)]
+        Credits[AiUsageService]
     end
 
     subgraph fastapi [FastAPI]
-        IntakeAPI["POST /v1/intake/process"]
-        Tools[FileReader RepoReader spec]
-        Agent[Intake LangGraph Agent]
-        LLM[LLM]
+        Guard[Guardrails middleware]
+        Process["POST intake/process"]
+        Polish["POST intake/polish-context"]
+        Agent[Intake Agent]
     end
 
-    Composer --> MsgAPI
-    Chat --> MsgAPI
-    CtxPanel --> CtxAPI
-    MsgAPI --> DB
-    MsgAPI --> Files
-    MsgAPI --> Repos
-    MsgAPI --> Storage
-    MsgAPI --> IntakeAPI
-    IntakeAPI --> Tools
-    Tools --> Agent
-    Agent --> LLM
-    IntakeAPI --> MsgAPI
-    MsgAPI -->|ready| Overview[System Overview]
+    ConvPanel --> ConvAPI
+    Chat --> ConvAPI
+    Manual --> CtxAPI
+    Finalize --> CtxAPI
+    ConvAPI --> ConvDB
+    ConvAPI --> Guard
+    Guard --> Process
+    CtxAPI --> Guard
+    Guard --> Polish
+    Process --> Agent
+    ConvAPI --> Credits
+    CtxAPI --> Credits
+    CtxAPI --> DB
+    ConvAPI --> DB
 ```
 
 ---
 
-## 10. Sequence Diagrams
+## 11. Sequence Diagrams
 
-### 10a. First message with attachments
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant React as BriefIntake React
-    participant Laravel as Laravel API
-    participant Storage as File Storage
-    participant DB as MySQL
-    participant FastAPI as FastAPI
-    participant Tools as File and Repo Tools
-    participant Agent as Intake Agent
-    participant LLM as LLM
-
-    User->>React: Text plus files plus repo URL
-    React->>React: client_message_id equals UUID
-    React->>Laravel: POST messages multipart
-    Laravel->>DB: intake_status processing
-    Laravel->>Storage: Store files
-    Laravel->>DB: INSERT project_files project_repos
-    Laravel->>DB: Append user message pending
-    Laravel->>FastAPI: POST v1 intake process
-
-    par Extract files
-        FastAPI->>Tools: FileReader per file
-        Tools-->>FastAPI: extracted_text or error
-    and Fetch repos
-        FastAPI->>Tools: RepoReader per repo
-        Tools-->>FastAPI: fetched_summary or error
-    end
-
-    FastAPI->>Agent: Analyze with context
-    Agent->>LLM: Sufficiency check
-    LLM-->>Agent: Needs clarification
-    Agent-->>FastAPI: clarifying plus questions
-    FastAPI-->>Laravel: agent_message plus context plus file_results
-    Laravel->>DB: Update files repos append agent message merge context
-    Laravel->>DB: intake_status clarifying
-    Laravel-->>React: 200 brief_messages
-    React-->>User: Show clarification UI
-```
-
-### 10b. Clarification answer and intake complete
+### 11a. Chat turn with question
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant React as BriefIntake React
-    participant Laravel as Laravel API
-    participant DB as MySQL
-    participant FastAPI as FastAPI
-    participant Agent as Intake Agent
-    participant LLM as LLM
+    participant React
+    participant Laravel
+    participant FastAPI
+    participant Agent
 
-    User->>React: Select options plus optional custom text
-    React->>Laravel: POST messages with answers new client_message_id
-    Laravel->>DB: Idempotent check
-    Laravel->>DB: Append clarification_answer message
-    Laravel->>FastAPI: POST v1 intake process
-    FastAPI->>Agent: Continue thread
-    Agent->>LLM: Re-analyze
-    LLM-->>Agent: Context sufficient
-    Agent-->>FastAPI: status ready plus brief_markdown
-    FastAPI-->>Laravel: ready plus context
-    Laravel->>DB: Append ready message set brief intake_status ready
-    Laravel-->>React: redirect system-overview
-    React-->>User: Navigate to System Overview
+    User->>React: Send message
+    React->>Laravel: POST messages
+    Laravel->>FastAPI: intake/process
+    FastAPI->>Agent: analyze
+    Agent-->>FastAPI: question
+    FastAPI-->>Laravel: usage plus agent_message
+    Laravel->>Laravel: AiUsageService
+    Laravel-->>React: needs_input
 ```
 
-### 10c. Idempotency and 409 branches
+### 11b. Human-in-the-loop finalize
 
 ```mermaid
 sequenceDiagram
+    actor User
     participant React
     participant Laravel
     participant DB
 
-  React->>Laravel: POST duplicate client_message_id
-    Laravel->>DB: Find existing message
-    Laravel-->>React: 200 idempotent true
+    Note over Laravel: Agent already sent finalize_suggestion
+    User->>React: Click Finalize
+    React->>Laravel: POST finalize
+    Laravel->>DB: context equals suggested_context intake_status ready
+    Laravel-->>React: redirect
+```
 
-    React->>Laravel: POST while processing
-    Laravel->>DB: intake_status equals processing
-    Laravel-->>React: 409 plus thread
-    React->>Laravel: GET messages poll
-    Laravel-->>React: 200 updated thread
+### 11c. Manual polish and save
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant React
+    participant Laravel
+    participant FastAPI
+
+    User->>React: Polish and Save Context
+    React->>Laravel: POST context/manual
+    Laravel->>FastAPI: polish-context guardrails
+    FastAPI-->>Laravel: polished_markdown usage
+    Laravel->>Laravel: save context ready credits
+    Laravel-->>React: success
 ```
 
 ---
 
-## 11. Acceptance Criteria (Testable)
+## 12. Acceptance Criteria (Testable)
 
-- [ ] **GIVEN** a new project with empty `brief_messages` **WHEN** the user opens the project **THEN** they are routed to `/brief-intake` (not Prepare)
-- [ ] **GIVEN** a user sends text only **WHEN** the agent processes **THEN** `brief_messages` contains user and agent entries and `intake_status` is `clarifying` or `ready`
-- [ ] **GIVEN** a valid PDF upload **WHEN** extraction succeeds **THEN** `project_files.extraction_status` = `extracted` and attachment `status` = `processed`
-- [ ] **GIVEN** a corrupted PDF **WHEN** extraction fails **THEN** `extraction_status` = `extraction_failed` and intake continues
-- [ ] **GIVEN** a valid public GitHub URL **WHEN** fetch succeeds **THEN** `project_repos.fetch_status` = `fetched` and `fetched_summary` is non-empty
-- [ ] **GIVEN** agent emits clarification **WHEN** rendered **THEN** single-select uses radios, multi-select uses checkboxes, recommended option is visually distinct, custom textarea is available
-- [ ] **GIVEN** the user double-submits with the same `client_message_id` **WHEN** the second POST arrives **THEN** response is 200 with `idempotent: true` and no duplicate agent message
-- [ ] **GIVEN** `intake_status` is `processing` **WHEN** a second distinct POST arrives **THEN** Laravel returns 409 and the thread is unchanged except for the first pending message
-- [ ] **GIVEN** the user navigates away mid-clarification **WHEN** they return to brief-intake **THEN** `GET /messages` restores the full thread from DB
-- [ ] **GIVEN** agent returns `ready` **WHEN** Laravel finalizes **THEN** `intake_status` = `ready`, `brief` is populated, redirect points to system-overview
-- [ ] **GIVEN** a legacy project with `brief` text and no `brief_messages` **WHEN** opened **THEN** existing navigation (Overview/Prepare) is unchanged
-- [ ] **GIVEN** context panel default state **WHEN** page loads **THEN** context drawer is closed; opening it fetches `GET /context`
-
----
-
-## 12. Out of Scope (This Use Case Only)
-
-- Implementing `FileReaderTool` / `RepoReaderTool` Python code (specified only)
-- Vendoring [mattpocock/skills](https://github.com/mattpocock/skills) into the repository
-- Removing `Prepare.tsx` or migrating legacy projects automatically
-- Planning pipeline after intake (PRD, ERD, etc.) — **UC-002**
-- GitHub OAuth connection flow — **UC-010**
-- Team collaboration on the same intake thread — **UC-006**
-- Billing / usage metering for intake API calls
-- Non-GitHub repositories (GitLab, Bitbucket)
-- Server-Sent Events / WebSocket streaming of agent tokens (loading state only in v0.2.1)
-- Support for file formats beyond `.txt`, `.pdf`, `.docx`, `.md`
+- [ ] **GIVEN** new project `intake_status = draft` **WHEN** opened **THEN** routed to `/brief-intake`
+- [ ] **GIVEN** `intake_status = ready` **WHEN** opening project hub **THEN** intake not forced
+- [ ] **GIVEN** chat message **WHEN** agent replies **THEN** message has `kind` in `text`, `question`, `finalize_suggestion` only
+- [ ] **GIVEN** `finalize_suggestion` **WHEN** user clicks Continue **THEN** `projects.context` unchanged
+- [ ] **GIVEN** `finalize_suggestion` **WHEN** user Finalizes **THEN** `context` written and `intake_status = ready`
+- [ ] **GIVEN** manual Markdown **WHEN** guardrails fail **THEN** 422 and no context write
+- [ ] **GIVEN** manual Markdown **WHEN** polish succeeds **THEN** `context` saved and `ready` without second confirm
+- [ ] **GIVEN** file upload **WHEN** processed **THEN** no `project_files` row; message has metadata only
+- [ ] **GIVEN** LLM turn **WHEN** success **THEN** `usage` logged and credits decremented
+- [ ] **GIVEN** duplicate `client_message_id` **THEN** idempotent 200
+- [ ] **GIVEN** `processing` **WHEN** second POST **THEN** 409
+- [ ] **GIVEN** legacy project with overview and brief **WHEN** migration runs **THEN** `context` contains both sections and `ready`
+- [ ] **GIVEN** conversation sidebar **WHEN** click prior conversation **THEN** thread loads
+- [ ] **GIVEN** manual editor **WHEN** raw HTML pasted **THEN** rejected client and server side
 
 ---
 
-## 13. Open Questions
+## 13. Out of Scope (This Use Case)
 
-- Should `ready` auto-trigger `POST /system-overview/generate-async` or require an explicit user action on System Overview?
-- Maximum total token budget for `context` + attachments before truncation strategy kicks in? (Suggested: 32K input tokens.)
-- Should `context` and uploaded files be encrypted at rest?
-- Permanent retention of `project_files` after `brief` snapshot is written, or lifecycle cleanup job?
-- Maximum number of clarification turns before forced `ready` with `low_confidence` flag?
-- Should failed messages be editable/resendable in-place or only via a new message?
+- `Prepare.tsx` removal (legacy reference only)
+- Team multi-user intake (UC-006)
+- GitLab/Bitbucket repos
+- SSE/WebSocket token streaming
+- Vendoring mattpocock/skills into repo
+- File formats beyond `.txt`, `.pdf`, `.docx`, `.md`
+- Durable `project_files` retention for intake
+
+---
+
+## 14. Downstream `brief` → `context` Migration
+
+All consumers must read `projects.context` (Markdown) before `brief` column drop:
+
+| Location | Change |
+| --- | --- |
+| `SystemOverviewController` | `regenerate`, `updateWithAi`, `generateAsync` — use `$project->context` as `project_description` / `project_brief` payload field |
+| `TechnicalDetailsController` | Require `context` instead of `brief` |
+| `ArchitectureController` | Fallback `baseOverviewVersion ?? context` |
+| `ProjectERDController` | `project_overview` fallback chain includes `context` |
+| `PRD.tsx` | Fallback content from `project.context` |
+| `projectNav.ts` / `project-navigation.ts` | Gate on `intake_status` not `brief` |
+| `Projects/Show.tsx`, `Index.tsx`, dashboards, invitations | Preview truncated `context` |
+| `chat_controller.py` / `chat_intent_controller.py` | Accept `project_context` (rename from `project_brief`) |
+| Factories/seeders | Remove `brief`; set `context` + `intake_status` |
+
+---
+
+## 15. Implementation TODO (Ordered by Priority)
+
+Dependencies: each phase assumes the previous phase contracts are stable.
+
+| Priority | Step | Depends on | Deliverable |
+| --- | --- | --- | --- |
+| P0-1 | Add `context`, `intake_status`, migrations + legacy backfill | — | DB + data migration scripts |
+| P0-2 | Add `project_conversations` model, migration, factory | P0-1 | Table + Eloquent model |
+| P0-3 | Update UC-facing domain language in routes/navigation (`intake_status` gate) | P0-1 | Redirect rules |
+| P1-1 | Laravel Form Requests + validation rules (Markdown, disclaimer) | P0-2 | Request classes |
+| P1-2 | `ProjectIntakeService`, `ManualContextService`, controllers, routes | P1-1 | API skeleton |
+| P1-3 | FastAPI guardrails middleware + intake routes (process, polish) | P1-1 | FastAPI contracts |
+| P1-4 | LangGraph agent message kinds (`text`, `question`, `finalize_suggestion`) | P1-3 | Agent graph |
+| P2-1 | Wire `AiUsageService` + credit pre-check on intake endpoints | P1-2, P1-3 | Metered turns |
+| P2-2 | Ephemeral file/repo extraction (no persistence) | P1-2 | Upload pipeline |
+| P3-1 | `BriefIntake.tsx` conversation panel + chat message rendering | P1-2 | UI thread |
+| P3-2 | Manual Markdown editor + Polish and Save | P1-2 | UI manual path |
+| P3-3 | Finalize suggestion UI (Continue / Finalize) | P3-1 | Human-in-the-loop |
+| P4-1 | Migrate downstream `brief` readers to `context` | P0-1 backfill | Section 14 files |
+| P4-2 | Drop `brief` column migration | P4-1 | Schema cleanup |
+| P5-1 | Pest feature tests (acceptance criteria Section 12) | P4-1 | Test suite |
+| P5-2 | FastAPI unit tests for guardrails + polish | P1-3 | Python tests |
+
+---
+
+## 16. Open Questions
+
+- Should `ready` auto-trigger System Overview generation or require explicit user action?
+- Maximum clarification turns before agent must offer `finalize_suggestion` with `low_confidence` flag?
+- Encrypt `projects.context` at rest?
+- Allow multiple concurrent `active` conversations per project or strictly one?
