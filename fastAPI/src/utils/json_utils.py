@@ -140,3 +140,41 @@ def extract_json_from_response(raw_response: str) -> Optional[str]:
     except Exception as e:
         logger.warning(f"Failed to extract JSON: {str(e)}")
         return None
+
+
+def ensure_parsed_json(value):
+    """Recursively unwrap double-encoded JSON strings into Python dicts/lists.
+    
+    Handles the case where an LLM response or checkpoint restoration produces
+    a string like '"{\\\"key\\\": \\\"value\\\"}"' instead of a proper dict.
+    Keeps parsing until the result is no longer a JSON string wrapping a
+    dict or list, or until parsing fails (in which case the last successfully
+    parsed value is returned).
+    
+    Args:
+        value: Any value — if it's a JSON-encoded string, it will be unwrapped.
+        
+    Returns:
+        The fully unwrapped Python object (dict, list, or the original value).
+    """
+    if not isinstance(value, str):
+        return value
+    
+    current = value
+    max_depth = 5  # Safety limit to prevent infinite loops
+    for _ in range(max_depth):
+        if not isinstance(current, str):
+            return current
+        stripped = current.strip()
+        if not (stripped.startswith('{') or stripped.startswith('[')):
+            return current
+        try:
+            parsed = json.loads(stripped)
+            if isinstance(parsed, (dict, list)):
+                current = parsed
+            else:
+                # Parsed into a scalar (int, float, bool, None) — stop
+                return parsed
+        except (json.JSONDecodeError, TypeError):
+            return current
+    return current
