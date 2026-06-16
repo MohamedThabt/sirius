@@ -19,6 +19,7 @@ from controllers.c4_controller import generate_c4, edit_c4
 from controllers.flow_diagram_controller import generate_flow
 from controllers.chat_controller import generate_langgraph_chat_response
 from controllers.chat_intent_controller import generate_langgraph_intent_chat_response
+from controllers.intake_agent import generate_intake_chat_response
 from controllers.health_controller import get_health_status, get_simple_health
 from controllers.logs_controller import (
     get_logs,
@@ -39,6 +40,7 @@ from models.wireframe import WireframeRequest, FeatureWireframe, EditWireframeRe
 from models.Sequence import SequenceRequest, FeatureSequence, EditSequenceRequest
 from models.C4 import C4Request, SystemC4, EditC4Request
 from models.chat import ChatRequest, ChatResponse
+from models.intake import IntakeChatRequest, IntakeChatResponse
 from models.logs import LogResponse, LogStatsResponse, ClearLogsResponse
 from models.project_context import ProjectContextFullResponse, ProjectContextRequest
 
@@ -326,6 +328,12 @@ async def generate_chat_endpoint(request: ChatRequest):
 async def generate_intent_chat_endpoint(request: ChatRequest):
     """Generate chat response with intent routing before chatbot execution."""
     return await generate_langgraph_intent_chat_response(request)
+
+
+@chat_router.post("/intake", response_model=IntakeChatResponse)
+async def generate_intake_chat_endpoint(request: IntakeChatRequest):
+    """Generate stateful project intake chat response with guardrails and Q&A resumption."""
+    return await generate_intake_chat_response(request)
 
 
 # ============================================================================
