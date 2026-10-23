@@ -149,8 +149,9 @@ export const mermaidToDbml = (mermaidContent: string): string => {
     // Remove erDiagram keyword and clean content
     const cleanedContent = mermaidContent.replace(/^\s*erDiagram\s*/i, '');
 
-    // Parse Mermaid tables - match table_name { ... }
-    const tableRegex = /(\w+)\s*\{([^}]+)\}/g;
+    // Parse Mermaid tables - match `table_name {` at the start of a line, so relationship
+    // cardinality markers like `||--o{` are not mistaken for a table named "o".
+    const tableRegex = /^\s*(\w+)\s*\{([^}]+)\}/gm;
     let tableMatch;
 
     while ((tableMatch = tableRegex.exec(cleanedContent)) !== null) {

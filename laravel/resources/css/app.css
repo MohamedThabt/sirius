@@ -615,6 +615,9 @@
 /* Sirius Section Shell */
 .sirius-section {
     @apply py-16;
+    /* Skip rendering (and running animations in) sections that are off screen. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
 }
 
 @media (min-width: 768px) {

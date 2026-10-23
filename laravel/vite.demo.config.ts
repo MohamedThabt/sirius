@@ -31,7 +31,11 @@ function githubPages(): Plugin {
             for (const file of ['favicon.ico', 'favicon.png', 'favicon.svg', 'apple-touch-icon.png', 'logo.svg']) {
                 if (existsSync(resolve(publicDir, file))) copyFileSync(resolve(publicDir, file), resolve(outDir, file));
             }
-            cpSync(resolve(publicDir, 'images'), resolve(outDir, 'images'), { recursive: true });
+            // Team pages use the small .webp avatars; skip the multi-MB source photos.
+            cpSync(resolve(publicDir, 'images'), resolve(outDir, 'images'), {
+                recursive: true,
+                filter: (source) => !/[\\/]team[\\/][^\\/]+\.png$/i.test(source),
+            });
 
             // Deep links (e.g. /projects/1/prd) are served 404.html, which boots the same SPA.
             copyFileSync(resolve(outDir, 'index.html'), resolve(outDir, '404.html'));
@@ -41,10 +45,11 @@ function githubPages(): Plugin {
     };
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
     root: demo,
     base: '/',
-    publicDir: false,
+    // Dev serves laravel/public directly; the build copies only what the demo needs (see githubPages()).
+    publicDir: command === 'serve' ? resolve(root, 'public') : false,
     plugins: [react(), tailwindcss(), githubPages()],
     resolve: {
         alias: [
@@ -65,4 +70,4 @@ export default defineConfig({
         emptyOutDir: true,
         chunkSizeWarningLimit: 4000,
     },
-});
+}));

@@ -76,12 +76,16 @@ export function MermaidCode({ children, id }: MermaidCodeProps) {
 
                 if (cancelled) return;
 
-                // Initialize mermaid with theme settings
+                // Measure text only after web fonts load, or labels get clipped.
+                await document.fonts?.ready;
+                if (cancelled) return;
+
+                // Match the page theme; an explicit font keeps measured and rendered text widths equal.
                 mermaid.initialize({
                     startOnLoad: false,
-                    theme: 'dark',
+                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
                     securityLevel: 'loose',
-                    fontFamily: 'inherit',
+                    fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
                     suppressErrorRendering: true,
                 });
 

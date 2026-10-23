@@ -1,9 +1,10 @@
 'use client';
 
+import { SIRIUS_REPO_URL } from '@/components/github-repo-link';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Github, Menu, X } from 'lucide-react';
 import * as React from 'react';
 import { useState } from 'react';
 
@@ -67,6 +68,20 @@ export const SiriusNavbar: React.FC = () => {
 
                 {/* Desktop CTA Buttons */}
                 <div className="hidden items-center gap-2 md:flex">
+                    <motion.a
+                        href={SIRIUS_REPO_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Sirius source code on GitHub"
+                        title="Source code on GitHub"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.15 }}
+                        whileHover={{ scale: 1.05 }}
+                    >
+                        <Github className="h-4 w-4" />
+                    </motion.a>
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -161,6 +176,14 @@ export const SiriusNavbar: React.FC = () => {
                                 exit={{ opacity: 0, y: 20 }}
                                 className="flex flex-col gap-3 pt-6"
                             >
+                                <a
+                                    href={SIRIUS_REPO_URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border px-5 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
+                                >
+                                    <Github className="h-5 w-5" /> Source code on GitHub
+                                </a>
                                 <Link
                                     href={isAuthenticated ? '/projects' : '/login'}
                                     className="inline-flex w-full items-center justify-center rounded-full border border-border px-5 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"

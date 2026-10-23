@@ -76,6 +76,9 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
     }, [content, lastSavedContent]);
     const canvasRef = useRef<HTMLDivElement>(null);
     const { c4Diagram, error, isLoading, warnings } = useC4Parser(content);
+    // A project without a diagram starts from an empty template; that is an empty state, not a parse error.
+    const isEmptyState = !project.c4 && content === emptyC4Template;
+    const visibleError = isEmptyState ? null : error;
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [showGenerationMode, setShowGenerationMode] = useState(!project.c4 && !initialIsGenerating);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -380,7 +383,7 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                                         )}
 
                                                         <div className="h-full overflow-auto pb-24">
-                                                            <JsonEditor value={content} onChange={setContent} error={error ?? undefined} />
+                                                            <JsonEditor value={content} onChange={setContent} error={visibleError ?? undefined} />
                                                         </div>
 
                                                         {/* AI Prompt Section - Floating Bottom */}
@@ -471,15 +474,30 @@ export default function SystemArchitecture({ project, errorMessage, isGenerating
                                                                 </p>
                                                             </div>
                                                         </div>
+                                                    ) : isEmptyState ? (
+                                                        <div className="flex h-full items-center justify-center p-8">
+                                                            <div className="max-w-sm text-center">
+                                                                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-muted/40">
+                                                                    <Sparkles className="h-5 w-5 text-muted-foreground" />
+                                                                </div>
+                                                                <h3 className="text-base font-semibold text-foreground">
+                                                                    No architecture diagram yet
+                                                                </h3>
+                                                                <p className="mt-2 text-sm text-muted-foreground">
+                                                                    Describe your system below and click Generate to create a C4 diagram from this
+                                                                    project's overview.
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     ) : (
                                                         <ReactFlowDiagram c4Diagram={c4Diagram || undefined} />
                                                     )}
                                                 </div>
 
                                                 {/* Error and Warning Display - Moved inside Right Panel */}
-                                                {!isFullScreen && error && (
+                                                {!isFullScreen && visibleError && (
                                                     <DiagramErrorPanel
-                                                        error={error ?? 'Unknown error'}
+                                                        error={visibleError}
                                                         onFixRequest={handleFixError}
                                                         className="absolute right-4 bottom-4 left-4 z-30"
                                                     />

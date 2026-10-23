@@ -1,5 +1,6 @@
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { GithubRepoLink } from '@/components/github-repo-link';
 import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
 import {
     Sidebar,
@@ -105,7 +106,8 @@ export function AppSidebar({ project: propProject }: AppSidebarProps = {}) {
                     <NavMain items={adminNavItems} title="Admin" />
                 )}
 
-                <div className="mt-auto group-data-[collapsible=icon]:hidden">
+                <div className="mt-auto space-y-1 group-data-[collapsible=icon]:hidden">
+                    <GithubRepoLink />
                     <SidebarUsageBar />
                 </div>
             </SidebarContent>

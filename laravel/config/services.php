@@ -60,4 +60,9 @@ return [
         'secret_key' => env('TURNSTILE_SECRET_KEY'),
     ],
 
+    // Shared bearer token for calls to the FastAPI service (must match SIRIUS_API_TOKEN there).
+    'fastapi' => [
+        'token' => env('FASTAPI_API_TOKEN'),
+    ],
+
 ];

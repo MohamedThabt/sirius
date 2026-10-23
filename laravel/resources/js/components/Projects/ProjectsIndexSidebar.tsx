@@ -1,3 +1,4 @@
+import { GithubRepoLink } from '@/components/github-repo-link';
 import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -213,6 +214,11 @@ export default function ProjectsIndexSidebar({
                 </div>
 
                 <div className="shrink-0 space-y-3">
+                    {/* Source code */}
+                    <div className="border-t pt-3">
+                        <GithubRepoLink />
+                    </div>
+
                     {/* Usage Bar */}
                     <div className="border-t pt-3">
                         <SidebarUsageBar />

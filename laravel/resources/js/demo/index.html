@@ -24,22 +24,36 @@
                 try {
                     appearance = localStorage.getItem('appearance') || 'system';
                 } catch (e) {}
-                var dark = appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                // Marketing pages (landing, architecture, pricing, team) are always dark.
+                var marketing = /^\/(architecture|pricing|team)?\/?$/.test(location.pathname);
+                var dark = marketing || appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
                 if (dark) document.documentElement.classList.add('dark');
             })();
         </script>
         <style>
             html {
-                background-color: oklch(0.9784 0.0011 264.0521);
+                background-color: #f5f5f5;
             }
             html.dark {
-                background-color: oklch(0.1553 0.0226 265.3198);
+                background-color: #0f0f0f;
             }
         </style>
 
         <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+        <!-- Loaded without blocking first paint (same approach as app.blade.php). -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+            media="print"
+            onload="this.media='all'"
+        />
+        <noscript>
+            <link
+                rel="stylesheet"
+                href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+            />
+        </noscript>
     </head>
     <body class="font-sans antialiased">
         <div id="app"></div>

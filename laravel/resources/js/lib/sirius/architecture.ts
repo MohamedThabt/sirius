@@ -235,7 +235,7 @@ export const pipeline: { step: string; title: string; body: string; href: string
         step: '01',
         title: 'Intake',
         body: 'Conversational agent turns a vague idea into a structured brief.',
-        href: '/projects/3/prepare',
+        href: '/projects/3/brief-intake',
         icon: MessagesSquare,
     },
     {

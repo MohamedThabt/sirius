@@ -11,6 +11,9 @@ import type { FeatureItem, ModuleItem } from '@/types/modules';
 import { buildFeaturesMarkdown, buildSpecsMarkdown, featureSuggestions, moduleSuggestions, usageProps } from './data/derived';
 import { demoProjects, demoUser, findFeature, findProject, pendingInvitations, teammates, type DemoProject } from './data/projects';
 
+/** The empty sample project used for the new-project (brief intake) flow. */
+export const NEW_PROJECT_ID = 3;
+
 export const DEMO_READ_ONLY_MESSAGE = 'This is a read-only demo — changes and AI generation are disabled.';
 
 type Props = Record<string, unknown>;
@@ -43,6 +46,9 @@ function sharedProps(owner?: DemoProject): Props {
         userCredits: { balance: 420, total: 500, used: 80, daysUntilReset: 12 },
         sidebarOpen: readSidebarCookie(),
         flash: {},
+        // Sidebar navigation (ProjectsIndexNav) reads these on every page.
+        projects: sidebarProjects(),
+        invitations: pendingInvitations,
         ...(owner
             ? {
                   currentProject: { id: owner.project.id, name: owner.project.name, status: owner.project.status },
@@ -187,7 +193,7 @@ const routes: Array<[string, Handler]> = [
         '/projects/:project',
         (params) =>
             withProject(params, (owner) => {
-                if (!owner.project.brief) return { redirect: `/projects/${owner.project.id}/prepare` };
+                if (!owner.project.brief) return { redirect: `/projects/${owner.project.id}/brief-intake` };
                 const members = membersFor(owner);
                 return projectPage('Projects/Show', owner, {
                     repository: null,
@@ -201,17 +207,11 @@ const routes: Array<[string, Handler]> = [
             }),
     ],
     [
-        '/projects/:project/prepare',
-        (params) =>
-            withProject(params, (owner) => ({
-                component: 'Projects/Prepare',
-                props: {
-                    projectId: owner.project.id,
-                    projectName: owner.project.name,
-                    projects: sidebarProjects(),
-                },
-            })),
+        '/projects/:project/brief-intake',
+        (params) => withProject(params, (owner) => projectPage('Projects/BriefIntake', owner, { hasModules: owner.modules.length > 0 })),
     ],
+    // The old setup wizard is replaced by the v0.2 brief intake agent.
+    ['/projects/:project/prepare', (params) => ({ redirect: `/projects/${params.project}/brief-intake` })],
     [
         '/projects/:project/technology',
         (params) => withProject(params, (owner) => projectPage('Projects/Technology', owner, { technicalIntake: owner.technicalIntake })),

@@ -8,7 +8,7 @@ import './demo.css';
 
 import { Toaster } from '@/components/ui/sonner';
 import { initializeTheme } from '@/hooks/use-appearance';
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import DemoTour from './DemoTour';
@@ -37,7 +37,42 @@ const namedRoutes: Record<string, string> = {
 };
 (window as unknown as { route: (name: string) => string }).route = (name) => namedRoutes[name] ?? '/';
 
+// Marketing pages keep the original theme and are always dark; the app uses the v0.2
+// design system and follows the visitor's light/dark preference.
+const MARKETING_PAGES = new Set(['landing', 'architecture', 'pricing', 'team', 'Error']);
+let onMarketingPage = false;
+
+const prefersDarkApp = () => {
+    let appearance = 'system';
+    try {
+        appearance = localStorage.getItem('appearance') || 'system';
+    } catch {
+        // storage unavailable: fall back to the system setting
+    }
+    return appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+};
+
+const setDark = (dark: boolean) => {
+    const root = document.documentElement;
+    root.classList.toggle('dark', dark);
+    root.classList.toggle('light', !dark);
+    root.style.colorScheme = dark ? 'dark' : 'light';
+};
+
+const applyPageTheme = (component: string) => {
+    onMarketingPage = MARKETING_PAGES.has(component);
+    document.documentElement.classList.toggle('theme-classic', onMarketingPage);
+    setDark(onMarketingPage || prefersDarkApp());
+};
+
+// The appearance hook can re-apply light mode at any time (toggle, OS change); keep marketing pages dark.
+new MutationObserver(() => {
+    if (onMarketingPage && !document.documentElement.classList.contains('dark')) setDark(true);
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+router.on('navigate', (event) => applyPageTheme(event.detail.page.component));
+
 const initialPage = resolveVisit(window.location.href);
+applyPageTheme(initialPage.component);
 if (initialPage.url !== window.location.pathname + window.location.search) {
     window.history.replaceState(null, '', initialPage.url + window.location.hash);
 }

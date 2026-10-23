@@ -71,16 +71,21 @@ function Connector({ label, index }: { label: string; index: number }) {
     return (
         <div className="flex min-w-0 items-center justify-center lg:flex-col">
             <div className="relative h-10 w-px bg-gradient-to-b from-border via-foreground/30 to-border lg:h-px lg:w-full lg:bg-gradient-to-r">
+                {/* The travelling dot moves via transform on a full-length track, so it never triggers layout. */}
                 <motion.span
-                    className="absolute left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-foreground shadow-[0_0_12px_2px] shadow-foreground/40 lg:hidden"
-                    animate={{ top: ['0%', '100%'] }}
+                    className="absolute inset-x-0 top-0 h-full lg:hidden"
+                    animate={{ y: ['0%', '100%'] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: index * 0.6 }}
-                />
+                >
+                    <span className="absolute top-0 left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground shadow-[0_0_12px_2px] shadow-foreground/40" />
+                </motion.span>
                 <motion.span
-                    className="absolute top-1/2 hidden h-2 w-2 -translate-y-1/2 rounded-full bg-foreground shadow-[0_0_12px_2px] shadow-foreground/40 lg:block"
-                    animate={{ left: ['0%', '100%'] }}
+                    className="absolute inset-y-0 left-0 hidden w-full lg:block"
+                    animate={{ x: ['0%', '100%'] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: index * 0.6 }}
-                />
+                >
+                    <span className="absolute top-1/2 left-0 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground shadow-[0_0_12px_2px] shadow-foreground/40" />
+                </motion.span>
             </div>
             <span className="ml-3 text-[11px] font-medium tracking-wide text-muted-foreground uppercase lg:mt-3 lg:ml-0 lg:text-center">{label}</span>
         </div>

@@ -54,11 +54,13 @@ function MermaidDiagramComponent({ children, projectId, previewTitle = 'Mermaid 
 
                 // Ensure mermaid is configured to suppress error rendering
                 const isDarkMode = document.documentElement.classList.contains('dark');
+                // Measure text only after web fonts load, or labels get clipped.
+                await document.fonts?.ready;
                 mermaid.initialize({
                     startOnLoad: false,
-                    theme: 'dark',
+                    theme: isDarkMode ? 'dark' : 'default',
                     securityLevel: 'loose',
-                    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+                    fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
                     suppressErrorRendering: true,
                 });
 
@@ -271,10 +273,7 @@ function MermaidDiagramComponent({ children, projectId, previewTitle = 'Mermaid 
                 </div>
             ) : (
                 <div className="flex justify-center">
-                    <div
-                        className="rounded-lg border border-border bg-card p-4 shadow-sm"
-                        dangerouslySetInnerHTML={{ __html: svg }}
-                    />
+                    <div className="rounded-lg border border-border bg-card p-4 shadow-sm" dangerouslySetInnerHTML={{ __html: svg }} />
                 </div>
             )}
         </div>

@@ -12,6 +12,7 @@ export const tourStops: TourStop[] = [
     { group: 'Start here', path: '/team', title: 'Team' },
 
     { group: 'Workspace', path: '/projects', title: 'All projects' },
+    { group: 'Workspace', path: '/projects/3/brief-intake', title: 'New project: brief intake agent' },
     { group: 'Workspace', path: '/projects/invitations', title: 'Invitations' },
 
     { group: 'Sample project · E-Commerce', path: '/projects/1', title: 'Project dashboard' },
@@ -38,7 +39,6 @@ export const tourStops: TourStop[] = [
 
     { group: 'Other project states', path: '/projects/2', title: 'Project in progress' },
     { group: 'Other project states', path: '/projects/2/c4', title: 'Not generated yet (empty state)' },
-    { group: 'Other project states', path: '/projects/3/prepare', title: 'New project intake wizard' },
 
     { group: 'Account', path: '/settings/profile', title: 'Profile settings' },
     { group: 'Account', path: '/settings/password', title: 'Password settings' },

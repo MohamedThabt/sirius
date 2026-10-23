@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
         Http::macro('fastapi', function () {
             return Http::asJson()
                 ->acceptJson()
-                ->withToken('sk_sirius_a9f7c2e4b8d1f6a3c5e9d2b7f4a8c1e6d3b9f5a2c8e4d7b1f6a3c9e5d2b8f4a1');
+                ->withToken((string) config('services.fastapi.token'));
         });
     }
 

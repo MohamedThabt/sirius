@@ -1,4 +1,5 @@
 @import '../../css/app.css';
+@import './classic-theme.css';
 
 /* The demo build's Vite root is ./demo, so point Tailwind at the app sources explicitly. */
 @source '../';

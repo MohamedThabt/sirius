@@ -7,7 +7,7 @@
  * unchanged on a static host (GitHub Pages).
  */
 import { toast } from 'sonner';
-import { DEMO_READ_ONLY_MESSAGE, resolveVisit } from './mock-server';
+import { DEMO_READ_ONLY_MESSAGE, NEW_PROJECT_ID, resolveVisit } from './mock-server';
 
 interface RequestConfig {
     method?: string;
@@ -40,8 +40,13 @@ async function axios(config: RequestConfig) {
 
     // Writes are not persisted: tell the visitor and re-render the page they are on.
     if (method !== 'get') {
-        if (new URL(url).pathname === '/logout') {
+        const pathname = new URL(url).pathname;
+        if (pathname === '/logout') {
             url = new URL('/', window.location.href).href;
+        } else if (pathname === '/projects' && method === 'post') {
+            // "Create project": follow the real flow into the brief intake agent with a fresh sample project.
+            toast.info('Demo: opening a sample new project instead of creating one.');
+            url = new URL(`/projects/${NEW_PROJECT_ID}/brief-intake`, window.location.href).href;
         } else {
             toast.info(DEMO_READ_ONLY_MESSAGE);
             url = window.location.href;

@@ -34,19 +34,6 @@ const generateStars = (count: number) => {
     });
 };
 
-// Generate space dust particles
-const generateSpaceDust = (count: number) => {
-    return Array.from({ length: count }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 1.5 + 0.5,
-        delay: Math.random() * 5,
-        duration: Math.random() * 8 + 5,
-        direction: Math.random() > 0.5 ? 1 : -1,
-    }));
-};
-
 // CSS keyframes injected once for star twinkle — pure GPU compositing
 const starTwinkleCSS = `
 @keyframes starTwinkle {
@@ -67,7 +54,6 @@ export const SiriusHero: React.FC = () => {
 
     // Lower density and fewer loops on mobile keeps scroll and touch interaction smooth.
     const stars = useMemo(() => (shouldReduceEffects ? generateStars(14) : generateStars(45)), [shouldReduceEffects]);
-    const spaceDust = useMemo(() => (shouldReduceEffects ? [] : generateSpaceDust(12)), [shouldReduceEffects]);
 
     return (
         <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
@@ -102,33 +88,6 @@ export const SiriusHero: React.FC = () => {
                 ))}
             </div>
 
-            {/* Space dust particles */}
-            <div className="pointer-events-none absolute inset-0 z-[1]">
-                {spaceDust.map((dust) => (
-                    <motion.div
-                        key={`dust-${dust.id}`}
-                        className="absolute rounded-full bg-primary/20"
-                        style={{
-                            left: `${dust.x}%`,
-                            top: `${dust.y}%`,
-                            width: dust.size,
-                            height: dust.size,
-                        }}
-                        animate={{
-                            x: [0, dust.direction * 30, 0],
-                            y: [0, -20, 0],
-                            opacity: [0.1, 0.4, 0.1],
-                        }}
-                        transition={{
-                            duration: dust.duration,
-                            delay: dust.delay,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                        }}
-                    />
-                ))}
-            </div>
-
             {/* Cosmic nebula gradient overlay */}
             <div className="pointer-events-none absolute inset-0 z-[2]">
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-transparent to-background" />
@@ -136,53 +95,24 @@ export const SiriusHero: React.FC = () => {
                 {!shouldReduceEffects ? (
                     <>
                         {/* Deep purple nebula - upper left */}
-                        <motion.div
+                        <div
                             className="absolute -top-20 -left-20 h-[700px] w-[700px] rounded-full opacity-[0.12] blur-[140px]"
                             style={{
                                 background: 'radial-gradient(circle, rgba(120,80,220,0.5) 0%, rgba(80,40,180,0.3) 40%, transparent 70%)',
                             }}
-                            animate={{
-                                scale: [1, 1.15, 1],
-                                opacity: [0.12, 0.18, 0.12],
-                            }}
-                            transition={{
-                                duration: 12,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                            }}
                         />
                         {/* Blue nebula - center right */}
-                        <motion.div
+                        <div
                             className="absolute top-1/3 -right-10 h-[550px] w-[550px] rounded-full opacity-[0.10] blur-[120px]"
                             style={{
                                 background: 'radial-gradient(circle, rgba(60,120,255,0.4) 0%, rgba(40,80,200,0.2) 45%, transparent 70%)',
                             }}
-                            animate={{
-                                scale: [1, 1.1, 1],
-                                opacity: [0.1, 0.16, 0.1],
-                            }}
-                            transition={{
-                                duration: 15,
-                                delay: 3,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                            }}
                         />
                         {/* Cyan/teal nebula - lower */}
-                        <motion.div
+                        <div
                             className="absolute bottom-1/4 left-1/3 h-[500px] w-[500px] rounded-full opacity-[0.08] blur-[110px]"
                             style={{
                                 background: 'radial-gradient(circle, rgba(60,200,220,0.35) 0%, rgba(40,150,180,0.15) 50%, transparent 70%)',
-                            }}
-                            animate={{
-                                scale: [1, 1.12, 1],
-                                opacity: [0.08, 0.14, 0.08],
-                            }}
-                            transition={{
-                                duration: 10,
-                                delay: 5,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
                             }}
                         />
                     </>
@@ -213,19 +143,12 @@ export const SiriusHero: React.FC = () => {
             </div>
 
             {!shouldReduceEffects && (
-                <motion.div
+                <div
                     className="pointer-events-none absolute top-0 right-0 left-0 z-[3] h-[50vh]"
                     style={{
+                        opacity: 0.5,
                         background:
                             'linear-gradient(180deg, rgba(100,60,200,0.08) 0%, rgba(60,120,255,0.04) 30%, rgba(60,200,220,0.02) 60%, transparent 100%)',
-                    }}
-                    animate={{
-                        opacity: [0.3, 0.7, 0.3],
-                    }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
                     }}
                 />
             )}
@@ -276,8 +199,8 @@ export const SiriusHero: React.FC = () => {
                         >
                             {shouldReduceEffects ? (
                                 <p className="text-lg leading-relaxed text-muted-foreground lg:text-xl">
-                                    Paste your project brief and Sirius AI breaks it into features with complete PRDs, user stories,
-                                    ERDs, sequence diagrams, and wireframes, then exports everything to GitHub.
+                                    Paste your project brief and Sirius AI breaks it into features with complete PRDs, user stories, ERDs, sequence
+                                    diagrams, and wireframes, then exports everything to GitHub.
                                 </p>
                             ) : (
                                 <HyperTextParagraph

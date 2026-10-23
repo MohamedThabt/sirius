@@ -148,6 +148,7 @@ export default function SiriusOrbitalFeatures() {
     const nodesRef = useRef<(HTMLDivElement | null)[]>([]);
     const rafRef = useRef<number>(0);
     const lastTimeRef = useRef<number>(0);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const setAutoRotate = useCallback((val: boolean) => {
         autoRotateRef.current = val;
@@ -189,8 +190,23 @@ export default function SiriusOrbitalFeatures() {
             });
             rafRef.current = requestAnimationFrame(animate);
         };
-        rafRef.current = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(rafRef.current);
+        // Only run the loop while the orbit is on screen; restart cleanly when it comes back.
+        const start = () => {
+            if (rafRef.current) return;
+            lastTimeRef.current = 0;
+            rafRef.current = requestAnimationFrame(animate);
+        };
+        const stop = () => {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = 0;
+        };
+        const observer = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()));
+        if (containerRef.current) observer.observe(containerRef.current);
+        else start();
+        return () => {
+            observer.disconnect();
+            stop();
+        };
     }, [calculateNodePosition]);
 
     const handleNodeClick = (nodeId: number) => {
@@ -205,6 +221,7 @@ export default function SiriusOrbitalFeatures() {
 
     return (
         <motion.div
+            ref={containerRef}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}

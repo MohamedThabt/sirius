@@ -53,9 +53,9 @@ jobs:
           build-args: |
             VITE_APP_NAME=Sirius
             VITE_GA_MEASUREMENT_ID=G-333ZHPTC8B
-            VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_rwpbrKcdcx5Rx6oyMQVRbKHDsTJmuNAhqfxsAZU2y6ep
+            VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=${{ secrets.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN }}
             VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
-            VITE_TURNSTILE_SITEKEY=0x4AAAAAACj9nwv1GucMvdLU
+            VITE_TURNSTILE_SITEKEY=${{ secrets.VITE_TURNSTILE_SITEKEY }}
 
       # --- Deployment Trigger (After image push) ---
       - name: Trigger Dokploy deployment
@@ -64,4 +64,4 @@ jobs:
           curl -X POST "https://1-dokploy.siriusai.tech/api/compose.redeploy" \
             -H "Content-Type: application/json" \
             -H "x-api-key: ${{ secrets.DOKPLOY_API_TOKEN }}" \
-            -d '{"composeId": "KM5938sqJDoSyVeRGax4s"}'
+            -d '{"composeId": "${{ secrets.DOKPLOY_LARAVEL_COMPOSE_ID }}"}'

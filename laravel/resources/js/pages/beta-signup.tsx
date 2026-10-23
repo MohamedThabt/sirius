@@ -330,7 +330,7 @@ const BetaSignup = ({ message }: BetaSignupProps) => {
                                                 {/* Turnstile Captcha */}
                                                 <div className="my-4 flex justify-center overflow-hidden">
                                                     <Turnstile
-                                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAACj9nwv1GucMvdLU'}
+                                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''}
                                                         onSuccess={(token) => {
                                                             setData('cf-turnstile-response', token);
                                                             if (validationErrors.turnstile) {

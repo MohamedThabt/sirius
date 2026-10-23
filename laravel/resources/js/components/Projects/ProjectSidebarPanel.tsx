@@ -1,3 +1,4 @@
+import { GithubRepoLink } from '@/components/github-repo-link';
 import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -5,15 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
-import {
-    AlertCircleIcon,
-    CheckCircleIcon,
-    ChevronDownIcon,
-    ChevronLeftIcon,
-    CircleIcon,
-    ClockIcon,
-    TrendingUpIcon,
-} from 'lucide-react';
+import { AlertCircleIcon, CheckCircleIcon, ChevronDownIcon, ChevronLeftIcon, CircleIcon, ClockIcon, TrendingUpIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
 export interface ProjectSidebarProject {
@@ -180,26 +173,13 @@ export default function ProjectSidebarPanel({
                                                                   ? 'cursor-pointer bg-sidebar-accent font-medium text-foreground'
                                                                   : 'cursor-pointer text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
                                                             item.emphasize && !item.disabled ? 'font-medium text-foreground' : '',
-                                                            item.key === 'brainstorming' && !item.disabled
-                                                                ? 'border border-amber-200 bg-amber-50 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:hover:bg-amber-500/20'
-                                                                : '',
                                                         ].join(' ')}
                                                         title={item.disabled ? `${item.label} (Not created yet)` : item.label}
                                                     >
                                                         <item.icon
                                                             className={`h-4 w-4 shrink-0 ${item.key === 'brainstorming' && !item.disabled ? 'text-amber-600 dark:text-amber-400' : ''}`}
                                                         />
-                                                        <span
-                                                            className={
-                                                                item.muted
-                                                                    ? 'opacity-70'
-                                                                    : item.key === 'brainstorming' && !item.disabled
-                                                                      ? 'text-amber-900 dark:text-amber-200'
-                                                                      : ''
-                                                            }
-                                                        >
-                                                            {item.label}
-                                                        </span>
+                                                        <span className={item.muted ? 'opacity-70' : ''}>{item.label}</span>
                                                         {item.badge && (
                                                             <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
                                                                 {item.badge}
@@ -211,11 +191,15 @@ export default function ProjectSidebarPanel({
                                     </ul>
                                 </div>
                             ))}
-
                         </nav>
                     </div>
 
                     <div className="shrink-0 space-y-3">
+                        {/* Source code */}
+                        <div className="border-t pt-3">
+                            <GithubRepoLink />
+                        </div>
+
                         {/* Usage Bar */}
                         <div className="border-t pt-3">
                             <SidebarUsageBar />

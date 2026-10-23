@@ -350,7 +350,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                         <div className="flex justify-center overflow-hidden">
                                             <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
                                             <Turnstile
-                                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITEKEY || '0x4AAAAAACj9nwv1GucMvdLU'}
+                                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITEKEY || ''}
                                                 onSuccess={(token) => setTurnstileToken(token)}
                                                 options={{ theme: 'auto' }}
                                             />
@@ -490,7 +490,7 @@ export default function LoginSignupPage({ initialMode, status, canResetPassword 
                                         <div className="flex justify-center overflow-hidden">
                                             <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
                                             <Turnstile
-                                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITEKEY || '0x4AAAAAACj9nwv1GucMvdLU'}
+                                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || import.meta.env.VITE_TURNSTILE_SITEKEY || ''}
                                                 onSuccess={(token) => setTurnstileToken(token)}
                                                 options={{ theme: 'auto' }}
                                             />

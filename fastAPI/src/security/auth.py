@@ -1,8 +1,12 @@
+import os
+import secrets
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-# Strong 256-bit hardcoded Bearer token for Laravel-FastAPI communication
-VALID_BEARER_TOKEN = "sk_sirius_a9f7c2e4b8d1f6a3c5e9d2b7f4a8c1e6d3b9f5a2c8e4d7b1f6a3c9e5d2b8f4a1"
+# Shared secret for Laravel -> FastAPI calls. Set SIRIUS_API_TOKEN in the environment
+# (the same value as FASTAPI_API_TOKEN in Laravel). Never commit the real value.
+VALID_BEARER_TOKEN = os.getenv("SIRIUS_API_TOKEN", "")
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -16,7 +20,13 @@ async def verify_bearer_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    if credentials.credentials != VALID_BEARER_TOKEN:
+    if not VALID_BEARER_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="API token is not configured on the server",
+        )
+
+    if not secrets.compare_digest(credentials.credentials, VALID_BEARER_TOKEN):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid bearer token",

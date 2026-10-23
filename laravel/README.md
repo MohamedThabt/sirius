@@ -283,5 +283,5 @@ To enable, set the following in your \.env\:
 
 \\\env
 VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_xxxxxxxxxxxxxxxxxxxxxxxx
+VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=
 VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com

@@ -21,49 +21,49 @@ const teamMembers: TeamMember[] = [
     {
         name: 'Mohamed Thabet',
         role: 'Software Engineer',
-        image: '/images/team/mohamed-thabet.png',
+        image: '/images/team/mohamed-thabet.webp',
         website: 'https://sirthabet.dev/',
         gender: 'male',
     },
     {
         name: 'Safinaz Ahmed',
         role: 'Data & AI Engineer',
-        image: '/images/team/safi.png',
+        image: '/images/team/safi.webp',
         linkedin: 'https://www.linkedin.com/in/safinaz-ahmed/',
         gender: 'female',
     },
     {
         name: 'Kyrillos Nady',
         role: 'QA & Security Engineer',
-        image: '/images/team/kyrillos.png',
+        image: '/images/team/kyrillos.webp',
         website: 'https://0xk3r0.github.io/',
         gender: 'male',
     },
     {
         name: 'Dina Mohamed',
         role: 'Software Engineer',
-        image: '/images/team/dina.png',
+        image: '/images/team/dina.webp',
         linkedin: 'https://www.linkedin.com/in/dina-mohamed-8387aa267/',
         gender: 'female',
     },
     {
         name: 'Marwa Ayman',
         role: 'Software Engineer',
-        image: '/images/team/marwa.png',
+        image: '/images/team/marwa.webp',
         linkedin: 'https://www.linkedin.com/in/marwa-ayman-5a66a7254/',
         gender: 'female',
     },
     {
         name: 'Mohamed Sayed',
         role: 'Software Engineer',
-        image: '/images/team/mohamed-sayed.png',
+        image: '/images/team/mohamed-sayed.webp',
         linkedin: 'https://www.linkedin.com/in/mohamed-sayed-10b892172/',
         gender: 'male',
     },
     {
         name: 'Mera Ashraf',
         role: 'Software Engineer',
-        image: '/images/team/mera.png',
+        image: '/images/team/mera.webp',
         linkedin: 'https://www.linkedin.com/in/mera-ashraf-019438320/',
         gender: 'female',
     },
@@ -150,8 +150,6 @@ export default function Team() {
                                                         <OptimizedImage
                                                             src={avatarUrl}
                                                             alt={member.name}
-                                                            width={56}
-                                                            height={56}
                                                             className="h-full w-full object-cover"
                                                         />
                                                     </div>
