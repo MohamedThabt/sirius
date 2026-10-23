@@ -4,7 +4,9 @@
     "scripts": {
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
+        "build:demo": "vite build --config vite.demo.config.ts",
         "dev": "vite",
+        "dev:demo": "vite --config vite.demo.config.ts",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",

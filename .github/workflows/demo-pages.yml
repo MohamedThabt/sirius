@@ -1,0 +1,56 @@
+name: Deploy Frontend Demo to GitHub Pages
+
+# Builds the static, backend-free portfolio demo (laravel/vite.demo.config.ts)
+# and publishes it to the gh-pages branch, served at https://sirius.sirthabet.dev
+
+on:
+  push:
+    branches: [ "demo/github-pages" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: demo-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and publish demo
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: laravel
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.8.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: laravel/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build demo
+        run: pnpm build:demo
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./laravel/dist-demo
+          publish_branch: gh-pages
+          cname: sirius.sirthabet.dev
+          force_orphan: true
+          commit_message: "deploy: frontend demo"

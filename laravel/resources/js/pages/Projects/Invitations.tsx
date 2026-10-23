@@ -25,7 +25,8 @@ interface Props {
 
 export default function ProjectInvitations({ invitations }: Props) {
     useFlashToasts();
-    const { auth } = usePage<SharedData>().props;
+    const { auth, projects: sharedProjects } = usePage<SharedData>().props;
+    const projects = (sharedProjects as { id: number; name: string; status?: string }[] | undefined) || [];
     const getInitials = useInitials();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -52,10 +53,11 @@ export default function ProjectInvitations({ invitations }: Props) {
                 <div className="flex">
                     <ProjectsIndexSidebar
                         auth={auth}
+                        projects={projects}
                         isSidebarCollapsed={isSidebarCollapsed}
                         onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                         onCreateProject={() => router.visit('/projects')}
-                        projectCount={0}
+                        projectCount={projects.length}
                         invitationsCount={invitations.length}
                         currentPage="invitations"
                     />
