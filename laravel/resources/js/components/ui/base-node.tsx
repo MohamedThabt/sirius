@@ -5,8 +5,8 @@ const BaseNode = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
     <div
         ref={ref}
         className={cn(
-            'rounded-lg border-2 border-border bg-background shadow-md transition-all',
-            'hover:shadow-lg',
+            'rounded-[20px] border border-border bg-background shadow-sm transition-all',
+            'hover:shadow',
             className
         )}
         {...props}

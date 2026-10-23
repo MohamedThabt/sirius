@@ -16,26 +16,34 @@
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
-                const appearance = '{{ $appearance ?? "system" }}';
+                try {
+                    const savedAppearance = localStorage.getItem('appearance');
+                    const appearance = savedAppearance || '{{ $appearance ?? "system" }}';
 
-                if (appearance === 'system') {
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                    if (prefersDark) {
+                    if (appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                         document.documentElement.classList.add('dark');
+                        document.documentElement.style.colorScheme = 'dark';
+                        document.documentElement.style.background = '#0f0f0f'; /* --bg-chrome */
+                    } else {
+                        document.documentElement.classList.add('light');
+                        document.documentElement.style.colorScheme = 'light';
+                        document.documentElement.style.background = '#f5f5f5'; /* canvas light */
                     }
+                } catch (e) {
+                    // Fallback if localStorage is inaccessible
                 }
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on Linear's theme --}}
+        {{-- Inline style to set the HTML background color based on Cursor dark theme --}}
         <style>
             html {
-                background-color: oklch(0.9784 0.0011 264.0521); /* Linear #F1F5F9 */
+                background-color: #f5f5f5; /* Light canvas */
             }
 
             html.dark {
-                background-color: oklch(0.1553 0.0226 265.3198); /* Linear #0F172A */
+                background-color: #0f0f0f; /* Cursor --bg-chrome */
+                --bg-chrome: #0f0f0f;
             }
         </style>
 
@@ -60,12 +68,12 @@
         <link rel="icon" href="/favicon.png" type="image/png">
         <link rel="apple-touch-icon" href="/favicon.png">
 
-        {{--  Design System - Inter Font Family with optimized loading --}}
+        {{--  Design System - Inter and EB Garamond Font Families with optimized loading --}}
         <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         {{-- Load font stylesheet with media="print" then swap to avoid render-blocking --}}
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
-        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
 
         @viteReactRefresh
         @vite(['resources/js/app.tsx'])

@@ -1,4 +1,3 @@
-import AppLogo from '@/components/app-logo';
 import { SidebarUsageBar } from '@/components/sidebar-usage-bar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -6,7 +5,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { type User } from '@/types';
 import { router } from '@inertiajs/react';
-import { ArrowRightIcon, ChevronDownIcon, FolderIcon, Mail, PlusIcon, SparklesIcon } from 'lucide-react';
+import { ChevronDownIcon, FolderIcon, Mail, PlusIcon } from 'lucide-react';
 
 interface ProjectItem {
     id: number;
@@ -86,24 +85,17 @@ export default function ProjectsIndexSidebar({
 
     return (
         <aside
-            className={`${isMobileSheet ? 'w-full' : isSidebarCollapsed ? 'w-0' : 'hidden w-64 shrink-0 border-r border-border/50 lg:block'} bg-gradient-to-b from-background to-muted/10 transition-all duration-300`}
+            className={`${isMobileSheet ? 'w-full' : isSidebarCollapsed ? 'w-0' : 'hidden w-60 shrink-0 border-r border-sidebar-border lg:block'} bg-sidebar transition-all duration-300`}
         >
             <div
-                className={`${isMobileSheet ? 'flex' : 'sticky'} top-0 flex h-screen flex-col justify-between py-8 pr-6 pl-4 ${isSidebarCollapsed && !isMobileSheet ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                className={`${isMobileSheet ? 'flex' : 'sticky'} top-0 flex h-screen flex-col justify-between px-3 py-4 ${isSidebarCollapsed && !isMobileSheet ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
             >
                 <div className="scrollbar-hide overflow-x-hidden overflow-y-auto">
-                    {/* Header with App Logo */}
-                    <div className="mb-6 border-b border-border/30 pb-4">
-                        <div className="flex items-center justify-center">
-                            <AppLogo />
-                        </div>
-                    </div>
-
                     <nav className="space-y-6">
                         {navGroups.map((group) => (
                             <div key={group.label} className="space-y-2">
-                                <div className="px-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{group.label}</div>
-                                <ul className="space-y-1.5">
+                                <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</div>
+                                <ul className="space-y-1">
                                     {group.label === 'Overview' ? (
                                         <>
                                             {group.items.slice(0, 2).map((item) => (
@@ -112,14 +104,14 @@ export default function ProjectsIndexSidebar({
                                                         type="button"
                                                         onClick={item.onClick}
                                                         className={[
-                                                            'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200',
+                                                            'flex w-full cursor-pointer items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
                                                             item.active
-                                                                ? 'border border-primary/20 bg-gradient-to-r from-primary/15 to-primary/5 font-semibold text-foreground shadow-sm'
-                                                                : 'text-muted-foreground hover:translate-x-0.5 hover:bg-muted/70 hover:text-foreground',
+                                                                ? 'bg-sidebar-accent font-medium text-foreground'
+                                                                : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
                                                         ].join(' ')}
                                                         title={item.label}
                                                     >
-                                                        <item.icon className={`h-4 w-4 shrink-0 ${item.active ? 'text-primary' : ''}`} />
+                                                        <item.icon className="h-4 w-4 shrink-0" />
                                                         <span className="flex-1 text-left">{item.label}</span>
                                                         {item.badge && (
                                                             <span
@@ -141,14 +133,14 @@ export default function ProjectsIndexSidebar({
                                                         type="button"
                                                         onClick={item.onClick}
                                                         className={[
-                                                            'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200',
+                                                            'flex w-full cursor-pointer items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
                                                             item.active
-                                                                ? 'border border-primary/20 bg-gradient-to-r from-primary/15 to-primary/5 font-semibold text-foreground shadow-sm'
-                                                                : 'text-muted-foreground hover:translate-x-0.5 hover:bg-muted/70 hover:text-foreground',
+                                                                ? 'bg-sidebar-accent font-medium text-foreground'
+                                                                : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
                                                         ].join(' ')}
                                                         title={item.label}
                                                     >
-                                                        <item.icon className={`h-4 w-4 shrink-0 ${item.active ? 'text-primary' : ''}`} />
+                                                        <item.icon className="h-4 w-4 shrink-0" />
                                                         <span className="flex-1 text-left">{item.label}</span>
                                                     </button>
                                                 </li>
@@ -161,14 +153,14 @@ export default function ProjectsIndexSidebar({
                                                     type="button"
                                                     onClick={item.onClick}
                                                     className={[
-                                                        'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200',
+                                                        'flex w-full cursor-pointer items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
                                                         item.active
-                                                            ? 'border border-primary/20 bg-gradient-to-r from-primary/15 to-primary/5 font-semibold text-foreground shadow-sm'
-                                                            : 'text-muted-foreground hover:translate-x-0.5 hover:bg-muted/70 hover:text-foreground',
+                                                            ? 'bg-sidebar-accent font-medium text-foreground'
+                                                            : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
                                                     ].join(' ')}
                                                     title={item.label}
                                                 >
-                                                    <item.icon className={`h-4 w-4 shrink-0 ${item.active ? 'text-primary' : ''}`} />
+                                                    <item.icon className="h-4 w-4 shrink-0" />
                                                     <span className="flex-1 text-left">{item.label}</span>
                                                     {item.badge && (
                                                         <span
@@ -191,7 +183,7 @@ export default function ProjectsIndexSidebar({
 
                         {/* Projects List */}
                         <div className="space-y-2">
-                            <div className="px-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Projects</div>
+                            <div className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Projects</div>
                             {projects.length === 0 ? (
                                 <div className="px-3 py-2 text-xs text-muted-foreground italic">No projects loaded</div>
                             ) : (
@@ -201,10 +193,10 @@ export default function ProjectsIndexSidebar({
                                             <button
                                                 onClick={() => router.visit(`/projects/${p.id}`)}
                                                 className={[
-                                                    'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200',
+                                                    'flex w-full cursor-pointer items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors',
                                                     currentProjectId === p.id
-                                                        ? 'border border-primary/20 bg-gradient-to-r from-primary/15 to-primary/5 font-medium text-foreground shadow-sm'
-                                                        : 'text-muted-foreground hover:translate-x-0.5 hover:bg-muted/70 hover:text-foreground',
+                                                        ? 'bg-sidebar-accent font-medium text-foreground'
+                                                        : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-foreground',
                                                 ].join(' ')}
                                             >
                                                 <FolderIcon
@@ -220,26 +212,26 @@ export default function ProjectsIndexSidebar({
                     </nav>
                 </div>
 
-                <div className="shrink-0 space-y-4">
+                <div className="shrink-0 space-y-3">
                     {/* Usage Bar */}
-                    <div className="border-t border-border/50 pt-4">
+                    <div className="border-t pt-3">
                         <SidebarUsageBar />
                     </div>
 
                     {/* User Menu */}
-                    <div className="border-t border-border/50 pt-4">
+                    <div className="border-t pt-3">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-all duration-200 hover:bg-muted/70">
-                                    <Avatar className="h-8 w-8 shrink-0 ring-2 ring-primary/10">
+                                <button className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-sidebar-accent">
+                                    <Avatar className="h-5 w-5 shrink-0">
                                         <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-xs font-semibold text-foreground">
+                                        <AvatarFallback className="bg-neutral-200 text-[10px] text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="min-w-0 flex-1">
-                                        <div className="truncate text-sm font-semibold text-foreground">{auth.user.name}</div>
-                                        <div className="truncate text-xs text-muted-foreground">{auth.user.email}</div>
+                                        <div className="truncate text-xs font-medium text-foreground">{auth.user.name}</div>
+                                        <div className="truncate text-[10px] text-muted-foreground">{auth.user.email}</div>
                                     </div>
                                     <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                                 </button>

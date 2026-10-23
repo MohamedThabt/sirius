@@ -67,7 +67,7 @@ export function generateProjectNavigation(project: ProjectData): NavigationSecti
                 },
                 {
                     title: 'Project Brief',
-                    href: `/projects/${project.id}/prepare`,
+                    href: `/projects/${project.id}/brief-intake`,
                     icon: FileIcon,
                     status: 'in_progress' as const,
                 },

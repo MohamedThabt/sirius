@@ -2,6 +2,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { Toaster } from '@/components/ui/sonner';
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { type BreadcrumbItem } from '@/types';
@@ -21,6 +22,7 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
                 <main className="flex flex-1 flex-col">{children}</main>
             </AppContent>
             <Toaster />
+            <FeedbackWidget />
         </AppShell>
     );
 

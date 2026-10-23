@@ -148,9 +148,9 @@ class ProjectController extends Controller
                 return back()->with('error', 'You do not have access to this project.');
             }
 
-            // If project doesn't have a brief, redirect to prepare page
+            // If project doesn't have a brief, redirect to brief intake page
             if (empty($project->brief)) {
-                return redirect()->route('projects.prepare', $project);
+                return redirect()->route('projects.brief-intake', $project);
             }
 
             $project->load(['features', 'repository', 'user', 'technicalIntake']);
@@ -235,7 +235,7 @@ class ProjectController extends Controller
                 'name' => $project->name,
             ]);
 
-            return redirect()->route('projects.prepare', $project)
+            return redirect()->route('projects.brief-intake', $project)
                 ->with('success', 'Project created successfully!');
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'store']);
@@ -323,11 +323,11 @@ class ProjectController extends Controller
             $ownedProjects = Project::where('user_id', auth()->id())
                 ->orderBy('projects.updated_at', 'desc')
                 ->get(['projects.id', 'projects.name', 'projects.status']);
-                
+
             $teamProjects = auth()->user()->teamProjects()
                 ->orderBy('projects.updated_at', 'desc')
                 ->get(['projects.id', 'projects.name', 'projects.status']);
-                
+
             $projects = $ownedProjects->merge($teamProjects)
                 ->unique('id')
                 ->sortByDesc('updated_at')
@@ -346,6 +346,29 @@ class ProjectController extends Controller
         } catch (\Throwable $e) {
             $this->logException($e, ['action' => 'prepare', 'project_id' => $project->id]);
             return back()->with('error', 'Failed to load project preparation.');
+        }
+    }
+
+    public function briefIntake(Project $project)
+    {
+        try {
+            $this->ensureAccess($project);
+
+            $project->load(['modules']);
+
+            return Inertia::render('Projects/BriefIntake', [
+                'project' => $project,
+                'hasModules' => $project->modules()->exists(),
+                'sections' => [
+                    'overview' => $project->overview ?: null,
+                    'prd' => null,
+                    'data_modeling' => null,
+                    'non_functional_requirements' => $project->non_functional_requirements ?: null,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            $this->logException($e, ['action' => 'briefIntake', 'project_id' => $project->id]);
+            return back()->with('error', 'Failed to load brief intake.');
         }
     }
 

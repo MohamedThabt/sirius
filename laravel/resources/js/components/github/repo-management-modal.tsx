@@ -102,62 +102,36 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
     return (
         <>
             <Dialog open={open && !showDeleteConfirm} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-2xl gap-0 overflow-hidden p-0">
+                <DialogContent className="max-w-2xl gap-0 overflow-hidden p-0 bg-card border-border">
                     {/* Enhanced Header */}
-                    <div className="relative overflow-hidden bg-[#0d1117] px-6 py-8 text-white">
-                        {/* Animated gradient orbs */}
-                        <div className="pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-500/20 via-cyan-500/10 to-transparent blur-3xl" />
-                        <div className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-transparent blur-3xl" />
-
-                        {/* Grid pattern overlay */}
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
-
-                        {/* GitHub contribution-style dots pattern */}
-                        <div className="absolute top-6 right-6 grid grid-cols-7 gap-1 opacity-30">
-                            {Array.from({ length: 28 }).map((_, i) => (
-                                <div
-                                    key={i}
-                                    className={cn(
-                                        'h-2 w-2 rounded-sm',
-                                        Math.random() > 0.6 ? 'bg-emerald-400' : Math.random() > 0.3 ? 'bg-emerald-600' : 'bg-slate-700',
-                                    )}
-                                />
-                            ))}
-                        </div>
-
+                    <div className="relative overflow-hidden bg-background px-6 py-8 text-foreground border-b border-border">
                         <DialogHeader className="relative">
                             <div className="flex items-center gap-4">
-                                {/* Animated GitHub logo */}
                                 <div className="group relative">
-                                    <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-500 opacity-50 blur transition-all group-hover:opacity-75" />
-                                    <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-[#161b22] ring-1 ring-white/10">
-                                        <Github className="h-8 w-8 transition-transform group-hover:scale-110" />
+                                    <div className="relative flex h-16 w-16 items-center justify-center rounded-xl bg-secondary ring-1 ring-border">
+                                        <Github className="h-8 w-8 transition-transform group-hover:scale-110 text-foreground" />
                                     </div>
                                 </div>
 
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3">
-                                        <DialogTitle className="text-2xl font-bold tracking-tight text-white">GitHub Connected</DialogTitle>
-                                        <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-400 ring-1 ring-emerald-500/30">
-                                            <span className="relative flex h-2 w-2">
-                                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                                            </span>
+                                        <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">GitHub Connected</DialogTitle>
+                                        <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary ring-1 ring-primary/20">
                                             Active
                                         </div>
                                     </div>
-                                    <p className="mt-1 text-sm text-slate-400">Manage your repository integration and sync specifications</p>
+                                    <p className="mt-1 text-sm text-muted-foreground">Manage your repository integration and sync specifications</p>
                                 </div>
                             </div>
 
                             {/* Repository quick info bar */}
-                            <div className="mt-6 flex items-center gap-3 rounded-xl bg-white/5 p-3 ring-1 ring-white/10 backdrop-blur-sm">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-800">
-                                    <GitFork className="h-5 w-5 text-slate-300" />
+                            <div className="mt-6 flex items-center gap-3 rounded-xl bg-secondary p-3 ring-1 ring-border">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-background">
+                                    <GitFork className="h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-medium text-white">{repository.full_name}</p>
-                                    <div className="mt-0.5 flex items-center gap-3 text-xs text-slate-400">
+                                    <p className="truncate text-sm font-medium text-foreground">{repository.full_name}</p>
+                                    <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
                                         <span className="flex items-center gap-1">
                                             <GitBranch className="h-3 w-3" />
                                             {repository.default_branch}
@@ -173,8 +147,8 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                                     className={cn(
                                         'border-0 px-2.5 py-1 text-xs font-medium',
                                         repository.visibility === 'private'
-                                            ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/30'
-                                            : 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30',
+                                            ? 'bg-secondary text-secondary-foreground ring-1 ring-border'
+                                            : 'bg-primary/10 text-primary ring-1 ring-primary/20',
                                     )}
                                 >
                                     {repository.visibility === 'private' ? <Lock className="mr-1.5 h-3 w-3" /> : <Globe className="mr-1.5 h-3 w-3" />}
@@ -183,7 +157,7 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 gap-1.5 text-slate-300 hover:bg-white/10 hover:text-white"
+                                    className="h-8 gap-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                                     onClick={() => window.open(repository.html_url, '_blank')}
                                 >
                                     Open
@@ -193,7 +167,7 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                         </DialogHeader>
                     </div>
 
-                    <div className="p-6">
+                    <div className="p-6 bg-card">
                         {/* Actions Section */}
                         <div className="space-y-3">
                             <h4 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -205,21 +179,21 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                             <button
                                 onClick={handleSync}
                                 disabled={isSyncing}
-                                className="group relative w-full overflow-hidden rounded-xl border bg-gradient-to-r from-blue-50 to-indigo-50 p-4 text-left transition-all hover:border-blue-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 dark:from-blue-950/30 dark:to-indigo-950/30 dark:hover:border-blue-800"
+                                className="group relative w-full overflow-hidden rounded-xl border border-border bg-background p-4 text-left transition-all hover:border-primary hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/20 transition-transform group-hover:scale-105 dark:text-blue-400">
+                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground ring-1 ring-border transition-transform group-hover:scale-105">
                                         {isSyncing ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h5 className="font-medium text-blue-900 dark:text-blue-100">
+                                        <h5 className="font-medium text-foreground">
                                             {isSyncing ? 'Syncing Specifications...' : 'Sync Specifications'}
                                         </h5>
-                                        <p className="mt-0.5 text-sm text-blue-700/70 dark:text-blue-300/70">
+                                        <p className="mt-0.5 text-sm text-muted-foreground">
                                             Push latest PRD, database design & features to your repo
                                         </p>
                                     </div>
-                                    <ArrowUpRight className="h-5 w-5 shrink-0 text-blue-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+                                    <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
                                 </div>
                             </button>
 
@@ -227,17 +201,17 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
                                 disabled={isDeleting}
-                                className="group relative w-full overflow-hidden rounded-xl border border-red-200/50 bg-gradient-to-r from-red-50 to-rose-50 p-4 text-left transition-all hover:border-red-300 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/30 dark:from-red-950/20 dark:to-rose-950/20 dark:hover:border-red-800"
+                                className="group relative w-full overflow-hidden rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-left transition-all hover:border-destructive hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-600 ring-1 ring-red-500/20 transition-transform group-hover:scale-105 dark:text-red-400">
+                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive ring-1 ring-destructive/20 transition-transform group-hover:scale-105">
                                         <Unlink className="h-5 w-5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h5 className="font-medium text-red-900 dark:text-red-100">Disconnect Repository</h5>
-                                        <p className="mt-0.5 text-sm text-red-700/70 dark:text-red-300/70">Unlink this repository from the project</p>
+                                        <h5 className="font-medium text-destructive">Disconnect Repository</h5>
+                                        <p className="mt-0.5 text-sm text-destructive/80">Unlink this repository from the project</p>
                                     </div>
-                                    <ArrowUpRight className="h-5 w-5 shrink-0 text-red-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+                                    <ArrowUpRight className="h-5 w-5 shrink-0 text-destructive/80 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
                                 </div>
                             </button>
                         </div>
@@ -247,27 +221,27 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <AlertDialogContent className="max-w-md">
+                <AlertDialogContent className="max-w-md bg-card border-border">
                     <AlertDialogHeader>
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-                            <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
+                            <AlertTriangle className="h-7 w-7 text-destructive" />
                         </div>
-                        <AlertDialogTitle className="text-center text-xl">Disconnect Repository?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-center">
+                        <AlertDialogTitle className="text-center text-xl text-foreground">Disconnect Repository?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-center text-muted-foreground">
                             <p className="mb-3">
                                 You are about to disconnect <span className="font-semibold text-foreground">{repository.full_name}</span> from this
                                 project.
                             </p>
-                            <div className="rounded-lg bg-amber-50 p-3 text-left text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                            <div className="rounded-lg bg-secondary p-3 text-left text-sm text-secondary-foreground border border-border">
                                 <p className="font-medium">Note:</p>
-                                <p className="mt-1 text-amber-700 dark:text-amber-300">
+                                <p className="mt-1 text-muted-foreground">
                                     This will only unlink the repository. Your code and files on GitHub will remain intact.
                                 </p>
                             </div>
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-2 sm:justify-center sm:space-x-3">
-                        <AlertDialogCancel disabled={isDeleting} className="sm:w-32">
+                        <AlertDialogCancel disabled={isDeleting} className="sm:w-32 border-border text-foreground hover:bg-muted hover:text-foreground">
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -276,7 +250,7 @@ export function RepoManagementModal({ open, onOpenChange, repository, projectId 
                                 handleDelete();
                             }}
                             disabled={isDeleting}
-                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600 sm:w-32"
+                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground sm:w-32"
                         >
                             {isDeleting ? (
                                 <>

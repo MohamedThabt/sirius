@@ -183,8 +183,8 @@ function MermaidDiagramComponent({ children, projectId, previewTitle = 'Mermaid 
                         )}
                     </Button>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-                    <pre className="overflow-x-auto text-sm text-slate-700 dark:text-slate-300">
+                <div className="rounded-lg border border-border bg-secondary p-4">
+                    <pre className="overflow-x-auto text-sm text-foreground">
                         <code>{cleanedCode}</code>
                     </pre>
                 </div>
@@ -195,8 +195,8 @@ function MermaidDiagramComponent({ children, projectId, previewTitle = 'Mermaid 
     // Loading state
     if (!svg) {
         return (
-            <div className="my-4 flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-8 dark:border-slate-700 dark:bg-slate-800">
-                <TextShimmer className="text-sm text-slate-500 dark:text-slate-400">Rendering diagram...</TextShimmer>
+            <div className="my-4 flex items-center justify-center rounded-lg border border-border bg-secondary p-8">
+                <TextShimmer className="text-sm text-muted-foreground">Rendering diagram...</TextShimmer>
             </div>
         );
     }
@@ -243,7 +243,7 @@ function MermaidDiagramComponent({ children, projectId, previewTitle = 'Mermaid 
                         </DialogHeader>
                         <div className="mt-4 flex justify-center">
                             <div
-                                className="max-h-[70vh] overflow-auto rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                                className="max-h-[70vh] overflow-auto rounded-lg border border-border bg-card p-4 shadow-sm"
                                 dangerouslySetInnerHTML={{ __html: svg }}
                             />
                         </div>
@@ -264,15 +264,15 @@ function MermaidDiagramComponent({ children, projectId, previewTitle = 'Mermaid 
             )}
 
             {showCode ? (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-                    <pre className="text-sm text-slate-700 dark:text-slate-300">
+                <div className="rounded-lg border border-border bg-secondary p-4">
+                    <pre className="text-sm text-foreground">
                         <code>{convertEscapedMermaid(children)}</code>
                     </pre>
                 </div>
             ) : (
                 <div className="flex justify-center">
                     <div
-                        className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                        className="rounded-lg border border-border bg-card p-4 shadow-sm"
                         dangerouslySetInnerHTML={{ __html: svg }}
                     />
                 </div>

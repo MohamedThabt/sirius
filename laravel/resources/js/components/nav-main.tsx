@@ -68,16 +68,16 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
     };
 
     return (
-        <SidebarGroup className="px-1 py-0">
+        <SidebarGroup className="py-2">
             {title && (
-                <SidebarGroupLabel className="mb-1 px-2 text-[10px] font-semibold tracking-wider text-muted-foreground/60 uppercase">
+                <SidebarGroupLabel className="text-sm font-medium text-muted-foreground px-2 h-8">
                     {title}
                 </SidebarGroupLabel>
             )}
-            <SidebarMenu className="gap-0.5">
+            <SidebarMenu className="gap-1">
                 {items.map((item: ExtendedNavItem) => {
                     const hasChildren = item.items && item.items.length > 0;
-                    const isActive = isItemActive(item);
+                    const isActive = isItemActive(item) && !hasChildren;
 
                     return (
                         <SidebarMenuItem key={item.title}>
@@ -88,18 +88,16 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                         isActive={isActive || hasActiveChild(item)}
                                         tooltip={{ children: item.title }}
                                         className={cn(
-                                            'group/btn relative rounded-lg transition-all duration-200',
-                                            'hover:bg-primary/5',
-                                            isActive && 'bg-primary/10 font-medium text-primary',
+                                            'h-9 rounded-lg font-medium transition-all duration-200 group',
+                                            isActive || hasActiveChild(item)
+                                                ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-none'
+                                                : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
                                         )}
                                     >
                                         <Link href={item.href} prefetch>
                                             {item.icon && (
                                                 <item.icon
-                                                    className={cn(
-                                                        'h-4 w-4 transition-all duration-200',
-                                                        isActive ? 'text-primary' : 'text-muted-foreground group-hover/btn:text-foreground',
-                                                    )}
+                                                    className="mr-2 h-4 w-4 opacity-70"
                                                 />
                                             )}
                                             <span className="text-sm">{item.title}</span>
@@ -115,18 +113,16 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                                         asChild
                                                         isActive={subIsActive}
                                                         className={cn(
-                                                            'rounded-md transition-all duration-200',
-                                                            'hover:bg-primary/5',
-                                                            subIsActive && 'bg-primary/10 font-medium text-primary',
+                                                            'h-8 rounded-lg font-medium transition-all duration-200 group',
+                                                            subIsActive
+                                                                ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-none'
+                                                                : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
                                                         )}
                                                     >
                                                         <Link href={subItem.href} prefetch>
                                                             {subItem.icon && (
                                                                 <subItem.icon
-                                                                    className={cn(
-                                                                        'h-3.5 w-3.5 transition-all duration-200',
-                                                                        subIsActive ? 'text-primary' : 'text-muted-foreground',
-                                                                    )}
+                                                                    className="mr-2 h-4 w-4 opacity-70"
                                                                 />
                                                             )}
                                                             <span className="text-sm">{subItem.title}</span>
@@ -144,18 +140,16 @@ export function NavMain({ items = [], title, collapsible = false }: NavMainProps
                                     isActive={isActive}
                                     tooltip={{ children: item.title }}
                                     className={cn(
-                                        'group/btn relative rounded-lg transition-all duration-200',
-                                        'hover:bg-primary/5',
-                                        isActive && 'bg-primary/10 font-medium text-primary',
+                                        'h-9 rounded-lg font-medium transition-all duration-200 group',
+                                        isActive
+                                            ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-none'
+                                            : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
                                     )}
                                 >
                                     <Link href={item.href} prefetch>
                                         {item.icon && (
                                             <item.icon
-                                                className={cn(
-                                                    'h-4 w-4 transition-all duration-200',
-                                                    isActive ? 'text-primary' : 'text-muted-foreground group-hover/btn:text-foreground',
-                                                )}
+                                                className="mr-2 h-4 w-4 opacity-70"
                                             />
                                         )}
                                         <span className="text-sm">{item.title}</span>
