@@ -1,0 +1,1 @@
+const s=(t,o)=>{const e=t?.id===o;return{isSelected:e,selectionStyle:e?{outline:"2px solid #3b82f6",boxShadow:"0 0 0 4px rgba(59,130,246,0.15)"}:{}}},c=()=>typeof document<"u"&&document.documentElement.classList.contains("dark")?"1px solid rgba(148,163,184,.35)":"#cbd5e1 1px solid";export{c as b,s as u};

@@ -1,0 +1,1 @@
+const e=r=>{switch(r){case"owner":return"bg-primary text-primary-foreground border-primary";case"admin":return"bg-primary/10 text-primary border-primary/20";case"developer":return"bg-secondary text-secondary-foreground border-border";case"viewer":return"bg-muted text-muted-foreground border-border";default:return"bg-muted text-muted-foreground border-border"}};export{e as g};

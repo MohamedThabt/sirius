@@ -1,0 +1,1 @@
+import{j as l}from"./index-B_ee4N1j.js";import{u as n}from"./types-CoCKCoOC.js";function m({node:t,selectedNodeId:e,onSelectNode:o}){const{selectionStyle:s}=n(t,e),i=r=>{r.stopPropagation(),o?.(t.id)};return l.jsx("p",{onClick:i,className:t.className,style:{margin:0,lineHeight:1.6,cursor:"pointer",...s},children:t.text||"Lorem ipsum dolor sit amet."})}export{m as TextNode};
