@@ -10,6 +10,7 @@ import { useState } from 'react';
 // Navigation links for Sirius
 const navigationLinks = [
     { href: '/#how-it-works', label: 'How it Works' },
+    { href: '/architecture', label: 'Architecture', isInertiaLink: true },
     { href: '/#features', label: 'Features' },
     { href: '/#teams', label: 'For Teams' },
     { href: '/pricing', label: 'Pricing', isInertiaLink: true },
