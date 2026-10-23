@@ -84,6 +84,21 @@ interface ProjectFlowCanvasProps {
     onManageRepo?: () => void;
 }
 
+// n8n-style stage colours: icon tiles, handles and completed connections.
+const STEP_ACCENT: Record<string, string> = {
+    brief: '#8b5cf6',
+    overview: '#0ea5e9',
+    technical_details: '#f59e0b',
+    modules: '#10b981',
+    prd: '#f43f5e',
+    architecture: '#6366f1',
+    erd: '#f97316',
+};
+const MODULE_ACCENT = '#10b981';
+const FEATURE_ACCENT = '#0ea5e9';
+const accentFor = (id: string) =>
+    STEP_ACCENT[id] ?? (id.startsWith('module-') ? MODULE_ACCENT : id.startsWith('feature-') ? FEATURE_ACCENT : '#a8a29e');
+
 const nodeTypes = {
     workflowNode: WorkflowNode as any,
     githubNode: GitHubNode as any,
@@ -123,7 +138,7 @@ const FlowCanvas = ({
 
     // Theme-aware edge colors (warm editorial palette)
     const completedEdgeColor = isDarkMode ? '#a8a29e' : '#292524';
-    const incompleteEdgeColor = isDarkMode ? '#44403c' : '#d6d3d1';
+    const incompleteEdgeColor = isDarkMode ? '#57534e' : '#a8a29e';
 
     const toggleModuleExpanded = useCallback((moduleId: number) => {
         setExpandedModules((prev) => ({
@@ -179,6 +194,7 @@ const FlowCanvas = ({
                     onClick: step.onClick,
                     prerequisiteMessage: step.prerequisiteMessage,
                     currentBadgeLabel: step.currentBadgeLabel,
+                    accent: accentFor(step.id),
                     inputHandlePosition: Position.Left,
                     outputHandlePosition: isModulesNode ? Position.Bottom : Position.Right,
                     outputHandleId: isModulesNode ? 'modules-bottom' : undefined,
@@ -284,6 +300,7 @@ const FlowCanvas = ({
                         title: module.name,
                         description: module.description || 'Module details',
                         icon: BoxIcon,
+                        accent: MODULE_ACCENT,
                         isCompleted: module.progress === 100 || module.status === 'completed',
                         isCurrent: module.status === 'in_progress',
                         isLocked: false,
@@ -325,6 +342,7 @@ const FlowCanvas = ({
                                 title: feature.name,
                                 description: feature.summary || 'Feature details',
                                 icon: ZapIcon,
+                                accent: FEATURE_ACCENT,
                                 isCompleted: feature.progress === 100 || feature.status === 'done',
                                 isCurrent: feature.status === 'in_progress',
                                 isLocked: false,
@@ -473,8 +491,31 @@ const FlowCanvas = ({
             });
         }
 
-        return { nodes, edges };
-    }, [steps, modules, isModulesExpanded, expandedModules, projectId, completedEdgeColor, incompleteEdgeColor, repository, onConnectRepo, onManageRepo]);
+        // Curved connections: done = source stage colour, pending = grey dashes (GitHub links stay dashed).
+        const styledEdges = edges.map((edge): Edge => {
+            const done = edge.style?.stroke === completedEdgeColor && edge.target !== 'github';
+            const color = done ? accentFor(edge.source) : incompleteEdgeColor;
+            return {
+                ...edge,
+                type: 'default',
+                markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color },
+                style: { stroke: color, strokeWidth: done ? 2 : 1.5, strokeDasharray: done ? undefined : '6 5' },
+            };
+        });
+
+        return { nodes, edges: styledEdges };
+    }, [
+        steps,
+        modules,
+        isModulesExpanded,
+        expandedModules,
+        projectId,
+        completedEdgeColor,
+        incompleteEdgeColor,
+        repository,
+        onConnectRepo,
+        onManageRepo,
+    ]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -509,9 +550,7 @@ const FlowCanvas = ({
                     <div
                         className="absolute inset-0"
                         style={{
-                            background: isDarkMode
-                                ? '#0c0a09'
-                                : 'linear-gradient(160deg, #fafaf9 0%, #f5f5f4 40%, #f5f5f5 100%)',
+                            background: isDarkMode ? '#0c0a09' : 'linear-gradient(160deg, #fafaf9 0%, #f5f5f4 40%, #f5f5f5 100%)',
                         }}
                     />
                     {/* Subtle warm corner glow */}
@@ -540,10 +579,10 @@ const FlowCanvas = ({
                     style={{ background: 'transparent' }}
                 >
                     <Background
-                        gap={28}
-                        size={1}
+                        gap={22}
+                        size={1.4}
                         variant={BackgroundVariant.Dots}
-                        color={isDarkMode ? 'rgba(168, 162, 158, 0.08)' : 'rgba(41, 37, 36, 0.04)'}
+                        color={isDarkMode ? 'rgba(168, 162, 158, 0.22)' : 'rgba(41, 37, 36, 0.16)'}
                     />
                 </ReactFlow>
                 <style>{`
@@ -556,7 +595,7 @@ const FlowCanvas = ({
                 {completionPercentage !== undefined && completedStepsCount !== undefined && totalStepsCount !== undefined && health && (
                     <div className="pointer-events-none absolute top-4 left-4 z-10">
                         <div className="pointer-events-auto flex items-center gap-3 rounded-[18px] border border-border/30 bg-card/80 px-4 py-2.5 backdrop-blur-sm">
-                            <span className="text-base font-semibold tabular-nums text-foreground/80">{completionPercentage}%</span>
+                            <span className="text-base font-semibold text-foreground/80 tabular-nums">{completionPercentage}%</span>
                             <div className="h-3.5 w-px bg-border/30" />
                             <div className="flex flex-col gap-0.5">
                                 <span className="text-[10px] font-medium tracking-wide text-muted-foreground/60">
@@ -564,7 +603,14 @@ const FlowCanvas = ({
                                 </span>
                                 <div className="flex items-center gap-1">
                                     <div className={cn('h-1 w-1 rounded-full', health.color.replace('text-', 'bg-').replace(/\/\d+/, '/50'))} />
-                                    <span className={cn('text-[9px] font-medium capitalize tracking-wide', health.color.replace(/text-/, 'text-').replace(/\/\d+/, '/50'))}>{health.label}</span>
+                                    <span
+                                        className={cn(
+                                            'text-[9px] font-medium tracking-wide capitalize',
+                                            health.color.replace(/text-/, 'text-').replace(/\/\d+/, '/50'),
+                                        )}
+                                    >
+                                        {health.label}
+                                    </span>
                                 </div>
                             </div>
                         </div>

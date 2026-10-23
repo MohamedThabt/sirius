@@ -53,9 +53,9 @@ const KIND_LABEL: Record<Kind, string> = {
 };
 
 const groups = [
-    { x: 470, y: 140, w: 350, h: 450, label: 'DOKPLOY STACK · sirius-laravel' },
-    { x: 860, y: 140, w: 300, h: 450, label: 'DOKPLOY STACK · sirius-ai' },
-    { x: 20, y: 760, w: 1400, h: 225, label: 'DELIVERY' },
+    { x: 470, y: 140, w: 350, h: 360, label: 'DOKPLOY STACK · sirius-laravel' },
+    { x: 860, y: 140, w: 300, h: 360, label: 'DOKPLOY STACK · sirius-ai' },
+    { x: 20, y: 680, w: 1400, h: 225, label: 'DELIVERY' },
 ];
 
 const nodes: DiagramNode[] = [
@@ -65,7 +65,7 @@ const nodes: DiagramNode[] = [
         x: 20,
         y: 230,
         w: 200,
-        h: 150,
+        h: 115,
         title: 'Browser',
         sub: 'React 19 · Inertia 2',
         items: ['TypeScript · Tailwind 4', 'React Flow · Mermaid', 'Monaco · Excalidraw'],
@@ -76,9 +76,9 @@ const nodes: DiagramNode[] = [
         id: 'browserSvc',
         kind: 'external',
         x: 20,
-        y: 440,
+        y: 400,
         w: 200,
-        h: 110,
+        h: 95,
         title: 'In-browser services',
         items: ['PostHog analytics', 'Google Analytics 4', 'Turnstile widget'],
         detail: 'Product analytics (PostHog, GA4) and the Cloudflare Turnstile challenge on sign-up and login, loaded as browser SDKs.',
@@ -99,7 +99,7 @@ const nodes: DiagramNode[] = [
         id: 'nginx',
         kind: 'edge',
         x: 260,
-        y: 330,
+        y: 290,
         w: 170,
         h: 74,
         title: 'Nginx',
@@ -113,7 +113,7 @@ const nodes: DiagramNode[] = [
         x: 490,
         y: 175,
         w: 310,
-        h: 240,
+        h: 190,
         title: 'Laravel 12 · PHP-FPM',
         sub: 'Inertia server-side routing',
         items: [
@@ -132,7 +132,7 @@ const nodes: DiagramNode[] = [
         id: 'nightwatch',
         kind: 'app',
         x: 490,
-        y: 445,
+        y: 395,
         w: 145,
         h: 64,
         title: 'Nightwatch agent',
@@ -145,7 +145,7 @@ const nodes: DiagramNode[] = [
         kind: 'data',
         shape: 'cylinder',
         x: 655,
-        y: 440,
+        y: 390,
         w: 145,
         h: 74,
         title: 'Storage volume',
@@ -158,9 +158,9 @@ const nodes: DiagramNode[] = [
         kind: 'data',
         shape: 'cylinder',
         x: 530,
-        y: 615,
+        y: 530,
         w: 230,
-        h: 115,
+        h: 110,
         title: 'PostgreSQL',
         items: ['projects, modules, features', 'versions, credits, usage', 'sessions · cache · jobs'],
         detail: 'Primary relational store. Sessions, cache and the job queue also use the database driver, so there is no separate cache tier to operate.',
@@ -172,7 +172,7 @@ const nodes: DiagramNode[] = [
         x: 880,
         y: 175,
         w: 260,
-        h: 230,
+        h: 175,
         title: 'FastAPI · Python',
         sub: 'Bearer-protected REST',
         items: [
@@ -191,7 +191,7 @@ const nodes: DiagramNode[] = [
         kind: 'data',
         shape: 'cylinder',
         x: 880,
-        y: 445,
+        y: 385,
         w: 105,
         h: 90,
         title: 'SQLite',
@@ -204,7 +204,7 @@ const nodes: DiagramNode[] = [
         id: 'litellm',
         kind: 'ai',
         x: 1000,
-        y: 445,
+        y: 385,
         w: 140,
         h: 90,
         title: 'LiteLLM',
@@ -219,7 +219,7 @@ const nodes: DiagramNode[] = [
         x: 1200,
         y: 160,
         w: 220,
-        h: 200,
+        h: 150,
         title: 'Third-party APIs',
         items: [
             'GitHub API · OAuth',
@@ -236,7 +236,7 @@ const nodes: DiagramNode[] = [
         id: 'gemini',
         kind: 'external',
         x: 1200,
-        y: 400,
+        y: 340,
         w: 220,
         h: 58,
         title: 'Gemini 2.5 Flash',
@@ -248,7 +248,7 @@ const nodes: DiagramNode[] = [
         id: 'cerebras',
         kind: 'external',
         x: 1200,
-        y: 472,
+        y: 410,
         w: 220,
         h: 58,
         title: 'Cerebras · Llama 3.1 8B',
@@ -260,7 +260,7 @@ const nodes: DiagramNode[] = [
         id: 'langfuse',
         kind: 'external',
         x: 1200,
-        y: 544,
+        y: 480,
         w: 220,
         h: 58,
         title: 'Langfuse',
@@ -273,7 +273,7 @@ const nodes: DiagramNode[] = [
         id: 'repo',
         kind: 'delivery',
         x: 120,
-        y: 800,
+        y: 720,
         w: 200,
         h: 64,
         title: 'GitHub repo',
@@ -284,7 +284,7 @@ const nodes: DiagramNode[] = [
         id: 'actions',
         kind: 'delivery',
         x: 370,
-        y: 800,
+        y: 720,
         w: 230,
         h: 64,
         title: 'GitHub Actions',
@@ -296,7 +296,7 @@ const nodes: DiagramNode[] = [
         id: 'ghcr',
         kind: 'delivery',
         x: 650,
-        y: 800,
+        y: 720,
         w: 230,
         h: 64,
         title: 'GHCR',
@@ -307,7 +307,7 @@ const nodes: DiagramNode[] = [
         id: 'dokploy',
         kind: 'delivery',
         x: 930,
-        y: 800,
+        y: 720,
         w: 200,
         h: 64,
         title: 'Dokploy',
@@ -319,7 +319,7 @@ const nodes: DiagramNode[] = [
         id: 'demoBranch',
         kind: 'delivery',
         x: 120,
-        y: 900,
+        y: 820,
         w: 200,
         h: 64,
         title: 'demo/github-pages',
@@ -331,7 +331,7 @@ const nodes: DiagramNode[] = [
         id: 'demoActions',
         kind: 'delivery',
         x: 370,
-        y: 900,
+        y: 820,
         w: 230,
         h: 64,
         title: 'GitHub Actions',
@@ -343,7 +343,7 @@ const nodes: DiagramNode[] = [
         id: 'ghpages',
         kind: 'delivery',
         x: 650,
-        y: 900,
+        y: 820,
         w: 230,
         h: 64,
         title: 'gh-pages branch',
@@ -354,7 +354,7 @@ const nodes: DiagramNode[] = [
         id: 'pages',
         kind: 'delivery',
         x: 930,
-        y: 900,
+        y: 820,
         w: 200,
         h: 64,
         title: 'GitHub Pages',
@@ -365,7 +365,7 @@ const nodes: DiagramNode[] = [
         id: 'cfDemo',
         kind: 'edge',
         x: 1180,
-        y: 900,
+        y: 820,
         w: 220,
         h: 64,
         title: 'Cloudflare',
@@ -392,66 +392,66 @@ const edges: DiagramEdge[] = [
         to: 'nginx',
         points: [
             [345, 234],
-            [345, 330],
+            [345, 290],
         ],
         label: 'proxied',
-        labelAt: [345, 282],
+        labelAt: [345, 262],
     },
     {
         from: 'nginx',
         to: 'laravel',
         points: [
-            [430, 367],
-            [490, 367],
+            [430, 327],
+            [490, 327],
         ],
         label: 'FastCGI',
-        labelAt: [460, 355],
+        labelAt: [460, 315],
     },
     {
         from: 'browser',
         to: 'browserSvc',
         points: [
-            [120, 380],
-            [120, 440],
+            [120, 345],
+            [120, 400],
         ],
         label: 'JS SDKs',
-        labelAt: [120, 410],
+        labelAt: [120, 372],
     },
     {
         from: 'laravel',
         to: 'fastapi',
         points: [
-            [800, 290],
-            [880, 290],
+            [800, 270],
+            [880, 270],
         ],
         label: 'REST + Bearer',
-        labelAt: [840, 278],
+        labelAt: [840, 258],
     },
     {
         from: 'laravel',
         to: 'nightwatch',
         points: [
-            [562, 415],
-            [562, 445],
+            [562, 365],
+            [562, 395],
         ],
     },
     {
         from: 'laravel',
         to: 'storage',
         points: [
-            [727, 415],
-            [727, 440],
+            [727, 365],
+            [727, 390],
         ],
     },
     {
         from: 'laravel',
         to: 'postgres',
         points: [
-            [645, 415],
-            [645, 615],
+            [645, 365],
+            [645, 530],
         ],
         label: 'SQL',
-        labelAt: [645, 602],
+        labelAt: [645, 515],
     },
     {
         from: 'laravel',
@@ -459,139 +459,137 @@ const edges: DiagramEdge[] = [
         points: [
             [700, 175],
             [700, 118],
-            [1310, 118],
-            [1310, 160],
+            [1395, 118],
+            [1395, 160],
         ],
         label: 'OAuth · mail · alerts · repos',
-        labelAt: [1000, 118],
+        labelAt: [1040, 118],
     },
     {
         from: 'fastapi',
         to: 'sqlite',
         points: [
-            [932, 405],
-            [932, 445],
+            [932, 350],
+            [932, 385],
         ],
     },
     {
         from: 'fastapi',
         to: 'litellm',
         points: [
-            [1070, 405],
-            [1070, 445],
+            [1070, 350],
+            [1070, 385],
         ],
         label: 'OpenAI API',
-        labelAt: [1070, 425],
+        labelAt: [1070, 367],
     },
     {
         from: 'litellm',
         to: 'gemini',
         points: [
-            [1140, 470],
-            [1170, 470],
-            [1170, 429],
-            [1200, 429],
+            [1140, 405],
+            [1170, 405],
+            [1170, 369],
+            [1200, 369],
         ],
     },
     {
         from: 'litellm',
         to: 'cerebras',
         points: [
-            [1140, 495],
-            [1200, 501],
+            [1140, 439],
+            [1200, 439],
         ],
     },
     {
         from: 'litellm',
         to: 'langfuse',
         points: [
-            [1140, 520],
-            [1170, 520],
-            [1170, 573],
-            [1200, 573],
+            [1140, 460],
+            [1170, 460],
+            [1170, 509],
+            [1200, 509],
         ],
         dashed: true,
     },
-    // Delivery: production
     {
         from: 'repo',
         to: 'actions',
         points: [
-            [320, 832],
-            [370, 832],
+            [320, 752],
+            [370, 752],
         ],
     },
     {
         from: 'actions',
         to: 'ghcr',
         points: [
-            [600, 832],
-            [650, 832],
+            [600, 752],
+            [650, 752],
         ],
         label: 'push',
-        labelAt: [625, 820],
+        labelAt: [625, 740],
     },
     {
         from: 'ghcr',
         to: 'dokploy',
         points: [
-            [880, 832],
-            [930, 832],
+            [880, 752],
+            [930, 752],
         ],
         label: 'API',
-        labelAt: [905, 820],
+        labelAt: [905, 740],
     },
     {
         from: 'dokploy',
         to: 'fastapi',
         points: [
-            [1050, 800],
-            [1050, 590],
+            [1050, 720],
+            [1050, 500],
         ],
         label: 'redeploy',
-        labelAt: [1050, 690],
+        labelAt: [1050, 610],
     },
     {
         from: 'dokploy',
         to: 'laravel',
         points: [
-            [1010, 800],
-            [1010, 745],
-            [790, 745],
-            [790, 590],
+            [1010, 720],
+            [1010, 665],
+            [790, 665],
+            [790, 500],
         ],
     },
-    // Delivery: demo
     {
         from: 'demoBranch',
         to: 'demoActions',
         points: [
-            [320, 932],
-            [370, 932],
+            [320, 852],
+            [370, 852],
         ],
     },
     {
         from: 'demoActions',
         to: 'ghpages',
         points: [
-            [600, 932],
-            [650, 932],
+            [600, 852],
+            [650, 852],
         ],
     },
     {
         from: 'ghpages',
         to: 'pages',
         points: [
-            [880, 932],
-            [930, 932],
+            [880, 852],
+            [930, 852],
         ],
     },
     {
         from: 'pages',
         to: 'cfDemo',
         points: [
-            [1130, 932],
-            [1180, 932],
+            [1130, 852],
+            [1180, 852],
         ],
     },
 ];
@@ -618,7 +616,17 @@ function NodeShape({ node, dimmed, active }: { node: DiagramNode; dimmed: boolea
                     <ellipse cx={x + w / 2} cy={y + 8} rx={w / 2} ry={8} fill="var(--card)" stroke={stroke} strokeWidth={active ? 1.5 : 1} />
                 </>
             ) : (
-                <rect x={x} y={y} width={w} height={h} rx={10} fill="var(--card)" stroke={stroke} strokeWidth={active ? 1.5 : 1} strokeDasharray={dash} />
+                <rect
+                    x={x}
+                    y={y}
+                    width={w}
+                    height={h}
+                    rx={10}
+                    fill="var(--card)"
+                    stroke={stroke}
+                    strokeWidth={active ? 1.5 : 1}
+                    strokeDasharray={dash}
+                />
             )}
             <circle cx={x + 16} cy={titleY - 4.5} r={4} fill={KIND_COLOR[node.kind]} />
             <text x={x + 27} y={titleY} fontSize={14} fontWeight={600} fill="var(--foreground)">
@@ -642,6 +650,7 @@ export default function SystemDiagram() {
     const [hovered, setHovered] = useState<string | null>(null);
     const [selected, setSelected] = useState<string>('laravel');
     const focus = hovered ?? selected;
+    const isHovering = hovered !== null;
 
     const connected = useMemo(() => {
         const ids = new Set<string>([focus]);
@@ -671,7 +680,7 @@ export default function SystemDiagram() {
 
             <div className="overflow-x-auto rounded-xl border border-border bg-background/60">
                 <svg
-                    viewBox="0 0 1440 1000"
+                    viewBox="0 100 1440 815"
                     className="block w-full min-w-[1080px] select-none"
                     role="img"
                     aria-label="Sirius system architecture: clients, edge, Laravel and AI stacks, data stores, third-party services and delivery pipelines"
@@ -681,7 +690,15 @@ export default function SystemDiagram() {
                         <marker id="arch-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                             <path d="M0 0 L10 5 L0 10 z" fill="var(--muted-foreground)" />
                         </marker>
-                        <marker id="arch-arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                        <marker
+                            id="arch-arrow-active"
+                            viewBox="0 0 10 10"
+                            refX="9"
+                            refY="5"
+                            markerWidth="7"
+                            markerHeight="7"
+                            orient="auto-start-reverse"
+                        >
                             <path d="M0 0 L10 5 L0 10 z" fill="var(--foreground)" />
                         </marker>
                     </defs>
@@ -692,23 +709,40 @@ export default function SystemDiagram() {
                         ['EDGE', 260, 146],
                         ['EXTERNAL SERVICES', 1200, 146],
                     ].map(([label, x, y]) => (
-                        <text key={label as string} x={x as number} y={y as number} fontSize={10.5} letterSpacing={1.5} fill="var(--muted-foreground)">
+                        <text
+                            key={label as string}
+                            x={x as number}
+                            y={y as number}
+                            fontSize={10.5}
+                            letterSpacing={1.5}
+                            fill="var(--muted-foreground)"
+                        >
                             {label}
                         </text>
                     ))}
 
                     {groups.map((g) => (
                         <g key={g.label}>
-                            <rect x={g.x} y={g.y} width={g.w} height={g.h} rx={14} fill="var(--muted)" fillOpacity={0.35} stroke="var(--border)" strokeDasharray="2 4" />
+                            <rect
+                                x={g.x}
+                                y={g.y}
+                                width={g.w}
+                                height={g.h}
+                                rx={14}
+                                fill="var(--muted)"
+                                fillOpacity={0.35}
+                                stroke="var(--border)"
+                                strokeDasharray="2 4"
+                            />
                             <text x={g.x + 14} y={g.y + 20} fontSize={10.5} letterSpacing={1.5} fill="var(--muted-foreground)">
                                 {g.label}
                             </text>
                         </g>
                     ))}
-                    <text x={36} y={837} fontSize={10.5} letterSpacing={1.5} fill="var(--muted-foreground)">
+                    <text x={36} y={757} fontSize={10.5} letterSpacing={1.5} fill="var(--muted-foreground)">
                         PROD
                     </text>
-                    <text x={36} y={937} fontSize={10.5} letterSpacing={1.5} fill="var(--muted-foreground)">
+                    <text x={36} y={857} fontSize={10.5} letterSpacing={1.5} fill="var(--muted-foreground)">
                         DEMO
                     </text>
 
@@ -720,8 +754,8 @@ export default function SystemDiagram() {
                                 d={pathOf(edge.points)}
                                 fill="none"
                                 stroke={active ? 'var(--foreground)' : 'var(--muted-foreground)'}
-                                strokeOpacity={active ? 0.9 : 0.45}
-                                strokeWidth={active ? 1.6 : 1.1}
+                                strokeOpacity={active ? 1 : 0.75}
+                                strokeWidth={active ? 1.8 : 1.3}
                                 strokeDasharray={edge.dashed ? '5 4' : undefined}
                                 markerEnd={`url(#${active ? 'arch-arrow-active' : 'arch-arrow'})`}
                             />
@@ -736,7 +770,7 @@ export default function SystemDiagram() {
                             onClick={() => setSelected(node.id)}
                             className="cursor-pointer"
                         >
-                            <NodeShape node={node} dimmed={!connected.has(node.id)} active={node.id === focus} />
+                            <NodeShape node={node} dimmed={isHovering && !connected.has(node.id)} active={node.id === focus} />
                         </g>
                     ))}
 

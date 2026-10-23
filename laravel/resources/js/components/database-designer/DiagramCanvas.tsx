@@ -2,7 +2,7 @@ import ReactFlowControls from '@/components/ui/ReactFlowControls';
 import { addEdge, Background, BackgroundVariant, Connection, Edge, Node, ReactFlow, useEdgesState, useNodesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
-import TableNode from './TableNode';
+import TableNode, { tableColor } from './TableNode';
 
 interface DiagramCanvasProps {
     nodes: Node[];
@@ -48,15 +48,32 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
             return document.documentElement.classList.contains('dark');
         });
 
+        // Each table gets a stable colour; its outgoing relationships use the same colour.
+        const colorOf = (node?: Node) => tableColor(String((node?.data as { tableName?: string } | undefined)?.tableName ?? node?.id ?? ''));
+
         // Enhance nodes with edit/delete callbacks
         const enhancedNodes = filteredNodes.map((node) => ({
             ...node,
             data: {
                 ...node.data,
+                color: colorOf(node),
                 onEdit: onNodeEdit ? () => onNodeEdit(node.id) : undefined,
                 onDelete: onNodeDelete ? () => onNodeDelete(node.id) : undefined,
             },
         }));
+
+        const coloredEdges = filteredEdges.map((edge) => {
+            const color = colorOf(filteredNodes.find((n) => n.id === edge.source) ?? ({ id: edge.source } as Node));
+            return {
+                ...edge,
+                animated: false,
+                style: { ...edge.style, stroke: color, strokeWidth: 2 },
+                labelStyle: { ...edge.labelStyle, fill: color, fontWeight: 600 },
+                labelBgStyle: { fill: 'var(--card)', fillOpacity: 0.95 },
+                labelBgPadding: [6, 3] as [number, number],
+                labelBgBorderRadius: 4,
+            };
+        });
 
         // Layout Algorithm Implementations
         const applyGridLayout = (nodes: Node[]) => {
@@ -429,7 +446,7 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
 
                 <ReactFlow
                     nodes={enhancedNodes}
-                    edges={filteredEdges}
+                    edges={coloredEdges}
                     nodeTypes={nodeTypes}
                     onNodesChange={handleNodesChange}
                     onEdgesChange={handleEdgesChange}
@@ -489,7 +506,7 @@ const DiagramCanvas = forwardRef<HTMLDivElement, DiagramCanvasProps>(
                         stroke-width: 2 !important;
                     }
                     .react-flow__edge.selected .react-flow__edge-path {
-                        stroke: hsl(var(--primary)) !important;
+                        stroke: var(--foreground) !important;
                         stroke-width: 3 !important;
                     }
                     .react-flow__background {
